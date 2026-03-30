@@ -1,6 +1,7 @@
 // src/app/page.tsx — Homepage Master Longetividade
 import type { Metadata } from "next";
 import Link from "next/link";
+import LeadCapture from "@/components/LeadCapture";
 
 export const metadata: Metadata = {
   title: "Longetividade — Viva Mais, Viva Melhor",
@@ -156,10 +157,7 @@ export default function HomePage() {
           <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-violet-400">Novos lançamentos</p>
           <h3 className="mb-4 text-3xl font-bold">Entre na Lista VIP</h3>
           <p className="mb-8 text-white/50">Seja o primeiro a saber dos novos programas com preço especial.</p>
-          <form className="flex flex-col gap-3 sm:flex-row" action="/api/lista-vip" method="POST">
-            <input type="email" name="email" required placeholder="seu@email.com" className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm placeholder-white/30 focus:border-violet-500/50 focus:outline-none transition-all"/>
-            <button type="submit" className="rounded-xl bg-violet-600 px-6 py-3 text-sm font-semibold hover:bg-violet-500 active:scale-95 transition-all whitespace-nowrap">Entrar na Lista</button>
-          </form>
+          <LeadCapture source="homepage-vip" />
           <p className="mt-3 text-xs text-white/30">Sem spam. Apenas novidades que importam.</p>
         </div>
       </section>
