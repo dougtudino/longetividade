@@ -40,9 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# ebook PDF (nao versionar - entregar via URL assinada)
+# ebook PDF
 /public/ebook*.pdf
 /private/
-/storage/ebooks/*.pdf
 
 /src/generated/prisma
