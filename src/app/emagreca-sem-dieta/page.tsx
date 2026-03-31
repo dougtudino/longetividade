@@ -349,7 +349,14 @@ export default function EmagrecaSemDietaPage() {
           </div>
           {/* Mockup do ebook — 40% */}
           <div className="flex-shrink-0 w-full max-w-[280px] md:max-w-[320px]">
-            <MockupEbookCover size="md" className="w-full" />
+            <Image
+              src="/images/ebook-mockup.png"
+              alt="Ebook Emagreca Sem Dieta — Metodo S.E.M"
+              width={320}
+              height={427}
+              className="w-full h-auto drop-shadow-2xl"
+              priority
+            />
           </div>
         </div>
       </section>
