@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { captureUTMs, appendUTMs } from "@/lib/utm";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const HOTMART = "https://pay.hotmart.com/H105141835Q";
 const KIWIFY = "https://pay.kiwify.com.br/3fle7dM";
@@ -75,15 +76,18 @@ export default function CampaignPage() {
           <Link href="/" className="text-xs font-bold text-white/60">
             Longetividade
           </Link>
-          <a
-            href={buyUrl}
-            onClick={handleClick}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold hover:bg-emerald-400 transition-colors"
-          >
-            Comprar Agora
-          </a>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <a
+              href={buyUrl}
+              onClick={handleClick}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold hover:bg-emerald-400 transition-colors text-white"
+            >
+              Comprar Agora
+            </a>
+          </div>
         </div>
       </nav>
 
@@ -139,9 +143,9 @@ export default function CampaignPage() {
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {[
-              { s: "S", n: "Saciedade", d: "Coma o suficiente sem contar calorias.", c: "border-emerald-500/20" },
-              { s: "E", n: "Equilibrio", d: "Relacao saudavel com a comida, sem culpa.", c: "border-cyan-500/20" },
-              { s: "M", n: "Metabolismo", d: "Ative seu metabolismo com habitos simples.", c: "border-violet-500/20" },
+              { s: "S", n: "Simplicidade", d: "Coma de verdade sem contar calorias, pesar ou seguir cardapio complicado.", c: "border-emerald-500/20" },
+              { s: "E", n: "Equilibrio", d: "Entenda por que voce come por emocao e como resolver isso de vez.", c: "border-cyan-500/20" },
+              { s: "M", n: "Movimento", d: "15 minutos de movimento integrado ao seu dia — sem academia.", c: "border-violet-500/20" },
             ].map((p) => (
               <div key={p.s} className={`flex flex-col gap-3 rounded-2xl border bg-white/[0.02] p-6 ${p.c}`}>
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-2xl font-black">

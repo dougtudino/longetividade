@@ -60,6 +60,14 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${playfair.variable} ${nunito.variable} h-full antialiased`}
     >
+      <head>
+        {/* Prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='light'){document.documentElement.classList.add('light')}else{document.documentElement.classList.remove('light')}}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col font-body">
         <TrackingScripts />
         {children}
