@@ -2,18 +2,18 @@
 import { useEffect, useState } from "react";
 
 export default function ThemeToggle({ className = "" }: { className?: string }) {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const saved = localStorage.getItem("theme");
-    const dark = saved !== "light";
+    const dark = saved === "dark";
     setIsDark(dark);
-    if (!dark) {
-      document.documentElement.classList.add("light");
-    } else {
+    if (dark) {
       document.documentElement.classList.remove("light");
+    } else {
+      document.documentElement.classList.add("light");
     }
   }, []);
 
@@ -26,7 +26,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.add("light");
-      localStorage.setItem("theme", "light");
+      localStorage.setItem("theme", "light"); // light is default, but save anyway
     }
     setTimeout(() => {
       document.documentElement.classList.remove("theme-transitioning");
