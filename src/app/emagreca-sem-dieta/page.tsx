@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
 import ThemeToggle from "@/components/ThemeToggle";
+import { IdentificationChecklist } from "@/components/landing/identification-checklist";
 import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
 import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
 import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
@@ -393,44 +394,8 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* IDENTIFICACAO */}
-      <section className="py-20 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
-        <div className="mx-auto max-w-2xl">
-          <h2 className="mb-8 text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Me diz se voce ja viveu pelo menos 3 dessas situacoes:
-          </h2>
-          <div className="rounded-2xl border p-6 md:p-8" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}>
-            <ul className="space-y-3">
-              {[
-                "Voce ja comecou uma dieta na segunda e desistiu antes de sexta",
-                "Voce come bem o dia inteiro, mas 'perde o controle' a noite",
-                "Voce sabe exatamente o que deveria comer, mas na hora nao consegue",
-                "Ja tentou low carb, jejum, sopa, shake — e nenhum se sustentou",
-                "Voce nao tem tempo pra academia e se sente culpada por isso",
-                "Voce pesa mais HOJE do que antes da ultima dieta que fez",
-                "Voce evita espelhos, fotos e roupas justas",
-                "Voce se compara com amigas que parecem 'conseguir' sem esforco",
-                "Voce desconta o estresse na comida e depois se pune por isso",
-                "Voce ja gastou dinheiro em produtos de emagrecimento que nao funcionaram",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <div
-                    className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border"
-                    style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
-                  >
-                    <div className="h-2 w-2 rounded-sm" style={{ backgroundColor: "var(--accent)" }} />
-                  </div>
-                  <span className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-6 font-semibold" style={{ color: "var(--text-primary)" }}>
-              Se marcou 3 ou mais, continue lendo. O que vem a seguir pode mudar a forma como voce
-              enxerga emagrecimento — pra sempre.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* IDENTIFICACAO — componente interativo com barra de progresso e contador */}
+      <IdentificationChecklist />
 
       {/* PROBLEMA NAO E VOCE */}
       <section className="py-20 px-6">
