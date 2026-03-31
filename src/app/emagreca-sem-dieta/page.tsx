@@ -15,6 +15,10 @@ const AVATAR_MAP: Record<string, string> = {
   fernanda: "/images/avatar-fernanda.png",
   camila: "/images/avatar-camila.png",
   patricia: "/images/avatar-patricia.jpg",
+  ana: "/images/avatar-ana.jpg",
+  carla: "/images/avatar-carla.jpg",
+  juliana: "/images/avatar-juliana.png",
+  marina: "/images/avatar-marina.jpg",
 };
 
 const LINKS = {
