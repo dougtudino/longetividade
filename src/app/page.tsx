@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LeadCapture from "@/components/LeadCapture";
 import ThemeToggle from "@/components/ThemeToggle";
+import { AvatarDepoimento, BadgeResultado } from "@/components/visual";
 
 export const metadata: Metadata = {
   title: "Longetividade — Viva Mais, Viva Melhor",
@@ -29,6 +30,149 @@ interface Produto {
   accentColor: string;
 }
 
+/* ---------- SVG Art per product ---------- */
+function ProductArt({ id }: { id: string }) {
+  switch (id) {
+    case "emagreca-sem-dieta":
+      return (
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          {/* Plate */}
+          <circle cx="60" cy="62" r="38" stroke="#E5E5E5" strokeWidth="2.5" fill="none" />
+          <ellipse cx="60" cy="62" rx="32" ry="30" fill="#F5F5F0" fillOpacity="0.15" />
+          {/* Lettuce leaves */}
+          <path d="M42 55c4-8 12-10 18-7s8 10 4 16c-6-2-14-1-18-2s-6-3-4-7z" fill="#7A9E7E" fillOpacity="0.85" />
+          <path d="M50 50c5-6 14-6 18-2s4 12-1 16c-4-4-11-6-15-8s-4-3-2-6z" fill="#7A9E7E" fillOpacity="0.65" />
+          <path d="M58 48c3-4 10-5 14-1s3 10 0 13c-4-3-9-5-12-7s-4-2-2-5z" fill="#93B396" fillOpacity="0.7" />
+          {/* Tomato */}
+          <circle cx="68" cy="68" r="7" fill="#C4787A" />
+          <circle cx="68" cy="68" r="7" fill="#C4787A" fillOpacity="0.8" />
+          <path d="M66 62c1-1 3-1 4 0" stroke="#3D5A3E" strokeWidth="1" strokeLinecap="round" />
+          {/* Cucumber slices */}
+          <circle cx="50" cy="72" r="5" fill="#93B396" fillOpacity="0.6" stroke="#7A9E7E" strokeWidth="0.8" />
+          <circle cx="50" cy="72" r="2.5" fill="#B8D4BA" fillOpacity="0.4" />
+          <circle cx="56" cy="78" r="4" fill="#93B396" fillOpacity="0.5" stroke="#7A9E7E" strokeWidth="0.8" />
+          {/* Fork */}
+          <line x1="92" y1="40" x2="92" y2="85" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
+          <line x1="88" y1="40" x2="88" y2="55" stroke="#2D2D2D" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="92" y1="40" x2="92" y2="55" stroke="#2D2D2D" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="96" y1="40" x2="96" y2="55" stroke="#2D2D2D" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M88 55q4 4 8 0" stroke="#2D2D2D" strokeWidth="1.5" fill="none" />
+          {/* Laurel leaf */}
+          <path d="M28 48c2-6 8-8 12-5s4 8 1 12c-4-1-8-2-11-3s-3-2-2-4z" fill="#3D5A3E" fillOpacity="0.8" />
+          <line x1="30" y1="50" x2="38" y2="52" stroke="#2D5A2E" strokeWidth="0.6" />
+        </svg>
+      );
+
+    case "sono-profundo":
+      return (
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          {/* Pillow */}
+          <path d="M20 82c0-4 8-12 40-12s40 8 40 12-8 10-40 10-40-6-40-10z" stroke="#9CA3AF" strokeWidth="1.5" fill="none" />
+          <path d="M25 80c0-3 7-8 35-8s35 5 35 8" stroke="#9CA3AF" strokeWidth="1" fill="none" strokeOpacity="0.5" />
+          {/* Moon */}
+          <circle cx="55" cy="42" r="20" fill="#D4A94B" />
+          <circle cx="65" cy="36" r="16" fill="#3B4A6B" />
+          {/* Stars */}
+          <polygon points="90,25 91.5,29 96,29.5 92.5,32 93.5,36 90,33.5 86.5,36 87.5,32 84,29.5 88.5,29" fill="#D4A94B" fillOpacity="1" />
+          <polygon points="100,45 101,47.5 104,48 102,50 102.5,53 100,51 97.5,53 98,50 96,48 99,47.5" fill="#D4A94B" fillOpacity="0.8" />
+          <polygon points="30,30 31,32 33.5,32.5 31.5,34 32,36.5 30,35 28,36.5 28.5,34 26.5,32.5 29,32" fill="#D4A94B" fillOpacity="0.6" />
+          <polygon points="82,55 83,57 85,57 83.5,58.5 84,60.5 82,59.5 80,60.5 80.5,58.5 79,57 81,57" fill="#D4A94B" fillOpacity="0.5" />
+          <polygon points="22,50 23,52 25,52 23.5,53.5 24,55.5 22,54.5 20,55.5 20.5,53.5 19,52 21,52" fill="#D4A94B" fillOpacity="0.4" />
+          {/* ZZZ */}
+          <text x="72" y="22" fill="#3B4A6B" fontSize="10" fontWeight="bold" fontFamily="sans-serif" opacity="0.9">Z</text>
+          <text x="80" y="16" fill="#3B4A6B" fontSize="8" fontWeight="bold" fontFamily="sans-serif" opacity="0.7">Z</text>
+          <text x="86" y="11" fill="#3B4A6B" fontSize="6" fontWeight="bold" fontFamily="sans-serif" opacity="0.5">Z</text>
+        </svg>
+      );
+
+    case "detox-mental":
+      return (
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          {/* Female head profile */}
+          <path d="M65 95c0 0-5-2-8-8s-4-12-3-18c1-8 4-14 10-18s14-6 18-4 6 6 5 12c-1 4-3 8-6 11s-6 5-8 7-4 6-4 10" stroke="#2D2D2D" strokeWidth="2" fill="none" strokeLinecap="round" />
+          {/* Neck */}
+          <path d="M65 95l-2 15" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
+          <path d="M57 87l-3 23" stroke="#2D2D2D" strokeWidth="2" strokeLinecap="round" />
+          {/* Nose/chin detail */}
+          <path d="M54 69c-3 1-5 3-6 6s0 6 1 8" stroke="#2D2D2D" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          {/* Leaves growing from head */}
+          <path d="M72 47c-2-8 2-14 8-16s10 2 8 10c-4-1-10 1-14 4z" fill="#7A9E7E" fillOpacity="0.8" />
+          <path d="M80 42c0-7 4-12 10-12s8 5 5 11c-4-2-10-1-13 2z" fill="#7A9E7E" fillOpacity="0.6" />
+          <path d="M66 50c-4-6-2-14 3-17s10 0 10 6c-4 0-8 4-11 8z" fill="#93B396" fillOpacity="0.7" />
+          {/* Small flowers */}
+          <circle cx="75" cy="35" r="3" fill="#C4787A" fillOpacity="0.7" />
+          <circle cx="75" cy="35" r="1.2" fill="#D4A94B" fillOpacity="0.8" />
+          <circle cx="88" cy="38" r="2.5" fill="#C4787A" fillOpacity="0.6" />
+          <circle cx="88" cy="38" r="1" fill="#D4A94B" fillOpacity="0.7" />
+          <circle cx="68" cy="42" r="2" fill="#C4787A" fillOpacity="0.5" />
+          {/* Meditation arc waves */}
+          <path d="M38 75c-8-10-8-24 0-34" stroke="#C4787A" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.7" />
+          <path d="M32 78c-10-12-10-30 0-40" stroke="#C4787A" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5" />
+          <path d="M26 81c-12-14-12-36 0-46" stroke="#C4787A" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.3" />
+        </svg>
+      );
+
+    case "longevidade-60":
+      return (
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          {/* Heart */}
+          <path d="M60 90s-28-16-28-38c0-12 8-20 18-20 6 0 10 4 10 4s4-4 10-4c10 0 18 8 18 20 0 22-28 38-28 38z" fill="#C4787A" fillOpacity="0.75" />
+          {/* ECG line inside heart */}
+          <polyline points="38,58 46,58 50,58 53,48 56,68 59,44 62,72 65,50 68,58 72,58 76,58 82,58" stroke="#FFFFFF" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Leaf curling around heart */}
+          <path d="M82 42c6-10 16-12 20-6s0 14-8 18c-2-6-6-10-10-12z" fill="#7A9E7E" fillOpacity="0.8" />
+          <path d="M84 44c4-2 10-2 14 2" stroke="#3D5A3E" strokeWidth="0.8" fill="none" strokeLinecap="round" />
+          <path d="M88 82c8 4 14 2 16-4s-2-12-8-14c0 6-4 12-8 16z" fill="#7A9E7E" fillOpacity="0.6" />
+          <path d="M90 80c4 0 8-2 10-6" stroke="#3D5A3E" strokeWidth="0.8" fill="none" strokeLinecap="round" />
+          {/* Small sun in corner */}
+          <circle cx="22" cy="22" r="6" fill="#D4A94B" fillOpacity="0.8" />
+          <line x1="22" y1="12" x2="22" y2="8" stroke="#D4A94B" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="22" y1="32" x2="22" y2="36" stroke="#D4A94B" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="12" y1="22" x2="8" y2="22" stroke="#D4A94B" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="32" y1="22" x2="36" y2="22" stroke="#D4A94B" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="15" y1="15" x2="12" y2="12" stroke="#D4A94B" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="29" y1="15" x2="32" y2="12" stroke="#D4A94B" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="15" y1="29" x2="12" y2="32" stroke="#D4A94B" strokeWidth="1.2" strokeLinecap="round" />
+          <line x1="29" y1="29" x2="32" y2="32" stroke="#D4A94B" strokeWidth="1.2" strokeLinecap="round" />
+        </svg>
+      );
+
+    case "energia-metabolismo":
+      return (
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+          {/* Organic gear/cog */}
+          <path d="M60 30c3 0 5 2 6 4l2-1c2-2 5-2 7 0s2 5 0 7l-1 2c2 1 4 3 4 6s-2 5-4 6l1 2c2 2 2 5 0 7s-5 2-7 0l-2-1c-1 2-3 4-6 4s-5-2-6-4l-2 1c-2 2-5 2-7 0s-2-5 0-7l1-2c-2-1-4-3-4-6s2-5 4-6l-1-2c-2-2-2-5 0-7s5-2 7 0l2 1c1-2 3-4 6-4z" fill="#7A9E7E" fillOpacity="0.3" stroke="#7A9E7E" strokeWidth="1.5" />
+          <circle cx="60" cy="48" r="8" fill="none" stroke="#7A9E7E" strokeWidth="1" />
+          {/* Leaf on gear */}
+          <path d="M68 34c2-6 8-8 12-5s3 8 0 12c-4-1-8-2-10-4s-3-2-2-3z" fill="#7A9E7E" fillOpacity="0.8" />
+          <line x1="70" y1="36" x2="77" y2="38" stroke="#3D5A3E" strokeWidth="0.6" />
+          {/* Lightning bolt */}
+          <polygon points="62,18 52,52 60,52 56,78 74,42 64,42 70,18" fill="#D4A94B" fillOpacity="0.9" />
+          <polygon points="62,18 52,52 60,52 56,78 74,42 64,42 70,18" fill="none" stroke="#B8860B" strokeWidth="0.8" />
+          {/* Apple */}
+          <path d="M30 65c0-10 6-18 14-18s14 8 14 18-6 20-14 20-14-10-14-20z" fill="#C4787A" fillOpacity="0.7" />
+          <path d="M44 47c-2-4 0-8 4-8" stroke="#3D5A3E" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          <path d="M44 50c2-2 5-2 7 0" fill="#7A9E7E" fillOpacity="0.6" />
+          <ellipse cx="38" cy="62" rx="3" ry="5" fill="#FFFFFF" fillOpacity="0.15" />
+          {/* Apple leaf */}
+          <path d="M46 50c2-4 6-5 8-2s0 6-3 8c-2-1-4-3-5-4z" fill="#7A9E7E" fillOpacity="0.7" />
+        </svg>
+      );
+
+    default:
+      return null;
+  }
+}
+
+/* ---------- Gradient backgrounds per product ---------- */
+const gradientMap: Record<string, string> = {
+  "emagreca-sem-dieta": "linear-gradient(135deg, #7A9E7E, #3D5A3E)",
+  "sono-profundo": "linear-gradient(135deg, #3B4A6B, #1a2040)",
+  "detox-mental": "linear-gradient(135deg, #C4787A, #8B3A3C)",
+  "longevidade-60": "linear-gradient(135deg, #D4A94B, #B8860B)",
+  "energia-metabolismo": "linear-gradient(135deg, #6B9E6B, #2D6B2D)",
+};
+
 const produtos: Produto[] = [
   {
     id: "emagreca-sem-dieta",
@@ -36,7 +180,7 @@ const produtos: Produto[] = [
     subtitulo: "Metodo S.E.M",
     badge: "Mais Vendido",
     badgeEmoji: "🔥",
-    preco: "R$ 27",
+    preco: "R$ 37",
     precoOriginal: "R$ 97",
     descricao:
       "Perca peso de forma permanente sem passar fome, sem contar calorias e sem radicalismos. Um metodo que funciona na sua vida real.",
@@ -97,46 +241,46 @@ const produtos: Produto[] = [
     accentColor: "amber",
   },
   {
-    id: "jejum-inteligente",
-    titulo: "Jejum Inteligente",
-    subtitulo: "Autofagia & Longevidade",
+    id: "longevidade-60",
+    titulo: "Longevidade 60+",
+    subtitulo: "Saude e Vitalidade",
     badge: "Em Breve",
-    badgeEmoji: "⚡",
+    badgeEmoji: "💛",
     preco: "R$ 47",
     descricao:
-      "Jejum intermitente baseado nos estudos do Nobel Ohsumi sobre autofagia. Protocolos seguros e adaptados a vida real.",
+      "Protocolo de saude cardiovascular e vitalidade para quem quer viver mais e melhor apos os 60.",
     beneficios: [
-      "Protocolos 16:8 e 18:6 passo a passo",
-      "Cardapio de quebra de jejum",
-      "Saude do microbioma intestinal",
+      "Saude cardiovascular baseada em ciencia",
+      "Exercicios adaptados para 60+",
+      "Nutricao para longevidade ativa",
     ],
     cta: "Entrar na Lista VIP",
-    href: "/jejum-inteligente",
+    href: "/longevidade-60",
     disponivel: false,
-    gradientDark: "from-rose-950 to-pink-900",
-    gradientLight: "from-rose-50 to-pink-50",
-    accentColor: "rose",
+    gradientDark: "from-amber-950 to-yellow-900",
+    gradientLight: "from-amber-50 to-yellow-50",
+    accentColor: "amber",
   },
   {
-    id: "movimento-vital",
-    titulo: "Movimento Vital",
-    subtitulo: "Exercicio que Rejuvenesce",
+    id: "energia-metabolismo",
+    titulo: "Energia & Metabolismo",
+    subtitulo: "Ativacao Metabolica",
     badge: "Em Breve",
-    badgeEmoji: "💪",
+    badgeEmoji: "⚡",
     preco: "R$ 57",
     descricao:
-      "20 minutos por dia que ativam os hormonios da juventude. Sem academia, sem equipamentos, sem horario fixo.",
+      "Ative seu metabolismo com habitos simples e cientificos. Mais energia, menos fadiga, resultados visiveis.",
     beneficios: [
-      "Treinos progressivos sem academia",
-      "Ciencia do movimento funcional",
-      "Ativa GH e outros hormonios anabolicos",
+      "Ativacao metabolica natural",
+      "Protocolo de energia diaria",
+      "Nutricao funcional pratica",
     ],
     cta: "Entrar na Lista VIP",
-    href: "/movimento-vital",
+    href: "/energia-metabolismo",
     disponivel: false,
-    gradientDark: "from-cyan-950 to-sky-900",
-    gradientLight: "from-cyan-50 to-sky-50",
-    accentColor: "cyan",
+    gradientDark: "from-green-950 to-emerald-900",
+    gradientLight: "from-green-50 to-emerald-50",
+    accentColor: "green",
   },
 ];
 
@@ -180,7 +324,7 @@ const depoimentos = [
     nome: "Marina T.",
     local: "Florianopolis, SC",
     texto:
-      "Melhor investimento que fiz na saude. R$ 27 que mudaram minha relacao com o corpo. Minha autoestima voltou.",
+      "Melhor investimento que fiz na saude. R$ 37 que mudaram minha relacao com o corpo. Minha autoestima voltou.",
     resultado: "-5kg",
   },
 ];
@@ -387,7 +531,7 @@ export default function HomePage() {
               <Link
                 key={p.id}
                 href={p.href}
-                className="group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.01] md:col-span-2 lg:col-span-2"
+                className="group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.01] neon-border md:col-span-2 lg:col-span-2"
                 style={{
                   border: "1px solid var(--border-subtle)",
                   backgroundColor: "var(--bg-card)",
@@ -400,7 +544,7 @@ export default function HomePage() {
                       "linear-gradient(90deg, transparent, var(--border-hover), transparent)",
                   }}
                 />
-                <div className="absolute top-5 right-5">
+                <div className="absolute top-5 right-5 z-10">
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold"
                     style={{
@@ -416,7 +560,7 @@ export default function HomePage() {
                     {p.badge}
                   </span>
                 </div>
-                <div className="flex flex-col gap-4 p-7 flex-1 md:flex-row md:items-center md:gap-12">
+                <div className="flex flex-col gap-4 p-7 flex-1 md:flex-row md:items-center md:gap-8">
                   <div className="flex flex-col gap-3 md:flex-1">
                     <p
                       className="text-xs font-semibold tracking-widest uppercase"
@@ -461,36 +605,47 @@ export default function HomePage() {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                  <div className="flex flex-col gap-3 md:items-start md:min-w-[220px]">
-                    <div className="flex items-baseline gap-2">
-                      {p.precoOriginal && (
+                    <div className="flex flex-col gap-3 mt-4 md:flex-row md:items-center">
+                      <div className="flex items-baseline gap-2">
+                        {p.precoOriginal && (
+                          <span
+                            className="text-sm line-through"
+                            style={{ color: "var(--text-hint)" }}
+                          >
+                            {p.precoOriginal}
+                          </span>
+                        )}
                         <span
-                          className="text-sm line-through"
-                          style={{ color: "var(--text-hint)" }}
+                          className="text-4xl font-bold"
+                          style={{ color: "var(--text-primary)" }}
                         >
-                          {p.precoOriginal}
+                          {p.preco}
                         </span>
-                      )}
-                      <span
-                        className="text-4xl font-bold"
-                        style={{ color: "var(--text-primary)" }}
+                      </div>
+                      <button
+                        className="rounded-xl py-3.5 px-6 text-base font-semibold text-white transition-all duration-200 active:scale-95"
+                        style={{ backgroundColor: "var(--accent)" }}
                       >
-                        {p.preco}
-                      </span>
+                        {p.cta} →
+                      </button>
                     </div>
-                    <button
-                      className="w-full rounded-xl py-3.5 px-6 text-base font-semibold text-white transition-all duration-200 active:scale-95"
-                      style={{ backgroundColor: "var(--accent)" }}
-                    >
-                      {p.cta} →
-                    </button>
                     <p
-                      className="text-center text-xs"
+                      className="text-xs"
                       style={{ color: "var(--text-hint)" }}
                     >
                       Pagamento seguro · Acesso imediato
                     </p>
+                  </div>
+                  {/* SVG Art area — right side for featured */}
+                  <div
+                    className="flex items-center justify-center rounded-xl p-6 md:min-w-[200px] md:w-[220px] md:h-[220px]"
+                    style={{
+                      background: gradientMap[p.id],
+                    }}
+                  >
+                    <div className="w-[140px] h-[140px]">
+                      <ProductArt id={p.id} />
+                    </div>
                   </div>
                 </div>
               </Link>
@@ -502,19 +657,32 @@ export default function HomePage() {
               <Link
                 key={p.id}
                 href={p.href}
-                className="group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.01]"
+                className="group relative flex flex-col overflow-hidden rounded-2xl transition-all duration-300 hover:scale-[1.01] neon-border"
                 style={{
                   border: "1px solid var(--border-subtle)",
                   backgroundColor: "var(--bg-card)",
                   minHeight: "300px",
                 }}
               >
-                <div className="absolute top-5 right-5">
+                {/* SVG Art area — top for regular cards */}
+                <div
+                  className="flex items-center justify-center rounded-t-2xl p-5"
+                  style={{
+                    background: gradientMap[p.id],
+                    minHeight: "140px",
+                  }}
+                >
+                  <div className="w-[100px] h-[100px]">
+                    <ProductArt id={p.id} />
+                  </div>
+                </div>
+                <div className="absolute top-4 right-4 z-10">
                   <span
                     className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium"
                     style={{
-                      borderColor: "var(--border-subtle)",
-                      color: "var(--text-muted)",
+                      borderColor: "rgba(255,255,255,0.2)",
+                      backgroundColor: "rgba(0,0,0,0.25)",
+                      color: "rgba(255,255,255,0.9)",
                     }}
                   >
                     {p.badgeEmoji} {p.badge}
@@ -686,15 +854,7 @@ export default function HomePage() {
                       </svg>
                     ))}
                   </div>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-xs font-bold"
-                    style={{
-                      backgroundColor: "var(--accent-soft)",
-                      color: "var(--accent-text)",
-                    }}
-                  >
-                    {d.resultado}
-                  </span>
+                  <BadgeResultado resultado={d.resultado} />
                 </div>
                 <p
                   className="text-sm leading-relaxed flex-1"
@@ -706,15 +866,7 @@ export default function HomePage() {
                   className="mt-auto flex items-center gap-3 pt-3 border-t"
                   style={{ borderColor: "var(--border-subtle)" }}
                 >
-                  <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold"
-                    style={{
-                      backgroundColor: "var(--accent-soft)",
-                      color: "var(--accent-text)",
-                    }}
-                  >
-                    {d.nome.charAt(0)}
-                  </div>
+                  <AvatarDepoimento name={d.nome.split(" ")[0].toLowerCase()} size={40} />
                   <div>
                     <p
                       className="text-sm font-medium"

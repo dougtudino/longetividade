@@ -62,7 +62,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
 
   useEffect(() => {
     setMounted(true);
-    const saved = (localStorage.getItem("theme") as Theme) ?? "light";
+    const saved = (localStorage.getItem("longetividade-theme") as Theme) ?? "light";
     const valid: Theme = CYCLE.includes(saved) ? saved : "light";
     setTheme(valid);
     applyTheme(valid);
@@ -73,7 +73,7 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     document.documentElement.classList.add("theme-transitioning");
     setTheme(next);
     applyTheme(next);
-    localStorage.setItem("theme", next);
+    localStorage.setItem("longetividade-theme", next);
     setTimeout(() => {
       document.documentElement.classList.remove("theme-transitioning");
     }, 300);

@@ -23,7 +23,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Cansada de dietas que nao funcionam?",
     subheadline:
       "Descubra o metodo que ajudou 12.400+ mulheres a emagrecer sem cortar alimentos e sem academia. Resultados em 21 dias.",
-    cta: "Quero Conhecer o Metodo — R$27",
+    cta: "Quero Conhecer o Metodo — R$37",
     badge: "Oferta Exclusiva",
     utm_source: "facebook",
   },
@@ -31,7 +31,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Como emagrecer sem dieta restritiva",
     subheadline:
       "Metodo SEM: 3 pilares cientificos para perder peso de forma permanente. Sem contar calorias, sem passar fome. Acesso imediato.",
-    cta: "Ver Metodo Completo — R$27",
+    cta: "Ver Metodo Completo — R$37",
     badge: "Comprovado Cientificamente",
     utm_source: "google",
   },
@@ -39,7 +39,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Voce merece emagrecer sem sofrimento",
     subheadline:
       "O ebook Emagreca Sem Dieta ja transformou a vida de mais de 12.000 pessoas. Um metodo simples que funciona no seu dia a dia corrido.",
-    cta: "Quero Meu Ebook — Apenas R$27",
+    cta: "Quero Meu Ebook — Apenas R$37",
     badge: "Mais Vendido",
     utm_source: "organico",
   },
@@ -59,13 +59,13 @@ export default function CampaignPage() {
     if (!sp.has("utm_medium")) sp.set("utm_medium", "campaign_page");
     if (!sp.has("utm_campaign")) sp.set("utm_campaign", slug);
     captureUTMs(sp);
-    trackViewContent("Emagreca Sem Dieta", 27);
+    trackViewContent("Emagreca Sem Dieta", 37);
   }, [searchParams, slug, variant.utm_source]);
 
   const buyUrl = appendUTMs(HOTMART);
 
   function handleClick() {
-    trackInitiateCheckout("Emagreca Sem Dieta", 27);
+    trackInitiateCheckout("Emagreca Sem Dieta", 37);
   }
 
   return (
@@ -126,7 +126,7 @@ export default function CampaignPage() {
               De{" "}
               <span className="line-through text-white/20">R$97</span>{" "}
               por{" "}
-              <strong className="text-white/60">R$27</strong>
+              <strong className="text-white/60">R$37</strong>
             </p>
             <p className="text-xs text-white/20">
               Pagamento seguro &middot; Acesso imediato &middot; Garantia 7 dias
@@ -168,7 +168,7 @@ export default function CampaignPage() {
             </div>
             <div className="my-6 flex items-baseline justify-center gap-3">
               <span className="text-lg text-white/30 line-through">R$97</span>
-              <span className="text-6xl font-black">R$27</span>
+              <span className="text-6xl font-black">R$37</span>
             </div>
             <a
               href={buyUrl}

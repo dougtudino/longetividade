@@ -15,7 +15,7 @@ const LINKS = {
 };
 
 function handleBuyClick() {
-  trackInitiateCheckout("Emagreca Sem Dieta", 27);
+  trackInitiateCheckout("Emagreca Sem Dieta", 37);
 }
 
 const bullets = [
@@ -143,7 +143,7 @@ const depoimentos = [
   },
 ];
 
-function CTA({ label = "Garantir Meu Acesso — R$27" }: { label?: string }) {
+function CTA({ label = "Garantir Meu Acesso — R$37" }: { label?: string }) {
   return (
     <div className="flex flex-col items-center gap-3">
       <a
@@ -228,7 +228,7 @@ export default function EmagrecaSemDietaPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
-    trackViewContent("Emagreca Sem Dieta", 27);
+    trackViewContent("Emagreca Sem Dieta", 37);
   }, []);
 
   return (
@@ -262,7 +262,7 @@ export default function EmagrecaSemDietaPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
             <span className="text-xs font-medium text-red-400">
-              Oferta por tempo limitado — R$27
+              Oferta por tempo limitado — R$37
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -328,11 +328,11 @@ export default function EmagrecaSemDietaPage() {
             >
               <div className="mb-3 flex items-baseline justify-center gap-3">
                 <span className="text-lg line-through" style={{ color: "var(--text-hint)" }}>R$97</span>
-                <span className="text-5xl font-black" style={{ color: "var(--text-primary)" }}>R$27</span>
+                <span className="text-5xl font-black" style={{ color: "var(--text-primary)" }}>R$37</span>
                 <span className="rounded-full px-2 py-1 text-xs font-bold" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#f87171" }}>-72%</span>
               </div>
               <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>Ou 3x de R$9,90 sem juros</p>
-              <CTA label="Quero Emagrecer Agora — R$27" />
+              <CTA label="Quero Emagrecer Agora — R$37" />
             </div>
           </div>
           {/* Mockup do ebook — 40% */}
@@ -724,7 +724,7 @@ export default function EmagrecaSemDietaPage() {
             </div>
             <div className="my-6 flex items-baseline justify-center gap-3">
               <span className="text-lg line-through" style={{ color: "var(--text-hint)" }}>R$97</span>
-              <span className="text-7xl font-black" style={{ color: "var(--text-primary)" }}>R$27</span>
+              <span className="text-7xl font-black" style={{ color: "var(--text-primary)" }}>R$37</span>
             </div>
             <p className="mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
               Ou 3x de R$9,90 sem juros — menos que um cafe com pao de queijo
@@ -825,7 +825,7 @@ export default function EmagrecaSemDietaPage() {
             <div className="rounded-2xl border p-5" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}>
               <p className="mb-1 font-bold" style={{ color: "var(--accent)" }}>Opcao 2</p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Investir R$ 27 — o preco de um delivery — e dar uma chance pra um metodo que respeita
+                Investir R$ 37 — o preco de um delivery — e dar uma chance pra um metodo que respeita
                 sua rotina, seu corpo e suas emocoes. Com plano de 7 dias pronto. Para comecar AMANHA.
               </p>
             </div>
@@ -833,12 +833,12 @@ export default function EmagrecaSemDietaPage() {
           <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
             A escolha e sua. Mas se voce chegou ate aqui, la no fundo voce ja sabe qual e.
           </p>
-          <CTA label="SIM, EU QUERO O METODO S.E.M — R$27" />
+          <CTA label="SIM, EU QUERO O METODO S.E.M — R$37" />
           <div className="mt-10 space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
             <p>
               <strong style={{ color: "var(--text-primary)" }}>P.S.</strong> — Se voce esta pensando
               &ldquo;talvez depois&rdquo;: quantas vezes voce ja adiou cuidar de voce? Quantas
-              &ldquo;segundas-feiras&rdquo; ja passaram? R$27 e 1 hora de leitura podem ser o inicio
+              &ldquo;segundas-feiras&rdquo; ja passaram? R$37 e 1 hora de leitura podem ser o inicio
               de uma mudanca que voce vai agradecer daqui a 6 meses.
             </p>
             <p>
