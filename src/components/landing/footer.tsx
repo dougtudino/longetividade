@@ -1,6 +1,6 @@
 export function Footer() {
   return (
-    <footer className="py-10 bg-charcoal">
+    <footer className="py-10" style={{backgroundColor: 'var(--bg-primary)'}}>
       <div className="mx-auto max-w-5xl px-4 text-center">
         <p className="font-heading font-bold text-white/70 text-lg mb-4">
           Emagreca sem Dieta

@@ -18,22 +18,23 @@ const NOT_FOR_YOU = [
 
 export function ForWho() {
   return (
-    <section className="py-12 md:py-20 bg-sage-light">
+    <section className="py-12 md:py-20" style={{backgroundColor: 'var(--shimmer)'}}>
       <div className="mx-auto max-w-4xl px-4">
-        <h2 className="font-heading font-bold text-charcoal text-2xl md:text-4xl text-center mb-10 md:mb-14">
+        <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-10 md:mb-14" style={{color: 'var(--text-primary)'}}>
           Este ebook e pra voce?
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-white rounded-2xl p-6 md:p-8 border-2 border-sage">
-            <h3 className="font-body font-bold text-olive text-lg mb-4">
+          <div className="rounded-2xl p-6 md:p-8 border-2" style={{backgroundColor: 'var(--bg-card)', borderColor: 'var(--accent)'}}>
+            <h3 className="font-body font-bold text-lg mb-4" style={{color: 'var(--accent)'}}>
               Pra voce se:
             </h3>
             <ul className="space-y-3">
               {FOR_YOU.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-olive flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 flex-shrink-0 mt-0.5"
+                    style={{color: 'var(--accent)'}}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -43,7 +44,7 @@ export function ForWho() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-body text-charcoal text-sm md:text-base leading-relaxed">
+                  <span className="font-body text-sm md:text-base leading-relaxed" style={{color: 'var(--text-primary)'}}>
                     {item}
                   </span>
                 </li>
@@ -51,15 +52,16 @@ export function ForWho() {
             </ul>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 md:p-8 border-2 border-rose">
-            <h3 className="font-body font-bold text-rose text-lg mb-4">
+          <div className="rounded-2xl p-6 md:p-8 border-2" style={{backgroundColor: 'var(--bg-card)', borderColor: 'var(--danger, #C4787A)'}}>
+            <h3 className="font-body font-bold text-lg mb-4" style={{color: 'var(--danger, #C4787A)'}}>
               NAO e pra voce se:
             </h3>
             <ul className="space-y-3">
               {NOT_FOR_YOU.map((item, i) => (
                 <li key={i} className="flex items-start gap-3">
                   <svg
-                    className="w-5 h-5 text-rose flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 flex-shrink-0 mt-0.5"
+                    style={{color: 'var(--danger, #C4787A)'}}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -69,7 +71,7 @@ export function ForWho() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  <span className="font-body text-charcoal text-sm md:text-base leading-relaxed">
+                  <span className="font-body text-sm md:text-base leading-relaxed" style={{color: 'var(--text-primary)'}}>
                     {item}
                   </span>
                 </li>

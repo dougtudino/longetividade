@@ -9,9 +9,9 @@ const ANCHOR_ITEMS = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-12 md:py-20 bg-white scroll-mt-16">
+    <section id="pricing" className="py-12 md:py-20 scroll-mt-16" style={{backgroundColor: 'var(--bg-card)'}}>
       <div className="mx-auto max-w-5xl px-4">
-        <h2 className="font-heading font-bold text-charcoal text-2xl md:text-4xl text-center mb-8">
+        <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-8" style={{color: 'var(--text-primary)'}}>
           Quanto vale transformar sua relacao com comida?
         </h2>
 
@@ -20,14 +20,15 @@ export function PricingSection() {
             {ANCHOR_ITEMS.map((a) => (
               <div
                 key={a.item}
-                className="flex justify-between font-body text-sm md:text-base text-dark-gray"
+                className="flex justify-between font-body text-sm md:text-base"
+                style={{color: 'var(--text-secondary)'}}
               >
                 <span>{a.item}</span>
-                <span className="font-medium text-charcoal">{a.value}</span>
+                <span className="font-medium" style={{color: 'var(--text-primary)'}}>{a.value}</span>
               </div>
             ))}
           </div>
-          <p className="font-body text-charcoal text-base md:text-lg font-medium mt-4 text-center">
+          <p className="font-body text-base md:text-lg font-medium mt-4 text-center" style={{color: 'var(--text-primary)'}}>
             Facilmente voce gasta mais de{" "}
             <strong>R$ 800 por mes</strong> tentando resolver de formas que nao
             funcionam.
@@ -40,24 +41,28 @@ export function PricingSection() {
               key={plan.id}
               className={`relative rounded-2xl p-6 md:p-8 border-2 transition-transform ${
                 plan.highlighted
-                  ? "border-sage bg-white md:scale-105 shadow-xl"
-                  : "border-light-gray bg-white"
+                  ? "md:scale-105 shadow-xl"
+                  : ""
               }`}
+              style={{
+                borderColor: plan.highlighted ? 'var(--accent)' : 'var(--border-default)',
+                backgroundColor: 'var(--bg-card)',
+              }}
             >
               {plan.highlighted && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-sage text-white font-body font-bold text-xs uppercase tracking-wider px-4 py-1 rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-white font-body font-bold text-xs uppercase tracking-wider px-4 py-1 rounded-full" style={{backgroundColor: 'var(--accent)'}}>
                   MAIS ESCOLHIDO
                 </span>
               )}
 
-              <h3 className="font-body font-bold text-charcoal text-lg text-center mb-1">
+              <h3 className="font-body font-bold text-lg text-center mb-1" style={{color: 'var(--text-primary)'}}>
                 {plan.name}
               </h3>
               <div className="text-center mb-4">
-                <span className="font-heading font-extrabold text-charcoal text-4xl">
+                <span className="font-heading font-extrabold text-4xl" style={{color: 'var(--text-primary)'}}>
                   R$ {plan.price}
                 </span>
-                <p className="font-body text-medium-gray text-sm mt-1">
+                <p className="font-body text-sm mt-1" style={{color: 'var(--text-muted)'}}>
                   ou {plan.installments}
                 </p>
               </div>
@@ -66,7 +71,8 @@ export function PricingSection() {
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-2">
                     <svg
-                      className="w-4 h-4 text-sage flex-shrink-0 mt-1"
+                      className="w-4 h-4 flex-shrink-0 mt-1"
+                      style={{color: 'var(--accent)'}}
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -76,7 +82,7 @@ export function PricingSection() {
                         clipRule="evenodd"
                       />
                     </svg>
-                    <span className="font-body text-dark-gray text-sm leading-relaxed">
+                    <span className="font-body text-sm leading-relaxed" style={{color: 'var(--text-secondary)'}}>
                       {feature}
                     </span>
                   </li>
@@ -87,9 +93,14 @@ export function PricingSection() {
                 href={`/checkout?plan=${plan.id}`}
                 className={`block w-full text-center font-body font-bold text-base py-3.5 rounded-xl transition-colors ${
                   plan.highlighted
-                    ? "bg-sage hover:bg-olive text-white"
-                    : "border-2 border-sage text-sage hover:bg-sage hover:text-white"
+                    ? "text-white"
+                    : "border-2"
                 }`}
+                style={
+                  plan.highlighted
+                    ? {backgroundColor: 'var(--accent)'}
+                    : {borderColor: 'var(--accent)', color: 'var(--accent)'}
+                }
               >
                 {plan.ctaLabel}
               </a>
@@ -98,9 +109,10 @@ export function PricingSection() {
         </div>
 
         {/* Guarantee */}
-        <div className="mt-10 md:mt-14 mx-auto max-w-xl bg-sage-light border-2 border-dashed border-sage rounded-xl p-6 md:p-8 text-center">
+        <div className="mt-10 md:mt-14 mx-auto max-w-xl border-2 border-dashed rounded-xl p-6 md:p-8 text-center" style={{backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)'}}>
           <svg
-            className="w-10 h-10 text-olive mx-auto mb-3"
+            className="w-10 h-10 mx-auto mb-3"
+            style={{color: 'var(--accent)'}}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -112,10 +124,10 @@ export function PricingSection() {
               d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
             />
           </svg>
-          <h3 className="font-body font-bold text-olive text-lg mb-2">
+          <h3 className="font-body font-bold text-lg mb-2" style={{color: 'var(--accent)'}}>
             GARANTIA INCONDICIONAL DE 7 DIAS
           </h3>
-          <p className="font-body text-dark-gray text-sm leading-relaxed">
+          <p className="font-body text-sm leading-relaxed" style={{color: 'var(--text-secondary)'}}>
             Risco zero. Se nao gostar, devolvemos 100% do seu dinheiro. Sem
             perguntas. Sem burocracia.
           </p>

@@ -1,18 +1,18 @@
 export function HeroSection() {
   return (
-    <section className="pt-24 md:pt-32 pb-10 md:pb-16 bg-gradient-to-br from-cream-white via-peach to-sage-light">
+    <section className="pt-24 md:pt-32 pb-10 md:pb-16" style={{background: 'linear-gradient(to bottom right, var(--bg-card), var(--shimmer), var(--accent-soft))'}}>
       <div className="mx-auto max-w-3xl px-4 text-center">
-        <p className="text-xs md:text-sm uppercase tracking-[0.1em] text-rose font-body font-semibold mb-4">
+        <p className="text-xs md:text-sm uppercase tracking-[0.1em] font-body font-semibold mb-4" style={{color: 'var(--danger, #C4787A)'}}>
           Para mulheres que ja tentaram de tudo pra emagrecer e estao cansadas
           de se sentir culpadas
         </p>
 
-        <h1 className="font-heading font-extrabold text-charcoal text-3xl md:text-5xl leading-tight tracking-tight mb-6">
+        <h1 className="font-heading font-extrabold text-3xl md:text-5xl leading-tight tracking-tight mb-6" style={{color: 'var(--text-primary)'}}>
           Voce Nao Precisa de Mais Uma Dieta. Precisa de um Metodo que Funcione
           na Sua Vida Real.
         </h1>
 
-        <p className="font-body text-dark-gray text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-8">
+        <p className="font-body text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-8" style={{color: 'var(--text-secondary)'}}>
           Descubra o Metodo S.E.M -- 3 pilares simples que estao ajudando
           mulheres ocupadas a emagrecerem sem cortar alimentos, sem academia e
           sem aquela culpa de todo dia. Inclui plano pratico de 7 dias com
@@ -21,15 +21,17 @@ export function HeroSection() {
 
         <a
           href="#pricing"
-          className="inline-block bg-sage hover:bg-olive text-white font-body font-bold text-base md:text-lg px-8 py-4 rounded-xl transition-colors shadow-lg hover:shadow-xl"
+          className="inline-block text-white font-body font-bold text-base md:text-lg px-8 py-4 rounded-xl transition-colors shadow-lg hover:shadow-xl"
+          style={{backgroundColor: 'var(--accent)'}}
         >
           QUERO COMECAR AGORA -- R$ 37,00
         </a>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 text-medium-gray text-xs md:text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 text-xs md:text-sm" style={{color: 'var(--text-muted)'}}>
           <span className="flex items-center gap-1">
             <svg
-              className="w-4 h-4 text-sage"
+              className="w-4 h-4"
+              style={{color: 'var(--accent)'}}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -39,7 +41,8 @@ export function HeroSection() {
           </span>
           <span className="flex items-center gap-1">
             <svg
-              className="w-4 h-4 text-sage"
+              className="w-4 h-4"
+              style={{color: 'var(--accent)'}}
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -49,7 +52,8 @@ export function HeroSection() {
           </span>
           <span className="flex items-center gap-1">
             <svg
-              className="w-4 h-4 text-sage"
+              className="w-4 h-4"
+              style={{color: 'var(--accent)'}}
               fill="currentColor"
               viewBox="0 0 20 20"
             >

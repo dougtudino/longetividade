@@ -50,27 +50,28 @@ export function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number>(0);
 
   return (
-    <section className="py-12 md:py-20 bg-peach">
+    <section className="py-12 md:py-20" style={{backgroundColor: 'var(--shimmer)'}}>
       <div className="mx-auto max-w-3xl px-4">
-        <h2 className="font-heading font-bold text-charcoal text-2xl md:text-4xl text-center mb-10 md:mb-14">
+        <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-10 md:mb-14" style={{color: 'var(--text-primary)'}}>
           Perguntas Frequentes
         </h2>
 
         <div className="space-y-2">
           {FAQ_ITEMS.map((item, i) => (
-            <div key={i} className="bg-white rounded-xl overflow-hidden">
+            <div key={i} className="rounded-xl overflow-hidden" style={{backgroundColor: 'var(--bg-card)'}}>
               <button
                 type="button"
                 onClick={() => setOpenIndex(openIndex === i ? -1 : i)}
                 className="w-full flex items-center justify-between p-5 text-left cursor-pointer"
               >
-                <span className="font-body font-semibold text-charcoal text-sm md:text-base pr-4">
+                <span className="font-body font-semibold text-sm md:text-base pr-4" style={{color: 'var(--text-primary)'}}>
                   &ldquo;{item.question}&rdquo;
                 </span>
                 <svg
-                  className={`w-5 h-5 text-sage flex-shrink-0 transition-transform duration-200 ${
+                  className={`w-5 h-5 flex-shrink-0 transition-transform duration-200 ${
                     openIndex === i ? "rotate-180" : ""
                   }`}
+                  style={{color: 'var(--accent)'}}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -88,7 +89,7 @@ export function FAQSection() {
                   openIndex === i ? "max-h-96 pb-5" : "max-h-0"
                 }`}
               >
-                <p className="font-body text-dark-gray text-sm md:text-base leading-relaxed px-5">
+                <p className="font-body text-sm md:text-base leading-relaxed px-5" style={{color: 'var(--text-secondary)'}}>
                   {item.answer}
                 </p>
               </div>

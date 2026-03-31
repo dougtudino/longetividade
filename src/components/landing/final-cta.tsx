@@ -1,6 +1,6 @@
 export function FinalCTA() {
   return (
-    <section className="py-12 md:py-20 bg-gradient-to-br from-olive to-sage text-white">
+    <section className="py-12 md:py-20 text-white" style={{background: 'linear-gradient(to bottom right, var(--accent), #7A9E7E)'}}>
       <div className="mx-auto max-w-3xl px-4 text-center">
         <h2 className="font-heading font-bold text-2xl md:text-4xl mb-8">
           Voce tem duas opcoes agora.
@@ -27,7 +27,8 @@ export function FinalCTA() {
 
         <a
           href="#pricing"
-          className="inline-block bg-white text-olive font-body font-bold text-base md:text-lg px-10 py-4 rounded-xl transition-all hover:bg-cream-white hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+          className="inline-block font-body font-bold text-base md:text-lg px-10 py-4 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
+          style={{backgroundColor: 'var(--bg-card)', color: 'var(--accent)'}}
         >
           SIM, EU QUERO O METODO S.E.M -- R$ 37,00
         </a>

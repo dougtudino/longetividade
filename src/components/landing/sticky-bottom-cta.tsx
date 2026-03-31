@@ -32,7 +32,8 @@ export function StickyBottomCTA() {
     >
       <a
         href="#pricing"
-        className="flex items-center justify-center h-16 bg-sage text-white font-body font-bold text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.15)]"
+        className="flex items-center justify-center h-16 text-white font-body font-bold text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.15)]"
+        style={{backgroundColor: 'var(--accent)'}}
       >
         QUERO O METODO S.E.M -- R$ 37
       </a>

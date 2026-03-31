@@ -24,9 +24,9 @@ const TESTIMONIALS = [
 
 export function Testimonials() {
   return (
-    <section className="py-12 md:py-20 bg-white">
+    <section className="py-12 md:py-20" style={{backgroundColor: 'var(--bg-card)'}}>
       <div className="mx-auto max-w-5xl px-4">
-        <h2 className="font-heading font-bold text-charcoal text-2xl md:text-4xl text-center mb-10 md:mb-14">
+        <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-10 md:mb-14" style={{color: 'var(--text-primary)'}}>
           Mulheres reais, resultados reais
         </h2>
 
@@ -34,12 +34,13 @@ export function Testimonials() {
           {TESTIMONIALS.map((t) => (
             <div
               key={t.name}
-              className="bg-cream-white rounded-2xl p-6 md:p-8 relative"
+              className="rounded-2xl p-6 md:p-8 relative"
+              style={{backgroundColor: 'var(--bg-card)'}}
             >
-              <span className="font-heading text-sage-light text-6xl absolute top-4 left-6 select-none leading-none">
+              <span className="font-heading text-6xl absolute top-4 left-6 select-none leading-none" style={{color: 'var(--accent-soft)'}}>
                 &ldquo;
               </span>
-              <p className="font-body text-charcoal text-sm md:text-base italic leading-relaxed mt-8 mb-4">
+              <p className="font-body text-sm md:text-base italic leading-relaxed mt-8 mb-4" style={{color: 'var(--text-primary)'}}>
                 {t.quote}
               </p>
               <div className="flex items-center gap-1 mb-2">
@@ -54,10 +55,10 @@ export function Testimonials() {
                   </svg>
                 ))}
               </div>
-              <p className="font-body font-bold text-charcoal text-sm">
+              <p className="font-body font-bold text-sm" style={{color: 'var(--text-primary)'}}>
                 {t.name}
               </p>
-              <p className="font-body text-medium-gray text-xs">
+              <p className="font-body text-xs" style={{color: 'var(--text-muted)'}}>
                 {t.detail}
               </p>
             </div>

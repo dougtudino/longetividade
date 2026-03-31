@@ -48,8 +48,8 @@ const TOOLS = [
 
 function CheckIcon() {
   return (
-    <span className="flex-shrink-0 w-6 h-6 rounded-full bg-sage-light flex items-center justify-center mt-0.5">
-      <svg className="w-4 h-4 text-olive" fill="currentColor" viewBox="0 0 20 20">
+    <span className="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5" style={{backgroundColor: 'var(--accent-soft)'}}>
+      <svg className="w-4 h-4" style={{color: 'var(--accent)'}} fill="currentColor" viewBox="0 0 20 20">
         <path
           fillRule="evenodd"
           d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -62,23 +62,23 @@ function CheckIcon() {
 
 export function BenefitsBullets() {
   return (
-    <section className="py-12 md:py-20 bg-cream-white">
+    <section className="py-12 md:py-20" style={{backgroundColor: 'var(--bg-card)'}}>
       <div className="mx-auto max-w-4xl px-4">
-        <h2 className="font-heading font-bold text-charcoal text-2xl md:text-4xl text-center mb-10 md:mb-14">
+        <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-10 md:mb-14" style={{color: 'var(--text-primary)'}}>
           Dentro do ebook, voce vai descobrir:
         </h2>
 
         <div className="space-y-8 md:space-y-10">
           {BULLET_GROUPS.map((group) => (
             <div key={group.title}>
-              <h3 className="font-body font-bold text-olive text-lg md:text-xl mb-4">
+              <h3 className="font-body font-bold text-lg md:text-xl mb-4" style={{color: 'var(--accent)'}}>
                 {group.title}
               </h3>
               <ul className="space-y-3">
                 {group.bullets.map((bullet, i) => (
                   <li key={i} className="flex items-start gap-3">
                     <CheckIcon />
-                    <span className="font-body text-charcoal text-sm md:text-base leading-relaxed">
+                    <span className="font-body text-sm md:text-base leading-relaxed" style={{color: 'var(--text-primary)'}}>
                       {bullet}
                     </span>
                   </li>
@@ -89,16 +89,17 @@ export function BenefitsBullets() {
         </div>
 
         <div className="mt-10 md:mt-14">
-          <h3 className="font-body font-bold text-olive text-lg text-center mb-6">
+          <h3 className="font-body font-bold text-lg text-center mb-6" style={{color: 'var(--accent)'}}>
             Ferramentas praticas inclusas:
           </h3>
           <div className="flex flex-wrap justify-center gap-3 md:gap-4">
             {TOOLS.map((tool) => (
               <div
                 key={tool}
-                className="bg-white border border-light-gray rounded-xl px-4 py-3 text-center"
+                className="border rounded-xl px-4 py-3 text-center"
+                style={{backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-default)'}}
               >
-                <span className="font-body text-charcoal text-sm font-medium">
+                <span className="font-body text-sm font-medium" style={{color: 'var(--text-primary)'}}>
                   {tool}
                 </span>
               </div>
