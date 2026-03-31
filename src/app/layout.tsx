@@ -64,7 +64,7 @@ export default function RootLayout({
         {/* Prevent flash of wrong theme */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'){document.documentElement.classList.remove('light')}else{document.documentElement.classList.add('light')}}catch(e){document.documentElement.classList.add('light')}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('theme');var h=document.documentElement;h.classList.remove('light','neon');if(t==='dark'){}else if(t==='neon'){h.classList.add('neon')}else{h.classList.add('light')}}catch(e){document.documentElement.classList.add('light')}})()`,
           }}
         />
       </head>
