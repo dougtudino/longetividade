@@ -38,3 +38,53 @@ model AbandonedCheckout {
 
   @@index([email])
 }
+
+model Campaign {
+  id        String    @id @default(uuid())
+  name      String
+  platform  String    // "meta" | "google" | "organic" | "email"
+  objective String    // "conversao" | "trafego" | "awareness"
+  status    String    @default("active") // active | paused | finished
+  budget    Float     // orçamento diário R$
+  startDate DateTime
+  endDate   DateTime?
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  metrics   CampaignMetric[]
+}
+
+model CampaignMetric {
+  id          String   @id @default(uuid())
+  campaignId  String
+  date        DateTime @db.Date
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  spend       Float    @default(0)
+  conversions Int      @default(0)
+  revenue     Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, date])
+  @@index([campaignId])
+  @@index([date])
+}
+
+model PageView {
+  id           String   @id @default(uuid())
+  page         String
+  referrer     String?
+  utm_source   String?
+  utm_medium   String?
+  utm_campaign String?
+  country      String?
+  device       String?
+  createdAt    DateTime @default(now())
+
+  @@index([page])
+  @@index([createdAt])
+  @@index([utm_source])
+}

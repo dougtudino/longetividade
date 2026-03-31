@@ -13,7 +13,40 @@ const SUBDOMAIN_MAP: Record<string, string> = {
 
 const MAIN_DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || "longetividade.com.br";
 
+function isAdminAuthenticated(request: NextRequest): boolean {
+  const cookie = request.cookies.get("admin_session");
+  if (!cookie?.value) return false;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!password) return false;
+  const secret = process.env.ADMIN_SECRET || "longetividade-admin-2024";
+  const expected = btoa(`${password}:${secret}`);
+  return cookie.value === expected;
+}
+
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Admin auth check — protect all /admin routes except /admin/login and /api/admin/auth
+  if (
+    pathname.startsWith("/admin") &&
+    !pathname.startsWith("/admin/login") &&
+    !pathname.startsWith("/api/admin/auth")
+  ) {
+    if (!isAdminAuthenticated(request)) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/admin/login";
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // Protect admin API routes (except auth)
+  if (pathname.startsWith("/api/admin") && !pathname.startsWith("/api/admin/auth")) {
+    if (!isAdminAuthenticated(request)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // Subdomain routing
   const hostname = request.headers.get("host") || "";
   const hostWithoutPort = hostname.split(":")[0];
   const subdomain = hostWithoutPort
