@@ -8,7 +8,14 @@ import { IdentificationChecklist } from "@/components/landing/identification-che
 import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
 import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
 import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
-import { AvatarDepoimento, BadgeResultado } from "@/components/visual";
+import { BadgeResultado } from "@/components/visual";
+import Image from "next/image";
+
+const AVATAR_MAP: Record<string, string> = {
+  fernanda: "/images/avatar-fernanda.png",
+  camila: "/images/avatar-camila.png",
+  patricia: "/images/avatar-patricia.jpg",
+};
 
 const LINKS = {
   hotmart: "https://pay.hotmart.com/H105141835Q",
@@ -586,7 +593,23 @@ export default function EmagrecaSemDietaPage() {
                   &ldquo;{d.texto}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: "var(--border-subtle)" }}>
-                  <AvatarDepoimento name={d.nome.split(" ")[0].toLowerCase()} size={40} />
+                  {AVATAR_MAP[d.nome.split(" ")[0].toLowerCase()] ? (
+                    <Image
+                      src={AVATAR_MAP[d.nome.split(" ")[0].toLowerCase()]}
+                      alt={d.nome}
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
+                      style={{ width: 40, height: 40 }}
+                    />
+                  ) : (
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}
+                    >
+                      {d.nome.charAt(0)}
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{d.nome}</p>
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>{d.local}</p>

@@ -1,9 +1,16 @@
 // src/app/page.tsx — Homepage Master Longetividade
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import LeadCapture from "@/components/LeadCapture";
 import ThemeToggle from "@/components/ThemeToggle";
-import { AvatarDepoimento, BadgeResultado } from "@/components/visual";
+import { BadgeResultado } from "@/components/visual";
+
+const AVATAR_MAP: Record<string, string> = {
+  fernanda: "/images/avatar-fernanda.png",
+  camila: "/images/avatar-camila.png",
+  patricia: "/images/avatar-patricia.jpg",
+};
 
 export const metadata: Metadata = {
   title: "Longetividade — Viva Mais, Viva Melhor",
@@ -332,187 +339,14 @@ const depoimentos = [
 function HeroIllustration() {
   return (
     <div className="relative" style={{ maxWidth: 380 }}>
-      {/* CSS animations */}
-      <style>{`
-        @keyframes heroFloat {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-8px); }
-        }
-        @keyframes heroFloat2 {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-12px) rotate(8deg); }
-        }
-        @keyframes heroFloat3 {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-6px) rotate(-6deg); }
-        }
-        @keyframes heroBadgeBounce {
-          0%, 100% { transform: translateY(0); }
-          25% { transform: translateY(-4px); }
-          75% { transform: translateY(2px); }
-        }
-        @keyframes heroSparkle {
-          0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-          50% { transform: scale(1.3) rotate(45deg); opacity: 1; }
-        }
-      `}</style>
-
-      <svg viewBox="0 0 380 420" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto">
-        {/* Aura circles */}
-        <circle cx="190" cy="210" r="190" fill="var(--accent)" opacity="0.03" />
-        <circle cx="190" cy="210" r="150" fill="var(--accent)" opacity="0.05" />
-        <circle cx="190" cy="210" r="110" fill="var(--accent)" opacity="0.07" />
-
-        {/* === WOMAN FIGURE === */}
-        {/* Legs */}
-        <path d="M160 340 L155 400 L148 402 L148 408 L170 408 L170 402 L163 400 L165 340" fill="#FAF8F5" />
-        <path d="M210 340 L215 400 L208 402 L208 408 L230 408 L230 402 L223 400 L218 340" fill="#FAF8F5" />
-        {/* Leg shadows */}
-        <path d="M160 340 L155 400 L159 400 L163 340" fill="#E8E0D8" opacity="0.3" />
-        <path d="M218 340 L223 400 L219 400 L215 340" fill="#E8E0D8" opacity="0.3" />
-        {/* Shoes */}
-        <ellipse cx="159" cy="408" rx="14" ry="4" fill="#3D5A3E" />
-        <ellipse cx="219" cy="408" rx="14" ry="4" fill="#3D5A3E" />
-
-        {/* Body — blouse sage */}
-        <path d="M145 220 Q148 200, 160 195 Q175 190, 190 188 Q205 190, 220 195 Q232 200, 235 220 L238 290 Q235 340, 220 345 L160 345 Q145 340, 142 290 Z" fill="#7A9E7E" />
-        {/* Blouse shadow */}
-        <path d="M145 220 Q155 240, 155 280 L155 340 L160 345 Q145 340, 142 290 L145 220Z" fill="#5E8262" opacity="0.25" />
-        <path d="M235 220 Q225 240, 225 280 L225 340 L220 345 Q235 340, 238 290 L235 220Z" fill="#5E8262" opacity="0.2" />
-        {/* Neckline V */}
-        <path d="M170 195 L190 215 L210 195" fill="#C4956A" opacity="0.6" />
-        {/* Blouse fold lines */}
-        <path d="M170 240 Q185 245, 200 238" fill="none" stroke="#5E8262" strokeWidth="0.6" opacity="0.3" />
-        <path d="M165 270 Q180 275, 210 268" fill="none" stroke="#5E8262" strokeWidth="0.5" opacity="0.25" />
-
-        {/* Pants — cream */}
-        <path d="M155 290 L142 345 L175 345 L185 310 L190 310 L195 310 L205 345 L238 345 L225 290 Z" fill="#FAF8F5" />
-        {/* Pants shadow */}
-        <path d="M155 290 L142 345 L155 345 L165 300 Z" fill="#E0D5C8" opacity="0.2" />
-        {/* Belt */}
-        <rect x="150" y="288" width="80" height="5" rx="2" fill="#3D5A3E" opacity="0.5" />
-
-        {/* Left arm — relaxed */}
-        <path d="M148 200 Q135 210, 128 235 Q122 258, 126 280 Q128 290, 132 295" fill="#7A9E7E" />
-        <path d="M128 280 Q125 288, 128 295 Q130 300, 135 298 Q138 292, 135 285 Z" fill="#C4956A" />
-        {/* Arm shadow */}
-        <path d="M148 200 Q138 210, 132 230 L136 230 Q142 212, 150 204Z" fill="#5E8262" opacity="0.2" />
-
-        {/* Right arm — holding leaf */}
-        <path d="M232 200 Q245 210, 252 235 Q258 260, 254 285 Q252 292, 248 296" fill="#7A9E7E" />
-        <path d="M254 282 Q257 290, 255 296 Q252 302, 248 298 Q245 292, 248 285Z" fill="#C4956A" />
-        {/* Right hand holding stem */}
-        <path d="M250 290 Q248 296, 252 300 L255 298 Q258 294, 254 288Z" fill="#A07850" opacity="0.4" />
-
-        {/* Big leaf in right hand */}
-        <path d="M252 296 Q270 270, 285 240 Q295 220, 290 210 Q285 215, 275 235 Q265 255, 252 296Z" fill="#7A9E7E" />
-        <path d="M252 296 Q265 268, 278 242 L280 244 Q267 270, 254 298Z" fill="#3D5A3E" opacity="0.25" />
-        {/* Leaf vein */}
-        <path d="M255 290 Q268 262, 282 232" fill="none" stroke="#3D5A3E" strokeWidth="0.8" opacity="0.3" />
-        <path d="M262 276 Q268 268, 278 252" fill="none" stroke="#3D5A3E" strokeWidth="0.5" opacity="0.2" />
-
-        {/* Neck */}
-        <rect x="178" y="175" width="24" height="20" rx="5" fill="#C4956A" />
-        <path d="M182 180 Q190 183, 198 180" fill="none" stroke="#A07850" strokeWidth="0.5" opacity="0.25" />
-
-        {/* Head */}
-        <ellipse cx="190" cy="148" rx="38" ry="44" fill="#C4956A" />
-        {/* Face shadows */}
-        <path d="M152 150 Q158 178, 172 188 Q190 195, 208 188 Q222 178, 228 150" fill="#A07850" opacity="0.1" />
-        {/* Cheek blush */}
-        <ellipse cx="168" cy="158" rx="8" ry="5" fill="#D4897A" opacity="0.2" />
-        <ellipse cx="212" cy="158" rx="8" ry="5" fill="#D4897A" opacity="0.2" />
-        {/* Forehead highlight */}
-        <ellipse cx="190" cy="125" rx="14" ry="7" fill="#D4A87E" opacity="0.15" />
-
-        {/* Eyes — closed (satisfaction) — curved lines */}
-        <path d="M172 145 Q176 140, 180 145" fill="none" stroke="#2D2D2D" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M200 145 Q204 140, 208 145" fill="none" stroke="#2D2D2D" strokeWidth="1.8" strokeLinecap="round" />
-        {/* Eyelashes from closed eyes */}
-        <path d="M171 145 L169 142" stroke="#2D2D2D" strokeWidth="0.8" strokeLinecap="round" />
-        <path d="M174 142 L173 139" stroke="#2D2D2D" strokeWidth="0.7" strokeLinecap="round" />
-        <path d="M209 145 L211 142" stroke="#2D2D2D" strokeWidth="0.8" strokeLinecap="round" />
-        <path d="M206 142 L207 139" stroke="#2D2D2D" strokeWidth="0.7" strokeLinecap="round" />
-
-        {/* Eyebrows */}
-        <path d="M168 136 Q174 132, 182 134" fill="none" stroke="#3B2314" strokeWidth="1.5" strokeLinecap="round" />
-        <path d="M198 134 Q206 132, 212 136" fill="none" stroke="#3B2314" strokeWidth="1.5" strokeLinecap="round" />
-
-        {/* Nose */}
-        <path d="M190 142 Q188 150, 186 155 Q185 157, 187 158 Q190 159, 193 158 Q195 157, 194 155 Q192 150, 190 142" fill="none" stroke="#A07850" strokeWidth="0.7" opacity="0.45" />
-
-        {/* Smile — warm, teeth showing */}
-        <path d="M178 165 Q183 163, 186 164 Q190 165, 194 164 Q197 163, 202 165" fill="#B85A5A" />
-        <path d="M178 165 Q183 170, 188 171 Q190 171.5, 192 171 Q197 170, 202 165" fill="#9A4545" />
-        <path d="M182 165.5 L198 165.5" stroke="white" strokeWidth="2" opacity="0.45" />
-        {/* Smile dimples */}
-        <path d="M176 163 Q175 166, 176 168" fill="none" stroke="#A07850" strokeWidth="0.5" opacity="0.2" />
-        <path d="M204 163 Q205 166, 204 168" fill="none" stroke="#A07850" strokeWidth="0.5" opacity="0.2" />
-
-        {/* Hair — brown, long, wavy, flowing */}
-        {/* Back hair */}
-        <path d="M148 120 C148 90, 160 70, 190 68 C220 70, 232 90, 232 120 L236 180 Q238 200, 240 220 Q242 240, 238 255 Q234 248, 232 235 Q230 215, 228 195 L228 130 Q226 100, 210 88 C200 82, 180 82, 170 88 Q154 100, 152 130 L152 195 Q150 215, 148 235 Q146 248, 142 255 Q138 240, 140 220 Q142 200, 144 180 Z" fill="#3B2314" />
-        {/* Front hair — bangs and framing */}
-        <path d="M152 118 C152 92, 164 76, 190 74 C216 76, 228 92, 228 118 Q226 108, 218 96 Q206 86, 190 84 Q174 86, 162 96 Q154 108, 152 118Z" fill="#3B2314" />
-        {/* Hair volume top */}
-        <path d="M156 110 C156 88, 168 72, 190 70 C212 72, 224 88, 224 110 Q220 98, 210 88 Q200 80, 190 78 Q180 80, 170 88 Q160 98, 156 110Z" fill="#4A3020" opacity="0.5" />
-        {/* Hair shine */}
-        <path d="M168 82 Q178 76, 190 75 Q202 76, 210 80" fill="none" stroke="#6B4E30" strokeWidth="1.5" opacity="0.35" />
-        <path d="M172 90 Q182 85, 192 84" fill="none" stroke="#6B4E30" strokeWidth="1" opacity="0.25" />
-        {/* Flowing strands left */}
-        <path d="M152 120 Q148 140, 145 165 Q142 185, 140 200 Q138 215, 140 225" fill="none" stroke="#3B2314" strokeWidth="5" strokeLinecap="round" />
-        <path d="M154 125 Q150 145, 148 168 Q146 188, 146 205" fill="none" stroke="#4A3020" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
-        {/* Flowing strands right */}
-        <path d="M228 120 Q232 140, 235 165 Q238 185, 240 200 Q242 215, 240 225" fill="none" stroke="#3B2314" strokeWidth="5" strokeLinecap="round" />
-        <path d="M226 125 Q230 145, 232 168 Q234 188, 234 205" fill="none" stroke="#4A3020" strokeWidth="2.5" strokeLinecap="round" opacity="0.4" />
-        {/* Wind-blown strand */}
-        <path d="M236 140 Q248 135, 256 140 Q262 146, 258 155" fill="none" stroke="#3B2314" strokeWidth="3" strokeLinecap="round" />
-
-        {/* Floating leaves */}
-        <g style={{ animation: 'heroFloat 3s ease-in-out infinite' }}>
-          <path d="M60 180 Q65 170, 75 172 Q80 175, 75 182 Q70 188, 60 180Z" fill="#7A9E7E" opacity="0.6" />
-          <path d="M60 180 L75 177" stroke="#3D5A3E" strokeWidth="0.4" opacity="0.4" />
-        </g>
-        <g style={{ animation: 'heroFloat2 3.5s ease-in-out infinite', animationDelay: '0.8s' }}>
-          <path d="M320 140 Q326 130, 335 133 Q340 138, 333 144 Q326 148, 320 140Z" fill="#7A9E7E" opacity="0.5" />
-          <path d="M320 140 L333 138" stroke="#3D5A3E" strokeWidth="0.4" opacity="0.3" />
-        </g>
-        <g style={{ animation: 'heroFloat3 4s ease-in-out infinite', animationDelay: '1.5s' }}>
-          <path d="M90 300 Q95 290, 105 293 Q108 298, 102 304 Q95 308, 90 300Z" fill="#7A9E7E" opacity="0.45" />
-        </g>
-        <g style={{ animation: 'heroFloat 3.2s ease-in-out infinite', animationDelay: '2s' }}>
-          <path d="M300 280 Q304 272, 312 275 Q315 280, 310 285 Q304 288, 300 280Z" fill="#7A9E7E" opacity="0.4" />
-        </g>
-        <g style={{ animation: 'heroFloat2 3.8s ease-in-out infinite', animationDelay: '0.5s' }}>
-          <path d="M340 320 Q345 312, 352 316 Q354 320, 349 324 Q343 326, 340 320Z" fill="#7A9E7E" opacity="0.35" />
-        </g>
-
-        {/* Sparkles */}
-        <g style={{ animation: 'heroSparkle 6s infinite' }}>
-          <path d="M85 120 L87 114 L89 120 L95 122 L89 124 L87 130 L85 124 L79 122Z" fill="#D4A94B" opacity="0.7" />
-        </g>
-        <g style={{ animation: 'heroSparkle 6s infinite', animationDelay: '3s' }}>
-          <path d="M310 90 L311.5 85 L313 90 L318 91.5 L313 93 L311.5 98 L310 93 L305 91.5Z" fill="#D4A94B" opacity="0.6" />
-        </g>
-
-        {/* Floating badge — result card */}
-        <g style={{ animation: 'heroBadgeBounce 4s ease-in-out infinite' }}>
-          <rect x="50" y="310" width="120" height="48" rx="12" fill="var(--bg-card)" stroke="var(--border-default)" strokeWidth="1" />
-          {/* Check circle */}
-          <circle cx="72" cy="328" r="8" fill="#7A9E7E" opacity="0.15" />
-          <path d="M68 328 L71 331 L77 325" stroke="#7A9E7E" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          {/* Text */}
-          <text x="83" y="331" fontSize="9" fontWeight="700" fill="var(--text-primary)" fontFamily="sans-serif">-6kg em 3 sem.</text>
-          {/* Stars */}
-          <g fill="#D4A94B">
-            <path d="M72 342 l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3z" />
-            <path d="M79 342 l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3z" />
-            <path d="M86 342 l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3z" />
-            <path d="M93 342 l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3z" />
-            <path d="M100 342 l.8 1.6 1.8.3-1.3 1.2.3 1.8-1.6-.8-1.6.8.3-1.8-1.3-1.2 1.8-.3z" />
-          </g>
-        </g>
-      </svg>
+      <Image
+        src="/images/hero-woman.png"
+        alt="Mulher saudavel e confiante segurando uma folha verde"
+        width={380}
+        height={507}
+        className="w-full h-auto rounded-3xl"
+        priority
+      />
     </div>
   );
 }
@@ -1061,7 +895,23 @@ export default function HomePage() {
                   className="mt-auto flex items-center gap-3 pt-3 border-t"
                   style={{ borderColor: "var(--border-subtle)" }}
                 >
-                  <AvatarDepoimento name={d.nome.split(" ")[0].toLowerCase()} size={40} />
+                  {AVATAR_MAP[d.nome.split(" ")[0].toLowerCase()] ? (
+                    <Image
+                      src={AVATAR_MAP[d.nome.split(" ")[0].toLowerCase()]}
+                      alt={d.nome}
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
+                      style={{ width: 40, height: 40 }}
+                    />
+                  ) : (
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}
+                    >
+                      {d.nome.charAt(0)}
+                    </div>
+                  )}
                   <div>
                     <p
                       className="text-sm font-medium"
