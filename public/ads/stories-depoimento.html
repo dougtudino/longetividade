@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Stories Depoimento — Método S.E.M</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1920px;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    background: #FAF8F5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 52px;
+    padding: 80px 100px;
+  }
+
+  .avatar {
+    width: 180px;
+    height: 180px;
+  }
+
+  .quote {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-style: italic;
+    font-weight: 400;
+    color: #2D2D2D;
+    text-align: center;
+    line-height: 1.45;
+    max-width: 820px;
+    position: relative;
+  }
+
+  .quote::before {
+    content: "\201C";
+    font-size: 140px;
+    color: #7A9E7E;
+    position: absolute;
+    top: -80px;
+    left: -20px;
+    font-style: normal;
+    line-height: 1;
+    opacity: 0.4;
+  }
+
+  .result-badge {
+    background: #7A9E7E;
+    color: #fff;
+    font-size: 34px;
+    font-weight: 800;
+    padding: 18px 48px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+  }
+
+  .stars {
+    display: flex;
+    gap: 12px;
+  }
+
+  .stars svg {
+    width: 48px;
+    height: 48px;
+  }
+
+  .name {
+    text-align: center;
+  }
+
+  .name .person {
+    font-size: 36px;
+    font-weight: 700;
+    color: #2D2D2D;
+  }
+
+  .name .city {
+    font-size: 28px;
+    color: #888;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+  <!-- Minimalist female avatar with curly hair -->
+  <svg class="avatar" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="90" cy="90" r="88" fill="#7A9E7E" opacity="0.15"/>
+    <circle cx="90" cy="90" r="80" fill="#FAF8F5"/>
+    <!-- face -->
+    <circle cx="90" cy="95" r="40" fill="#E8C9A0"/>
+    <!-- curly hair -->
+    <circle cx="62" cy="68" r="18" fill="#5C3A21"/>
+    <circle cx="90" cy="58" r="20" fill="#5C3A21"/>
+    <circle cx="118" cy="68" r="18" fill="#5C3A21"/>
+    <circle cx="55" cy="85" r="14" fill="#5C3A21"/>
+    <circle cx="125" cy="85" r="14" fill="#5C3A21"/>
+    <ellipse cx="90" cy="72" rx="30" ry="16" fill="#5C3A21"/>
+    <!-- eyes -->
+    <circle cx="78" cy="95" r="3.5" fill="#2D2D2D"/>
+    <circle cx="102" cy="95" r="3.5" fill="#2D2D2D"/>
+    <!-- smile -->
+    <path d="M80 108 Q90 118 100 108" fill="none" stroke="#C4787A" stroke-width="2.5" stroke-linecap="round"/>
+    <!-- earrings -->
+    <circle cx="54" cy="100" r="3" fill="#D4A94B"/>
+    <circle cx="126" cy="100" r="3" fill="#D4A94B"/>
+  </svg>
+
+  <div class="quote">Em 3 semanas perdi 2,5kg sem cortar nada. Estou comendo arroz, feijão, e até chocolate.</div>
+
+  <div class="result-badge">-2,5kg em 3 semanas</div>
+
+  <div class="stars">
+    <svg viewBox="0 0 24 24" fill="#D4A94B"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    <svg viewBox="0 0 24 24" fill="#D4A94B"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    <svg viewBox="0 0 24 24" fill="#D4A94B"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    <svg viewBox="0 0 24 24" fill="#D4A94B"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    <svg viewBox="0 0 24 24" fill="#D4A94B"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+  </div>
+
+  <div class="name">
+    <div class="person">Patrícia, 41 anos</div>
+    <div class="city">Curitiba, PR</div>
+  </div>
+</body>
+</html>

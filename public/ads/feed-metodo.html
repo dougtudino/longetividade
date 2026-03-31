@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Feed Método S.E.M</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1080px;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    background: #2D2D2D;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 60px;
+  }
+
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 58px;
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+  }
+
+  .boxes {
+    display: flex;
+    gap: 32px;
+  }
+
+  .box {
+    width: 290px;
+    border-radius: 24px;
+    padding: 44px 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .box.s { background: #7A9E7E; }
+  .box.e { background: #7AA4B5; }
+  .box.m { background: #C4787A; }
+
+  .box .letter {
+    font-family: 'Playfair Display', serif;
+    font-size: 120px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .box .word {
+    font-size: 30px;
+    font-weight: 800;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .box .desc {
+    font-size: 24px;
+    color: rgba(255,255,255,0.88);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .subtext {
+    font-size: 30px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+  <div class="headline">Por que toda dieta falha</div>
+
+  <div class="boxes">
+    <div class="box s">
+      <div class="letter">S</div>
+      <div class="word">Saciedade</div>
+      <div class="desc">Coma sem contar calorias</div>
+    </div>
+    <div class="box e">
+      <div class="letter">E</div>
+      <div class="word">Equilíbrio</div>
+      <div class="desc">Sem culpa alimentar</div>
+    </div>
+    <div class="box m">
+      <div class="letter">M</div>
+      <div class="word">Metabolismo</div>
+      <div class="desc">Seu corpo a seu favor</div>
+    </div>
+  </div>
+
+  <div class="subtext">Método S.E.M — O oposto de dieta</div>
+</body>
+</html>

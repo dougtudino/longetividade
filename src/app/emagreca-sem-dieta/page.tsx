@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
 import ThemeToggle from "@/components/ThemeToggle";
+import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
+import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
+import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
+import { AvatarDepoimento, BadgeResultado } from "@/components/visual";
 
 const LINKS = {
   hotmart: "https://pay.hotmart.com/H105141835Q",
@@ -244,7 +248,10 @@ export default function EmagrecaSemDietaPage() {
             className="flex items-center gap-2"
             style={{ color: "var(--text-muted)" }}
           >
-            <span className="text-xs font-bold">← Longetividade</span>
+            <div className="flex h-7 w-5 items-center justify-center rounded-sm overflow-hidden" style={{ background: 'linear-gradient(135deg, #7A9E7E, #FAF8F5)', boxShadow: '1px 1px 3px rgba(0,0,0,0.2)' }}>
+              <span className="text-[5px] font-bold text-white leading-none" style={{ fontFamily: 'Playfair Display, serif' }}>S.E.M</span>
+            </div>
+            <span className="text-xs font-bold">Longetividade</span>
           </Link>
           <div
             className="hidden items-center gap-2 rounded-full border px-4 py-1.5 sm:flex"
@@ -282,48 +289,55 @@ export default function EmagrecaSemDietaPage() {
             style={{ backgroundColor: "var(--accent-soft)" }}
           />
         </div>
-        <div className="relative mx-auto max-w-4xl text-center">
-          <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
-            Para mulheres que ja tentaram de tudo pra emagrecer e estao cansadas de se sentir culpadas
-          </p>
-          <div
-            className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-            style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
-          >
-            <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
-            <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
-              Mais de 12.400 mulheres ja transformaram sua relacao com a comida
-            </span>
-          </div>
-          <h1
-            className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
-            style={{ color: "var(--text-primary)" }}
-          >
-            Voce Nao Precisa de Mais Uma Dieta.
-            <br />
-            <span style={{ color: "var(--accent)" }}>
-              Precisa de um Metodo que Funcione na Sua Vida Real.
-            </span>
-          </h1>
-          <p
-            className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            Descubra o Metodo S.E.M — 3 pilares simples que estao ajudando mulheres ocupadas a
-            emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
-            plano pratico de 7 dias com cardapio, lista de compras e checklist diario.
-          </p>
-          <div
-            className="mx-auto mb-8 max-w-md rounded-2xl border p-6"
-            style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
-          >
-            <div className="mb-3 flex items-baseline justify-center gap-3">
-              <span className="text-lg line-through" style={{ color: "var(--text-hint)" }}>R$97</span>
-              <span className="text-5xl font-black" style={{ color: "var(--text-primary)" }}>R$27</span>
-              <span className="rounded-full px-2 py-1 text-xs font-bold" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#f87171" }}>-72%</span>
+        <div className="relative mx-auto max-w-5xl flex flex-col md:flex-row items-center gap-8 md:gap-12">
+          {/* Texto — 60% */}
+          <div className="flex-1 text-center md:text-left">
+            <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
+              Para mulheres que ja tentaram de tudo pra emagrecer e estao cansadas de se sentir culpadas
+            </p>
+            <div
+              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
+              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
+            >
+              <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
+              <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
+                Mais de 12.400 mulheres ja transformaram sua relacao com a comida
+              </span>
             </div>
-            <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>Ou 3x de R$9,90 sem juros</p>
-            <CTA label="Quero Emagrecer Agora — R$27" />
+            <h1
+              className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
+              style={{ color: "var(--text-primary)" }}
+            >
+              Voce Nao Precisa de Mais Uma Dieta.
+              <br />
+              <span style={{ color: "var(--accent)" }}>
+                Precisa de um Metodo que Funcione na Sua Vida Real.
+              </span>
+            </h1>
+            <p
+              className="mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Descubra o Metodo S.E.M — 3 pilares simples que estao ajudando mulheres ocupadas a
+              emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
+              plano pratico de 7 dias com cardapio, lista de compras e checklist diario.
+            </p>
+            <div
+              className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
+              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
+            >
+              <div className="mb-3 flex items-baseline justify-center gap-3">
+                <span className="text-lg line-through" style={{ color: "var(--text-hint)" }}>R$97</span>
+                <span className="text-5xl font-black" style={{ color: "var(--text-primary)" }}>R$27</span>
+                <span className="rounded-full px-2 py-1 text-xs font-bold" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#f87171" }}>-72%</span>
+              </div>
+              <p className="mb-4 text-sm" style={{ color: "var(--text-muted)" }}>Ou 3x de R$9,90 sem juros</p>
+              <CTA label="Quero Emagrecer Agora — R$27" />
+            </div>
+          </div>
+          {/* Mockup do ebook — 40% */}
+          <div className="flex-shrink-0 w-full max-w-[280px] md:max-w-[320px]">
+            <MockupEbookCover size="md" className="w-full" />
           </div>
         </div>
       </section>
@@ -551,6 +565,12 @@ export default function EmagrecaSemDietaPage() {
               <span style={{ color: "var(--accent)" }}>Hoje, tudo GRATIS com o ebook.</span>
             </p>
           </div>
+          {/* Mockup das paginas internas */}
+          <div className="flex justify-center mb-10">
+            <div className="w-full max-w-[550px]">
+              <MockupEbookSpread className="w-full" />
+            </div>
+          </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {bonuses.map((b) => (
               <div
@@ -595,17 +615,13 @@ export default function EmagrecaSemDietaPage() {
                       </svg>
                     ))}
                   </div>
-                  <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}>
-                    {d.resultado}
-                  </span>
+                  <BadgeResultado resultado={d.resultado} />
                 </div>
                 <p className="text-sm leading-relaxed flex-1" style={{ color: "var(--text-secondary)" }}>
                   &ldquo;{d.texto}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: "var(--border-subtle)" }}>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}>
-                    {d.nome.charAt(0)}
-                  </div>
+                  <AvatarDepoimento name={d.nome.split(" ")[0].toLowerCase()} size={40} />
                   <div>
                     <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>{d.nome}</p>
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>{d.local}</p>
@@ -668,6 +684,13 @@ export default function EmagrecaSemDietaPage() {
             <h2 className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
               Quanto vale transformar sua relacao com o seu corpo?
             </h2>
+            {/* Phone mockup */}
+            <div className="flex justify-center mt-6">
+              <div className="w-[160px]">
+                <MockupPhoneTela className="w-full" />
+              </div>
+            </div>
+            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>Acesso imediato no celular</p>
           </div>
           <div className="mb-8 rounded-2xl border p-6" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-card)" }}>
             <h3 className="mb-4 font-semibold" style={{ color: "var(--text-secondary)" }}>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1080">
+<title>Stories Oferta — Método S.E.M</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0;
+    width: 1080px;
+    height: 1920px;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    background: linear-gradient(170deg, #3D5A3E 0%, #7A9E7E 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 50px;
+    position: relative;
+  }
+
+  .badge {
+    background: #D4A94B;
+    color: #2D2D2D;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    padding: 16px 52px;
+    border-radius: 50px;
+  }
+
+  .book-wrapper {
+    perspective: 800px;
+  }
+
+  .book {
+    width: 360px;
+    height: 500px;
+    position: relative;
+    transform: rotateY(-18deg);
+    transform-style: preserve-3d;
+  }
+
+  .book-front {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 6px 16px 16px 6px;
+    overflow: hidden;
+  }
+
+  .book-spine {
+    width: 40px;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: -20px;
+    background: #2a5a2e;
+    transform: rotateY(90deg);
+    transform-origin: right center;
+    border-radius: 6px 0 0 6px;
+  }
+
+  .book-front svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .price-section {
+    text-align: center;
+  }
+
+  .price-old {
+    font-size: 42px;
+    color: rgba(255,255,255,0.5);
+    text-decoration: line-through;
+    font-weight: 600;
+  }
+
+  .price-new {
+    font-size: 96px;
+    color: #fff;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .price-new small {
+    font-size: 48px;
+    font-weight: 700;
+  }
+
+  .cta-btn {
+    background: #3D5A3E;
+    color: #fff;
+    font-size: 38px;
+    font-weight: 800;
+    padding: 30px 120px;
+    border-radius: 60px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .footer-text {
+    position: absolute;
+    bottom: 48px;
+    font-size: 22px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+  <div class="badge">APENAS HOJE</div>
+
+  <div class="book-wrapper">
+    <div class="book">
+      <div class="book-spine"></div>
+      <div class="book-front">
+        <svg viewBox="0 0 360 500" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#3D5A3E"/>
+              <stop offset="100%" stop-color="#7A9E7E"/>
+            </linearGradient>
+          </defs>
+          <rect width="360" height="500" rx="4" fill="url(#bg)"/>
+          <!-- decorative circles -->
+          <circle cx="180" cy="120" r="60" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/>
+          <circle cx="180" cy="120" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+          <!-- leaf icon -->
+          <path d="M175 100 Q180 80 200 85 Q195 105 180 115 Q165 105 160 85 Q180 80 185 100Z" fill="rgba(255,255,255,0.25)"/>
+          <!-- title -->
+          <text x="180" y="210" text-anchor="middle" font-family="Playfair Display, serif" font-size="32" font-weight="700" fill="#fff">Emagreça</text>
+          <text x="180" y="250" text-anchor="middle" font-family="Playfair Display, serif" font-size="32" font-weight="700" fill="#fff">Sem Dieta</text>
+          <!-- divider -->
+          <line x1="120" y1="275" x2="240" y2="275" stroke="#D4A94B" stroke-width="2"/>
+          <!-- subtitle -->
+          <text x="180" y="310" text-anchor="middle" font-family="Nunito, sans-serif" font-size="20" font-weight="700" fill="rgba(255,255,255,0.85)">Método S.E.M</text>
+          <!-- SEM boxes -->
+          <rect x="78" y="340" rx="6" width="56" height="56" fill="rgba(255,255,255,0.15)"/>
+          <text x="106" y="378" text-anchor="middle" font-family="Playfair Display, serif" font-size="28" font-weight="700" fill="#fff">S</text>
+          <rect x="152" y="340" rx="6" width="56" height="56" fill="rgba(255,255,255,0.15)"/>
+          <text x="180" y="378" text-anchor="middle" font-family="Playfair Display, serif" font-size="28" font-weight="700" fill="#fff">E</text>
+          <rect x="226" y="340" rx="6" width="56" height="56" fill="rgba(255,255,255,0.15)"/>
+          <text x="254" y="378" text-anchor="middle" font-family="Playfair Display, serif" font-size="28" font-weight="700" fill="#fff">M</text>
+          <!-- author -->
+          <text x="180" y="450" text-anchor="middle" font-family="Nunito, sans-serif" font-size="14" font-weight="600" fill="rgba(255,255,255,0.5)">longetividade.com.br</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="price-section">
+    <div class="price-old">R$97</div>
+    <div class="price-new"><small>R$</small>37</div>
+  </div>
+
+  <div class="cta-btn">GARANTIR AGORA</div>
+
+  <div class="footer-text">Hotmart + Kiwify | Pagamento seguro</div>
+</body>
+</html>
