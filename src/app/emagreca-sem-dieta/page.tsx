@@ -1,4 +1,4 @@
-// src/app/emagreca-sem-dieta/page.tsx — Pagina de vendas completa
+// src/app/emagreca-sem-dieta/page.tsx — Página de vendas completa
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -32,39 +32,39 @@ function handleBuyClick() {
 
 const bullets = [
   {
-    cat: "Alimentacao sem restricao",
+    cat: "Alimentação sem restrição",
     items: [
-      "Como montar refeicoes que ajudam a emagrecer sem pesar nada, contar caloria ou seguir cardapio complicado",
-      "O alimento 'saudavel' que pode estar sabotando seu emagrecimento sem voce desconfiar (pagina 23)",
-      "Como cozinhar UMA refeicao pra familia inteira e ainda emagrecer — sem fazer comida separada",
-      "Por que 'comer menos' e exatamente o que esta impedindo voce de emagrecer — e o que fazer em vez disso",
-      "Por que voce NAO precisa eliminar carboidrato, acucar ou gluten pra perder peso de forma saudavel",
+      "Como montar refeições que ajudam a emagrecer sem pesar nada, contar caloria ou seguir cardápio complicado",
+      "O alimento 'saudável' que pode estar sabotando seu emagrecimento sem você desconfiar (página 23)",
+      "Como cozinhar UMA refeição pra família inteira e ainda emagrecer — sem fazer comida separada",
+      "Por que 'comer menos' é exatamente o que está impedindo você de emagrecer — e o que fazer em vez disso",
+      "Por que você NÃO precisa eliminar carboidrato, açúcar ou glúten pra perder peso de forma saudável",
     ],
   },
   {
     cat: "Controle emocional",
     items: [
-      "Como controlar a fome da noite sem forca de vontade — usando uma tecnica simples de 3 minutos",
-      "Como parar de comer por ansiedade sem se privar dos alimentos que voce gosta",
+      "Como controlar a fome da noite sem força de vontade — usando uma técnica simples de 3 minutos",
+      "Como parar de comer por ansiedade sem se privar dos alimentos que você gosta",
       "O pilar que 99% dos programas de emagrecimento ignoram — e sem ele, nenhuma dieta sustenta",
-      "A razao real pela qual voce sente fome descontrolada a partir das 17h — e o ajuste simples que resolve",
+      "A razão real pela qual você sente fome descontrolada a partir das 17h — e o ajuste simples que resolve",
     ],
   },
   {
-    cat: "Movimento pratico",
+    cat: "Movimento prático",
     items: [
-      "Como encaixar movimento no seu dia sem pisar numa academia e sem acordar as 5h da manha",
-      "O tipo de movimento que queima mais gordura que 1 hora de esteira — e voce ja faz sem perceber",
-      "15 minutos por dia: a rotina minima de movimento que funciona pra quem nao tem tempo pra mais nada",
+      "Como encaixar movimento no seu dia sem pisar numa academia e sem acordar as 5h da manhã",
+      "O tipo de movimento que queima mais gordura que 1 hora de esteira — e você já faz sem perceber",
+      "15 minutos por dia: a rotina mínima de movimento que funciona pra quem não tem tempo pra mais nada",
     ],
   },
   {
     cat: "Verdades que mudam tudo",
     items: [
-      "Por que a forca de vontade NAO e o fator que separa quem emagrece de quem nao emagrece — e qual e",
+      "Por que a força de vontade NÃO é o fator que separa quem emagrece de quem não emagrece — e qual é",
       "Por que mulheres acima de 30 tem MAIS dificuldade com dietas tradicionais — e a abordagem que funciona",
-      "A razao cientifica pela qual dietas restritivas fazem voce ENGORDAR a medio prazo",
-      "Os 3 sinais que realmente indicam progresso (e nenhum deles e o numero na balanca)",
+      "A razão científica pela qual dietas restritivas fazem você ENGORDAR a médio prazo",
+      "Os 3 sinais que realmente indicam progresso (e nenhum deles é o número na balança)",
     ],
   },
 ];
@@ -72,25 +72,25 @@ const bullets = [
 const bonuses = [
   {
     icon: "✅",
-    titulo: "Checklist Diario Imprimivel",
-    desc: "Imprima, cole na geladeira e siga todos os dias. Nos dias que voce nao quiser pensar, e so seguir a lista.",
+    titulo: "Checklist Diário Imprimível",
+    desc: "Imprima, cole na geladeira e siga todos os dias. Nos dias que você não quiser pensar, é só seguir a lista.",
     valor: "R$ 19,90",
   },
   {
     icon: "🔄",
-    titulo: "Tabela de Substituicoes Alimentares",
-    desc: "Nao gosta de brocolis? Troque. Nao come peixe? Troque. Flexibilidade total pra adaptar ao SEU gosto.",
+    titulo: "Tabela de Substituições Alimentares",
+    desc: "Não gosta de brócolis? Troque. Não come peixe? Troque. Flexibilidade total pra adaptar ao SEU gosto.",
     valor: "R$ 14,90",
   },
   {
     icon: "⚡",
     titulo: "10 Atalhos que Quem Emagrece Usa Todo Dia",
-    desc: "Ajustes pequenos que aceleram seus resultados sem esforco extra. Nenhum exige dinheiro ou forca de vontade.",
+    desc: "Ajustes pequenos que aceleram seus resultados sem esforço extra. Nenhum exige dinheiro ou força de vontade.",
     valor: "R$ 24,90",
   },
   {
     icon: "🛒",
-    titulo: "Lista de Compras Estrategica",
+    titulo: "Lista de Compras Estratégica",
     desc: "Chegue no mercado, siga a lista, gaste 20 minutos e saia com tudo que precisa pra semana inteira.",
     valor: "R$ 9,90",
   },
@@ -98,60 +98,60 @@ const bonuses = [
 
 const faq = [
   {
-    q: "Ja comprei outros ebooks e nao funcionaram. Por que esse seria diferente?",
-    a: "A maioria dos ebooks de emagrecimento foca so em alimentacao — te da um cardapio e pronto. O Metodo S.E.M e diferente porque trabalha os 3 pilares que realmente importam: como voce come, como voce se sente e como voce se move. Nao adianta ter o cardapio perfeito se voce come por ansiedade. O S.E.M trata isso.",
+    q: "Já comprei outros ebooks e não funcionaram. Por que esse seria diferente?",
+    a: "A maioria dos ebooks de emagrecimento foca só em alimentação — te dá um cardápio e pronto. O Método S.E.M é diferente porque trabalha os 3 pilares que realmente importam: como você come, como você se sente e como você se move. Não adianta ter o cardápio perfeito se você come por ansiedade. O S.E.M trata isso.",
   },
   {
-    q: "Nao tenho tempo pra ler.",
-    a: "O ebook tem 20-30 paginas de leitura direta e objetiva. Da pra ler em 1 hora. E a aplicacao leva 5 minutos por dia. Foi feito pra quem nao tem tempo — inclusive pra ler.",
+    q: "Não tenho tempo pra ler.",
+    a: "O ebook tem 20-30 páginas de leitura direta e objetiva. Dá pra ler em 1 hora. E a aplicação leva 5 minutos por dia. Foi feito pra quem não tem tempo — inclusive pra ler.",
   },
   {
     q: "Funciona pra quem tem mais de 35 anos?",
-    a: "Sim. Na verdade, o Metodo S.E.M e especialmente eficaz para mulheres acima de 30, porque nao depende de metabolismo acelerado ou treinos intensos. Ele trabalha com habitos simples que funcionam em qualquer fase da vida.",
+    a: "Sim. Na verdade, o Método S.E.M é especialmente eficaz para mulheres acima de 30, porque não depende de metabolismo acelerado ou treinos intensos. Ele trabalha com hábitos simples que funcionam em qualquer fase da vida.",
   },
   {
     q: "Preciso ir na academia?",
-    a: "Nao. O Pilar 3 (Movimento) e baseado em movimento integrado a rotina: caminhar, subir escada, brincar com os filhos. 15 minutos por dia, sem sair de casa, sem trocar de roupa.",
+    a: "Não. O Pilar 3 (Movimento) é baseado em movimento integrado a rotina: caminhar, subir escada, brincar com os filhos. 15 minutos por dia, sem sair de casa, sem trocar de roupa.",
   },
   {
-    q: "Isso e mais uma dieta disfarcada?",
-    a: "Nao. Zero restricao alimentar. Zero alimento proibido. Zero contagem de calorias. O Metodo S.E.M te ensina a comer com inteligencia, nao com restricao. Voce vai comer chocolate, pao, arroz — e emagrecer.",
+    q: "Isso é mais uma dieta disfarçada?",
+    a: "Não. Zero restrição alimentar. Zero alimento proibido. Zero contagem de calorias. O Método S.E.M te ensina a comer com inteligência, não com restrição. Você vai comer chocolate, pão, arroz — e emagrecer.",
   },
   {
-    q: "E se nao funcionar pra mim?",
-    a: "Voce tem 7 dias de garantia incondicional. Se nao gostar, nao sentir valor ou simplesmente mudar de ideia, e so pedir o reembolso. Devolvemos 100% sem perguntas.",
+    q: "E se não funcionar pra mim?",
+    a: "Você tem 7 dias de garantia incondicional. Se não gostar, não sentir valor ou simplesmente mudar de ideia, é só pedir o reembolso. Devolvemos 100% sem perguntas.",
   },
   {
     q: "Esse ebook substitui nutricionista?",
-    a: "Nao. O ebook e um guia pratico de habitos alimentares, emocionais e de movimento. Se voce tem condicoes medicas especificas, continue com seu profissional de saude. O ebook complementa qualquer acompanhamento.",
+    a: "Não. O ebook é um guia prático de hábitos alimentares, emocionais e de movimento. Se você tem condições médicas específicas, continue com seu profissional de saúde. O ebook complementa qualquer acompanhamento.",
   },
   {
     q: "Como recebo o ebook?",
-    a: "Imediatamente apos a confirmacao do pagamento, voce recebe o link de acesso por email. O download e instantaneo. Voce pode ler no celular, tablet ou computador.",
+    a: "Imediatamente após a confirmação do pagamento, você recebe o link de acesso por email. O download é instantâneo. Você pode ler no celular, tablet ou computador.",
   },
 ];
 
 const depoimentos = [
   {
     nome: "Ana Paula M.",
-    local: "Sao Paulo, SP",
+    local: "São Paulo, SP",
     resultado: "-8kg em 6 semanas",
     texto:
-      "Perdi 8kg em 6 semanas sem passar fome. O metodo e completamente diferente de tudo que tentei antes. Pela primeira vez nao me sinto culpada por comer.",
+      "Perdi 8kg em 6 semanas sem passar fome. O método é completamente diferente de tudo que tentei antes. Pela primeira vez não me sinto culpada por comer.",
   },
   {
     nome: "Fernanda R.",
     local: "Curitiba, PR",
     resultado: "-6kg em 3 semanas",
     texto:
-      "Eu achava que o problema era eu. Falta de disciplina. O S.E.M me mostrou que era a estrategia. Em 3 semanas ja sentia diferenca na roupa.",
+      "Eu achava que o problema era eu. Falta de disciplina. O S.E.M me mostrou que era a estratégia. Em 3 semanas já sentia diferença na roupa.",
   },
   {
     nome: "Carla S.",
     local: "Rio de Janeiro, RJ",
     resultado: "-11kg em 3 meses",
     texto:
-      "Finalmente um metodo que faz sentido. Aprendi a me relacionar com a comida de forma diferente. Nao sinto mais aquela compulsao noturna.",
+      "Finalmente um método que faz sentido. Aprendi a me relacionar com a comida de forma diferente. Não sinto mais aquela compulsão noturna.",
   },
 ];
 
@@ -305,7 +305,7 @@ export default function EmagrecaSemDietaPage() {
           {/* Texto — 60% */}
           <div className="flex-1 text-center md:text-left">
             <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
-              Para mulheres que ja tentaram de tudo pra emagrecer e estao cansadas de se sentir culpadas
+              Para mulheres que já tentaram de tudo pra emagrecer e estão cansadas de se sentir culpadas
             </p>
             <div
               className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
@@ -313,26 +313,26 @@ export default function EmagrecaSemDietaPage() {
             >
               <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
               <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
-                Mais de 12.400 mulheres ja transformaram sua relacao com a comida
+                Mais de 12.400 mulheres já transformaram sua relação com a comida
               </span>
             </div>
             <h1
               className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
               style={{ color: "var(--text-primary)" }}
             >
-              Voce Nao Precisa de Mais Uma Dieta.
+              Você Não Precisa de Mais Uma Dieta.
               <br />
               <span style={{ color: "var(--accent)" }}>
-                Precisa de um Metodo que Funcione na Sua Vida Real.
+                Precisa de um Método que Funcione na Sua Vida Real.
               </span>
             </h1>
             <p
               className="mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
               style={{ color: "var(--text-secondary)" }}
             >
-              Descubra o Metodo S.E.M — 3 pilares simples que estao ajudando mulheres ocupadas a
+              Descubra o Método S.E.M — 3 pilares simples que estão ajudando mulheres ocupadas a
               emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
-              plano pratico de 7 dias com cardapio, lista de compras e checklist diario.
+              plano prático de 7 dias com cardápio, lista de compras e checklist diário.
             </p>
             <div
               className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
@@ -348,12 +348,12 @@ export default function EmagrecaSemDietaPage() {
             </div>
           </div>
           {/* Mockup do ebook — 40% */}
-          <div className="flex-shrink-0 w-full max-w-[280px] md:max-w-[320px]">
+          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px]">
             <Image
               src="/images/ebook-mockup.png"
-              alt="Ebook Emagreca Sem Dieta — Metodo S.E.M"
-              width={320}
-              height={427}
+              alt="Ebook Emagreça Sem Dieta — Método S.E.M"
+              width={420}
+              height={560}
               className="w-full h-auto drop-shadow-2xl"
               priority
             />
@@ -366,8 +366,8 @@ export default function EmagrecaSemDietaPage() {
         <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-around gap-6 px-6">
           {[
             { n: "12.400+", l: "alunas" },
-            { n: "4.9 ★", l: "avaliacao" },
-            { n: "97%", l: "satisfacao" },
+            { n: "4.9 ★", l: "avaliação" },
+            { n: "97%", l: "satisfação" },
             { n: "21 dias", l: "resultados" },
           ].map((s) => (
             <div key={s.l} className="flex flex-col items-center gap-1">
@@ -382,49 +382,49 @@ export default function EmagrecaSemDietaPage() {
       <section className="py-20 px-6">
         <div className="mx-auto max-w-2xl">
           <h2 className="mb-6 text-3xl font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
-            Sabe aquele momento em que voce abre o guarda-roupa de manha...
+            Sabe aquele momento em que você abre o guarda-roupa de manhã...
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             <p>
-              Voce pega aquela calca jeans que cabia perfeitamente ha 2 anos. Tenta vestir. Nao fecha.
-              Entao voce respira fundo, guarda de volta e pega a mesma legging preta de sempre. E sai
-              de casa fingindo que esta tudo bem.
+              Você pega aquela calça jeans que cabia perfeitamente há 2 anos. Tenta vestir. Não fecha.
+              Então você respira fundo, guarda de volta e pega a mesma legging preta de sempre. E sai
+              de casa fingindo que está tudo bem.
             </p>
             <p>
-              Mas nao esta tudo bem. Porque enquanto voce dirige pro trabalho, cuida das criancas,
-              resolve problema dos outros o dia inteiro... tem uma voz la no fundo repetindo:{" "}
-              <em>&ldquo;Voce precisava cuidar de voce. Mas quando? Como? Se voce ja tentou de tudo e
+              Mas não está tudo bem. Porque enquanto você dirige pro trabalho, cuida das crianças,
+              resolve problema dos outros o dia inteiro... tem uma voz lá no fundo repetindo:{" "}
+              <em>&ldquo;Você precisava cuidar de você. Mas quando? Como? Se você já tentou de tudo e
               nada funcionou?&rdquo;</em>
             </p>
             <p>
-              E ai chega a noite, voce esta exausta, e o unico conforto que aparece e aquele pacote
-              de bolacha. E voce come. E depois sente culpa. E promete: &ldquo;Segunda eu comeco de novo.&rdquo;
+              E aí chega a noite, você está exausta, e o único conforto que aparece é aquele pacote
+              de bolacha. E você come. E depois sente culpa. E promete: &ldquo;Segunda eu começo de novo.&rdquo;
             </p>
             <p className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>
-              Se voce se reconheceu nessas linhas, preciso te dizer uma coisa importante:{" "}
-              <span style={{ color: "var(--accent)" }}>o problema nunca foi voce.</span>
+              Se você se reconheceu nessas linhas, preciso te dizer uma coisa importante:{" "}
+              <span style={{ color: "var(--accent)" }}>o problema nunca foi você.</span>
             </p>
             <p>
-              Nunca foi falta de disciplina, de forca de vontade ou de comprometimento. O problema foi
-              o metodo. Ou melhor — a falta de um metodo que funcione pra quem vive na vida real.
+              Nunca foi falta de disciplina, de força de vontade ou de comprometimento. O problema foi
+              o método. Ou melhor — a falta de um método que funcione pra quem vive na vida real.
             </p>
           </div>
         </div>
       </section>
 
-      {/* IDENTIFICACAO — componente interativo com barra de progresso e contador */}
+      {/* IDENTIFICAÇÃO — componente interativo com barra de progresso e contador */}
       <IdentificationChecklist />
 
-      {/* PROBLEMA NAO E VOCE */}
+      {/* PROBLEMA NÃO É VOCÊ */}
       <section className="py-20 px-6">
         <div className="mx-auto max-w-2xl">
           <h2 className="mb-8 text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Por que nada funcionou ate agora (e por que NAO e culpa sua)
+            Por que nada funcionou até agora (e por que NÃO é culpa sua)
           </h2>
           <div className="space-y-5 text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
             <p>
-              Se dietas funcionassem de verdade, a industria de emagrecimento nao faturaria bilhoes
-              todo ano. Se o produto resolvesse o problema, voce nao precisaria voltar. Mas voce
+              Se dietas funcionassem de verdade, a indústria de emagrecimento não faturaria bilhões
+              todo ano. Se o produto resolvesse o problema, você não precisaria voltar. Mas você
               volta. E volta. E volta.
             </p>
             <div
@@ -433,34 +433,34 @@ export default function EmagrecaSemDietaPage() {
             >
               <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
                 Pesquisas mostram que mais de 93% das pessoas que fazem dieta restritiva recuperam
-                todo o peso em ate 2 anos. Muitas recuperam com juros.
+                todo o peso em até 2 anos. Muitas recuperam com juros.
               </p>
             </div>
             <p>
-              Porque dietas restritivas trabalham CONTRA o seu corpo. Elas criam privacao. Privacao
-              gera compulsao. Compulsao gera culpa. Culpa gera mais restricao. E o ciclo nao para nunca.
+              Porque dietas restritivas trabalham CONTRA o seu corpo. Elas criam privação. Privação
+              gera compulsão. Compulsão gera culpa. Culpa gera mais restrição. E o ciclo não para nunca.
             </p>
             <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-              O problema nunca foi disciplina. Foi estrategia.
+              O problema nunca foi disciplina. Foi estratégia.
             </p>
             <p>
-              Voce nao precisa de mais forca de vontade. Voce precisa de um metodo que trabalhe COM
-              o seu corpo, COM a sua rotina e COM as suas emocoes. Nao contra elas.
+              Você não precisa de mais força de vontade. Você precisa de um método que trabalhe COM
+              o seu corpo, COM a sua rotina e COM as suas emoções. Não contra elas.
             </p>
           </div>
         </div>
       </section>
 
-      {/* METODO S.E.M */}
+      {/* MÉTODO S.E.M */}
       <section className="py-20 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
         <div className="mx-auto max-w-4xl">
           <div className="mb-12 text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>A metodologia</p>
-            <h2 className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>Conheca o Metodo S.E.M</h2>
-            <p className="mt-3 text-lg" style={{ color: "var(--text-secondary)" }}>Simplicidade. Equilibrio. Movimento.</p>
+            <h2 className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>Conheça o Método S.E.M</h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--text-secondary)" }}>Simplicidade. Equilíbrio. Movimento.</p>
             <p className="mt-2 max-w-2xl mx-auto" style={{ color: "var(--text-secondary)" }}>
-              Nao e mais uma dieta. E um sistema de 3 pilares que funcionam juntos pra criar um
-              emagrecimento que dura — sem sofrimento, sem privacao e que cabe na sua rotina real.
+              Não é mais uma dieta. É um sistema de 3 pilares que funcionam juntos pra criar um
+              emagrecimento que dura — sem sofrimento, sem privação e que cabe na sua rotina real.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
@@ -468,17 +468,17 @@ export default function EmagrecaSemDietaPage() {
               {
                 letra: "S",
                 nome: "Simplicidade",
-                desc: "Voce vai aprender a montar refeicoes que ajudam a emagrecer sem pesar comida, sem contar caloria e sem eliminar nada do prato. Sem lista de proibido. Sem culpa. Comer de verdade, emagrecer de verdade.",
+                desc: "Você vai aprender a montar refeições que ajudam a emagrecer sem pesar comida, sem contar caloria e sem eliminar nada do prato. Sem lista de proibido. Sem culpa. Comer de verdade, emagrecer de verdade.",
               },
               {
                 letra: "E",
-                nome: "Equilibrio",
-                desc: "Este e o pilar que ninguem fala. Voce vai entender por que come quando nao tem fome, por que a ansiedade dispara a noite, e o que fazer de verdade quando isso acontece.",
+                nome: "Equilíbrio",
+                desc: "Este é o pilar que ninguém fala. Você vai entender por que come quando não tem fome, por que a ansiedade dispara a noite, e o que fazer de verdade quando isso acontece.",
               },
               {
                 letra: "M",
                 nome: "Movimento",
-                desc: "Esqueca academia. Aqui voce vai aprender a integrar movimento no seu dia em 15 minutos, sem trocar de roupa, sem sair de casa. Movimento que queima gordura e melhora seu humor.",
+                desc: "Esqueça academia. Aqui você vai aprender a integrar movimento no seu dia em 15 minutos, sem trocar de roupa, sem sair de casa. Movimento que queima gordura e melhora seu humor.",
               },
             ].map((p) => (
               <div
@@ -502,20 +502,20 @@ export default function EmagrecaSemDietaPage() {
             style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
           >
             <p className="font-semibold" style={{ color: "var(--text-primary)" }}>
-              Enquanto dietas tratam so a alimentacao, o Metodo S.E.M trata voce por inteiro: corpo,
+              Enquanto dietas tratam só a alimentação, o Método S.E.M trata você por inteiro: corpo,
               mente e rotina.{" "}
-              <span style={{ color: "var(--accent)" }}>Esse e o diferencial.</span>
+              <span style={{ color: "var(--accent)" }}>Esse é o diferencial.</span>
             </p>
           </div>
         </div>
       </section>
 
-      {/* O QUE VOCE VAI APRENDER */}
+      {/* O QUE VOCÊ VAI APRENDER */}
       <section className="py-20 px-6">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
             <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
-              Dentro do ebook, voce vai descobrir:
+              Dentro do ebook, você vai descobrir:
             </h2>
           </div>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -542,19 +542,19 @@ export default function EmagrecaSemDietaPage() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Incluso no seu pedido</p>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Voce ainda recebe esses bonus exclusivos</h2>
+            <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Você ainda recebe esses bônus exclusivos</h2>
             <p className="mt-2" style={{ color: "var(--text-secondary)" }}>
-              Valor total dos bonus: <strong>R$ 69,60</strong> —{" "}
-              <span style={{ color: "var(--accent)" }}>Hoje, tudo GRATIS com o ebook.</span>
+              Valor total dos bônus: <strong>R$ 69,60</strong> —{" "}
+              <span style={{ color: "var(--accent)" }}>Hoje, tudo GRÁTIS com o ebook.</span>
             </p>
           </div>
-          {/* Mockup das paginas internas */}
+          {/* Mockup das páginas internas */}
           <div className="flex justify-center mb-10">
-            <div className="w-full max-w-[550px]">
+            <div className="w-full max-w-[700px]">
               <Image
                 src="/images/ebook-spread.png"
-                alt="Paginas internas do ebook — checklist e plano de 7 dias"
-                width={600}
+                alt="Páginas internas do ebook — checklist e plano de 7 dias"
+                width={700}
                 height={338}
                 className="w-full h-auto rounded-xl shadow-lg"
               />
@@ -572,7 +572,7 @@ export default function EmagrecaSemDietaPage() {
                   <div className="mb-1 flex items-center gap-2">
                     <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>{b.titulo}</h3>
                     <span className="text-xs line-through" style={{ color: "var(--text-hint)" }}>{b.valor}</span>
-                    <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}>GRATIS</span>
+                    <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}>GRÁTIS</span>
                   </div>
                   <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{b.desc}</p>
                 </div>
@@ -587,7 +587,7 @@ export default function EmagrecaSemDietaPage() {
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Resultados reais</p>
-            <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Quem ja transformou sua vida</h2>
+            <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>Quem já transformou sua vida</h2>
           </div>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             {depoimentos.map((d) => (
@@ -638,37 +638,37 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* PARA QUEM E */}
+      {/* PARA QUEM É */}
       <section className="py-20 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
         <div className="mx-auto max-w-4xl">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="rounded-2xl border p-7" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}>
               <h3 className="mb-5 text-xl font-bold" style={{ color: "var(--accent)" }}>
-                ✅ Este ebook e pra voce se:
+                ✅ Este ebook é pra você se:
               </h3>
               <ul className="space-y-3">
                 {[
-                  "Voce e mulher entre 25 e 55 anos com rotina corrida",
-                  "Voce ja tentou varias dietas e nao conseguiu manter o resultado",
-                  "Voce quer emagrecer sem abrir mao da qualidade de vida",
-                  "Voce precisa de algo pratico, direto e aplicavel a partir de amanha",
-                  "Voce esta cansada de se sentir culpada por comer",
-                  "Voce nao tem tempo (nem vontade) pra academia",
-                  "Voce come por ansiedade ou emocao e quer entender por que",
+                  "Você é mulher entre 25 e 55 anos com rotina corrida",
+                  "Você já tentou várias dietas e não conseguiu manter o resultado",
+                  "Você quer emagrecer sem abrir mão da qualidade de vida",
+                  "Você precisa de algo prático, direto e aplicável a partir de amanhã",
+                  "Você está cansada de se sentir culpada por comer",
+                  "Você não tem tempo (nem vontade) pra academia",
+                  "Você come por ansiedade ou emoção e quer entender por que",
                 ].map((item) => <CheckItem key={item} text={item} />)}
               </ul>
             </div>
             <div className="rounded-2xl border p-7" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-card)" }}>
               <h3 className="mb-5 text-xl font-bold" style={{ color: "var(--text-muted)" }}>
-                ❌ Este ebook NAO e pra voce se:
+                ❌ Este ebook NÃO é pra você se:
               </h3>
               <ul className="space-y-3">
                 {[
-                  "Voce busca resultado magico em 3 dias (isso nao existe)",
-                  "Voce quer mais um cardapio ultra-restritivo",
-                  "Voce nao esta disposta a fazer pequenas mudancas",
-                  "Voce quer substituir acompanhamento medico especializado",
-                  "Voce quer ouvir que existe pilula magica ou atalho sem esforco",
+                  "Você busca resultado mágico em 3 dias (isso não existe)",
+                  "Você quer mais um cardápio ultra-restritivo",
+                  "Você não está disposta a fazer pequenas mudanças",
+                  "Você quer substituir acompanhamento médico especializado",
+                  "Você quer ouvir que existe pílula mágica ou atalho sem esforço",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2.5 text-sm" style={{ color: "var(--text-muted)" }}>
                     <span className="mt-0.5 text-red-400">✗</span>
@@ -687,16 +687,16 @@ export default function EmagrecaSemDietaPage() {
           <div className="text-center mb-8">
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Investimento</p>
             <h2 className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
-              Quanto vale transformar sua relacao com o seu corpo?
+              Quanto vale transformar sua relação com o seu corpo?
             </h2>
             {/* Phone mockup */}
             <div className="flex justify-center mt-6">
-              <div className="w-[160px]">
+              <div className="w-[220px]">
                 <Image
                   src="/images/ebook-phone.jpg"
-                  alt="Ebook Emagreca Sem Dieta no celular"
-                  width={180}
-                  height={240}
+                  alt="Ebook Emagreça Sem Dieta no celular"
+                  width={240}
+                  height={320}
                   className="w-full h-auto"
                 />
               </div>
@@ -705,15 +705,15 @@ export default function EmagrecaSemDietaPage() {
           </div>
           <div className="mb-8 rounded-2xl border p-6" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-card)" }}>
             <h3 className="mb-4 font-semibold" style={{ color: "var(--text-secondary)" }}>
-              Facilmente voce gasta mais do que isso tentando resolver o problema de outras formas:
+              Facilmente você gasta mais do que isso tentando resolver o problema de outras formas:
             </h3>
             <div className="space-y-2">
               {[
                 ["Consulta com nutricionista", "R$ 200 - R$ 400"],
-                ["Programa de emagrecimento online (mes)", "R$ 97 - R$ 297"],
-                ["1 mes de academia que voce nao vai", "R$ 80 - R$ 150"],
-                ["Roupas novas porque as antigas nao cabem", "R$ 150 - R$ 500"],
-                ["Delivery e fast food por falta de planejamento", "R$ 300+/mes"],
+                ["Programa de emagrecimento online (mês)", "R$ 97 - R$ 297"],
+                ["1 mês de academia que você não vai", "R$ 80 - R$ 150"],
+                ["Roupas novas porque as antigas não cabem", "R$ 150 - R$ 500"],
+                ["Delivery e fast food por falta de planejamento", "R$ 300+/mês"],
               ].map(([item, valor]) => (
                 <div
                   key={item}
@@ -738,20 +738,20 @@ export default function EmagrecaSemDietaPage() {
               <span className="text-7xl font-black" style={{ color: "var(--text-primary)" }}>R$37</span>
             </div>
             <p className="mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-              Ou 3x de R$9,90 sem juros — menos que um cafe com pao de queijo
+              Ou 3x de R$9,90 sem juros — menos que um café com pão de queijo
             </p>
             <CTA label="Garantir Meu Acesso Agora" />
             <div className="mt-8 border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
-              <p className="mb-4 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Tudo que voce recebe:</p>
+              <p className="mb-4 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Tudo que você recebe:</p>
               <ul className="space-y-2">
                 {[
-                  "Ebook Emagreca Sem Dieta — Metodo S.E.M completo",
-                  "Plano pratico de 7 dias com cardapio dia a dia",
-                  "Lista de compras estrategica pronta pra imprimir",
-                  "Checklist diario imprimivel",
-                  "Tabela de substituicoes alimentares",
-                  "Guia 10 Atalhos de Aceleracao de Resultados",
-                  "Acesso vitalicio — sem mensalidade",
+                  "Ebook Emagreça Sem Dieta — Método S.E.M completo",
+                  "Plano prático de 7 dias com cardápio dia a dia",
+                  "Lista de compras estratégica pronta pra imprimir",
+                  "Checklist diário imprimível",
+                  "Tabela de substituições alimentares",
+                  "Guia 10 Atalhos de Aceleração de Resultados",
+                  "Acesso vitalício — sem mensalidade",
                   "Garantia incondicional de 7 dias",
                 ].map((item) => <CheckItem key={item} text={item} />)}
               </ul>
@@ -767,16 +767,16 @@ export default function EmagrecaSemDietaPage() {
             <div className="text-5xl">🛡️</div>
             <div>
               <h3 className="mb-3 text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-                Garantia Incondicional de 7 Dias: Risco ZERO pra Voce
+                Garantia Incondicional de 7 Dias: Risco ZERO pra Você
               </h3>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Eu sei que voce ja foi enganada antes. Sei que ja comprou coisas que prometiam o mundo
-                e entregaram nada. Por isso, a garantia e simples:{" "}
+                Eu sei que você já foi enganada antes. Sei que já comprou coisas que prometiam o mundo
+                e entregaram nada. Por isso, a garantia é simples:{" "}
                 <strong style={{ color: "var(--text-primary)" }}>
-                  Compre o ebook. Leia. Aplique. Se nos proximos 7 dias voce sentir que nao valeu cada
+                  Compre o ebook. Leia. Aplique. Se nos próximos 7 dias você sentir que não valeu cada
                   centavo, me mande um email e eu devolvo 100% do seu dinheiro. Sem perguntas. Sem burocracia.
                 </strong>{" "}
-                O unico risco que voce corre e continuar fazendo a mesma coisa e esperando resultados diferentes.
+                O único risco que você corre é continuar fazendo a mesma coisa e esperando resultados diferentes.
               </p>
             </div>
           </div>
@@ -823,38 +823,38 @@ export default function EmagrecaSemDietaPage() {
       <section className="py-24 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="mb-4 text-4xl font-bold md:text-5xl" style={{ color: "var(--text-primary)" }}>
-            Voce tem duas opcoes agora.
+            Você tem duas opções agora.
           </h2>
           <div className="my-8 grid grid-cols-1 gap-4 md:grid-cols-2 text-left">
             <div className="rounded-2xl border p-5" style={{ borderColor: "rgba(239,68,68,0.2)", backgroundColor: "rgba(239,68,68,0.04)" }}>
-              <p className="mb-1 font-bold text-red-400">Opcao 1</p>
+              <p className="mb-1 font-bold text-red-400">Opção 1</p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Fechar essa pagina, continuar fazendo o que sempre fez e esperar que algo mude.
-                Comecar mais uma dieta na segunda. Desistir na quarta. Se sentir culpada na sexta. Repetir.
+                Fechar essa página, continuar fazendo o que sempre fez e esperar que algo mude.
+                Começar mais uma dieta na segunda. Desistir na quarta. Se sentir culpada na sexta. Repetir.
               </p>
             </div>
             <div className="rounded-2xl border p-5" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}>
-              <p className="mb-1 font-bold" style={{ color: "var(--accent)" }}>Opcao 2</p>
+              <p className="mb-1 font-bold" style={{ color: "var(--accent)" }}>Opção 2</p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Investir R$ 37 — o preco de um delivery — e dar uma chance pra um metodo que respeita
-                sua rotina, seu corpo e suas emocoes. Com plano de 7 dias pronto. Para comecar AMANHA.
+                Investir R$ 37 — o preço de um delivery — e dar uma chance pra um método que respeita
+                sua rotina, seu corpo e suas emoções. Com plano de 7 dias pronto. Para começar AMANHÃ.
               </p>
             </div>
           </div>
           <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
-            A escolha e sua. Mas se voce chegou ate aqui, la no fundo voce ja sabe qual e.
+            A escolha é sua. Mas se você chegou até aqui, lá no fundo você já sabe qual é.
           </p>
-          <CTA label="SIM, EU QUERO O METODO S.E.M — R$37" />
+          <CTA label="SIM, EU QUERO O MÉTODO S.E.M — R$37" />
           <div className="mt-10 space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
             <p>
-              <strong style={{ color: "var(--text-primary)" }}>P.S.</strong> — Se voce esta pensando
-              &ldquo;talvez depois&rdquo;: quantas vezes voce ja adiou cuidar de voce? Quantas
-              &ldquo;segundas-feiras&rdquo; ja passaram? R$37 e 1 hora de leitura podem ser o inicio
-              de uma mudanca que voce vai agradecer daqui a 6 meses.
+              <strong style={{ color: "var(--text-primary)" }}>P.S.</strong> — Se você está pensando
+              &ldquo;talvez depois&rdquo;: quantas vezes você já adiou cuidar de você? Quantas
+              &ldquo;segundas-feiras&rdquo; já passaram? R$37 e 1 hora de leitura podem ser o início
+              de uma mudança que você vai agradecer daqui a 6 meses.
             </p>
             <p>
-              <strong style={{ color: "var(--text-primary)" }}>P.P.S.</strong> — Voce tem 7 dias de
-              garantia. Se nao gostar, devolvo seu dinheiro. O unico risco e nao tentar.
+              <strong style={{ color: "var(--text-primary)" }}>P.P.S.</strong> — Você tem 7 dias de
+              garantia. Se não gostar, devolvo seu dinheiro. O único risco é não tentar.
             </p>
           </div>
         </div>
@@ -867,10 +867,10 @@ export default function EmagrecaSemDietaPage() {
             className="mb-6 rounded-xl border p-4 text-xs leading-relaxed"
             style={{ borderColor: "var(--border-subtle)", color: "var(--text-muted)" }}
           >
-            <strong>Aviso importante:</strong> Este produto e um guia de habitos alimentares, emocionais
-            e de movimento. Nao substitui acompanhamento medico ou nutricional profissional. Se voce tem
-            condicoes de saude especificas, consulte seu medico ou nutricionista antes de iniciar qualquer
-            mudanca alimentar. Resultados podem variar de pessoa para pessoa.
+            <strong>Aviso importante:</strong> Este produto é um guia de hábitos alimentares, emocionais
+            e de movimento. Não substitui acompanhamento médico ou nutricional profissional. Se você tem
+            condições de saúde específicas, consulte seu médico ou nutricionista antes de iniciar qualquer
+            mudança alimentar. Resultados podem variar de pessoa para pessoa.
           </div>
           <div className="flex flex-col items-center gap-3">
             <Link href="/" className="text-xs font-bold transition-colors" style={{ color: "var(--text-muted)" }}>
