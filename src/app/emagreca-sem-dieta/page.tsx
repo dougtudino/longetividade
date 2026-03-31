@@ -551,7 +551,13 @@ export default function EmagrecaSemDietaPage() {
           {/* Mockup das paginas internas */}
           <div className="flex justify-center mb-10">
             <div className="w-full max-w-[550px]">
-              <MockupEbookSpread className="w-full" />
+              <Image
+                src="/images/ebook-spread.png"
+                alt="Paginas internas do ebook — checklist e plano de 7 dias"
+                width={600}
+                height={338}
+                className="w-full h-auto rounded-xl shadow-lg"
+              />
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -686,7 +692,13 @@ export default function EmagrecaSemDietaPage() {
             {/* Phone mockup */}
             <div className="flex justify-center mt-6">
               <div className="w-[160px]">
-                <MockupPhoneTela className="w-full" />
+                <Image
+                  src="/images/ebook-phone.jpg"
+                  alt="Ebook Emagreca Sem Dieta no celular"
+                  width={180}
+                  height={240}
+                  className="w-full h-auto"
+                />
               </div>
             </div>
             <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>Acesso imediato no celular</p>
