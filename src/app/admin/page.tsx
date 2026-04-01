@@ -50,12 +50,15 @@ interface Stats {
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-function fmtBRL(cents: number): string {
-  const val = cents / 100;
+function fmtBRL(value: number): string {
   return (
     "R$ " +
-    val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   );
+}
+
+function fmtCents(cents: number): string {
+  return fmtBRL(cents / 100);
 }
 
 function fmtDate(iso: string): string {
@@ -674,7 +677,7 @@ function RecentOrdersTable({ orders }: { orders: RecentOrder[] }) {
               <td style={tdStyle}>
                 {o.plan.charAt(0).toUpperCase() + o.plan.slice(1)}
               </td>
-              <td style={tdStyle}>{fmtBRL(o.amount)}</td>
+              <td style={tdStyle}>{fmtCents(o.amount)}</td>
               <td style={tdStyle}>
                 <span
                   style={{
