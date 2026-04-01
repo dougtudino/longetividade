@@ -32,8 +32,15 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
+    label: "Ecossistema",
+    href: "/admin/ecossistema",
+    icon: (
+      <span style={{ fontSize: 16, lineHeight: 1 }}>{"\uD83D\uDDFA\uFE0F"}</span>
+    ),
+  },
+  {
     label: "Dashboard",
-    href: "/admin",
+    href: "/admin/dashboard",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="12" width="4" height="9" rx="1" />
@@ -152,7 +159,9 @@ export default function AdminSidebar() {
   }, [pathname]);
 
   const isActive = (href: string) =>
-    href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+    href === "/admin/dashboard"
+      ? pathname === "/admin" || pathname === "/admin/dashboard"
+      : pathname.startsWith(href);
 
   const sidebarTheme = SIDEBAR_THEMES[themeKey] || SIDEBAR_THEMES.dark;
 
