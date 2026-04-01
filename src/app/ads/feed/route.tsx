@@ -6,19 +6,19 @@ export const runtime = "edge";
 
 const VARIANTS = [
   {
-    headline: "Cansada de\ndietas que\nnao funcionam?",
-    sub: "Descubra o Metodo SEM",
-    accent: "#10b981",
+    headline: "Cansada de\ndietas que\nnão funcionam?",
+    sub: "Descubra o Método SEM",
+    accent: "#7A9E7E",
   },
   {
-    headline: "Emagreca\nsem passar\nfome",
-    sub: "3 pilares cientificos",
-    accent: "#6ee7b7",
+    headline: "Emagreça\nsem passar\nfome",
+    sub: "3 pilares científicos",
+    accent: "#3D5A3E",
   },
   {
     headline: "-8kg em\n6 semanas\nsem dieta",
     sub: "Resultado real de alunas",
-    accent: "#14b8a6",
+    accent: "#D4A94B",
   },
 ];
 
@@ -35,9 +35,9 @@ export async function GET(req: NextRequest) {
           justifyContent: "space-between",
           width: "100%",
           height: "100%",
-          background: "linear-gradient(160deg, #080808 0%, #064e3b 60%, #080808 100%)",
+          background: "linear-gradient(160deg, #FAF8F5 0%, #7A9E7E 60%, #3D5A3E 100%)",
           padding: "80px",
-          color: "white",
+          color: "#2D2D2D",
           fontFamily: "sans-serif",
         }}
       >
@@ -54,11 +54,12 @@ export async function GET(req: NextRequest) {
               justifyContent: "center",
               fontSize: "22px",
               fontWeight: 800,
+              color: "#fff",
             }}
           >
             L
           </div>
-          <span style={{ fontSize: "22px", fontWeight: 600, opacity: 0.5 }}>Longetividade</span>
+          <span style={{ fontSize: "22px", fontWeight: 600, color: "#2D2D2D", opacity: 0.5 }}>Longetividade</span>
         </div>
 
         {/* Headline */}
@@ -70,11 +71,12 @@ export async function GET(req: NextRequest) {
               lineHeight: 1.05,
               margin: 0,
               whiteSpace: "pre-wrap",
+              color: "#fff",
             }}
           >
             {variant.headline}
           </h1>
-          <p style={{ fontSize: "28px", color: variant.accent, fontWeight: 600, margin: 0 }}>
+          <p style={{ fontSize: "28px", color: variant.accent === "#3D5A3E" ? "#D4A94B" : "#3D5A3E", fontWeight: 600, margin: 0 }}>
             {variant.sub}
           </p>
         </div>
@@ -84,18 +86,19 @@ export async function GET(req: NextRequest) {
           <div
             style={{
               display: "flex",
-              background: variant.accent,
+              background: "#D4A94B",
               borderRadius: "20px",
               padding: "20px 44px",
               fontSize: "28px",
               fontWeight: 800,
+              color: "#fff",
             }}
           >
             Quero Emagrecer Agora
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-            <span style={{ fontSize: "24px", textDecoration: "line-through", opacity: 0.3 }}>R$97</span>
-            <span style={{ fontSize: "56px", fontWeight: 900 }}>R$37</span>
+            <span style={{ fontSize: "24px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$97</span>
+            <span style={{ fontSize: "56px", fontWeight: 900, color: "#fff" }}>R$37</span>
           </div>
         </div>
       </div>

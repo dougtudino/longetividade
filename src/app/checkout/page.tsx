@@ -69,8 +69,8 @@ export default function CheckoutPage() {
           className="mt-6 text-center text-xs leading-relaxed"
           style={{ color: "var(--text-hint)" }}
         >
-          Ao finalizar a compra, voce concorda com nossos Termos de Uso e
-          Politica de Privacidade. Garantia incondicional de 7 dias.
+          Ao finalizar a compra, você concorda com nossos Termos de Uso e
+          Política de Privacidade. Garantia incondicional de 7 dias.
         </p>
       </div>
     </div>

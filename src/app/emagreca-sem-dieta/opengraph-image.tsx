@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Emagreca Sem Dieta — Metodo SEM | De R$97 por R$37";
+export const alt = "Emagreça Sem Dieta — Método SEM | De R$97 por R$37";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -16,7 +16,7 @@ export default function OGImage() {
           justifyContent: "center",
           width: "100%",
           height: "100%",
-          background: "linear-gradient(135deg, #064e3b 0%, #0f172a 50%, #080808 100%)",
+          background: "linear-gradient(135deg, #7A9E7E 0%, #3D5A3E 50%, #2D2D2D 100%)",
           color: "white",
           fontFamily: "sans-serif",
           padding: "60px",
@@ -35,16 +35,17 @@ export default function OGImage() {
               width: "40px",
               height: "40px",
               borderRadius: "10px",
-              background: "#10b981",
+              background: "#D4A94B",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               fontSize: "20px",
+              fontWeight: 800,
             }}
           >
             L
           </div>
-          <span style={{ fontSize: "20px", opacity: 0.6 }}>Longetividade</span>
+          <span style={{ fontSize: "20px", opacity: 0.7 }}>Longetividade</span>
         </div>
 
         <h1
@@ -56,20 +57,20 @@ export default function OGImage() {
             margin: "0 0 20px 0",
           }}
         >
-          Emagreca{" "}
-          <span style={{ color: "#6ee7b7" }}>Sem Dieta</span>
+          Emagreça{" "}
+          <span style={{ color: "#D4A94B" }}>Sem Dieta</span>
         </h1>
 
         <p
           style={{
             fontSize: "28px",
-            opacity: 0.6,
+            opacity: 0.7,
             textAlign: "center",
             margin: "0 0 40px 0",
             maxWidth: "700px",
           }}
         >
-          O Metodo SEM — 3 pilares para emagrecer sem passar fome
+          O Método SEM — 3 pilares para emagrecer sem passar fome
         </p>
 
         <div
@@ -84,7 +85,7 @@ export default function OGImage() {
             style={{
               fontSize: "28px",
               textDecoration: "line-through",
-              opacity: 0.3,
+              opacity: 0.4,
             }}
           >
             R$97
@@ -95,7 +96,7 @@ export default function OGImage() {
         <div
           style={{
             display: "flex",
-            background: "#10b981",
+            background: "#D4A94B",
             borderRadius: "16px",
             padding: "16px 48px",
             fontSize: "24px",

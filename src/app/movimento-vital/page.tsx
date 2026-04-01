@@ -5,37 +5,37 @@ import LeadCapture from "@/components/LeadCapture";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
-  title: "Movimento Vital — Exercicio que Rejuvenesce | Longetividade",
+  title: "Movimento Vital — Exercício que Rejuvenesce | Longetividade",
   description:
-    "20 minutos por dia que ativam os hormonios da juventude. Sem academia, sem equipamentos. Ciencia do movimento funcional para qualquer rotina.",
+    "20 minutos por dia que ativam os hormônios da juventude. Sem academia, sem equipamentos. Ciência do movimento funcional para qualquer rotina.",
 };
 
 const topicos = [
   {
     icon: "💪",
     titulo: "Movimento Funcional",
-    desc: "Exercicios baseados em padroes naturais de movimento que fortalecem, rejuvenescem e cabem em 20 minutos do seu dia.",
+    desc: "Exercícios baseados em padrões naturais de movimento que fortalecem, rejuvenescem e cabem em 20 minutos do seu dia.",
   },
   {
     icon: "🔬",
-    titulo: "Ciencia dos Hormonios",
-    desc: "Entenda como o movimento certo ativa GH, testosterona e BDNF — os hormonios da juventude, forca e clareza mental.",
+    titulo: "Ciência dos Hormônios",
+    desc: "Entenda como o movimento certo ativa GH, testosterona e BDNF — os hormônios da juventude, força e clareza mental.",
   },
   {
     icon: "📈",
-    titulo: "Progressao Inteligente",
-    desc: "Protocolo progressivo que se adapta ao seu nivel atual. Do iniciante ao avancado, sem risco de lesao.",
+    titulo: "Progressão Inteligente",
+    desc: "Protocolo progressivo que se adapta ao seu nível atual. Do iniciante ao avançado, sem risco de lesão.",
   },
   {
     icon: "🏠",
     titulo: "Sem Academia",
-    desc: "Tudo o que voce precisa e 20 minutos e espaco para um tapete de yoga. Sem equipamentos, sem horario fixo.",
+    desc: "Tudo o que você precisa é 20 minutos e espaço para um tapete de yoga. Sem equipamentos, sem horário fixo.",
   },
 ];
 
 const resultados = [
-  "Mais energia ao longo do dia — sem cafe extra",
-  "Melhora na postura e reducao de dores cronicas",
+  "Mais energia ao longo do dia — sem café extra",
+  "Melhora na postura e redução de dores crônicas",
   "Aumento na massa muscular sem hipertrofia excessiva",
   "Melhora na qualidade do sono",
   "Humor e clareza mental visivelmente melhores",
@@ -92,7 +92,7 @@ export default function MovimentoVitalPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
             <span className="text-xs font-semibold text-cyan-400">
-              Lancamento em breve — Lista VIP aberta
+              Lançamento em breve — Lista VIP aberta
             </span>
           </div>
           <h1
@@ -106,9 +106,9 @@ export default function MovimentoVitalPage() {
             className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            20 minutos por dia que ativam os hormonios da juventude e
+            20 minutos por dia que ativam os hormônios da juventude e
             transformam seu corpo — sem academia, sem equipamentos e sem
-            horario fixo. Ciencia do movimento funcional para qualquer rotina.
+            horário fixo. Ciência do movimento funcional para qualquer rotina.
           </p>
 
           <div
@@ -125,8 +125,8 @@ export default function MovimentoVitalPage() {
               className="mb-4 text-sm"
               style={{ color: "var(--text-secondary)" }}
             >
-              Preco de lancamento exclusivo para quem esta na lista.
-              Acesso prioritario a primeira turma.
+              Preço de lançamento exclusivo para quem está na lista.
+              Acesso prioritário à primeira turma.
             </p>
             <LeadCapture source="movimento-vital-vip" />
           </div>
@@ -183,7 +183,7 @@ export default function MovimentoVitalPage() {
             className="mb-8 text-center text-2xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Resultados que voce vai sentir
+            Resultados que você vai sentir
           </h2>
           <div
             className="rounded-2xl border p-6"
@@ -234,7 +234,7 @@ export default function MovimentoVitalPage() {
             Reserve seu lugar
           </h2>
           <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-            Preco de lancamento: R$57. Lista VIP garante desconto exclusivo.
+            Preço de lançamento: R$57. Lista VIP garante desconto exclusivo.
           </p>
           <div
             className="rounded-2xl border p-6"
@@ -254,8 +254,8 @@ export default function MovimentoVitalPage() {
       >
         <p className="text-xs" style={{ color: "var(--text-hint)" }}>
           © {new Date().getFullYear()} Longetividade. Consulte um profissional
-          de saude antes de iniciar qualquer programa de exercicios, especialmente
-          se tiver condicoes medicas preexistentes.
+          de saúde antes de iniciar qualquer programa de exercícios, especialmente
+          se tiver condições médicas preexistentes.
         </p>
       </footer>
     </div>

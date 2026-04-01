@@ -23,8 +23,8 @@ export default function LinkExpiradoPage() {
         </h1>
 
         <p className="font-body text-dark-gray text-lg leading-relaxed mb-8">
-          Este link de download expirou ou ja foi utilizado o numero maximo de
-          vezes. Se voce precisa de um novo link, entre em contato com nosso
+          Este link de download expirou ou já foi utilizado o número máximo de
+          vezes. Se você precisa de um novo link, entre em contato com nosso
           suporte.
         </p>
 
@@ -40,7 +40,7 @@ export default function LinkExpiradoPage() {
             >
               contato@longetividade.com.br
             </a>{" "}
-            informando o email usado na compra. Responderemos em ate 24 horas.
+            informando o email usado na compra. Responderemos em até 24 horas.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function LinkExpiradoPage() {
           href="/"
           className="inline-block mt-6 font-body text-sage hover:text-olive underline text-sm transition-colors"
         >
-          Voltar para a pagina inicial
+          Voltar para a página inicial
         </a>
       </div>
     </div>

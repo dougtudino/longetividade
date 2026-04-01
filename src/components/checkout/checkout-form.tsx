@@ -82,7 +82,7 @@ export function CheckoutForm() {
       {canceled && (
         <div className="bg-rose/10 border border-rose rounded-lg p-4 mb-6 text-center">
           <p className="font-body text-rose text-sm">
-            Pagamento cancelado. Voce pode tentar novamente.
+            Pagamento cancelado. Você pode tentar novamente.
           </p>
         </div>
       )}

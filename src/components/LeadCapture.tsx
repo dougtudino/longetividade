@@ -28,11 +28,11 @@ export default function LeadCapture({ source = "homepage" }: { source?: string }
 
   if (status === "success") {
     return (
-      <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
-        <svg className="h-5 w-5 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+      <div className="flex items-center gap-2 rounded-xl border border-[#7A9E7E]/30 bg-[#7A9E7E]/10 px-4 py-3">
+        <svg className="h-5 w-5 text-[#7A9E7E]" viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
-        <span className="text-sm font-medium text-emerald-300">Pronto! Voce esta na lista VIP.</span>
+        <span className="text-sm font-medium text-[#3D5A3E]">Pronto! Você está na lista VIP.</span>
       </div>
     );
   }
@@ -45,12 +45,12 @@ export default function LeadCapture({ source = "homepage" }: { source?: string }
         placeholder="Seu melhor email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/30 outline-none focus:border-emerald-500/50 transition-colors"
+        className="flex-1 rounded-xl border border-[#7A9E7E]/20 bg-[#7A9E7E]/5 px-4 py-3 text-sm text-[#2D2D2D] placeholder-[#2D2D2D]/30 outline-none focus:border-[#7A9E7E]/50 transition-colors"
       />
       <button
         type="submit"
         disabled={status === "loading"}
-        className="rounded-xl bg-emerald-500 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-400 active:scale-95 transition-all disabled:opacity-50"
+        className="rounded-xl bg-[#7A9E7E] px-6 py-3 text-sm font-bold text-white hover:bg-[#3D5A3E] active:scale-95 transition-all disabled:opacity-50"
       >
         {status === "loading" ? "Enviando..." : "Entrar na Lista VIP"}
       </button>

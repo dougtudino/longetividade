@@ -1,30 +1,30 @@
 const BONUSES = [
   {
     number: 1,
-    title: "Checklist Diario Imprimivel",
+    title: "Checklist Diário Imprimível",
     description:
-      "Imprima, cole na geladeira e siga todos os dias. Nos dias que voce nao quiser pensar, e so seguir a lista. Simples assim.",
+      "Imprima, cole na geladeira e siga todos os dias. Nos dias que você não quiser pensar, é só seguir a lista. Simples assim.",
     value: "R$ 19,90",
   },
   {
     number: 2,
-    title: "Tabela de Substituicoes Alimentares",
+    title: "Tabela de Substituições Alimentares",
     description:
-      "Nao gosta de brocolis? Troque. Nao come peixe? Troque. Essa tabela te da flexibilidade total pra adaptar o cardapio ao SEU gosto.",
+      "Não gosta de brócolis? Troque. Não come peixe? Troque. Essa tabela te dá flexibilidade total pra adaptar o cardápio ao SEU gosto.",
     value: "R$ 14,90",
   },
   {
     number: 3,
     title: 'Guia "10 Atalhos que Mulheres que Emagrecem Usam Todo Dia"',
     description:
-      "Ajustes pequenos que aceleram seus resultados sem esforco extra. Nenhum deles exige dinheiro, tempo ou forca de vontade.",
+      "Ajustes pequenos que aceleram seus resultados sem esforço extra. Nenhum deles exige dinheiro, tempo ou força de vontade.",
     value: "R$ 24,90",
   },
   {
     number: 4,
-    title: "Lista de Compras Estrategica",
+    title: "Lista de Compras Estratégica",
     description:
-      "Chegue no mercado, siga a lista, gaste 20 minutos e saia com tudo que precisa pra semana inteira. Sem improvisar, sem cair em tentacao.",
+      "Chegue no mercado, siga a lista, gaste 20 minutos e saia com tudo que precisa pra semana inteira. Sem improvisar, sem cair em tentação.",
     value: "R$ 9,90",
   },
 ];
@@ -35,12 +35,12 @@ export function BonusSection() {
       <div className="mx-auto max-w-4xl px-4">
         <span className="block text-center mb-3">
           <span className="inline-block text-white font-body font-bold text-xs uppercase tracking-widest px-4 py-1.5 rounded-full" style={{backgroundColor: 'var(--danger, #C4787A)'}}>
-            BONUS EXCLUSIVOS
+            BÔNUS EXCLUSIVOS
           </span>
         </span>
 
         <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-10 md:mb-14" style={{color: 'var(--text-primary)'}}>
-          Voce ainda recebe tudo isso:
+          Você ainda recebe tudo isso:
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -63,17 +63,17 @@ export function BonusSection() {
                 <span className="line-through" style={{color: 'var(--text-muted)'}}>
                   Valor: {bonus.value}
                 </span>{" "}
-                <span className="font-bold" style={{color: 'var(--accent)'}}>GRATIS</span>
+                <span className="font-bold" style={{color: 'var(--accent)'}}>GRÁTIS</span>
               </p>
             </div>
           ))}
         </div>
 
         <p className="font-body text-base md:text-lg text-center mt-8 font-medium" style={{color: 'var(--text-primary)'}}>
-          Valor total dos bonus:{" "}
+          Valor total dos bônus:{" "}
           <span className="line-through" style={{color: 'var(--text-muted)'}}>R$ 69,60</span> --{" "}
           <span className="font-bold" style={{color: 'var(--accent)'}}>
-            Hoje, tudo GRATIS com o ebook.
+            Hoje, tudo GRÁTIS com o ebook.
           </span>
         </p>
       </div>

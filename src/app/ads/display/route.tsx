@@ -11,9 +11,9 @@ export async function GET() {
           display: "flex",
           width: "100%",
           height: "100%",
-          background: "linear-gradient(135deg, #080808 0%, #064e3b 70%, #080808 100%)",
+          background: "linear-gradient(135deg, #FAF8F5 0%, #7A9E7E 70%, #3D5A3E 100%)",
           padding: "48px 64px",
-          color: "white",
+          color: "#2D2D2D",
           fontFamily: "sans-serif",
           justifyContent: "space-between",
           alignItems: "center",
@@ -27,12 +27,13 @@ export async function GET() {
                 width: "36px",
                 height: "36px",
                 borderRadius: "8px",
-                background: "#10b981",
+                background: "#7A9E7E",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: "18px",
                 fontWeight: 800,
+                color: "#fff",
               }}
             >
               L
@@ -45,13 +46,14 @@ export async function GET() {
               fontWeight: 900,
               lineHeight: 1.1,
               margin: 0,
+              color: "#fff",
             }}
           >
-            Emagreca{" "}
-            <span style={{ color: "#6ee7b7" }}>Sem Dieta</span>
+            Emagreça{" "}
+            <span style={{ color: "#D4A94B" }}>Sem Dieta</span>
           </h1>
-          <p style={{ fontSize: "20px", opacity: 0.5, margin: 0, maxWidth: "400px" }}>
-            3 pilares cientificos para perder peso de forma permanente
+          <p style={{ fontSize: "20px", color: "rgba(255,255,255,0.7)", margin: 0, maxWidth: "400px" }}>
+            3 pilares científicos para perder peso de forma permanente
           </p>
         </div>
 
@@ -62,29 +64,30 @@ export async function GET() {
             flexDirection: "column",
             alignItems: "center",
             gap: "16px",
-            background: "rgba(0,0,0,0.4)",
+            background: "rgba(61,90,62,0.4)",
             borderRadius: "24px",
             padding: "32px 40px",
-            border: "1px solid rgba(16,185,129,0.2)",
+            border: "1px solid rgba(212,169,75,0.3)",
           }}
         >
           <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-            <span style={{ fontSize: "20px", textDecoration: "line-through", opacity: 0.3 }}>R$97</span>
-            <span style={{ fontSize: "56px", fontWeight: 900 }}>R$37</span>
+            <span style={{ fontSize: "20px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$97</span>
+            <span style={{ fontSize: "56px", fontWeight: 900, color: "#fff" }}>R$37</span>
           </div>
           <div
             style={{
               display: "flex",
-              background: "#10b981",
+              background: "#D4A94B",
               borderRadius: "16px",
               padding: "16px 36px",
               fontSize: "20px",
               fontWeight: 800,
+              color: "#fff",
             }}
           >
-            Saiba Mais &rarr;
+            Saiba Mais →
           </div>
-          <span style={{ fontSize: "14px", opacity: 0.3 }}>Garantia 7 dias</span>
+          <span style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)" }}>Garantia 7 dias</span>
         </div>
       </div>
     ),

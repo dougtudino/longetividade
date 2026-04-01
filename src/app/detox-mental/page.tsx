@@ -7,39 +7,39 @@ import ThemeToggle from "@/components/ThemeToggle";
 export const metadata: Metadata = {
   title: "Detox Mental — Clareza e Foco em 14 Dias | Longetividade",
   description:
-    "Limpe o ruido mental e desenvolva foco sustentavel em 14 dias. Reducao de cortisol, mindfulness pratico e diario estruturado para uma mente mais clara.",
+    "Limpe o ruído mental e desenvolva foco sustentável em 14 dias. Redução de cortisol, mindfulness prático e diário estruturado para uma mente mais clara.",
 };
 
 const topicos = [
   {
     icon: "🧘",
-    titulo: "Reducao de Cortisol",
-    desc: "Tecnicas baseadas em neurociencia para reduzir o cortisol cronico que drena sua energia e prejudica sua saude.",
+    titulo: "Redução de Cortisol",
+    desc: "Técnicas baseadas em neurociência para reduzir o cortisol crônico que drena sua energia e prejudica sua saúde.",
   },
   {
     icon: "🎯",
-    titulo: "Foco Sustentavel",
-    desc: "Aprenda a treinar sua atencao para trabalhar em blocos produtivos sem o cansaco mental que vem depois.",
+    titulo: "Foco Sustentável",
+    desc: "Aprenda a treinar sua atenção para trabalhar em blocos produtivos sem o cansaço mental que vem depois.",
   },
   {
     icon: "📓",
-    titulo: "Diario Estruturado",
-    desc: "Um metodo de journaling cientifico que organiza pensamentos, reduz ansiedade e aumenta clareza mental diariamente.",
+    titulo: "Diário Estruturado",
+    desc: "Um método de journaling científico que organiza pensamentos, reduz ansiedade e aumenta clareza mental diariamente.",
   },
   {
     icon: "💆",
-    titulo: "Mindfulness Pratico",
-    desc: "Sem meditacao de 1 hora. Tecnicas de 5 minutos que voce usa em qualquer lugar, mesmo no meio da correria.",
+    titulo: "Mindfulness Prático",
+    desc: "Sem meditação de 1 hora. Técnicas de 5 minutos que você usa em qualquer lugar, mesmo no meio da correria.",
   },
 ];
 
 const problemas = [
-  "Voce se sente constantemente sobrecarregada mentalmente",
+  "Você se sente constantemente sobrecarregada mentalmente",
   "Tem dificuldade de focar por mais de 10 minutos em uma tarefa",
   "Sua mente fica acelerada quando tenta relaxar",
-  "Voce dorme mas acorda ja cansada, como se nao tivesse descansado",
-  "Sente ansiedade sem um motivo especifico",
-  "Procrastina nao por preguica, mas porque parece que nao tem energia mental",
+  "Você dorme mas acorda já cansada, como se não tivesse descansado",
+  "Sente ansiedade sem um motivo específico",
+  "Procrastina não por preguiça, mas porque parece que não tem energia mental",
 ];
 
 export default function DetoxMentalPage() {
@@ -97,7 +97,7 @@ export default function DetoxMentalPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
             <span className="text-xs font-semibold text-amber-400">
-              Lancamento em breve — Lista VIP aberta
+              Lançamento em breve — Lista VIP aberta
             </span>
           </div>
           <h1
@@ -111,8 +111,8 @@ export default function DetoxMentalPage() {
             className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Limpe o ruido mental, reduza o cortisol cronico e desenvolva foco
-            sustentavel. Um protocolo pratico para quem nao tem tempo para
+            Limpe o ruído mental, reduza o cortisol crônico e desenvolva foco
+            sustentável. Um protocolo prático para quem não tem tempo para
             meditar 1 hora por dia — mas precisa urgentemente de mais clareza.
           </p>
 
@@ -130,12 +130,12 @@ export default function DetoxMentalPage() {
               className="mb-4 text-sm"
               style={{ color: "var(--text-secondary)" }}
             >
-              Lista VIP recebe preco de lancamento exclusivo e acesso
-              prioritario ao programa.
+              Lista VIP recebe preço de lançamento exclusivo e acesso
+              prioritário ao programa.
             </p>
             <LeadCapture source="detox-mental-vip" />
             <p className="mt-2 text-xs" style={{ color: "var(--text-hint)" }}>
-              Sem spam. So novidades sobre o Detox Mental.
+              Sem spam. Só novidades sobre o Detox Mental.
             </p>
           </div>
         </div>
@@ -151,7 +151,7 @@ export default function DetoxMentalPage() {
             className="mb-8 text-center text-2xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Voce reconhece algum desses sinais de sobrecarga mental?
+            Você reconhece algum desses sinais de sobrecarga mental?
           </h2>
           <div
             className="rounded-2xl border p-6"
@@ -240,7 +240,7 @@ export default function DetoxMentalPage() {
             Garanta seu lugar na lista VIP
           </h2>
           <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
-            Preco de lancamento exclusivo. Vagas limitadas na primeira turma.
+            Preço de lançamento exclusivo. Vagas limitadas na primeira turma.
           </p>
           <div
             className="rounded-2xl border p-6"
@@ -250,13 +250,13 @@ export default function DetoxMentalPage() {
             }}
           >
             <p className="mb-1 text-sm font-bold text-amber-400">
-              Preco previsto: R$47
+              Preço previsto: R$47
             </p>
             <p
               className="mb-4 text-xs"
               style={{ color: "var(--text-muted)" }}
             >
-              Lista VIP garante desconto especial de lancamento
+              Lista VIP garante desconto especial de lançamento
             </p>
             <LeadCapture source="detox-mental-vip-final" />
           </div>
@@ -268,8 +268,8 @@ export default function DetoxMentalPage() {
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <p className="text-xs" style={{ color: "var(--text-hint)" }}>
-          © {new Date().getFullYear()} Longetividade. Este produto nao
-          substitui acompanhamento medico ou psicologico profissional.
+          © {new Date().getFullYear()} Longetividade. Este produto não
+          substitui acompanhamento médico ou psicológico profissional.
         </p>
       </footer>
     </div>

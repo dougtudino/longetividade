@@ -7,19 +7,19 @@ import ThemeToggle from "@/components/ThemeToggle";
 export const metadata: Metadata = {
   title: "Sono Profundo — Protocolo de Cronobiologia | Longetividade",
   description:
-    "Restaure seus ciclos de sono naturalmente em 30 dias. Sem remedios, sem hacks — so ciencia aplicada. Entre na lista VIP para ser o primeiro a saber do lancamento.",
+    "Restaure seus ciclos de sono naturalmente em 30 dias. Sem remédios, sem hacks — só ciência aplicada. Entre na lista VIP para ser o primeiro a saber do lançamento.",
 };
 
 const topicos = [
   {
     icon: "🌙",
     titulo: "Cronobiologia Aplicada",
-    desc: "Entenda seu ritmo circadiano e como sincroniza-lo com luz, temperatura e alimentacao para sono profundo natural.",
+    desc: "Entenda seu ritmo circadiano e como sincronizá-lo com luz, temperatura e alimentação para sono profundo natural.",
   },
   {
     icon: "🧠",
-    titulo: "Neurociencia do Sono",
-    desc: "Descubra o que acontece no seu cerebro durante o sono e por que as fases REM e NREM sao fundamentais para saude.",
+    titulo: "Neurociência do Sono",
+    desc: "Descubra o que acontece no seu cérebro durante o sono e por que as fases REM e NREM são fundamentais para saúde.",
   },
   {
     icon: "😴",
@@ -29,17 +29,17 @@ const topicos = [
   {
     icon: "⚡",
     titulo: "Energia Transformada",
-    desc: "Acordar descansada, com clareza mental e energia para o dia inteiro — sem cafeina em excesso.",
+    desc: "Acordar descansada, com clareza mental e energia para o dia inteiro — sem cafeína em excesso.",
   },
 ];
 
 const problemas = [
-  "Voce leva mais de 30 minutos pra conseguir dormir",
-  "Acorda varias vezes durante a noite",
-  "Nao se sente descansada mesmo dormindo 8 horas",
-  "Fica com sono durante o dia mas nao consegue dormir a noite",
-  "Ja tentou melatonina e outros suplementos sem resultado permanente",
-  "Usa o celular ate tarde e sabe que isso atrapalha mas nao consegue parar",
+  "Você leva mais de 30 minutos pra conseguir dormir",
+  "Acorda várias vezes durante a noite",
+  "Não se sente descansada mesmo dormindo 8 horas",
+  "Fica com sono durante o dia mas não consegue dormir à noite",
+  "Já tentou melatonina e outros suplementos sem resultado permanente",
+  "Usa o celular até tarde e sabe que isso atrapalha mas não consegue parar",
 ];
 
 export default function SonoProfundoPage() {
@@ -97,7 +97,7 @@ export default function SonoProfundoPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
             <span className="text-xs font-semibold text-violet-400">
-              Lancamento em breve — Lista VIP aberta
+              Lançamento em breve — Lista VIP aberta
             </span>
           </div>
           <h1
@@ -112,8 +112,8 @@ export default function SonoProfundoPage() {
             style={{ color: "var(--text-secondary)" }}
           >
             Protocolo de 30 dias baseado em cronobiologia para restaurar seus
-            ciclos de sono naturalmente. Sem remedios, sem hacks caros — so
-            ciencia aplicada a sua rotina.
+            ciclos de sono naturalmente. Sem remédios, sem hacks caros — só
+            ciência aplicada à sua rotina.
           </p>
 
           {/* EARLY ACCESS */}
@@ -133,14 +133,14 @@ export default function SonoProfundoPage() {
               className="mb-4 text-sm"
               style={{ color: "var(--text-secondary)" }}
             >
-              Quem esta na lista VIP recebe acesso antecipado com{" "}
+              Quem está na lista VIP recebe acesso antecipado com{" "}
               <strong style={{ color: "var(--text-primary)" }}>
-                desconto exclusivo de lancamento.
+                desconto exclusivo de lançamento.
               </strong>
             </p>
             <LeadCapture source="sono-profundo-vip" />
             <p className="mt-2 text-xs" style={{ color: "var(--text-hint)" }}>
-              Sem spam. So novidades sobre o Sono Profundo.
+              Sem spam. Só novidades sobre o Sono Profundo.
             </p>
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function SonoProfundoPage() {
             className="mb-8 text-center text-2xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Voce se identifica com algum desses problemas?
+            Você se identifica com algum desses problemas?
           </h2>
           <div
             className="rounded-2xl border p-6"
@@ -191,7 +191,7 @@ export default function SonoProfundoPage() {
               style={{ color: "var(--text-primary)" }}
             >
               O Sono Profundo foi desenvolvido especificamente para resolver
-              esses problemas — sem solucoes temporarias.
+              esses problemas — sem soluções temporárias.
             </p>
           </div>
         </div>
@@ -249,13 +249,13 @@ export default function SonoProfundoPage() {
             className="mb-4 text-3xl font-bold"
             style={{ color: "var(--text-primary)" }}
           >
-            Nao perca o lancamento
+            Não perca o lançamento
           </h2>
           <p
             className="mb-8"
             style={{ color: "var(--text-secondary)" }}
           >
-            Preco de lancamento exclusivo para quem esta na lista VIP. Vagas
+            Preço de lançamento exclusivo para quem está na lista VIP. Vagas
             limitadas na primeira turma.
           </p>
           <div
@@ -268,13 +268,13 @@ export default function SonoProfundoPage() {
             <p
               className="mb-1 text-sm font-bold text-violet-400"
             >
-              Preco previsto: R$37
+              Preço previsto: R$37
             </p>
             <p
               className="mb-4 text-xs"
               style={{ color: "var(--text-muted)" }}
             >
-              Lista VIP garante desconto especial de lancamento
+              Lista VIP garante desconto especial de lançamento
             </p>
             <LeadCapture source="sono-profundo-vip-final" />
           </div>
@@ -287,8 +287,8 @@ export default function SonoProfundoPage() {
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <p className="text-xs" style={{ color: "var(--text-hint)" }}>
-          © {new Date().getFullYear()} Longetividade. Este produto nao
-          substitui acompanhamento medico profissional.
+          © {new Date().getFullYear()} Longetividade. Este produto não
+          substitui acompanhamento médico profissional.
         </p>
       </footer>
     </div>

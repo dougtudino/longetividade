@@ -9,7 +9,7 @@ import { BadgeResultado } from "@/components/visual";
 const AVATAR_MAP: Record<string, string> = {
   fernanda: "/images/avatar-fernanda.png",
   camila: "/images/avatar-camila.png",
-  patricia: "/images/avatar-patricia.jpg",
+  "patrícia": "/images/avatar-patricia.jpg",
   ana: "/images/avatar-ana.jpg",
   carla: "/images/avatar-carla.jpg",
   juliana: "/images/avatar-juliana.png",
@@ -19,7 +19,7 @@ const AVATAR_MAP: Record<string, string> = {
 export const metadata: Metadata = {
   title: "Longetividade — Viva Mais, Viva Melhor",
   description:
-    "Programas de saude e longevidade baseados em ciencia. Metodos e protocolos para transformar seu peso, sono e energia.",
+    "Programas de saúde e longevidade baseados em ciência. Métodos e protocolos para transformar seu peso, sono e energia.",
 };
 
 interface Produto {
@@ -187,18 +187,18 @@ const gradientMap: Record<string, string> = {
 const produtos: Produto[] = [
   {
     id: "emagreca-sem-dieta",
-    titulo: "Emagreca Sem Dieta",
-    subtitulo: "Metodo S.E.M",
+    titulo: "Emagreça Sem Dieta",
+    subtitulo: "Método S.E.M",
     badge: "Mais Vendido",
     badgeEmoji: "🔥",
     preco: "R$ 37",
     precoOriginal: "R$ 97",
     descricao:
-      "Perca peso de forma permanente sem passar fome, sem contar calorias e sem radicalismos. Um metodo que funciona na sua vida real.",
+      "Perca peso de forma permanente sem passar fome, sem contar calorias e sem radicalismos. Um método que funciona na sua vida real.",
     beneficios: [
       "Sem dietas restritivas ou alimentos proibidos",
-      "Metodo validado — resultados em 21 dias",
-      "Plano de 7 dias + cardapio completo incluso",
+      "Método validado — resultados em 21 dias",
+      "Plano de 7 dias + cardápio completo incluso",
       "Garantia incondicional de 7 dias",
     ],
     cta: "Quero Emagrecer Agora",
@@ -217,10 +217,10 @@ const produtos: Produto[] = [
     badgeEmoji: "🌙",
     preco: "R$ 37",
     descricao:
-      "Protocolo de 30 dias para restaurar seus ciclos de sono naturalmente. Sem remedios, sem hacks — so ciencia aplicada.",
+      "Protocolo de 30 dias para restaurar seus ciclos de sono naturalmente. Sem remédios, sem hacks — só ciência aplicada.",
     beneficios: [
       "Cronobiologia e ritmo circadiano",
-      "Tecnicas neurocientificas comprovadas",
+      "Técnicas neurocientíficas comprovadas",
       "Protocolo step-by-step de 30 dias",
     ],
     cta: "Entrar na Lista VIP",
@@ -238,11 +238,11 @@ const produtos: Produto[] = [
     badgeEmoji: "🧠",
     preco: "R$ 47",
     descricao:
-      "Limpe o ruido mental e desenvolva foco sustentavel em 14 dias. Menos cortisol, mais clareza, mais resultado.",
+      "Limpe o ruído mental e desenvolva foco sustentável em 14 dias. Menos cortisol, mais clareza, mais resultado.",
     beneficios: [
-      "Reducao de cortisol e ansiedade",
-      "Mindfulness pratico para rotinas ocupadas",
-      "Diario estruturado de transformacao",
+      "Redução de cortisol e ansiedade",
+      "Mindfulness prático para rotinas ocupadas",
+      "Diário estruturado de transformação",
     ],
     cta: "Entrar na Lista VIP",
     href: "/detox-mental",
@@ -254,16 +254,16 @@ const produtos: Produto[] = [
   {
     id: "longevidade-60",
     titulo: "Longevidade 60+",
-    subtitulo: "Saude e Vitalidade",
+    subtitulo: "Saúde e Vitalidade",
     badge: "Em Breve",
     badgeEmoji: "💛",
     preco: "R$ 47",
     descricao:
-      "Protocolo de saude cardiovascular e vitalidade para quem quer viver mais e melhor apos os 60.",
+      "Protocolo de saúde cardiovascular e vitalidade para quem quer viver mais e melhor após os 60.",
     beneficios: [
-      "Saude cardiovascular baseada em ciencia",
-      "Exercicios adaptados para 60+",
-      "Nutricao para longevidade ativa",
+      "Saúde cardiovascular baseada em ciência",
+      "Exercícios adaptados para 60+",
+      "Nutrição para longevidade ativa",
     ],
     cta: "Entrar na Lista VIP",
     href: "/longevidade-60",
@@ -275,16 +275,16 @@ const produtos: Produto[] = [
   {
     id: "energia-metabolismo",
     titulo: "Energia & Metabolismo",
-    subtitulo: "Ativacao Metabolica",
+    subtitulo: "Ativação Metabólica",
     badge: "Em Breve",
     badgeEmoji: "⚡",
     preco: "R$ 57",
     descricao:
-      "Ative seu metabolismo com habitos simples e cientificos. Mais energia, menos fadiga, resultados visiveis.",
+      "Ative seu metabolismo com hábitos simples e científicos. Mais energia, menos fadiga, resultados visíveis.",
     beneficios: [
-      "Ativacao metabolica natural",
-      "Protocolo de energia diaria",
-      "Nutricao funcional pratica",
+      "Ativação metabólica natural",
+      "Protocolo de energia diária",
+      "Nutrição funcional prática",
     ],
     cta: "Entrar na Lista VIP",
     href: "/energia-metabolismo",
@@ -298,44 +298,44 @@ const produtos: Produto[] = [
 const depoimentos = [
   {
     nome: "Ana Paula M.",
-    local: "Sao Paulo, SP",
+    local: "São Paulo, SP",
     texto:
-      "Perdi 8kg em 6 semanas sem passar fome. O metodo e completamente diferente de tudo que tentei antes. Pela primeira vez nao me sinto culpada por comer.",
+      "Perdi 8kg em 6 semanas sem passar fome. O método é completamente diferente de tudo que tentei antes. Pela primeira vez não me sinto culpada por comer.",
     resultado: "-8kg",
   },
   {
     nome: "Fernanda R.",
     local: "Curitiba, PR",
     texto:
-      "Eu achava que o problema era eu. Falta de disciplina. O S.E.M me mostrou que era a estrategia. Em 3 semanas ja sentia diferenca na roupa.",
+      "Eu achava que o problema era eu. Falta de disciplina. O S.E.M me mostrou que era a estratégia. Em 3 semanas já sentia diferença na roupa.",
     resultado: "-6kg",
   },
   {
     nome: "Carla S.",
     local: "Rio de Janeiro, RJ",
     texto:
-      "Finalmente um metodo que faz sentido. Aprendi a me relacionar com a comida de forma diferente. Nao sinto mais aquela compulsao noturna.",
+      "Finalmente um método que faz sentido. Aprendi a me relacionar com a comida de forma diferente. Não sinto mais aquela compulsão noturna.",
     resultado: "-11kg",
   },
   {
-    nome: "Patricia L.",
+    nome: "Patrícia L.",
     local: "Belo Horizonte, MG",
     texto:
-      "3 tentativas anteriores fracassaram. Essa foi diferente porque ataca a causa raiz, nao so o cardapio. Em 2 meses transformei minha relacao com a comida.",
+      "3 tentativas anteriores fracassaram. Essa foi diferente porque ataca a causa raiz, não só o cardápio. Em 2 meses transformei minha relação com a comida.",
     resultado: "-9kg",
   },
   {
     nome: "Juliana K.",
     local: "Porto Alegre, RS",
     texto:
-      "Comprei sem expectativa e fiquei surpresa. Conteudo denso, pratico e que funciona. O plano de 7 dias ja vale cada centavo.",
+      "Comprei sem expectativa e fiquei surpresa. Conteúdo denso, prático e que funciona. O plano de 7 dias já vale cada centavo.",
     resultado: "-7kg",
   },
   {
     nome: "Marina T.",
-    local: "Florianopolis, SC",
+    local: "Florianópolis, SC",
     texto:
-      "Melhor investimento que fiz na saude. R$ 37 que mudaram minha relacao com o corpo. Minha autoestima voltou.",
+      "Melhor investimento que fiz na saúde. R$ 37 que mudaram minha relação com o corpo. Minha autoestima voltou.",
     resultado: "-5kg",
   },
 ];
@@ -345,7 +345,7 @@ function HeroIllustration() {
     <div className="relative" style={{ maxWidth: 380 }}>
       <Image
         src="/images/hero-woman.png"
-        alt="Mulher saudavel e confiante segurando uma folha verde"
+        alt="Mulher saudável e confiante segurando uma folha verde"
         width={380}
         height={507}
         className="w-full h-auto rounded-3xl"
@@ -417,7 +417,7 @@ export default function HomePage() {
               className="rounded-full px-4 py-1.5 text-xs font-semibold text-white transition-colors"
               style={{ backgroundColor: "var(--accent)" }}
             >
-              Comecar Agora
+              Começar Agora
             </Link>
           </div>
         </div>
@@ -466,8 +466,8 @@ export default function HomePage() {
               className="mt-6 max-w-xl text-lg leading-relaxed"
               style={{ color: "var(--text-secondary)" }}
             >
-              Programas baseados em ciencia para transformar sua saude, peso e
-              energia. Metodos que funcionam na vida real.
+              Programas baseados em ciência para transformar sua saúde, peso e
+              energia. Métodos que funcionam na vida real.
             </p>
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row md:justify-start">
               <Link
@@ -511,8 +511,8 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-around gap-8 px-6">
           {[
             { n: "12.400+", l: "alunos ativos" },
-            { n: "4.9 ★", l: "avaliacao media" },
-            { n: "97%", l: "satisfacao" },
+            { n: "4.9 ★", l: "avaliação média" },
+            { n: "97%", l: "satisfação" },
             { n: "21 dias", l: "primeiros resultados" },
           ].map((s) => (
             <div key={s.l} className="flex flex-col items-center gap-1">
@@ -540,7 +540,7 @@ export default function HomePage() {
             className="mb-2 text-xs font-semibold uppercase tracking-widest"
             style={{ color: "var(--text-muted)" }}
           >
-            Nossa colecao
+            Nossa coleção
           </p>
           <h2
             className="text-4xl font-bold"
@@ -552,8 +552,8 @@ export default function HomePage() {
             className="mt-3 max-w-lg mx-auto"
             style={{ color: "var(--text-secondary)" }}
           >
-            Cada programa foi desenvolvido para uma area especifica da saude,
-            com metodos praticos e resultados mensuráveis.
+            Cada programa foi desenvolvido para uma área específica da saúde,
+            com métodos práticos e resultados mensuráveis.
           </p>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -831,7 +831,7 @@ export default function HomePage() {
             </h3>
             <p style={{ color: "var(--text-secondary)" }}>
               Devolvemos 100% do seu dinheiro. Sem burocracia, sem perguntas.
-              O risco e todo nosso.
+              O risco é todo nosso.
             </p>
           </div>
         </div>
@@ -855,13 +855,13 @@ export default function HomePage() {
               className="text-4xl font-bold"
               style={{ color: "var(--text-primary)" }}
             >
-              Quem ja transformou
+              Quem já transformou
             </h2>
             <p
               className="mt-3"
               style={{ color: "var(--text-secondary)" }}
             >
-              Mais de 12.400 pessoas ja usaram o Metodo S.E.M para emagrecer sem sofrimento.
+              Mais de 12.400 pessoas já usaram o Método S.E.M para emagrecer sem sofrimento.
             </p>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -941,7 +941,7 @@ export default function HomePage() {
             className="mb-2 text-xs font-semibold uppercase tracking-widest"
             style={{ color: "var(--accent-text)" }}
           >
-            Novos lancamentos
+            Novos lançamentos
           </p>
           <h3
             className="mb-4 text-3xl font-bold"
@@ -951,7 +951,7 @@ export default function HomePage() {
           </h3>
           <p className="mb-8" style={{ color: "var(--text-secondary)" }}>
             Seja o primeiro a saber dos novos programas com desconto exclusivo
-            para quem esta na lista.
+            para quem está na lista.
           </p>
           <LeadCapture source="homepage-vip" />
           <p className="mt-3 text-xs" style={{ color: "var(--text-hint)" }}>

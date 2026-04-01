@@ -7,8 +7,8 @@ export const runtime = "edge";
 const VARIANTS = [
   {
     top: "Cansada de dietas?",
-    headline: "Emagreca\nSem Dieta",
-    sub: "Metodo SEM — 3 pilares cientificos que funcionam",
+    headline: "Emagreça\nSem Dieta",
+    sub: "Método SEM — 3 pilares científicos que funcionam",
     cta: "Saiba Mais",
   },
   {
@@ -33,9 +33,9 @@ export async function GET(req: NextRequest) {
           alignItems: "center",
           width: "100%",
           height: "100%",
-          background: "linear-gradient(180deg, #080808 0%, #064e3b 50%, #080808 100%)",
+          background: "linear-gradient(180deg, #FAF8F5 0%, #7A9E7E 50%, #3D5A3E 100%)",
           padding: "100px 64px",
-          color: "white",
+          color: "#2D2D2D",
           fontFamily: "sans-serif",
           textAlign: "center",
         }}
@@ -44,13 +44,13 @@ export async function GET(req: NextRequest) {
         <div
           style={{
             display: "flex",
-            background: "rgba(16,185,129,0.15)",
-            border: "1px solid rgba(16,185,129,0.3)",
+            background: "rgba(122,158,126,0.15)",
+            border: "1px solid rgba(122,158,126,0.3)",
             borderRadius: "40px",
             padding: "14px 32px",
             fontSize: "22px",
             fontWeight: 600,
-            color: "#6ee7b7",
+            color: "#3D5A3E",
           }}
         >
           {variant.top}
@@ -65,11 +65,12 @@ export async function GET(req: NextRequest) {
               lineHeight: 1.05,
               margin: 0,
               whiteSpace: "pre-wrap",
+              color: "#fff",
             }}
           >
             {variant.headline}
           </h1>
-          <p style={{ fontSize: "28px", color: "rgba(255,255,255,0.5)", margin: 0, maxWidth: "800px", lineHeight: 1.4 }}>
+          <p style={{ fontSize: "28px", color: "rgba(255,255,255,0.7)", margin: 0, maxWidth: "800px", lineHeight: 1.4 }}>
             {variant.sub}
           </p>
         </div>
@@ -77,22 +78,23 @@ export async function GET(req: NextRequest) {
         {/* Price + CTA */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-            <span style={{ fontSize: "28px", textDecoration: "line-through", opacity: 0.3 }}>R$97</span>
-            <span style={{ fontSize: "72px", fontWeight: 900 }}>R$37</span>
+            <span style={{ fontSize: "28px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$97</span>
+            <span style={{ fontSize: "72px", fontWeight: 900, color: "#fff" }}>R$37</span>
           </div>
           <div
             style={{
               display: "flex",
-              background: "#10b981",
+              background: "#D4A94B",
               borderRadius: "24px",
               padding: "24px 64px",
               fontSize: "32px",
               fontWeight: 800,
+              color: "#fff",
             }}
           >
-            {variant.cta} &rarr;
+            {variant.cta} →
           </div>
-          <span style={{ fontSize: "18px", opacity: 0.3 }}>Garantia de 7 dias</span>
+          <span style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)" }}>Garantia de 7 dias</span>
         </div>
       </div>
     ),
