@@ -1,4 +1,5 @@
 import { PLANS } from "@/config/plans";
+import { VipBanner } from "./vip-banner";
 
 const ANCHOR_ITEMS = [
   { item: "Consulta com nutricionista", value: "R$ 200 - R$ 400" },
@@ -52,6 +53,11 @@ export function PricingSection() {
               {plan.highlighted && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-white font-body font-bold text-xs uppercase tracking-wider px-4 py-1 rounded-full" style={{backgroundColor: 'var(--accent)'}}>
                   MAIS ESCOLHIDO
+                </span>
+              )}
+              {plan.id === "vip" && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 font-body font-bold text-xs uppercase tracking-wider px-4 py-1 rounded-full" style={{backgroundColor: '#639922', color: 'white'}}>
+                  Inclui App Vitalicio
                 </span>
               )}
 
@@ -109,6 +115,9 @@ export function PricingSection() {
             </div>
           ))}
         </div>
+
+        {/* VIP Banner */}
+        <VipBanner />
 
         {/* Guarantee */}
         <div className="mt-10 md:mt-14 mx-auto max-w-xl border-2 border-dashed rounded-xl p-6 md:p-8 text-center" style={{backgroundColor: 'var(--accent-soft)', borderColor: 'var(--accent)'}}>

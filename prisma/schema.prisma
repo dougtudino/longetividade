@@ -88,3 +88,88 @@ model PageView {
   @@index([createdAt])
   @@index([utm_source])
 }
+
+// ─── App VIP ───────────────────────────────────────
+
+model AppUser {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  orderId    String   @unique
+  plan       String   // "vip"
+  accessType String   @default("lifetime") // "lifetime" | "subscription"
+  createdAt  DateTime @default(now())
+
+  profile    AppProfile?
+  checkins   AppCheckin[]
+  waterLogs  AppWaterLog[]
+  weightLogs AppWeightLog[]
+
+  @@index([email])
+}
+
+model AppProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  name           String
+  objective      String   // "emagrecer" | "habitos" | "ambos"
+  currentWeight  Float?
+  height         Float?
+  age            Int?
+  goalType       String   // "primeiro_kg" | "5kg" | "10kg" | "peso_ideal" | "custom"
+  goalCustom     String?
+  goalWeight     Float?
+  challenges     String[]
+  onboardingDone Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           AppUser  @relation(fields: [userId], references: [id])
+}
+
+model AppCheckin {
+  id           String   @id @default(uuid())
+  userId       String
+  date         DateTime @db.Date
+  habits       Json     // { agua: bool, refeicoes: bool, fruta: bool, ... }
+  waterCount   Int      @default(0)
+  exerciseDone Boolean  @default(false)
+  exerciseMin  Int      @default(0)
+  note         String?
+  createdAt    DateTime @default(now())
+
+  user         AppUser  @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+}
+
+model AppWaterLog {
+  id       String   @id @default(uuid())
+  userId   String
+  cups     Int
+  loggedAt DateTime @default(now())
+
+  user     AppUser  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model AppWeightLog {
+  id       String   @id @default(uuid())
+  userId   String
+  weight   Float
+  note     String?
+  loggedAt DateTime @default(now())
+
+  user     AppUser  @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model AppVipSlot {
+  id         String   @id @default("singleton")
+  totalSlots Int      @default(100)
+  usedSlots  Int      @default(0)
+  updatedAt  DateTime @updatedAt
+}

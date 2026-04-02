@@ -62,6 +62,7 @@ export const PLANS: Plan[] = [
       "3 video-aulas do Metodo S.E.M",
       "1 live mensal (3 meses)",
       "Suporte por email (30 dias)",
+      "APP de acompanhamento vitalicio",
     ],
     highlighted: false,
     ctaLabel: "QUERO ESSE",
