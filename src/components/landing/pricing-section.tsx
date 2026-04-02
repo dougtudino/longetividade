@@ -90,7 +90,9 @@ export function PricingSection() {
               </ul>
 
               <a
-                href={`/checkout?plan=${plan.id}`}
+                href={plan.checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`block w-full text-center font-body font-bold text-base py-3.5 rounded-xl transition-colors ${
                   plan.highlighted
                     ? "text-white"

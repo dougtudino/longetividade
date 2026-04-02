@@ -9,6 +9,7 @@ export interface Plan {
   features: string[];
   highlighted: boolean;
   ctaLabel: string;
+  checkoutUrl: string;
 }
 
 export interface CheckoutPayload {

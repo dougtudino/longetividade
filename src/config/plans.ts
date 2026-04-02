@@ -1,5 +1,7 @@
 import type { Plan } from "@/types/order";
 
+const HOTMART_PRODUCT = "H105141835Q";
+
 export const PLANS: Plan[] = [
   {
     id: "basico",
@@ -7,6 +9,7 @@ export const PLANS: Plan[] = [
     price: 37,
     priceInCents: 3700,
     installments: "6x de R$ 6,17",
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?offerId=zxq5tgew`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",
@@ -24,6 +27,7 @@ export const PLANS: Plan[] = [
     price: 67,
     priceInCents: 6700,
     installments: "6x de R$ 11,17",
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?offerId=uzvdkzkf`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",
@@ -44,6 +48,7 @@ export const PLANS: Plan[] = [
     price: 97,
     priceInCents: 9700,
     installments: "6x de R$ 16,17",
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?offerId=h84hak4e`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",
