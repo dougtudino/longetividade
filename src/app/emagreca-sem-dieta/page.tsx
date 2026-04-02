@@ -347,23 +347,43 @@ export default function EmagrecaSemDietaPage() {
               <CTA label="Quero Emagrecer Agora — R$37" />
             </div>
           </div>
-          {/* Mockup celular na mão — transmite "digital" e resultado */}
-          <div className="flex-shrink-0 w-full max-w-[300px] md:max-w-[360px]">
+          {/* Hero visual — mulher real + mockup celular */}
+          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px] relative">
+            {/* Foto mulher — protagonista */}
             <Image
-              src="/images/ebook-phone.jpg"
-              alt="Ebook Emagreça Sem Dieta no celular — acesso imediato"
-              width={360}
-              height={480}
-              className="w-full h-auto drop-shadow-2xl"
+              src="/images/hero-woman2.png"
+              alt="Mulher sorridente e saudável com suco verde — resultado do Método S.E.M"
+              width={420}
+              height={560}
+              className="w-full h-auto rounded-3xl object-cover"
+              style={{ boxShadow: "0 20px 60px rgba(122,158,126,0.3)" }}
               priority
             />
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <div className="flex items-center gap-1.5">
+            {/* Mockup celular flutuante — canto inferior direito */}
+            <div className="absolute -bottom-6 -right-4 md:-right-8 w-[130px] md:w-[160px]">
+              <Image
+                src="/images/ebook-phone.jpg"
+                alt="Ebook no celular"
+                width={160}
+                height={213}
+                className="w-full h-auto drop-shadow-2xl rounded-2xl"
+              />
+            </div>
+            {/* Social proof badge */}
+            <div
+              className="absolute -bottom-3 left-4 flex items-center gap-3 rounded-2xl border px-4 py-2.5"
+              style={{
+                backgroundColor: "var(--bg-card)",
+                borderColor: "var(--border-default)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+              }}
+            >
+              <div className="flex items-center gap-1">
                 <span className="text-amber-400 text-sm">★★★★★</span>
-                <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>4.9</span>
+                <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>4.9</span>
               </div>
-              <span className="text-xs" style={{ color: "var(--text-hint)" }}>|</span>
-              <span className="text-xs" style={{ color: "var(--text-muted)" }}>12.400+ alunas</span>
+              <div className="h-4 w-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>12.400+ alunas</span>
             </div>
           </div>
         </div>
