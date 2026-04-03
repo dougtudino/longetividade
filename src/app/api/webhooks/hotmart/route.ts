@@ -6,6 +6,11 @@ import { sendEmail, buildDeliveryEmail } from "@/lib/email";
 
 const OFFER_VIP = process.env.HOTMART_OFFER_VIP ?? "h84hak4e";
 
+// GET handler — Hotmart valida a URL com GET antes de salvar
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
