@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { claimVipSlot } from "@/lib/vip-slots";
 import { generateDownloadToken, getTokenExpiration } from "@/lib/download";
 import { sendEmail, buildDeliveryEmail } from "@/lib/email";
-
-const OFFER_VIP = process.env.HOTMART_OFFER_VIP ?? "h84hak4e";
+import { getSetting } from "@/lib/settings";
 
 // GET handler — Hotmart valida a URL com GET antes de salvar
 export async function GET() {
@@ -15,9 +14,9 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Verificar assinatura do Hotmart
+    // Verificar assinatura do Hotmart (busca do banco ou env var)
     const hottok = request.headers.get("x-hotmart-hottok");
-    const secret = process.env.HOTMART_WEBHOOK_SECRET;
+    const secret = await getSetting("HOTMART_WEBHOOK_SECRET");
     if (secret && hottok !== secret) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -42,8 +41,9 @@ export async function POST(request: NextRequest) {
     const amount = Math.round((purchase.price?.value ?? 0) * 100);
 
     // Determinar plano pelo offerId ou valor
+    const offerVip = await getSetting("HOTMART_OFFER_VIP", "h84hak4e");
     let plan = "basico";
-    if (offerId === OFFER_VIP || amount >= 9700) {
+    if (offerId === offerVip || amount >= 9700) {
       plan = "vip";
     } else if (amount >= 6700) {
       plan = "completo";

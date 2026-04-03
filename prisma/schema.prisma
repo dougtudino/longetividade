@@ -173,3 +173,9 @@ model AppVipSlot {
   usedSlots  Int      @default(0)
   updatedAt  DateTime @updatedAt
 }
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
