@@ -1,10 +1,11 @@
 import { prisma } from "./prisma";
 
 export async function getVipSlots() {
-  const slot = await prisma.appVipSlot.findUnique({
+  const slot = await prisma.appVipSlot.upsert({
     where: { id: "singleton" },
+    update: {},
+    create: { id: "singleton", totalSlots: 100, usedSlots: 0 },
   });
-  if (!slot) return { total: 100, used: 0, available: 100 };
   return {
     total: slot.totalSlots,
     used: slot.usedSlots,

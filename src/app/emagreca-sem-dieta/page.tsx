@@ -8,6 +8,7 @@ import { IdentificationChecklist } from "@/components/landing/identification-che
 import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
 import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
 import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
+import { PricingSection } from "@/components/landing/pricing-section";
 import { BadgeResultado } from "@/components/visual";
 import Image from "next/image";
 
@@ -709,84 +710,8 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* PRICING */}
-      <section id="comprar" className="py-20 px-6">
-        <div className="mx-auto max-w-lg">
-          <div className="text-center mb-8">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Investimento</p>
-            <h2 className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
-              Quanto vale transformar sua relação com o seu corpo?
-            </h2>
-            {/* Phone mockup */}
-            <div className="flex justify-center mt-6">
-              <div className="w-[220px]">
-                <Image
-                  src="/images/ebook-phone.jpg"
-                  alt="Ebook Emagreça Sem Dieta no celular"
-                  width={240}
-                  height={320}
-                  className="w-full h-auto"
-                />
-              </div>
-            </div>
-            <p className="mt-3 text-sm" style={{ color: "var(--text-muted)" }}>Acesso imediato no celular</p>
-          </div>
-          <div className="mb-8 rounded-2xl border p-6" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--bg-card)" }}>
-            <h3 className="mb-4 font-semibold" style={{ color: "var(--text-secondary)" }}>
-              Facilmente você gasta mais do que isso tentando resolver o problema de outras formas:
-            </h3>
-            <div className="space-y-2">
-              {[
-                ["Consulta com nutricionista", "R$ 200 - R$ 400"],
-                ["Programa de emagrecimento online (mês)", "R$ 97 - R$ 297"],
-                ["1 mês de academia que você não vai", "R$ 80 - R$ 150"],
-                ["Roupas novas porque as antigas não cabem", "R$ 150 - R$ 500"],
-                ["Delivery e fast food por falta de planejamento", "R$ 300+/mês"],
-              ].map(([item, valor]) => (
-                <div
-                  key={item}
-                  className="flex items-center justify-between gap-4 rounded-lg border px-3 py-2 text-sm"
-                  style={{ borderColor: "var(--border-subtle)", color: "var(--text-secondary)" }}
-                >
-                  <span>{item}</span>
-                  <span className="font-semibold whitespace-nowrap" style={{ color: "var(--text-muted)" }}>{valor}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div
-            className="rounded-3xl border p-8"
-            style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)", boxShadow: "0 0 60px var(--accent-soft)" }}
-          >
-            <div className="mb-4 inline-flex rounded-full px-4 py-1.5 text-xs font-bold" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#f87171" }}>
-              72% de desconto — Oferta por tempo limitado
-            </div>
-            <div className="my-6 flex items-baseline justify-center gap-3">
-              <span className="text-lg line-through" style={{ color: "var(--text-hint)" }}>R$97</span>
-              <span className="text-7xl font-black" style={{ color: "var(--text-primary)" }}>R$37</span>
-            </div>
-            <p className="mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-              Ou 3x de R$9,90 sem juros — menos que um café com pão de queijo
-            </p>
-            <CTA label="Garantir Meu Acesso Agora" />
-            <div className="mt-8 border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
-              <p className="mb-4 text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>Tudo que você recebe:</p>
-              <ul className="space-y-2">
-                {[
-                  "Ebook Emagreça Sem Dieta — Método S.E.M completo",
-                  "Plano prático de 7 dias com cardápio dia a dia",
-                  "Lista de compras estratégica pronta pra imprimir",
-                  "Checklist diário imprimível",
-                  "Tabela de substituições alimentares",
-                  "Guia 10 Atalhos de Aceleração de Resultados",
-                  "Acesso vitalício — sem mensalidade",
-                  "Garantia incondicional de 7 dias",
-                ].map((item) => <CheckItem key={item} text={item} />)}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* PRICING — 3 planos com checkout Hotmart */}
+      <PricingSection />
 
       {/* GARANTIA */}
       <section className="py-16 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
