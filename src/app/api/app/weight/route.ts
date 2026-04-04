@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
+import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
 
 export async function POST(req: NextRequest) {
   const user = await getAppUser(req);
@@ -19,7 +20,13 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ log });
+  // Award XP for weight log
+  await addXP(user.id, XP_REWARDS.weight_log);
+
+  // Evaluate achievements
+  const newAchievements = await evaluateAchievements(user.id);
+
+  return NextResponse.json({ log, newAchievements });
 }
 
 export async function GET(req: NextRequest) {

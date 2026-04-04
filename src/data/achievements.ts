@@ -1,0 +1,248 @@
+export type AchievementDef = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: "agua" | "habitos" | "movimento" | "peso" | "streak" | "especial";
+  condition: string;
+  xp: number;
+};
+
+export const ACHIEVEMENTS: AchievementDef[] = [
+  // ─── Agua ──────────────────────────────────────
+  {
+    id: "agua_primeiro_copo",
+    name: "Primeiro Copo",
+    description: "Registrou seu primeiro copo de agua",
+    icon: "💧",
+    category: "agua",
+    condition: "total_water_logs >= 1",
+    xp: 10,
+  },
+  {
+    id: "agua_hidratada",
+    name: "Hidratada",
+    description: "Bebeu 8 copos em um unico dia",
+    icon: "🚰",
+    category: "agua",
+    condition: "daily_water >= 8",
+    xp: 15,
+  },
+  {
+    id: "agua_oceano",
+    name: "Oceano",
+    description: "7 dias consecutivos batendo a meta de agua",
+    icon: "🌊",
+    category: "agua",
+    condition: "water_streak_days >= 7",
+    xp: 30,
+  },
+
+  // ─── Habitos ───────────────────────────────────
+  {
+    id: "habitos_primeiro",
+    name: "Primeiro Habito",
+    description: "Marcou seu primeiro habito",
+    icon: "✅",
+    category: "habitos",
+    condition: "total_habits_checked >= 1",
+    xp: 10,
+  },
+  {
+    id: "habitos_dia_perfeito",
+    name: "Dia Perfeito",
+    description: "Completou todos os 10 habitos em um dia",
+    icon: "⭐",
+    category: "habitos",
+    condition: "perfect_day >= 1",
+    xp: 25,
+  },
+  {
+    id: "habitos_semana_perfeita",
+    name: "Semana Perfeita",
+    description: "7 dias consecutivos com todos os habitos",
+    icon: "🏆",
+    category: "habitos",
+    condition: "perfect_streak_days >= 7",
+    xp: 50,
+  },
+
+  // ─── Movimento ─────────────────────────────────
+  {
+    id: "movimento_primeiro_passo",
+    name: "Primeiro Passo",
+    description: "Registrou seu primeiro exercicio",
+    icon: "👟",
+    category: "movimento",
+    condition: "total_exercise_days >= 1",
+    xp: 10,
+  },
+  {
+    id: "movimento_ativa",
+    name: "Ativa",
+    description: "7 dias com exercicio registrado",
+    icon: "💪",
+    category: "movimento",
+    condition: "total_exercise_days >= 7",
+    xp: 25,
+  },
+  {
+    id: "movimento_maratonista",
+    name: "Maratonista",
+    description: "30 dias com exercicio registrado",
+    icon: "🏃‍♀️",
+    category: "movimento",
+    condition: "total_exercise_days >= 30",
+    xp: 50,
+  },
+
+  // ─── Peso ──────────────────────────────────────
+  {
+    id: "peso_coragem",
+    name: "Coragem",
+    description: "Registrou seu peso pela primeira vez",
+    icon: "⚖️",
+    category: "peso",
+    condition: "total_weight_logs >= 1",
+    xp: 10,
+  },
+  {
+    id: "peso_primeiro_kg",
+    name: "Primeiro Kg",
+    description: "Perdeu 1kg desde o inicio",
+    icon: "🎯",
+    category: "peso",
+    condition: "weight_lost >= 1",
+    xp: 25,
+  },
+  {
+    id: "peso_5kg_club",
+    name: "5kg Club",
+    description: "Perdeu 5kg desde o inicio",
+    icon: "🥇",
+    category: "peso",
+    condition: "weight_lost >= 5",
+    xp: 50,
+  },
+
+  // ─── Streak ────────────────────────────────────
+  {
+    id: "streak_3_dias",
+    name: "3 Dias",
+    description: "3 dias seguidos fazendo check-in",
+    icon: "🔥",
+    category: "streak",
+    condition: "streak_days >= 3",
+    xp: 15,
+  },
+  {
+    id: "streak_7_dias",
+    name: "7 Dias",
+    description: "7 dias seguidos fazendo check-in",
+    icon: "🔥",
+    category: "streak",
+    condition: "streak_days >= 7",
+    xp: 25,
+  },
+  {
+    id: "streak_14_dias",
+    name: "14 Dias",
+    description: "14 dias seguidos fazendo check-in",
+    icon: "🔥",
+    category: "streak",
+    condition: "streak_days >= 14",
+    xp: 35,
+  },
+  {
+    id: "streak_21_dias",
+    name: "21 Dias",
+    description: "21 dias seguidos — habito formado!",
+    icon: "🔥",
+    category: "streak",
+    condition: "streak_days >= 21",
+    xp: 50,
+  },
+  {
+    id: "streak_30_dias",
+    name: "30 Dias",
+    description: "30 dias seguidos — voce e imparavel!",
+    icon: "💎",
+    category: "streak",
+    condition: "streak_days >= 30",
+    xp: 75,
+  },
+
+  // ─── Especial ──────────────────────────────────
+  {
+    id: "especial_comeco",
+    name: "Comeco",
+    description: "Completou o onboarding",
+    icon: "🌱",
+    category: "especial",
+    condition: "onboarding_done == true",
+    xp: 10,
+  },
+  {
+    id: "especial_explorador",
+    name: "Exploradora",
+    description: "Visitou todas as telas do app",
+    icon: "🧭",
+    category: "especial",
+    condition: "screens_visited >= 5",
+    xp: 15,
+  },
+  {
+    id: "especial_fenix",
+    name: "Fenix",
+    description: "Voltou apos 7+ dias inativa — nunca e tarde!",
+    icon: "🦅",
+    category: "especial",
+    condition: "returned_after_days >= 7",
+    xp: 25,
+  },
+  {
+    id: "especial_10_checkins",
+    name: "Dedicada",
+    description: "Completou 10 check-ins",
+    icon: "📋",
+    category: "especial",
+    condition: "total_checkins >= 10",
+    xp: 20,
+  },
+  {
+    id: "especial_50_checkins",
+    name: "Comprometida",
+    description: "Completou 50 check-ins",
+    icon: "📝",
+    category: "especial",
+    condition: "total_checkins >= 50",
+    xp: 40,
+  },
+  {
+    id: "especial_100_checkins",
+    name: "Centenaria",
+    description: "Completou 100 check-ins",
+    icon: "💯",
+    category: "especial",
+    condition: "total_checkins >= 100",
+    xp: 75,
+  },
+  {
+    id: "especial_primeiro_mood",
+    name: "Autoconhecimento",
+    description: "Registrou seu primeiro humor",
+    icon: "😊",
+    category: "especial",
+    condition: "total_mood_logs >= 1",
+    xp: 10,
+  },
+  {
+    id: "especial_primeira_medida",
+    name: "Fita Metrica",
+    description: "Registrou suas medidas pela primeira vez",
+    icon: "📏",
+    category: "especial",
+    condition: "total_measurements >= 1",
+    xp: 10,
+  },
+];

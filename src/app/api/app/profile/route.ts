@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
+import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -48,5 +49,13 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ profile });
+  // Award XP if onboarding completed
+  if (body.onboardingDone) {
+    await addXP(user.id, XP_REWARDS.checkin); // 10 XP for completing onboarding
+  }
+
+  // Evaluate achievements
+  const newAchievements = await evaluateAchievements(user.id);
+
+  return NextResponse.json({ profile, newAchievements });
 }

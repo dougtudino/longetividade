@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
+import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -45,5 +46,25 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  return NextResponse.json({ checkin });
+  // Award XP
+  await addXP(user.id, XP_REWARDS.checkin);
+
+  // Check if all habits done
+  const habits = body.habits as Record<string, boolean> | undefined;
+  if (habits) {
+    const vals = Object.values(habits);
+    if (vals.length >= 10 && vals.every(Boolean)) {
+      await addXP(user.id, XP_REWARDS.all_habits);
+    }
+  }
+
+  // Check if exercise done
+  if (body.exerciseDone) {
+    await addXP(user.id, XP_REWARDS.exercise);
+  }
+
+  // Evaluate achievements
+  const newAchievements = await evaluateAchievements(user.id);
+
+  return NextResponse.json({ checkin, newAchievements });
 }

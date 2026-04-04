@@ -99,10 +99,16 @@ model AppUser {
   accessType String   @default("lifetime") // "lifetime" | "subscription"
   createdAt  DateTime @default(now())
 
-  profile    AppProfile?
-  checkins   AppCheckin[]
-  waterLogs  AppWaterLog[]
-  weightLogs AppWeightLog[]
+  profile         AppProfile?
+  checkins        AppCheckin[]
+  waterLogs       AppWaterLog[]
+  weightLogs      AppWeightLog[]
+  moodLogs        AppMoodLog[]
+  achievements    AppUserAchievement[]
+  level           AppUserLevel?
+  favoriteRecipes AppFavoriteRecipe[]
+  challenges      AppChallenge[]
+  measurements    AppMeasurement[]
 
   @@index([email])
 }
@@ -178,4 +184,94 @@ model AppSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+// ─── App VIP Sprint 2 ─────────────────────────────
+
+model AppMoodLog {
+  id        String   @id @default(uuid())
+  userId    String
+  mood      String
+  note      String?
+  triggers  String[]
+  loggedAt  DateTime @default(now())
+  user      AppUser  @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([loggedAt])
+}
+
+model AppAchievement {
+  id               String   @id
+  name             String
+  description      String
+  icon             String
+  category         String
+  condition        String
+  xp               Int      @default(10)
+  userAchievements AppUserAchievement[]
+}
+
+model AppUserAchievement {
+  id            String         @id @default(uuid())
+  userId        String
+  achievementId String
+  earnedAt      DateTime       @default(now())
+  user          AppUser        @relation(fields: [userId], references: [id])
+  achievement   AppAchievement @relation(fields: [achievementId], references: [id])
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model AppUserLevel {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  xp        Int      @default(0)
+  level     Int      @default(1)
+  updatedAt DateTime @updatedAt
+  user      AppUser  @relation(fields: [userId], references: [id])
+}
+
+model AppRecipe {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  pillar      String
+  prepTime    Int
+  serves      Int
+  ingredients String[]
+  steps       String[]
+  tip         String
+  createdAt   DateTime @default(now())
+  favorites   AppFavoriteRecipe[]
+}
+
+model AppFavoriteRecipe {
+  id        String    @id @default(uuid())
+  userId    String
+  recipeId  String
+  createdAt DateTime  @default(now())
+  user      AppUser   @relation(fields: [userId], references: [id])
+  recipe    AppRecipe @relation(fields: [recipeId], references: [id])
+  @@unique([userId, recipeId])
+}
+
+model AppChallenge {
+  id          String   @id @default(uuid())
+  userId      String
+  day         Int
+  completedAt DateTime @default(now())
+  user        AppUser  @relation(fields: [userId], references: [id])
+  @@unique([userId, day])
+  @@index([userId])
+}
+
+model AppMeasurement {
+  id        String   @id @default(uuid())
+  userId    String
+  waist     Float?
+  hip       Float?
+  note      String?
+  loggedAt  DateTime @default(now())
+  user      AppUser  @relation(fields: [userId], references: [id])
+  @@index([userId])
 }
