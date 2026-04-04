@@ -22,7 +22,7 @@ export default function AppLogin() {
       const data = await res.json();
 
       if (data.ok) {
-        router.push("/app");
+        window.location.href = "/app";
       } else {
         setError(data.reason || "Erro ao acessar. Tente novamente.");
       }
@@ -90,7 +90,7 @@ export default function AppLogin() {
             const res = await fetch("/api/app/demo-login", { method: "POST" });
             const data = await res.json();
             if (data.ok) {
-              router.push("/app");
+              window.location.href = "/app/onboarding";
             } else {
               setError("Falha ao criar acesso admin.");
             }
