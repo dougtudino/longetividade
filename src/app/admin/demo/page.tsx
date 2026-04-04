@@ -94,9 +94,9 @@ const PLANS: Record<PlanKey, PlanInfo> = {
     deliverables: [
       { name: "Tudo do plano Completo", type: "pdf", status: "pronto", desc: "10 entregaveis inclusos" },
       { name: "APP de acompanhamento vitalicio", type: "app", status: "pronto", desc: "PWA em /app — login, onboarding, habitos, agua, movimento, progresso" },
-      { name: "3 video-aulas do Metodo S.E.M", type: "video", status: "gravar", desc: "Aula 1: Pilar S (Simplicidade), Aula 2: Pilar E (Equilibrio), Aula 3: Pilar M (Movimento)" },
-      { name: "1 live mensal (3 meses)", type: "live", status: "configurar", desc: "Q&A ao vivo com Doug — plataforma a definir (YouTube/Zoom)" },
-      { name: "Suporte por email (30 dias)", type: "email", status: "configurar", desc: "Email dedicado para duvidas — resposta em 24h" },
+      { name: "Guia de Receitas S.E.M — 30 receitas (PDF)", type: "pdf", status: "criar", desc: "30 receitas praticas alinhadas aos 3 pilares — cafe, almoco, jantar, lanches" },
+      { name: "Desafio 21 Dias — programa por email", type: "email", status: "criar", desc: "Sequencia automatica Brevo: 21 emails diarios com missao, dica e frase motivacional" },
+      { name: "Diario de Autoconhecimento (PDF)", type: "pdf", status: "criar", desc: "Journal imprimivel 30 dias — reflexoes sobre fome emocional, gatilhos, vitorias, gratidao" },
     ],
     accessFlow: [
       "Cliente compra no Hotmart (R$97)",
@@ -105,7 +105,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
       "Cliente baixa ebook + bonus PDFs",
       "Cliente acessa /app/login com email da compra",
       "Onboarding 5 etapas → Home com habitos, agua, movimento, progresso",
-      "Video-aulas e lives enviadas por email conforme cronograma",
+      "Desafio 21 Dias inicia automaticamente por email (D+1 a D+21)",
     ],
   },
 };
@@ -113,12 +113,11 @@ const PLANS: Record<PlanKey, PlanInfo> = {
 const STATUS_BADGE: Record<string, { color: string; label: string }> = {
   pronto: { color: "#6B9E6B", label: "PRONTO" },
   criar: { color: "#D4A94B", label: "CRIAR" },
-  gravar: { color: "#3B82F6", label: "GRAVAR" },
   configurar: { color: "#8B5CF6", label: "CONFIGURAR" },
 };
 
 const TYPE_ICON: Record<string, string> = {
-  pdf: "📄", app: "📱", whatsapp: "💬", video: "🎬", live: "🔴", email: "📧",
+  pdf: "📄", app: "📱", whatsapp: "💬", email: "📧",
 };
 
 /* ─── Roadmap ─── */
@@ -139,8 +138,10 @@ const ROADMAP = [
     items: [
       "Gerar PDFs individuais dos bonus (checklist, tabela, lista, planner)",
       "Guia emocional avancado como PDF separado",
+      "Guia de Receitas S.E.M — 30 receitas (PDF)",
+      "Diario de Autoconhecimento — journal 30 dias (PDF)",
+      "Desafio 21 Dias — sequencia email automatica Brevo",
       "Criar grupo WhatsApp + automacao de link no email",
-      "Gravar 3 video-aulas do Metodo S.E.M",
     ],
   },
   {
