@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 /* ─── Styles ─── */
 const card: React.CSSProperties = {
@@ -173,7 +174,16 @@ const PHASE_COLORS: Record<string, string> = {
 /* ─── Component ─── */
 export default function DemoPage() {
   const [activePlan, setActivePlan] = useState<PlanKey>("vip");
+  const [demoLoading, setDemoLoading] = useState(false);
+  const router = useRouter();
   const plan = PLANS[activePlan];
+
+  async function handleDemoLogin() {
+    setDemoLoading(true);
+    await fetch("/api/app/demo-login", { method: "POST" });
+    setDemoLoading(false);
+    window.open("/app", "_blank");
+  }
 
   const totalDeliverables = plan.deliverables.length;
   const readyCount = plan.deliverables.filter((d) => d.status === "pronto").length;
@@ -324,9 +334,9 @@ export default function DemoPage() {
             ))}
           </div>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <a href="/app" target="_blank" rel="noopener noreferrer" style={btnPrimary}>
-              Abrir App Completo &rarr;
-            </a>
+            <button onClick={handleDemoLogin} disabled={demoLoading} style={btnPrimary}>
+              {demoLoading ? "Criando acesso..." : "Entrar no App como Demo"} &rarr;
+            </button>
             <a href="/emagreca-sem-dieta#pricing" target="_blank" rel="noopener noreferrer" style={btnOutline}>
               Ver Sales Page
             </a>

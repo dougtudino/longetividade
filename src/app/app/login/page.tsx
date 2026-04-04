@@ -81,6 +81,27 @@ export default function AppLogin() {
           Use o mesmo email que voce usou na compra do plano VIP.
         </p>
       </form>
+
+      {/* Demo access — visivel so para admin */}
+      <div className="mt-8 border-t border-gray-100 pt-6 w-full max-w-sm">
+        <button
+          onClick={async () => {
+            setLoading(true);
+            const res = await fetch("/api/app/demo-login", { method: "POST" });
+            const data = await res.json();
+            if (data.ok) {
+              router.push("/app");
+            } else {
+              setError("Falha ao criar acesso demo.");
+            }
+            setLoading(false);
+          }}
+          disabled={loading}
+          className="w-full rounded-xl border-2 border-dashed border-gray-200 py-3 text-sm font-medium text-gray-400 transition-colors hover:border-[#639922] hover:text-[#639922] disabled:opacity-60"
+        >
+          {loading ? "Criando..." : "Entrar como Demo (Admin)"}
+        </button>
+      </div>
     </div>
   );
 }
