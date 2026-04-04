@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 
 const DEMO_EMAIL = "demo@longetividade.com.br";
@@ -32,27 +31,19 @@ export async function POST() {
       });
     }
 
-    // Setar cookies de sessao
+    // Setar cookies via response headers
     const token = uuid();
-    const cookieStore = await cookies();
-    cookieStore.set("app_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/app",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-    cookieStore.set("app_email", DEMO_EMAIL, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/app",
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    const isProduction = process.env.NODE_ENV === "production";
+    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
 
-    return NextResponse.json({ ok: true, email: DEMO_EMAIL });
+    const response = NextResponse.json({ ok: true, email: DEMO_EMAIL });
+    response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
+    response.headers.append("Set-Cookie", `app_email=${DEMO_EMAIL}; ${cookieOpts}`);
+
+    return response;
   } catch (error: unknown) {
-    console.error("Demo login error:", error);
-    return NextResponse.json({ error: "Falha ao criar acesso demo" }, { status: 500 });
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Demo login error:", msg);
+    return NextResponse.json({ error: "Falha ao criar acesso demo", detail: msg }, { status: 500 });
   }
 }

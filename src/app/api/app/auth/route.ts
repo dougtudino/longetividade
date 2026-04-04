@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 
 export async function POST(req: NextRequest) {
@@ -12,7 +11,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Verifica se tem AppUser (criado pelo webhook)
-  const appUser = await prisma.appUser.findUnique({ where: { email } });
+  let appUser = await prisma.appUser.findUnique({ where: { email } });
 
   if (!appUser) {
     // Fallback: verificar Order VIP aprovada (caso webhook nao tenha criado ainda)
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Criar AppUser on-the-fly
-    await prisma.appUser.create({
+    appUser = await prisma.appUser.create({
       data: {
         email,
         orderId: order.id,
@@ -39,23 +38,14 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Criar token de sessao
+  // Criar token de sessao via response headers
   const token = uuid();
-  const cookieStore = await cookies();
-  cookieStore.set("app_token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/app",
-    maxAge: 60 * 60 * 24 * 365, // 1 ano
-  });
-  cookieStore.set("app_email", email, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/app",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  const isProduction = process.env.NODE_ENV === "production";
+  const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
 
-  return NextResponse.json({ ok: true, token });
+  const response = NextResponse.json({ ok: true, token });
+  response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
+  response.headers.append("Set-Cookie", `app_email=${email}; ${cookieOpts}`);
+
+  return response;
 }
