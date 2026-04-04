@@ -458,26 +458,32 @@ export default function EcossistemaPage() {
         {/* ============================================================ */}
         {/*  SECAO 4 — CHECKOUT E PAGAMENTO                               */}
         {/* ============================================================ */}
-        <Section num={4} title="Checkout e Pagamento" sub="Plataformas de venda e fluxo pos-compra">
-          <div className="eco-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-            <div style={cardStyle}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)", marginBottom: 8 }}>Hotmart</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12, wordBreak: "break-all" }}>pay.hotmart.com/H105141835Q</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {extLink("https://pay.hotmart.com/H105141835Q", "Testar checkout")}
+        <Section num={4} title="Checkout e Pagamento" sub="Hotmart — 3 ofertas com webhook ativo">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+            {[
+              { plan: "Basico", price: "R$ 37", offerId: "zxq5tgew", color: "#9EBF9E" },
+              { plan: "Completo", price: "R$ 67", offerId: "uzvdkzkf", color: "#7A9E7E" },
+              { plan: "VIP", price: "R$ 97", offerId: "h84hak4e", color: "#3D5A3E" },
+            ].map(p => (
+              <div key={p.plan} style={{ ...cardStyle, borderLeft: `3px solid ${p.color}` }}>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>{p.plan} — {p.price}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginBottom: 8 }}>offerId: {p.offerId}</div>
+                {extLink(`https://pay.hotmart.com/H105141835Q?offerId=${p.offerId}`, "Testar")}
               </div>
+            ))}
+          </div>
+
+          <div style={{ ...cardStyle, marginBottom: 16 }}>
+            <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 8 }}>Webhook Hotmart</div>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "monospace", wordBreak: "break-all" }}>/api/webhooks/hotmart</span>
+              <span style={badge("#6B9E6B", true)}>ATIVO</span>
             </div>
-            <div style={cardStyle}>
-              <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text-primary)", marginBottom: 8 }}>Kiwify</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12, wordBreak: "break-all" }}>pay.kiwify.com.br/3fle7dM</div>
-              <div style={{ display: "flex", gap: 8 }}>
-                {extLink("https://pay.kiwify.com.br/3fle7dM", "Testar checkout")}
-              </div>
-            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>hottok configurado via /admin/configuracoes</div>
           </div>
 
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>Fluxo pos-compra</div>
-          <FlowRow steps={["Webhook", "Registro no banco", "Email Brevo", "Download token", "PDF entregue"]} />
+          <FlowRow steps={["Hotmart Webhook", "Cria Order", "Se VIP: cria AppUser", "Email Brevo", "Download token", "PDF entregue"]} />
 
           {lastApproved && (
             <div style={{ ...cardStyle, marginTop: 12, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
@@ -533,9 +539,43 @@ export default function EcossistemaPage() {
         </Section>
 
         {/* ============================================================ */}
-        {/*  SECAO 6 — INFRAESTRUTURA                                     */}
+        {/*  SECAO 6 — APP VIP                                            */}
         {/* ============================================================ */}
-        <Section num={6} title="Infraestrutura" sub="Servicos, banco de dados e tracking">
+        <Section num={6} title="App VIP — Acompanhamento" sub="PWA exclusivo para compradores do plano VIP (R$97)">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
+            {[
+              { label: "Login", path: "/app/login", desc: "Email da compra" },
+              { label: "Onboarding", path: "/app/onboarding", desc: "5 etapas" },
+              { label: "Home", path: "/app/home", desc: "Dashboard + frase do dia" },
+              { label: "Agua", path: "/app/agua", desc: "Controle de copos" },
+              { label: "Habitos", path: "/app/habitos", desc: "10 checkboxes S.E.M" },
+              { label: "Movimento", path: "/app/movimento", desc: "Registro exercicio" },
+              { label: "Progresso", path: "/app/progresso", desc: "Peso + marcos" },
+            ].map(p => (
+              <div key={p.path} style={cardStyle}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 2 }}>{p.label}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>{p.desc}</div>
+                {extLink(`https://www.longetividade.com.br${p.path}`, "Abrir")}
+              </div>
+            ))}
+          </div>
+          <div style={{ ...cardStyle, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-secondary)" }}>Escassez</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>100 vagas vitalícias — apos esgotar, R$27/mes</div>
+            </div>
+            <span style={badge("#639922", true)}>PWA</span>
+            <span style={badge("#6B9E6B", true)}>ATIVO</span>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>
+            Modelos: AppUser, AppProfile, AppCheckin, AppWaterLog, AppWeightLog, AppVipSlot
+          </div>
+        </Section>
+
+        {/* ============================================================ */}
+        {/*  SECAO 7 — INFRAESTRUTURA                                     */}
+        {/* ============================================================ */}
+        <Section num={7} title="Infraestrutura" sub="Servicos, banco de dados e tracking">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
             <div style={cardStyle}>
               <div style={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)", marginBottom: 6 }}>Railway</div>
@@ -580,7 +620,7 @@ export default function EcossistemaPage() {
         </Section>
 
         {/* ============================================================ */}
-        {/*  SECAO 7 — CAMPANHAS ATIVAS                                   */}
+        {/*  SECAO 8 — CAMPANHAS ATIVAS                                   */}
         {/* ============================================================ */}
         <Section num={7} title="Campanhas Ativas" sub="Campanhas de marketing em andamento">
           {activeCampaigns.length === 0 ? (
@@ -638,7 +678,7 @@ export default function EcossistemaPage() {
         </Section>
 
         {/* ============================================================ */}
-        {/*  SECAO 8 — EQUIPE AIOX                                        */}
+        {/*  SECAO 9 — EQUIPE AIOX                                        */}
         {/* ============================================================ */}
         <Section num={8} title="Equipe AIOX" sub="Agentes de IA que constroem e operam o projeto">
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -686,7 +726,7 @@ export default function EcossistemaPage() {
         </Section>
 
         {/* ============================================================ */}
-        {/*  SECAO 9 — LINKS RAPIDOS                                      */}
+        {/*  SECAO 10 — LINKS RAPIDOS                                      */}
         {/* ============================================================ */}
         <Section num={9} title="Links Rapidos" sub="Acesso direto a todas as plataformas">
           <div className="eco-links-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>

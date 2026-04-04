@@ -180,29 +180,47 @@ export default function AdminSidebar() {
       }}
     >
       {/* Logo */}
-      <div style={{ padding: "24px 16px 8px" }}>
-        <div
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontWeight: 700,
-            fontSize: 18,
-            color: "var(--text-primary)",
-            lineHeight: 1.2,
-          }}
-        >
-          Longetividade
-        </div>
-        <div
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            marginTop: 2,
-          }}
-        >
-          Admin
+      <div style={{ padding: "24px 16px 12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "#639922",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <span style={{ color: "#fff", fontWeight: 800, fontSize: 16 }}>L</span>
+          </div>
+          <div>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                color: "var(--text-primary)",
+                lineHeight: 1.2,
+                whiteSpace: "nowrap",
+              }}
+            >
+              Longetividade
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                marginTop: 1,
+              }}
+            >
+              Admin v2.0
+            </div>
+          </div>
         </div>
       </div>
 

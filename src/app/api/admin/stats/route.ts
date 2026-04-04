@@ -64,6 +64,26 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
+    // App VIP stats
+    let appStats = { users: 0, activeToday: 0, totalCheckins: 0, slotsUsed: 0, slotsTotal: 100 };
+    try {
+      const [appUsers, activeToday, totalCheckins, vipSlot] = await Promise.all([
+        prisma.appUser.count(),
+        prisma.appCheckin.groupBy({ by: ["userId"], where: { date: { gte: todayStart } } }).then((r) => r.length),
+        prisma.appCheckin.count(),
+        prisma.appVipSlot.findUnique({ where: { id: "singleton" } }),
+      ]);
+      appStats = {
+        users: appUsers,
+        activeToday,
+        totalCheckins,
+        slotsUsed: vipSlot?.usedSlots ?? 0,
+        slotsTotal: vipSlot?.totalSlots ?? 100,
+      };
+    } catch {
+      // Tabelas podem nao existir ainda
+    }
+
     // Daily revenue for last 30 days
     const last30Orders = approvedOrders.filter((o) => o.createdAt >= thirtyDaysAgo);
     const dailyMap = new Map<string, { revenue: number; orders: number }>();
@@ -105,6 +125,7 @@ export async function GET() {
       conversionRate,
       recentOrders,
       dailyRevenue,
+      appStats,
     });
   } catch (error) {
     console.error("Stats API error:", error);

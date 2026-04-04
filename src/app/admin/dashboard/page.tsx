@@ -42,6 +42,13 @@ interface Stats {
   conversionRate: number;
   recentOrders: RecentOrder[];
   dailyRevenue: DailyRevenue[];
+  appStats: {
+    users: number;
+    activeToday: number;
+    totalCheckins: number;
+    slotsUsed: number;
+    slotsTotal: number;
+  };
 }
 
 function fmtBRL(value: number): string {
@@ -737,6 +744,64 @@ export default function AdminDashboard() {
             sub={`${stats.abandonedToday} abandonos hoje`}
           />
         </div>
+
+        {/* App VIP */}
+        {stats.appStats && (
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "0.5px solid var(--border-default)",
+              borderRadius: 12,
+              padding: 20,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                App VIP — Acompanhamento
+              </div>
+              <a
+                href="/app"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}
+              >
+                Abrir App &rarr;
+              </a>
+            </div>
+            <div className="kpi-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+              <div style={{ textAlign: "center", padding: 12, borderRadius: 10, background: "var(--bg-secondary)" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>{stats.appStats.users}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Usuarios VIP</div>
+              </div>
+              <div style={{ textAlign: "center", padding: 12, borderRadius: 10, background: "var(--bg-secondary)" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "#639922" }}>{stats.appStats.activeToday}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Ativos Hoje</div>
+              </div>
+              <div style={{ textAlign: "center", padding: 12, borderRadius: 10, background: "var(--bg-secondary)" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>{stats.appStats.totalCheckins}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Check-ins Total</div>
+              </div>
+              <div style={{ textAlign: "center", padding: 12, borderRadius: 10, background: "var(--bg-secondary)" }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: stats.appStats.slotsTotal - stats.appStats.slotsUsed <= 20 ? "#ed8936" : "var(--text-primary)" }}>
+                  {stats.appStats.slotsTotal - stats.appStats.slotsUsed}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Vagas Restantes</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 12, height: 6, borderRadius: 3, background: "var(--border-subtle)" }}>
+              <div style={{
+                height: "100%",
+                borderRadius: 3,
+                width: `${(stats.appStats.slotsUsed / stats.appStats.slotsTotal) * 100}%`,
+                background: stats.appStats.slotsTotal - stats.appStats.slotsUsed <= 20 ? "#ed8936" : "#639922",
+                transition: "width 0.5s",
+              }} />
+            </div>
+            <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", textAlign: "right" }}>
+              {stats.appStats.slotsUsed}/{stats.appStats.slotsTotal} vagas preenchidas
+            </div>
+          </div>
+        )}
 
         {stats.dailyRevenue.length > 0 && <RevenueChart data={stats.dailyRevenue} />}
 
