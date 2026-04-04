@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { AppHeaderWrapper } from "@/components/app/app-header-wrapper";
 
 export const metadata: Metadata = {
   title: "Longetividade — App",
@@ -24,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       className="mx-auto min-h-screen bg-white"
       style={{ maxWidth: 430, fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      <AppHeaderWrapper />
       {children}
     </div>
   );
