@@ -41,12 +41,24 @@ export default function DesafioPage() {
   const [celebration, setCelebration] = useState<string | null>(null);
 
   const fetchChallenge = async () => {
-    const res = await fetch("/api/app/challenge");
-    if (!res.ok) return;
-    const data = await res.json();
-    setDays(data.days ?? []);
-    setProgress(data.progress ?? []);
-    setCurrentDay(data.currentDay ?? 1);
+    try {
+      const res = await fetch("/api/app/challenge");
+      if (!res.ok) {
+        // Auth failed or error — still show the static days
+        const { CHALLENGE_DAYS } = await import("@/data/challenge-days");
+        setDays(CHALLENGE_DAYS);
+        setLoading(false);
+        return;
+      }
+      const data = await res.json();
+      setDays(data.days ?? []);
+      setProgress(data.progress ?? []);
+      setCurrentDay(data.currentDay ?? 1);
+    } catch {
+      // Fallback to static data
+      const { CHALLENGE_DAYS } = await import("@/data/challenge-days");
+      setDays(CHALLENGE_DAYS);
+    }
     setLoading(false);
   };
 
