@@ -92,14 +92,14 @@ export default function AppLogin() {
             if (data.ok) {
               router.push("/app");
             } else {
-              setError("Falha ao criar acesso demo.");
+              setError("Falha ao criar acesso admin.");
             }
             setLoading(false);
           }}
           disabled={loading}
           className="w-full rounded-xl border-2 border-dashed border-gray-200 py-3 text-sm font-medium text-gray-400 transition-colors hover:border-[#639922] hover:text-[#639922] disabled:opacity-60"
         >
-          {loading ? "Criando..." : "Entrar como Demo (Admin)"}
+          {loading ? "Criando..." : "Entrar como Admin"}
         </button>
       </div>
     </div>

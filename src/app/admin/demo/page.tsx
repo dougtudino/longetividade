@@ -335,7 +335,7 @@ export default function DemoPage() {
           </div>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <button onClick={handleDemoLogin} disabled={demoLoading} style={btnPrimary}>
-              {demoLoading ? "Criando acesso..." : "Entrar no App como Demo"} &rarr;
+              {demoLoading ? "Criando..." : "Entrar no App como Admin"} &rarr;
             </button>
             <a href="/emagreca-sem-dieta#pricing" target="_blank" rel="noopener noreferrer" style={btnOutline}>
               Ver Sales Page
