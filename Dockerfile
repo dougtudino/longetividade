@@ -24,4 +24,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npm start"]
+CMD ["node", "scripts/startup.js"]
