@@ -19,6 +19,19 @@ type TodayMood = {
   loggedAt: string;
 } | null;
 
+type ChallengeProgress = {
+  completedCount: number;
+  currentDay: number;
+};
+
+type RecipeSuggestion = {
+  id: string;
+  name: string;
+  category: string;
+  prepTime: number;
+  pillar: string;
+};
+
 const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
   otima: { emoji: "😊", label: "Otima", color: "#639922" },
   bem: { emoji: "🙂", label: "Bem", color: "#8BC34A" },
@@ -69,6 +82,8 @@ export default function AppHome() {
   const [streakCount, setStreakCount] = useState(0);
   const [todayMood, setTodayMood] = useState<TodayMood>(null);
   const [moodChecked, setMoodChecked] = useState(false);
+  const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
+  const [recipeSuggestion, setRecipeSuggestion] = useState<RecipeSuggestion | null>(null);
 
   useEffect(() => {
     fetch("/api/app/profile").then((r) => r.json()).then((d) => setProfile(d.profile));
@@ -80,6 +95,37 @@ export default function AppHome() {
         setTodayMood(d.todayLog ?? null);
         setMoodChecked(true);
       });
+
+    // Fetch challenge progress
+    fetch("/api/app/challenge")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.progress) {
+          setChallengeProgress({
+            completedCount: d.progress.length,
+            currentDay: d.currentDay ?? 1,
+          });
+        }
+      })
+      .catch(() => {});
+
+    // Fetch a random recipe suggestion
+    fetch("/api/app/recipes")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.recipes && d.recipes.length > 0) {
+          const idx = Math.floor(Math.random() * d.recipes.length);
+          const r = d.recipes[idx];
+          setRecipeSuggestion({
+            id: r.id,
+            name: r.name,
+            category: r.category,
+            prepTime: r.prepTime,
+            pillar: r.pillar,
+          });
+        }
+      })
+      .catch(() => {});
 
     // Fetch last 7 days streak + calculate consecutive streak
     const days: Promise<boolean>[] = [];
@@ -311,6 +357,64 @@ export default function AppHome() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Desafio 21 Dias + Receita do dia */}
+      <div className="mb-5 grid grid-cols-2 gap-3">
+        {/* Desafio 21 Dias card */}
+        <button
+          onClick={() => router.push("/app/desafio")}
+          className="rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
+          style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🎯</span>
+            <span className="text-xs font-bold" style={{ color: "#378ADD" }}>Desafio 21 Dias</span>
+          </div>
+          {challengeProgress ? (
+            <>
+              <p className="text-xl font-black" style={{ color: "#378ADD" }}>
+                {challengeProgress.completedCount}/21
+              </p>
+              <div className="mt-1.5 h-1.5 w-full rounded-full bg-blue-100">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${Math.round((challengeProgress.completedCount / 21) * 100)}%`,
+                    backgroundColor: "#378ADD",
+                  }}
+                />
+              </div>
+              <p className="mt-1 text-[10px] text-gray-400">
+                {challengeProgress.completedCount >= 21
+                  ? "Completo!"
+                  : `Dia ${challengeProgress.currentDay} hoje`}
+              </p>
+            </>
+          ) : (
+            <p className="text-xs text-gray-400">Carregando...</p>
+          )}
+        </button>
+
+        {/* Receita do dia card */}
+        <button
+          onClick={() => router.push("/app/receitas")}
+          className="rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
+          style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc" }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-lg">🍳</span>
+            <span className="text-xs font-bold" style={{ color: "#BA7517" }}>Receita do dia</span>
+          </div>
+          {recipeSuggestion ? (
+            <>
+              <p className="text-xs font-bold text-gray-700 line-clamp-2">{recipeSuggestion.name}</p>
+              <p className="mt-1 text-[10px] text-gray-400">{recipeSuggestion.prepTime} min</p>
+            </>
+          ) : (
+            <p className="text-xs text-gray-400">Carregando...</p>
+          )}
+        </button>
       </div>
 
       {/* 7-day streak visual */}

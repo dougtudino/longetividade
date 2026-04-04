@@ -228,6 +228,41 @@ export async function POST() {
         ('especial_primeiro_mood', 'Autoconhecimento', 'Registrou seu primeiro humor', '😊', 'especial', 'total_mood_logs >= 1', 10),
         ('especial_primeira_medida', 'Fita Metrica', 'Registrou suas medidas pela primeira vez', '📏', 'especial', 'total_measurements >= 1', 10)
       ON CONFLICT ("id") DO NOTHING;
+
+      -- ─── Seed: 30 Recipe Definitions (for FK on favorites) ─────────
+
+      INSERT INTO "AppRecipe" ("id", "name", "category", "pillar", "prepTime", "serves", "ingredients", "steps", "tip") VALUES
+        ('r01', 'Tapioca Cremosa de Banana com Canela', 'cafe', 'S', 8, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r02', 'Ovo Mexido Cremoso com Tomate e Ervas', 'cafe', 'S', 7, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r03', 'Vitamina Sustentona de Banana e Aveia', 'cafe', 'E', 5, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r04', 'Pao na Chapa com Queijo e Oregano', 'cafe', 'S', 5, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r05', 'Mingau de Aveia Rapido', 'cafe', 'E', 8, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r06', 'Sanduiche Natural Pratico', 'cafe', 'S', 7, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r07', 'Iogurte com Granola e Fruta da Estacao', 'cafe', 'S', 3, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r08', 'Crepioca Rapida de Queijo', 'cafe', 'M', 10, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r09', 'Panqueca de Banana', 'cafe', 'E', 12, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r10', 'Torrada com Pasta de Amendoim e Banana', 'cafe', 'M', 5, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r11', 'Frango Desfiado Rapido com Legumes', 'almoco_jantar', 'S', 20, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r12', 'Omelete de Forno Joga Tudo', 'almoco_jantar', 'S', 18, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r13', 'Macarrao Alho e Oleo com Frango', 'almoco_jantar', 'E', 15, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r14', 'Sopa Cremosa de Legumes', 'almoco_jantar', 'E', 20, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r15', 'Arroz de Forno com Sobras', 'almoco_jantar', 'S', 20, 3, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r16', 'Carne Moida Refogada com Batata', 'almoco_jantar', 'M', 20, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r17', 'Wrap de Atum Rapido', 'almoco_jantar', 'S', 10, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r18', 'Escondidinho Rapido de Frango', 'almoco_jantar', 'E', 20, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r19', 'Strogonoff Simples de Frango', 'almoco_jantar', 'M', 18, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r20', 'Risoto Pratico de Legumes', 'almoco_jantar', 'S', 20, 3, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r21', 'Bolinho de Banana e Aveia', 'lanche', 'S', 10, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r22', 'Pate de Atum com Torradinhas', 'lanche', 'E', 8, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r23', 'Banana Amassada com Aveia e Pasta de Amendoim', 'lanche', 'M', 5, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r24', 'Mix de Castanhas e Frutas Secas', 'lanche', 'S', 5, 5, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r25', 'Espetinho de Frutas com Iogurte', 'lanche', 'E', 8, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r26', 'Mousse de Banana', 'sobremesa', 'S', 5, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r27', 'Brigadeiro de Colher Saudavel', 'sobremesa', 'E', 10, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r28', 'Maca Assada com Canela e Mel', 'sobremesa', 'M', 15, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r29', 'Sorvete Caseiro de Morango', 'sobremesa', 'S', 5, 2, ARRAY[]::TEXT[], ARRAY[]::TEXT[], ''),
+        ('r30', 'Pudim de Caneca', 'sobremesa', 'E', 8, 1, ARRAY[]::TEXT[], ARRAY[]::TEXT[], '')
+      ON CONFLICT ("id") DO NOTHING;
     `;
 
     await client.query(sql);
