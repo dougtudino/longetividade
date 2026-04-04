@@ -301,24 +301,38 @@ export default function AdminSidebar() {
     </div>
   );
 
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
   return (
     <>
+      <style>{`
+        @media (max-width: 767px) {
+          .admin-sidebar-desktop { display: none !important; }
+          .admin-hamburger { display: flex !important; }
+        }
+        @media (min-width: 768px) {
+          .admin-sidebar-desktop { display: block !important; }
+          .admin-hamburger { display: none !important; }
+          .admin-mobile-overlay { display: none !important; }
+        }
+      `}</style>
+
       {/* Desktop sidebar */}
-      <div className="hidden md:block">{sidebarContent}</div>
+      <div className="admin-sidebar-desktop">{sidebarContent}</div>
 
       {/* Mobile hamburger */}
       <button
-        className="md:hidden"
-        onClick={() => setMobileOpen(true)}
+        className="admin-hamburger"
+        onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Abrir menu"
         style={{
           position: "fixed",
           top: 12,
           right: 12,
-          zIndex: 50,
+          zIndex: 80,
           width: 40,
           height: 40,
-          display: "flex",
+          display: "none",
           alignItems: "center",
           justifyContent: "center",
           borderRadius: 8,
@@ -328,15 +342,14 @@ export default function AdminSidebar() {
           cursor: "pointer",
         }}
       >
-        {HamburgerIcon}
+        {mobileOpen ? CloseIcon : HamburgerIcon}
       </button>
 
-      {/* Mobile overlay */}
+      {/* Mobile overlay + sidebar */}
       {mobileOpen && (
-        <>
+        <div className="admin-mobile-overlay">
           {/* Backdrop */}
           <div
-            className="md:hidden"
             onClick={() => setMobileOpen(false)}
             style={{
               position: "fixed",
@@ -347,7 +360,6 @@ export default function AdminSidebar() {
           />
           {/* Sidebar panel */}
           <div
-            className="md:hidden"
             style={{
               position: "fixed",
               top: 0,
@@ -356,32 +368,9 @@ export default function AdminSidebar() {
               zIndex: 70,
             }}
           >
-            {/* Close button */}
-            <button
-              onClick={() => setMobileOpen(false)}
-              aria-label="Fechar menu"
-              style={{
-                position: "absolute",
-                top: 12,
-                right: -48,
-                width: 36,
-                height: 36,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 8,
-                background: "var(--bg-card)",
-                border: "1px solid var(--border-default)",
-                color: "var(--text-primary)",
-                cursor: "pointer",
-                zIndex: 71,
-              }}
-            >
-              {CloseIcon}
-            </button>
             {sidebarContent}
           </div>
-        </>
+        </div>
       )}
     </>
   );
