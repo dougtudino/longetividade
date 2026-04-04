@@ -14,6 +14,19 @@ type Checkin = {
   exerciseDone: boolean;
 };
 
+type TodayMood = {
+  mood: string;
+  loggedAt: string;
+} | null;
+
+const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
+  otima: { emoji: "😊", label: "Otima", color: "#639922" },
+  bem: { emoji: "🙂", label: "Bem", color: "#8BC34A" },
+  maisOuMenos: { emoji: "😐", label: "Mais ou menos", color: "#FFC107" },
+  cansada: { emoji: "😔", label: "Cansada", color: "#FF9800" },
+  dificil: { emoji: "😢", label: "Dificil", color: "#F44336" },
+};
+
 function ProgressRing({ percent, size = 80, strokeWidth = 7, color = "#639922" }: {
   percent: number; size?: number; strokeWidth?: number; color?: string;
 }) {
@@ -54,11 +67,19 @@ export default function AppHome() {
   const [checkin, setCheckin] = useState<Checkin | null>(null);
   const [streak7, setStreak7] = useState<boolean[]>([]);
   const [streakCount, setStreakCount] = useState(0);
+  const [todayMood, setTodayMood] = useState<TodayMood>(null);
+  const [moodChecked, setMoodChecked] = useState(false);
 
   useEffect(() => {
     fetch("/api/app/profile").then((r) => r.json()).then((d) => setProfile(d.profile));
     fetch("/api/app/quote").then((r) => r.json()).then((d) => setQuote(d.quote));
     fetch("/api/app/checkin").then((r) => r.json()).then((d) => setCheckin(d.checkin));
+    fetch("/api/app/mood?days=1")
+      .then((r) => r.json())
+      .then((d) => {
+        setTodayMood(d.todayLog ?? null);
+        setMoodChecked(true);
+      });
 
     // Fetch last 7 days streak + calculate consecutive streak
     const days: Promise<boolean>[] = [];
@@ -150,6 +171,40 @@ export default function AppHome() {
         </div>
       </div>
 
+      {/* Mood quick action */}
+      {moodChecked && (
+        <button
+          onClick={() => router.push("/app/emocional")}
+          className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-gray-100 p-4 text-left transition-transform active:scale-[0.98]"
+        >
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-full"
+            style={{
+              backgroundColor: todayMood
+                ? (MOOD_MAP[todayMood.mood]?.color ?? "#639922") + "20"
+                : "#f3f4f6",
+            }}
+          >
+            <span className="text-xl">
+              {todayMood ? (MOOD_MAP[todayMood.mood]?.emoji ?? "💚") : "💚"}
+            </span>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold text-gray-700">
+              {todayMood ? "Como esta se sentindo?" : "Como esta se sentindo?"}
+            </p>
+            <p className="text-xs text-gray-400">
+              {todayMood
+                ? `Hoje: ${MOOD_MAP[todayMood.mood]?.label ?? todayMood.mood}`
+                : "Registre seu humor do dia"}
+            </p>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
+
       {/* Quote */}
       {quote && (
         <div className="mb-5 rounded-2xl p-4" style={{ backgroundColor: "#EAF3DE" }}>
@@ -160,41 +215,52 @@ export default function AppHome() {
       )}
 
       {/* Quick action buttons */}
-      <div className="mb-5 grid grid-cols-3 gap-3">
+      <div className="mb-5 grid grid-cols-4 gap-2">
         <button
           onClick={() => router.push("/app/agua")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-4 transition-transform active:scale-95"
+          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
           style={{ backgroundColor: "#EBF5FF", border: "1px solid #d4e8fc" }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#378ADD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#378ADD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
           </svg>
-          <span className="text-xs font-bold" style={{ color: "#378ADD" }}>+ Agua</span>
+          <span className="text-[10px] font-bold" style={{ color: "#378ADD" }}>Agua</span>
         </button>
 
         <button
           onClick={() => router.push("/app/habitos")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-4 transition-transform active:scale-95"
+          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
           style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 11l3 3L22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
           </svg>
-          <span className="text-xs font-bold" style={{ color: "#639922" }}>Habitos</span>
+          <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Habitos</span>
         </button>
 
         <button
           onClick={() => router.push("/app/progresso")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-4 transition-transform active:scale-95"
+          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
           style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc" }}
         >
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#BA7517" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#BA7517" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="20" x2="18" y2="10" />
             <line x1="12" y1="20" x2="12" y2="4" />
             <line x1="6" y1="20" x2="6" y2="14" />
           </svg>
-          <span className="text-xs font-bold" style={{ color: "#BA7517" }}>Peso</span>
+          <span className="text-[10px] font-bold" style={{ color: "#BA7517" }}>Progresso</span>
+        </button>
+
+        <button
+          onClick={() => router.push("/app/emocional")}
+          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
+          style={{ backgroundColor: "#FFF0F0", border: "1px solid #fcd4d4" }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span className="text-[10px] font-bold" style={{ color: "#E53935" }}>Emocional</span>
         </button>
       </div>
 
