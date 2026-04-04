@@ -1,7 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
+import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 
 type Profile = {
   name: string;
@@ -30,6 +32,33 @@ type RecipeSuggestion = {
   category: string;
   prepTime: number;
   pillar: string;
+};
+
+type LevelInfo = {
+  level: number;
+  levelName: string;
+  xp: number;
+  nextLevelXp: number;
+};
+
+type RecentBadge = {
+  id: string;
+  name: string;
+  icon: string;
+  earnedAt: string;
+};
+
+const LEVEL_COLORS: Record<number, string> = {
+  1: "#9EBF9E",
+  2: "#9EBF9E",
+  3: "#7A9E7E",
+  4: "#7A9E7E",
+  5: "#639922",
+  6: "#639922",
+  7: "#3D5A3E",
+  8: "#3D5A3E",
+  9: "#1A3A1C",
+  10: "#1A3A1C",
 };
 
 const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
@@ -84,6 +113,18 @@ export default function AppHome() {
   const [moodChecked, setMoodChecked] = useState(false);
   const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
   const [recipeSuggestion, setRecipeSuggestion] = useState<RecipeSuggestion | null>(null);
+  const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
+  const [recentBadges, setRecentBadges] = useState<RecentBadge[]>([]);
+  const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
+    show: false,
+    title: "",
+    subtitle: "",
+    emoji: "",
+  });
+
+  const closeCelebration = useCallback(() => {
+    setCelebration((prev) => ({ ...prev, show: false }));
+  }, []);
 
   useEffect(() => {
     fetch("/api/app/profile").then((r) => r.json()).then((d) => setProfile(d.profile));
@@ -95,6 +136,31 @@ export default function AppHome() {
         setTodayMood(d.todayLog ?? null);
         setMoodChecked(true);
       });
+
+    // Fetch level + achievements
+    fetch("/api/app/achievements")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.level) {
+          setLevelInfo({
+            level: d.level.level,
+            levelName: d.level.levelName,
+            xp: d.level.xp,
+            nextLevelXp: d.level.nextLevelXp,
+          });
+        }
+        if (d.earned && d.earned.length > 0) {
+          setRecentBadges(
+            d.earned.slice(0, 3).map((e: RecentBadge) => ({
+              id: e.id,
+              name: e.name,
+              icon: e.icon,
+              earnedAt: e.earnedAt,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
 
     // Fetch challenge progress
     fetch("/api/app/challenge")
@@ -176,17 +242,43 @@ export default function AppHome() {
     month: "long",
   });
 
+  const levelColor = LEVEL_COLORS[levelInfo?.level ?? 1] ?? "#639922";
+
   return (
     <div className="px-5 pb-24 pt-6">
+      {/* Celebration overlay */}
+      <CelebrationOverlay
+        show={celebration.show}
+        title={celebration.title}
+        subtitle={celebration.subtitle}
+        emoji={celebration.emoji}
+        onClose={closeCelebration}
+      />
+
       {/* Header greeting */}
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {greeting()}, {firstName} 👋
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900">
+            {greeting()}, {firstName} 👋
+          </h1>
+          {levelInfo && (
+            <span
+              className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white"
+              style={{ backgroundColor: levelColor }}
+            >
+              Nv.{levelInfo.level}
+            </span>
+          )}
+        </div>
         <p className="text-sm text-gray-400 capitalize">{today}</p>
         {daysInMethod > 0 && (
           <p className="text-xs mt-1" style={{ color: "#639922" }}>
             Dia {daysInMethod} no Metodo S.E.M
+            {levelInfo && (
+              <span className="ml-2" style={{ color: levelColor }}>
+                — {levelInfo.levelName}
+              </span>
+            )}
           </p>
         )}
       </div>
@@ -216,6 +308,40 @@ export default function AppHome() {
           </div>
         </div>
       </div>
+
+      {/* Recent achievements */}
+      {recentBadges.length > 0 && (
+        <div className="mb-5 rounded-2xl border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-gray-700">Conquistas recentes</h3>
+            <Link
+              href="/app/conquistas"
+              className="text-xs font-medium"
+              style={{ color: "#639922" }}
+            >
+              Ver todas &rarr;
+            </Link>
+          </div>
+          <div className="flex gap-3">
+            {recentBadges.map((badge) => (
+              <div
+                key={badge.id}
+                className="flex flex-col items-center gap-1 rounded-xl p-2"
+                style={{
+                  backgroundColor: "#fff",
+                  boxShadow: "0 2px 8px rgba(99,153,34,0.12)",
+                  minWidth: 80,
+                }}
+              >
+                <span className="text-2xl">{badge.icon}</span>
+                <span className="text-[10px] font-bold text-gray-700 text-center leading-tight">
+                  {badge.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Mood quick action */}
       {moodChecked && (

@@ -20,32 +20,36 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
 
+  // Build partial update data — only include fields that were sent
+  const updateData: Record<string, unknown> = {};
+  if (body.name !== undefined) updateData.name = body.name;
+  if (body.objective !== undefined) updateData.objective = body.objective;
+  if (body.currentWeight !== undefined) updateData.currentWeight = body.currentWeight ?? null;
+  if (body.height !== undefined) updateData.height = body.height ?? null;
+  if (body.age !== undefined) updateData.age = body.age ?? null;
+  if (body.goalType !== undefined) updateData.goalType = body.goalType;
+  if (body.goalCustom !== undefined) updateData.goalCustom = body.goalCustom ?? null;
+  if (body.goalWeight !== undefined) updateData.goalWeight = body.goalWeight ?? null;
+  if (body.challenges !== undefined) updateData.challenges = body.challenges ?? [];
+  if (body.onboardingDone !== undefined) updateData.onboardingDone = body.onboardingDone ?? false;
+  if (body.waterGoal !== undefined) updateData.waterGoal = body.waterGoal;
+
   const profile = await prisma.appProfile.upsert({
     where: { userId: user.id },
-    update: {
-      name: body.name,
-      objective: body.objective,
-      currentWeight: body.currentWeight ?? null,
-      height: body.height ?? null,
-      age: body.age ?? null,
-      goalType: body.goalType,
-      goalCustom: body.goalCustom ?? null,
-      goalWeight: body.goalWeight ?? null,
-      challenges: body.challenges ?? [],
-      onboardingDone: body.onboardingDone ?? false,
-    },
+    update: updateData,
     create: {
       userId: user.id,
-      name: body.name,
-      objective: body.objective,
+      name: body.name ?? "",
+      objective: body.objective ?? "",
       currentWeight: body.currentWeight ?? null,
       height: body.height ?? null,
       age: body.age ?? null,
-      goalType: body.goalType,
+      goalType: body.goalType ?? "",
       goalCustom: body.goalCustom ?? null,
       goalWeight: body.goalWeight ?? null,
       challenges: body.challenges ?? [],
       onboardingDone: body.onboardingDone ?? false,
+      waterGoal: body.waterGoal ?? 8,
     },
   });
 

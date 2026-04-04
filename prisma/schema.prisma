@@ -126,6 +126,7 @@ model AppProfile {
   goalWeight     Float?
   challenges     String[]
   onboardingDone Boolean  @default(false)
+  waterGoal      Int      @default(8)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

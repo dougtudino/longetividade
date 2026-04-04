@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { AppNav } from "@/components/app/app-nav";
+import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 
 function WaterBottle({ cups, goal }: { cups: number; goal: number }) {
   const fillPercent = Math.min((cups / goal) * 100, 100);
@@ -78,14 +79,33 @@ export default function AguaPage() {
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalInput, setGoalInput] = useState("8");
   const [showCelebration, setShowCelebration] = useState(false);
+  const [savingGoal, setSavingGoal] = useState(false);
 
   useEffect(() => {
-    // Load saved goal from localStorage
-    const savedGoal = localStorage.getItem("water_goal");
-    if (savedGoal) {
-      setGoal(parseInt(savedGoal));
-      setGoalInput(savedGoal);
-    }
+    // Fetch goal from profile, fallback to localStorage, fallback to 8
+    fetch("/api/app/profile")
+      .then((r) => r.json())
+      .then((d) => {
+        const profileGoal = d.profile?.waterGoal;
+        if (profileGoal && profileGoal > 0) {
+          setGoal(profileGoal);
+          setGoalInput(String(profileGoal));
+        } else {
+          // Fallback to localStorage
+          const savedGoal = localStorage.getItem("water_goal");
+          if (savedGoal) {
+            setGoal(parseInt(savedGoal));
+            setGoalInput(savedGoal);
+          }
+        }
+      })
+      .catch(() => {
+        const savedGoal = localStorage.getItem("water_goal");
+        if (savedGoal) {
+          setGoal(parseInt(savedGoal));
+          setGoalInput(savedGoal);
+        }
+      });
 
     // Fetch today's checkin
     fetch("/api/app/checkin")
@@ -107,6 +127,10 @@ export default function AguaPage() {
     Promise.all(days).then(setWeekData);
   }, []);
 
+  const closeCelebration = useCallback(() => {
+    setShowCelebration(false);
+  }, []);
+
   const addCups = useCallback(async (n: number) => {
     const newCups = cups + n;
     setCups(newCups);
@@ -118,14 +142,30 @@ export default function AguaPage() {
     // Check if goal reached
     if (newCups >= goal && cups < goal) {
       setShowCelebration(true);
-      setTimeout(() => setShowCelebration(false), 4000);
     }
   }, [cups, goal]);
 
-  function saveGoal() {
+  async function saveGoal() {
     const newGoal = Math.max(1, Math.min(20, parseInt(goalInput) || 8));
     setGoal(newGoal);
     setGoalInput(String(newGoal));
+
+    // Save to profile API
+    setSavingGoal(true);
+    try {
+      await fetch("/api/app/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waterGoal: newGoal }),
+      });
+    } catch {
+      // Fallback to localStorage
+      localStorage.setItem("water_goal", String(newGoal));
+    } finally {
+      setSavingGoal(false);
+    }
+
+    // Also save to localStorage as backup
     localStorage.setItem("water_goal", String(newGoal));
     setEditingGoal(false);
   }
@@ -134,6 +174,15 @@ export default function AguaPage() {
 
   return (
     <div className="px-5 pb-24 pt-6">
+      {/* Celebration overlay */}
+      <CelebrationOverlay
+        show={showCelebration}
+        title="Meta atingida!"
+        subtitle="Seu corpo agradece cada gota"
+        emoji="💧"
+        onClose={closeCelebration}
+      />
+
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Agua</h1>
         <button
@@ -160,10 +209,11 @@ export default function AguaPage() {
           <span className="text-sm text-gray-400">copos</span>
           <button
             onClick={saveGoal}
+            disabled={savingGoal}
             className="ml-auto rounded-xl px-4 py-1.5 text-sm font-bold text-white"
-            style={{ backgroundColor: "#378ADD" }}
+            style={{ backgroundColor: "#378ADD", opacity: savingGoal ? 0.6 : 1 }}
           >
-            OK
+            {savingGoal ? "..." : "OK"}
           </button>
         </div>
       )}
@@ -177,14 +227,11 @@ export default function AguaPage() {
         <p className="text-sm text-gray-500">de {goal} copos</p>
       </div>
 
-      {/* Celebration */}
-      {(showCelebration || cups >= goal) && cups >= goal && (
+      {/* Celebration badge (persistent when goal reached) */}
+      {cups >= goal && (
         <div
-          className="mb-4 rounded-2xl p-4 text-center transition-all duration-500"
-          style={{
-            backgroundColor: "#EAF3DE",
-            animation: showCelebration ? "pulse 0.6s ease-in-out 3" : "none",
-          }}
+          className="mb-4 rounded-2xl p-4 text-center"
+          style={{ backgroundColor: "#EAF3DE" }}
         >
           <p className="text-3xl mb-1">🎉💧🎊</p>
           <p className="text-base font-bold" style={{ color: "#3B6D11" }}>
@@ -253,7 +300,6 @@ export default function AguaPage() {
                 >
                   {dayName}
                 </span>
-                {/* Goal line indicator */}
               </div>
             );
           })}
@@ -265,14 +311,6 @@ export default function AguaPage() {
           <div className="h-0.5 flex-1" style={{ backgroundColor: "#378ADD", opacity: 0.3 }} />
         </div>
       </div>
-
-      {/* Pulse animation keyframes */}
-      <style jsx>{`
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.03); }
-        }
-      `}</style>
 
       <AppNav />
     </div>
