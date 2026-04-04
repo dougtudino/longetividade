@@ -34,12 +34,16 @@ export async function POST() {
         "goalWeight" DOUBLE PRECISION,
         "challenges" TEXT[] DEFAULT ARRAY[]::TEXT[],
         "onboardingDone" BOOLEAN NOT NULL DEFAULT false,
+        "waterGoal" INTEGER NOT NULL DEFAULT 8,
         "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "AppProfile_pkey" PRIMARY KEY ("id"),
         CONSTRAINT "AppProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES "AppUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE
       );
       CREATE UNIQUE INDEX IF NOT EXISTS "AppProfile_userId_key" ON "AppProfile"("userId");
+
+      -- Add waterGoal column if table already existed without it
+      ALTER TABLE "AppProfile" ADD COLUMN IF NOT EXISTS "waterGoal" INTEGER NOT NULL DEFAULT 8;
 
       CREATE TABLE IF NOT EXISTS "AppCheckin" (
         "id" TEXT NOT NULL DEFAULT gen_random_uuid()::text,

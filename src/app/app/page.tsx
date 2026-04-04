@@ -1,30 +1,29 @@
 "use client";
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 export default function AppIndex() {
-  const router = useRouter();
-
   useEffect(() => {
-    // Verificar se esta autenticado
+    // Verificar se esta autenticado e redirecionar
     fetch("/api/app/profile")
       .then((r) => {
         if (!r.ok) {
-          router.replace("/app/login");
-          return;
+          window.location.href = "/app/login";
+          return null;
         }
         return r.json();
       })
       .then((data) => {
         if (!data) return;
-        if (!data.profile?.onboardingDone) {
-          router.replace("/app/onboarding");
+        if (data.profile?.onboardingDone) {
+          window.location.href = "/app/home";
         } else {
-          router.replace("/app/home");
+          window.location.href = "/app/onboarding";
         }
       })
-      .catch(() => router.replace("/app/login"));
-  }, [router]);
+      .catch(() => {
+        window.location.href = "/app/login";
+      });
+  }, []);
 
   return (
     <div className="flex min-h-screen items-center justify-center">

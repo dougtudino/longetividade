@@ -7,11 +7,15 @@ export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
-  const profile = await prisma.appProfile.findUnique({
-    where: { userId: user.id },
-  });
-
-  return NextResponse.json({ profile });
+  try {
+    const profile = await prisma.appProfile.findUnique({
+      where: { userId: user.id },
+    });
+    return NextResponse.json({ profile });
+  } catch {
+    // Column mismatch (e.g. waterGoal not in DB yet) — return null gracefully
+    return NextResponse.json({ profile: null });
+  }
 }
 
 export async function POST(req: NextRequest) {
