@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { execSync } from "child_process";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/admin-auth";
 
@@ -28,6 +29,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { ok: false, error: "users array vazio" },
         { status: 400 }
+      );
+    }
+
+    try {
+      execSync("npx prisma db push --accept-data-loss --skip-generate", {
+        env: { ...process.env },
+        encoding: "utf8",
+      });
+    } catch (e) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "prisma db push falhou: " + (e instanceof Error ? e.message : String(e)),
+        },
+        { status: 500 }
       );
     }
 
