@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function AdminLoginPage() {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,17 +16,19 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/admin/auth", {
+      const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ email, password }),
       });
 
-      if (res.ok) {
-        router.push("/admin");
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.ok) {
+        router.push("/admin/dashboard");
+        router.refresh();
       } else {
-        const data = await res.json();
-        setError(data.error || "Erro ao autenticar");
+        setError(data.error || "Credenciais inválidas");
       }
     } catch {
       setError("Erro de conexão");
@@ -61,6 +64,31 @@ export default function AdminLoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label
+              htmlFor="email"
+              className="block text-xs font-semibold uppercase tracking-wider mb-2"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="seu@email.com"
+              required
+              autoComplete="email"
+              className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors"
+              style={{
+                background: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+                border: "0.5px solid var(--border-default)",
+              }}
+            />
+          </div>
+
+          <div>
+            <label
               htmlFor="password"
               className="block text-xs font-semibold uppercase tracking-wider mb-2"
               style={{ color: "var(--text-secondary)" }}
@@ -72,8 +100,9 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Digite a senha de admin"
+              placeholder="••••••••"
               required
+              autoComplete="current-password"
               className="w-full px-4 py-3 rounded-lg text-sm outline-none transition-colors"
               style={{
                 background: "var(--bg-secondary)",

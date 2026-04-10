@@ -276,3 +276,30 @@ model AppMeasurement {
   user      AppUser  @relation(fields: [userId], references: [id])
   @@index([userId])
 }
+
+// ─── Admin Multi-User ─────────────────────────────
+
+model AdminUser {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String
+  passwordHash String
+  role         String        @default("manager")
+  inviteToken  String?       @unique
+  inviteUsed   Boolean       @default(false)
+  lastLoginAt  DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  mayaMessages MayaMessage[]
+}
+
+model MayaMessage {
+  id        String    @id @default(uuid())
+  adminId   String
+  role      String
+  content   String    @db.Text
+  createdAt DateTime  @default(now())
+  admin     AdminUser @relation(fields: [adminId], references: [id])
+  @@index([adminId])
+  @@index([createdAt])
+}
