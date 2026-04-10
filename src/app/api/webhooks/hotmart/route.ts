@@ -40,13 +40,24 @@ export async function POST(request: NextRequest) {
     const offerId = purchase.offer?.code || "";
     const amount = Math.round((purchase.price?.value ?? 0) * 100);
 
-    // Determinar plano pelo offerId ou valor
+    // Determinar plano pelo offer_code (com fallback por valor)
+    // Offer codes vivem em AppSetting (admin-editavel) ou em env vars.
+    const offerBasico = await getSetting("HOTMART_OFFER_BASICO", "zxq5tgew");
+    const offerCompleto = await getSetting("HOTMART_OFFER_COMPLETO", "uzvdkzkf");
     const offerVip = await getSetting("HOTMART_OFFER_VIP", "h84hak4e");
-    let plan = "basico";
-    if (offerId === offerVip || amount >= 9700) {
+
+    let plan: "basico" | "completo" | "vip";
+    if (offerId && offerId === offerVip) {
       plan = "vip";
-    } else if (amount >= 6700) {
+    } else if (offerId && offerId === offerCompleto) {
       plan = "completo";
+    } else if (offerId && offerId === offerBasico) {
+      plan = "basico";
+    } else {
+      // Fallback por valor caso offer_code venha vazio/desconhecido
+      if (amount >= 9700) plan = "vip";
+      else if (amount >= 6700) plan = "completo";
+      else plan = "basico";
     }
 
     // Criar ou atualizar Order

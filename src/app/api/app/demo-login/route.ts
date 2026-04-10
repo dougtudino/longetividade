@@ -5,6 +5,9 @@ import { v4 as uuid } from "uuid";
 const ADMIN_EMAIL = "admin@longetividade.com.br";
 
 export async function POST() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not available" }, { status: 404 });
+  }
   try {
     // Criar ou buscar usuario demo
     let appUser = await prisma.appUser.findUnique({ where: { email: ADMIN_EMAIL } });

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
+import { captureUTMs } from "@/lib/utm";
 import ThemeToggle from "@/components/ThemeToggle";
 import { IdentificationChecklist } from "@/components/landing/identification-checklist";
 import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
@@ -241,6 +242,10 @@ export default function EmagrecaSemDietaPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   useEffect(() => {
+    // Captura UTMs da URL e persiste em localStorage para anexar ao link do Hotmart
+    if (typeof window !== "undefined") {
+      captureUTMs(new URLSearchParams(window.location.search));
+    }
     trackViewContent("Emagreca Sem Dieta", 37);
   }, []);
 

@@ -1,5 +1,6 @@
 import { PLANS } from "@/config/plans";
 import { VipBanner } from "./vip-banner";
+import { PlanCTAButton } from "./plan-cta-button";
 
 const ANCHOR_ITEMS = [
   { item: "Consulta com nutricionista", value: "R$ 200 - R$ 400" },
@@ -95,23 +96,14 @@ export function PricingSection() {
                 ))}
               </ul>
 
-              <a
-                href={plan.checkoutUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`block w-full text-center font-body font-bold text-base py-3.5 rounded-xl transition-colors ${
-                  plan.highlighted
-                    ? "text-white"
-                    : "border-2"
-                }`}
-                style={
-                  plan.highlighted
-                    ? {backgroundColor: 'var(--accent)'}
-                    : {borderColor: 'var(--accent)', color: 'var(--accent)'}
-                }
-              >
-                {plan.ctaLabel}
-              </a>
+              <PlanCTAButton
+                planId={plan.id}
+                planName={plan.name}
+                price={plan.price}
+                checkoutUrl={plan.checkoutUrl}
+                ctaLabel={plan.ctaLabel}
+                highlighted={plan.highlighted}
+              />
             </div>
           ))}
         </div>

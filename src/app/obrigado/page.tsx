@@ -5,11 +5,28 @@ import Link from "next/link";
 import { trackPurchase } from "@/lib/tracking";
 import LeadCapture from "@/components/LeadCapture";
 
+const PLAN_VALUES: Record<string, { name: string; value: number }> = {
+  basico: { name: "Metodo S.E.M — Basico", value: 37 },
+  completo: { name: "Metodo S.E.M — Completo", value: 67 },
+  vip: { name: "Metodo S.E.M — VIP", value: 97 },
+};
+
 export default function ObrigadoPage() {
   const [countdown, setCountdown] = useState(15 * 60); // 15 min
+  const [plan, setPlan] = useState<"basico" | "completo" | "vip">("basico");
 
   useEffect(() => {
-    trackPurchase("Emagreça Sem Dieta", 37);
+    // Hotmart pode passar ?plan=basico|completo|vip ou ?transaction=...
+    // Detecta plano pelo query param e dispara Purchase com valor correto.
+    const params = new URLSearchParams(window.location.search);
+    const planParam = (params.get("plan") || "").toLowerCase();
+    const resolved: "basico" | "completo" | "vip" =
+      planParam === "vip" || planParam === "completo" || planParam === "basico"
+        ? planParam
+        : "basico";
+    setPlan(resolved);
+    const info = PLAN_VALUES[resolved];
+    trackPurchase(info.name, info.value);
   }, []);
 
   useEffect(() => {
@@ -51,6 +68,30 @@ export default function ObrigadoPage() {
           </p>
         </div>
       </section>
+
+      {/* VIP — Acesso ao App */}
+      {plan === "vip" && (
+        <section className="px-6 pb-8">
+          <div className="mx-auto max-w-lg">
+            <div className="rounded-2xl border border-[#639922]/30 bg-gradient-to-b from-[#639922]/10 to-transparent p-6 md:p-8 text-center">
+              <div className="mb-2 inline-flex rounded-full bg-[#639922]/20 px-3 py-1">
+                <span className="text-xs font-bold text-[#3D5A3E]">PLANO VIP</span>
+              </div>
+              <h2 className="mb-2 text-xl font-bold">Seu app vitalicio esta liberado</h2>
+              <p className="mb-5 text-sm text-[#2D2D2D]/60 leading-relaxed">
+                Acesse o App de Acompanhamento usando o mesmo email da compra.
+              </p>
+              <Link
+                href="/app/login"
+                className="inline-block rounded-xl px-6 py-3.5 text-base font-bold text-white"
+                style={{ backgroundColor: "#639922" }}
+              >
+                Acessar meu App VIP
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* STEPS */}
       <section className="px-6 pb-12">
