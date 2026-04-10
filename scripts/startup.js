@@ -4,7 +4,7 @@ console.log("=== STARTUP: Running prisma db push ===");
 console.log("DATABASE_URL exists:", !!process.env.DATABASE_URL);
 
 try {
-  execSync("npx prisma db push --accept-data-loss --skip-generate", {
+  execSync("npx prisma db push --accept-data-loss", {
     stdio: "inherit",
     env: { ...process.env },
   });

@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const output = execSync('npx prisma db push --accept-data-loss --skip-generate', {
+    const output = execSync('npx prisma db push --accept-data-loss', {
       env: { ...process.env },
       encoding: 'utf8',
     })

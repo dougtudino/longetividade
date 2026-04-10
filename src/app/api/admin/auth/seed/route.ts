@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      execSync("npx prisma db push --accept-data-loss --skip-generate", {
+      execSync("npx prisma db push --accept-data-loss", {
         env: { ...process.env },
         encoding: "utf8",
       });
