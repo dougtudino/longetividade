@@ -37,10 +37,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // API admin — protegida exceto /api/admin/auth/*
+  // API admin — protegida exceto /api/admin/auth/* e /api/admin/migrate
   if (
     pathname.startsWith("/api/admin") &&
-    !pathname.startsWith("/api/admin/auth")
+    !pathname.startsWith("/api/admin/auth") &&
+    !pathname.startsWith("/api/admin/migrate")
   ) {
     const ok = await isAdminAuthenticated(request);
     if (!ok) {
