@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import MayaChat from "@/components/admin/maya-chat";
+import PendingChecklist, {
+  type ChecklistItem,
+} from "@/components/admin/pending-checklist";
 
 interface PlanStats {
   count: number;
@@ -680,6 +684,7 @@ const tdStyle: React.CSSProperties = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pendencias, setPendencias] = useState<ChecklistItem[] | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/stats")
@@ -690,6 +695,13 @@ export default function AdminDashboard() {
       .then(setStats)
       .catch((e) => setError(e.message));
   }, []);
+
+  const handleMayaContext = useCallback(
+    (ctx: { pendencias: ChecklistItem[] }) => {
+      setPendencias(ctx.pendencias);
+    },
+    []
+  );
 
   if (error) {
     return (
@@ -714,10 +726,24 @@ export default function AdminDashboard() {
         @media (max-width: 768px) {
           .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
           .panels-row { flex-direction: column !important; }
+          .maya-row { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div
+          className="maya-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "3fr 2fr",
+            gap: 16,
+            alignItems: "start",
+          }}
+        >
+          <MayaChat onContextLoaded={handleMayaContext} />
+          <PendingChecklist items={pendencias} loading={pendencias === null} />
+        </div>
+
         <div
           className="kpi-grid"
           style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}
