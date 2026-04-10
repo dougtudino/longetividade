@@ -468,7 +468,7 @@ export default function EcossistemaPage() {
               <div key={p.plan} style={{ ...cardStyle, borderLeft: `3px solid ${p.color}` }}>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>{p.plan} — {p.price}</div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginBottom: 8 }}>offerId: {p.offerId}</div>
-                {extLink(`https://pay.hotmart.com/H105141835Q?offerId=${p.offerId}`, "Testar")}
+                {extLink(`https://pay.hotmart.com/H105141835Q?off=${p.offerId}`, "Testar")}
               </div>
             ))}
           </div>

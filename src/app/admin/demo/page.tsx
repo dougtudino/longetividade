@@ -351,7 +351,7 @@ export default function DemoPage() {
         <p style={sub}>Abre o checkout do Hotmart com o preco correto</p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <a
-            href={`https://pay.hotmart.com/H105141835Q?offerId=${plan.offerId}`}
+            href={`https://pay.hotmart.com/H105141835Q?off=${plan.offerId}`}
             target="_blank"
             rel="noopener noreferrer"
             style={btnPrimary}

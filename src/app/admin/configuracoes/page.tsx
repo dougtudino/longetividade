@@ -253,7 +253,7 @@ export default function ConfiguracoesPage() {
                 <span style={{ fontSize: 12, color: "var(--text-muted)", fontFamily: "monospace" }}>{plan.offerId}</span>
                 <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{plan.price}</span>
                 <a
-                  href={`https://pay.hotmart.com/H105141835Q?offerId=${plan.offerId}`}
+                  href={`https://pay.hotmart.com/H105141835Q?off=${plan.offerId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}
