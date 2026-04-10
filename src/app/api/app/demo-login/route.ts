@@ -5,7 +5,7 @@ import { v4 as uuid } from "uuid";
 const ADMIN_EMAIL = "admin@longetividade.com.br";
 
 export async function POST() {
-  if (process.env.NODE_ENV === "production") {
+  if (process.env.NODE_ENV !== "development") {
     return NextResponse.json({ error: "Not available" }, { status: 404 });
   }
   try {
@@ -34,10 +34,9 @@ export async function POST() {
       });
     }
 
-    // Setar cookies via response headers
+    // Setar cookies via response headers (rota so roda em dev — sem Secure)
     const token = uuid();
-    const isProduction = process.env.NODE_ENV === "production";
-    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
+    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000`;
 
     const response = NextResponse.json({ ok: true, email: ADMIN_EMAIL });
     response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
