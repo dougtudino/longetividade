@@ -517,7 +517,7 @@ export default function LaunchPlanPage() {
               opacity: launching ? 0.6 : 1,
             }}
           >
-            Dry-run (so audiences, nao cria nada)
+            Dry-run (simula, NAO cria nada)
           </button>
           <button
             onClick={() => launchCampaign(false)}
