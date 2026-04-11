@@ -1,13 +1,32 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
 import { v4 as uuid } from "uuid";
 
 const ADMIN_EMAIL = "admin@longetividade.com.br";
 
-export async function POST() {
-  if (process.env.NODE_ENV !== "development") {
-    return NextResponse.json({ error: "Not available" }, { status: 404 });
+// POST /api/app/demo-login
+// Cria/reusa um AppUser VIP "admin@longetividade.com.br" e seta
+// cookies app_token + app_email, permitindo o admin abrir /app como
+// se fosse um cliente VIP real. Usado pro demo/QA.
+//
+// Autorizacao: requer cookie admin valido (so quem ja esta logado no
+// painel admin pode usar esse atalho). Em dev, tambem permite sem auth.
+export async function POST(req: NextRequest) {
+  const isDev = process.env.NODE_ENV !== "production";
+
+  if (!isDev) {
+    // Em producao: exige admin logado
+    const adminToken = req.cookies.get(ADMIN_TOKEN_COOKIE)?.value;
+    const payload = await verifyAdminToken(adminToken);
+    if (!payload) {
+      return NextResponse.json(
+        { error: "Unauthorized — apenas admin logado pode usar demo login" },
+        { status: 401 }
+      );
+    }
   }
+
   try {
     // Criar ou buscar usuario demo
     let appUser = await prisma.appUser.findUnique({ where: { email: ADMIN_EMAIL } });
@@ -34,9 +53,9 @@ export async function POST() {
       });
     }
 
-    // Setar cookies via response headers (rota so roda em dev — sem Secure)
+    // Setar cookies — Secure em producao
     const token = uuid();
-    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000`;
+    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isDev ? "" : "; Secure"}`;
 
     const response = NextResponse.json({ ok: true, email: ADMIN_EMAIL });
     response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);

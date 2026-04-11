@@ -167,6 +167,21 @@ type BrevoTestResult = {
   error?: string;
 };
 
+type ResetPreview = {
+  ok: boolean;
+  counts: Record<string, number>;
+};
+
+type ResetResult = {
+  ok: boolean;
+  mode?: string;
+  deleted?: Record<string, number>;
+  before?: Record<string, number>;
+  after?: Record<string, number>;
+  errors?: string[];
+  error?: string;
+};
+
 export default function ConfiguracoesPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -176,6 +191,12 @@ export default function ConfiguracoesPage() {
   const [testingMeta, setTestingMeta] = useState(false);
   const [brevoTest, setBrevoTest] = useState<BrevoTestResult | null>(null);
   const [testingBrevo, setTestingBrevo] = useState(false);
+  const [resetPreview, setResetPreview] = useState<ResetPreview | null>(null);
+  const [resetConfirm, setResetConfirm] = useState("");
+  const [preserveSynced, setPreserveSynced] = useState(true);
+  const [resetting, setResetting] = useState(false);
+  const [resetResult, setResetResult] = useState<ResetResult | null>(null);
+  const [showDangerZone, setShowDangerZone] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/settings")
@@ -240,6 +261,42 @@ export default function ConfiguracoesPage() {
       setBrevoTest({ ok: false, error: (e as Error).message });
     } finally {
       setTestingBrevo(false);
+    }
+  }
+
+  async function loadResetPreview() {
+    try {
+      const res = await fetch("/api/admin/reset-test-data");
+      const data = (await res.json()) as ResetPreview;
+      setResetPreview(data);
+    } catch {
+      /* silent */
+    }
+  }
+
+  async function executeReset() {
+    if (resetConfirm !== "DELETAR TUDO") return;
+    setResetting(true);
+    setResetResult(null);
+    try {
+      const res = await fetch("/api/admin/reset-test-data", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          confirmPhrase: "DELETAR TUDO",
+          preserveSynced,
+        }),
+      });
+      const data = (await res.json()) as ResetResult;
+      setResetResult(data);
+      if (data.ok) {
+        setResetConfirm("");
+        await loadResetPreview();
+      }
+    } catch (e) {
+      setResetResult({ ok: false, error: (e as Error).message });
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -515,6 +572,164 @@ export default function ConfiguracoesPage() {
             </a>
           ))}
         </div>
+      </div>
+
+      {/* 4.5 Danger Zone — Reset Banco */}
+      <div
+        style={{
+          ...cardStyle,
+          border: "0.5px solid rgba(196,120,122,0.4)",
+          background: "linear-gradient(135deg, rgba(196,120,122,0.06), rgba(196,120,122,0.02))",
+        }}
+      >
+        <button
+          onClick={() => {
+            setShowDangerZone(!showDangerZone);
+            if (!showDangerZone && !resetPreview) loadResetPreview();
+          }}
+          style={{
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            background: "transparent",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+            textAlign: "left",
+          }}
+        >
+          <div>
+            <h2 style={{ ...sectionTitle, color: "#C4787A", margin: 0 }}>
+              ⚠️ Danger Zone · Zerar dados de teste
+            </h2>
+            <p style={{ ...hintStyle, marginTop: 4 }}>
+              Deleta Orders, AbandonedCheckout, Leads, AppUsers, PageViews, MayaMessages,
+              Campaigns. Preserva: AdminUser, AppSetting, Knowledge base da Gaia, Coleções de criativos.
+            </p>
+          </div>
+          <span style={{ fontSize: 20, color: "#C4787A", transform: showDangerZone ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
+            ⌄
+          </span>
+        </button>
+
+        {showDangerZone && (
+          <div style={{ marginTop: 20 }}>
+            {resetPreview && (
+              <div
+                style={{
+                  padding: 14,
+                  background: "var(--bg-secondary)",
+                  borderRadius: 10,
+                  marginBottom: 16,
+                  fontSize: 12,
+                  fontFamily: "monospace",
+                  lineHeight: 1.8,
+                }}
+              >
+                <strong style={{ color: "#C4787A" }}>Atualmente no banco:</strong>
+                <div style={{ marginTop: 8 }}>
+                  {Object.entries(resetPreview.counts).map(([key, count]) => (
+                    <div key={key} style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-secondary)" }}>{key}</span>
+                      <strong style={{ color: count > 0 ? "#C4787A" : "var(--text-muted)" }}>{count}</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <label
+              style={{
+                display: "flex",
+                gap: 10,
+                alignItems: "center",
+                marginBottom: 16,
+                fontSize: 13,
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={preserveSynced}
+                onChange={(e) => setPreserveSynced(e.target.checked)}
+                style={{ width: 16, height: 16 }}
+              />
+              <span style={{ color: "var(--text-secondary)" }}>
+                Preservar vendas com <code>hotmartTransactionId</code> (vendas sincronizadas via Sales API)
+              </span>
+            </label>
+
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ ...labelStyle, color: "#C4787A" }}>
+                Pra confirmar, digite: <strong>DELETAR TUDO</strong>
+              </label>
+              <input
+                type="text"
+                value={resetConfirm}
+                onChange={(e) => setResetConfirm(e.target.value)}
+                placeholder="Digite DELETAR TUDO"
+                style={{
+                  ...inputStyle,
+                  borderColor:
+                    resetConfirm === "DELETAR TUDO" ? "#C4787A" : "var(--border-default)",
+                }}
+              />
+            </div>
+
+            <button
+              onClick={executeReset}
+              disabled={resetConfirm !== "DELETAR TUDO" || resetting}
+              style={{
+                ...saveBtnStyle,
+                background: resetConfirm === "DELETAR TUDO" ? "#C4787A" : "var(--border-default)",
+                cursor:
+                  resetConfirm === "DELETAR TUDO" && !resetting ? "pointer" : "not-allowed",
+              }}
+            >
+              {resetting ? "Deletando..." : "🔥 DELETAR DADOS DE TESTE AGORA"}
+            </button>
+
+            {resetResult && (
+              <div
+                style={{
+                  marginTop: 14,
+                  padding: 14,
+                  borderRadius: 10,
+                  background: resetResult.ok
+                    ? "rgba(107,158,107,0.12)"
+                    : "rgba(196,120,122,0.12)",
+                  border: `0.5px solid ${
+                    resetResult.ok ? "rgba(107,158,107,0.4)" : "rgba(196,120,122,0.4)"
+                  }`,
+                  fontSize: 12,
+                  fontFamily: "monospace",
+                  lineHeight: 1.8,
+                }}
+              >
+                {resetResult.ok ? (
+                  <>
+                    <strong style={{ color: "#6B9E6B" }}>
+                      ✓ Reset completo ({resetResult.mode})
+                    </strong>
+                    <div style={{ marginTop: 8 }}>
+                      {Object.entries(resetResult.deleted ?? {}).map(([key, count]) => (
+                        <div key={key} style={{ display: "flex", justifyContent: "space-between" }}>
+                          <span style={{ color: "var(--text-secondary)" }}>{key}</span>
+                          <strong style={{ color: "#6B9E6B" }}>-{count}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ color: "#C4787A" }}>
+                    <strong>Erro:</strong> {resetResult.error ?? resetResult.errors?.join(" · ")}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* 5. Sobre */}
