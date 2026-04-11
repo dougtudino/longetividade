@@ -160,16 +160,52 @@ export default function SetupBMPage() {
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => r.json())
-      .then((data: Record<string, string>) => {
+      .then(async (data: Record<string, string>) => {
+        // Auto-deteccao do status real baseado em settings configuradas
+        const hasAccount = !!data.META_ADS_ACCOUNT_ID;
+        const hasPixel = !!data.NEXT_PUBLIC_META_PIXEL_ID;
+        const hasToken = !!(data.META_ACCESS_TOKEN || data.META_ADS_ACCESS_TOKEN);
+        const hasPage = !!data.META_PAGE_ID;
+        const hasAllConfig = hasAccount && hasPixel && hasToken;
+
+        const autoDetected: Record<(typeof STEP_KEYS)[number], boolean> = {
+          [STEP_KEYS[0]]: hasAccount, // 1. Criar Business Manager (provado pelo account ID)
+          [STEP_KEYS[1]]: hasPixel, // 2. Criar pixel/dataset
+          [STEP_KEYS[2]]: hasAccount, // 3. Criar conta de anuncios
+          [STEP_KEYS[3]]: hasToken, // 4. Gerar token
+          [STEP_KEYS[4]]: hasAllConfig && hasPage, // 5. Colar credenciais (precisa tudo + page)
+          [STEP_KEYS[5]]: false, // 6. Testar conexao — so via botao Testar
+        };
+
+        const toPersist: Record<string, string> = {};
         setStatuses((prev) => {
           const next = { ...prev };
           for (const k of STEP_KEYS) {
-            const v = data[k];
-            if (v && isStatus(v)) next[k] = v;
+            // Auto-deteccao tem prioridade sobre valor salvo (se config existe, e feito)
+            if (autoDetected[k]) {
+              next[k] = "feito";
+              if (data[k] !== "feito") toPersist[k] = "feito";
+            } else {
+              const saved = data[k];
+              if (saved && isStatus(saved)) next[k] = saved;
+            }
           }
           return next;
         });
         setLoaded(true);
+
+        // Persiste auto-deteccoes no AppSetting (silencioso)
+        if (Object.keys(toPersist).length > 0) {
+          try {
+            await fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(toPersist),
+            });
+          } catch {
+            /* silent */
+          }
+        }
       })
       .catch(() => setLoaded(true));
   }, []);
