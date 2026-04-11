@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Emagreça Sem Dieta — Método SEM | De R$97 por R$37";
+export const alt = "Emagreça Sem Dieta — Método S.E.M | a partir de R$37";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -81,16 +81,8 @@ export default function OGImage() {
             marginBottom: "30px",
           }}
         >
-          <span
-            style={{
-              fontSize: "28px",
-              textDecoration: "line-through",
-              opacity: 0.4,
-            }}
-          >
-            R$97
-          </span>
-          <span style={{ fontSize: "72px", fontWeight: 900 }}>R$37</span>
+          <span style={{ fontSize: "28px", opacity: 0.6 }}>a partir de</span>
+          <span style={{ fontSize: "84px", fontWeight: 900, color: "#D4A94B" }}>R$37</span>
         </div>
 
         <div

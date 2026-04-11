@@ -39,6 +39,20 @@ model AbandonedCheckout {
   @@index([email])
 }
 
+model Lead {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  name         String?
+  source       String?   // utm_source
+  sequenceStep Int       @default(0) // 0=welcome enviado, 1=D+2 enviado, 2=D+5 enviado, -1=opt-out
+  lastEmailAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([sequenceStep])
+  @@index([createdAt])
+}
+
 model Campaign {
   id              String    @id @default(uuid())
   name            String
