@@ -53,6 +53,45 @@ model Lead {
   @@index([createdAt])
 }
 
+// ─── Creatives — Collections & Gallery ─────────────────
+
+model CreativeCollection {
+  id          String     @id @default(uuid())
+  slug        String     @unique
+  name        String
+  description String?
+  icon        String?    // emoji
+  campaignId  String?    // opcional: liga a uma Campaign local
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  creatives   Creative[]
+
+  @@index([createdAt])
+}
+
+model Creative {
+  id           String    @id @default(uuid())
+  collectionId String
+  slug         String    // identificador unico dentro da colecao (ex: "feed-dor")
+  componentKey String    // mapeia para CREATIVES_REGISTRY (registry.ts)
+  name         String
+  format       String    // "feed" | "story" | "banner" | "custom"
+  width        Int
+  height       Int
+  description  String?
+  tags         String[]  @default([])
+  metaImageHash String?  // hash da imagem na Meta /adimages (se uploaded)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  collection   CreativeCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, slug])
+  @@index([collectionId])
+  @@index([format])
+}
+
 // ─── AIOX Agents — Knowledge & Decisions ───────────────
 
 model AgentKnowledge {

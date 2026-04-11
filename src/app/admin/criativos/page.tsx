@@ -1,59 +1,165 @@
 "use client";
 
-import { useRef, useState, type RefObject, type ComponentType, type ForwardRefExoticComponent, type RefAttributes } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
-import CreativeFeedDor from "@/components/creatives/creative-feed-dor";
-import CreativeFeedProva from "@/components/creatives/creative-feed-prova";
-import CreativeFeedObjecao from "@/components/creatives/creative-feed-objecao";
-import CreativeStoryStat from "@/components/creatives/creative-story-stat";
-import CreativeStoryCta from "@/components/creatives/creative-story-cta";
-import CreativeBannerDisplay from "@/components/creatives/creative-banner-display";
+import { CREATIVES_REGISTRY } from "@/components/creatives/registry";
 
-type CreativeRef = ForwardRefExoticComponent<RefAttributes<HTMLDivElement>>;
-
-type CreativeDef = {
+type CollectionSummary = {
   id: string;
-  label: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  creativesCount: number;
+  createdAt: string;
+};
+
+type CreativeItem = {
+  id: string;
+  slug: string;
+  componentKey: string;
+  name: string;
   format: string;
   width: number;
   height: number;
-  Component: CreativeRef | ComponentType<{ ref?: RefObject<HTMLDivElement | null> }>;
+  description: string | null;
+  tags: string[];
+  metaImageHash: string | null;
+  createdAt: string;
 };
 
-const CREATIVES: CreativeDef[] = [
-  { id: "feed-dor", label: "Feed · Dor / Identificacao", format: "Feed", width: 1080, height: 1080, Component: CreativeFeedDor },
-  { id: "feed-prova", label: "Feed · Prova Social", format: "Feed", width: 1080, height: 1080, Component: CreativeFeedProva },
-  { id: "feed-objecao", label: "Feed · Quebra de Objecao", format: "Feed", width: 1080, height: 1080, Component: CreativeFeedObjecao },
-  { id: "story-stat", label: "Story · Stat -4kg", format: "Story", width: 1080, height: 1920, Component: CreativeStoryStat },
-  { id: "story-cta", label: "Story · CTA Comece Hoje", format: "Story", width: 1080, height: 1920, Component: CreativeStoryCta },
-  { id: "banner-display", label: "Banner · Google Display", format: "Banner", width: 1200, height: 628, Component: CreativeBannerDisplay },
-];
+type CollectionDetail = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  creatives: CreativeItem[];
+};
 
 export default function CriativosPage() {
+  const [collections, setCollections] = useState<CollectionSummary[]>([]);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
+  const [selectedCollection, setSelectedCollection] = useState<CollectionDetail | null>(null);
+  const [loadingList, setLoadingList] = useState(true);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [seeding, setSeeding] = useState(false);
+
+  // Download / creation UI state
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  async function downloadCreative(id: string, width: number, height: number) {
-    const node = refs.current[id];
+  // New collection modal
+  const [creatingCollection, setCreatingCollection] = useState(false);
+  const [newForm, setNewForm] = useState({ slug: "", name: "", description: "", icon: "✨" });
+
+  const loadCollections = useCallback(async () => {
+    setLoadingList(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/creatives/collections");
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : { collections: [] };
+      setCollections(data.collections ?? []);
+      if (data.warning) setError(data.warning);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoadingList(false);
+    }
+  }, []);
+
+  const loadCollectionDetail = useCallback(async (slug: string) => {
+    setLoadingDetail(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/creatives/collections/${slug}`);
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : { ok: false, error: "Vazio" };
+      if (data.ok) {
+        setSelectedCollection(data.collection);
+      } else {
+        setError(data.error ?? "Falha ao carregar");
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadCollections();
+  }, [loadCollections]);
+
+  useEffect(() => {
+    if (selectedSlug) {
+      loadCollectionDetail(selectedSlug);
+    } else {
+      setSelectedCollection(null);
+    }
+  }, [selectedSlug, loadCollectionDetail]);
+
+  async function seedInitial() {
+    setSeeding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/creatives/seed", { method: "POST" });
+      const raw = await res.text();
+      const data = raw ? JSON.parse(raw) : { ok: false, error: "Vazio" };
+      if (data.ok === false && data.error) {
+        setError(data.error);
+      }
+      await loadCollections();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSeeding(false);
+    }
+  }
+
+  async function createCollection(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newForm.slug || !newForm.name) return;
+    try {
+      const res = await fetch("/api/admin/creatives/collections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newForm),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setCreatingCollection(false);
+        setNewForm({ slug: "", name: "", description: "", icon: "✨" });
+        await loadCollections();
+      } else {
+        setError(data.error ?? "Falha ao criar");
+      }
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  async function downloadCreative(creative: CreativeItem) {
+    const node = refs.current[creative.slug];
     if (!node) {
-      setError(`Nao encontrei o criativo ${id}`);
+      setError(`Nao encontrei o criativo ${creative.slug}`);
       return;
     }
-    setDownloadingId(id);
+    setDownloadingId(creative.slug);
     setError(null);
     try {
       const { toPng } = await import("html-to-image");
       const dataUrl = await toPng(node, {
         cacheBust: true,
         pixelRatio: 1,
-        width,
-        height,
-        skipFonts: false,
+        width: creative.width,
+        height: creative.height,
       });
       const link = document.createElement("a");
-      link.download = `longetividade-${id}-${width}x${height}.png`;
+      link.download = `longetividade-${selectedCollection?.slug}-${creative.slug}-${creative.width}x${creative.height}.png`;
       link.href = dataUrl;
       link.click();
     } catch (e) {
@@ -64,14 +170,38 @@ export default function CriativosPage() {
   }
 
   async function downloadAll() {
-    for (const c of CREATIVES) {
-      await downloadCreative(c.id, c.width, c.height);
+    if (!selectedCollection) return;
+    for (const c of selectedCollection.creatives) {
+      await downloadCreative(c);
       await new Promise((r) => setTimeout(r, 400));
     }
   }
 
-  return (
-    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+  const btnPrimary: React.CSSProperties = {
+    padding: "10px 20px",
+    borderRadius: 10,
+    background: "var(--accent)",
+    color: "#fff",
+    border: "none",
+    fontSize: 14,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
+
+  const btnSecondary: React.CSSProperties = {
+    padding: "10px 20px",
+    borderRadius: 10,
+    background: "var(--bg-secondary)",
+    color: "var(--text-primary)",
+    border: "0.5px solid var(--border-default)",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+  };
+
+  // ─── HEADER ────────────────────────────────────────
+  const header = (
+    <>
       <div
         style={{
           display: "flex",
@@ -83,59 +213,70 @@ export default function CriativosPage() {
         }}
       >
         <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
-          Criativos para Meta Ads
+          Criativos — Galeria
         </h1>
-        <button
-          onClick={downloadAll}
-          disabled={!!downloadingId}
-          style={{
-            padding: "10px 20px",
-            borderRadius: 10,
-            background: "var(--accent)",
-            color: "#fff",
-            border: "none",
-            fontSize: 14,
-            fontWeight: 600,
-            cursor: downloadingId ? "wait" : "pointer",
-            opacity: downloadingId ? 0.6 : 1,
-          }}
-        >
-          {downloadingId ? "Baixando..." : "↓ Baixar todos"}
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {selectedSlug && (
+            <button
+              onClick={() => setSelectedSlug(null)}
+              style={btnSecondary}
+            >
+              ← Todas as coleções
+            </button>
+          )}
+          {!selectedSlug && (
+            <>
+              <button
+                onClick={() => setCreatingCollection(true)}
+                style={btnSecondary}
+              >
+                + Nova coleção
+              </button>
+              <button onClick={seedInitial} disabled={seeding} style={btnPrimary}>
+                {seeding ? "Populando..." : "↓ Seed inicial (LAUNCH-001)"}
+              </button>
+            </>
+          )}
+          {selectedSlug && selectedCollection && selectedCollection.creatives.length > 0 && (
+            <button onClick={downloadAll} disabled={!!downloadingId} style={btnPrimary}>
+              {downloadingId ? "Baixando..." : "↓ Baixar todos"}
+            </button>
+          )}
+        </div>
       </div>
-      <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 24px 0", lineHeight: 1.5 }}>
-        6 criativos prontos para subir no Meta Ads Manager. Cada um e renderizado em
-        dimensoes pixel-perfect e exportado em PNG. Briefing: @ux-design-expert Uma
-        (council 2026-04-11).
+      <p
+        style={{
+          fontSize: 13,
+          color: "var(--text-muted)",
+          margin: "0 0 24px 0",
+          lineHeight: 1.5,
+        }}
+      >
+        Galeria de criativos organizados em coleções. Cada nova campanha vira uma coleção —
+        assim a galeria cresce sem perder histórico. Os PNGs são renderizados em tempo real
+        a partir dos componentes React (pixel-perfect).
       </p>
 
       <PageHelp
         pageId="criativos"
         agent={{ icon: "🎨", name: "Uma", role: "UX Designer / Criativos" }}
-        title="6 criativos React renderizados pixel-perfect"
+        title="Galeria de criativos por coleção"
         quickActions={[
-          { label: "Baixar PNG individual", description: "Gera PNG do criativo específico via html-to-image" },
-          { label: "Baixar todos", description: "Baixa os 6 em sequência (um por vez, ~3s cada)" },
+          { label: "Seed inicial", description: "Popula a coleção LAUNCH-001 com os 6 criativos atuais (idempotente)" },
+          { label: "Nova coleção", description: "Cria uma pasta nova vazia — criativos são adicionados via seed ou API" },
+          { label: "Abrir coleção", description: "Click num card → preview + download dos criativos daquela coleção" },
+          { label: "Baixar individual / todos", description: "Gera PNG via html-to-image em resolução nativa e faz download" },
         ]}
       >
         <p>
-          Os criativos são <strong>componentes React</strong> em{" "}
-          <code>src/components/creatives/</code>. Cada um é SVG/HTML puro com paleta da
-          marca (verde-oliva) e renderizado offscreen, depois capturado via{" "}
-          <code>html-to-image</code> pra virar PNG. Resolução nativa mantida
-          (1080×1080, 1080×1920, 1200×628).
+          Quando você precisar de criativos novos, eu (Claude) crio os componentes em{" "}
+          <code>src/components/creatives/</code>, registro em <code>registry.ts</code>,
+          e cadastro na coleção certa via API. A galeria cresce sozinha.
         </p>
         <p>
-          <strong>Meta Ad Policy compliance:</strong> as copies foram reescritas pela Uma
-          (conselho 2026-04-11) removendo triggers como números de peso (&ldquo;-4kg&rdquo;),
-          timeframes (&ldquo;30 dias&rdquo;) e quick-fix language. Foco: método, relação
-          com a comida, experiência emocional.
-        </p>
-        <p>
-          <strong>Pra mudar copy ou paleta:</strong> edita o componente em{" "}
-          <code>src/components/creatives/creative-*.tsx</code>. Você também tem o launcher
-          automatizado em <Link href="/admin/campanhas/launch-plan" style={{ color: "var(--accent)" }}>/admin/campanhas/launch-plan</Link>{" "}
-          que faz upload direto pro Meta sem precisar baixar PNG manualmente.
+          <strong>Fluxo recomendado:</strong> cada campanha Meta tem sua coleção própria
+          (LAUNCH-001, LAUNCH-002, etc). Isso facilita rastrear qual criativo foi usado
+          em qual campanha e comparar performance.
         </p>
       </PageHelp>
 
@@ -144,7 +285,7 @@ export default function CriativosPage() {
           style={{
             padding: 12,
             background: "rgba(196,120,122,0.1)",
-            border: "0.5px solid rgba(196,120,122,0.4)",
+            border: "0.5px solid rgba(196,120,122,0.3)",
             borderRadius: 10,
             color: "#C4787A",
             fontSize: 13,
@@ -154,105 +295,473 @@ export default function CriativosPage() {
           {error}
         </div>
       )}
+    </>
+  );
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-        {CREATIVES.map((c) => {
-          const Comp = c.Component as CreativeRef;
-          const aspect = c.height / c.width;
-          // Limita largura visivel; mantem proporcao
-          const previewWidth = Math.min(520, c.width);
-          const previewHeight = previewWidth * aspect;
-          const scale = previewWidth / c.width;
+  // ─── MODE 1: LISTA DE COLEÇÕES ─────────────────────
+  if (!selectedSlug) {
+    return (
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        {header}
 
-          return (
-            <div
-              key={c.id}
-              style={{
-                background: "var(--bg-card)",
-                border: "0.5px solid var(--border-default)",
-                borderRadius: 14,
-                padding: 24,
-                display: "flex",
-                gap: 24,
-                flexWrap: "wrap",
-                alignItems: "flex-start",
-              }}
-            >
-              {/* Preview escalado */}
-              <div style={{ flexShrink: 0 }}>
-                <div
-                  style={{
-                    width: previewWidth,
-                    height: previewHeight,
-                    overflow: "hidden",
-                    borderRadius: 10,
-                    border: "0.5px solid var(--border-subtle)",
-                    background: "#000",
-                  }}
-                >
-                  <div
-                    style={{
-                      transform: `scale(${scale})`,
-                      transformOrigin: "top left",
-                      width: c.width,
-                      height: c.height,
-                    }}
-                  >
-                    <Comp
-                      ref={(el: HTMLDivElement | null) => {
-                        refs.current[c.id] = el;
-                      }}
-                    />
+        {loadingList && (
+          <div style={{ color: "var(--text-muted)", fontSize: 14 }}>Carregando coleções...</div>
+        )}
+
+        {!loadingList && collections.length === 0 && !error && (
+          <div
+            style={{
+              padding: 32,
+              background: "var(--bg-card)",
+              border: "0.5px dashed var(--border-default)",
+              borderRadius: 14,
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 32, marginBottom: 10 }}>📁</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>
+              Nenhuma coleção ainda
+            </div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+              Clica <strong>Seed inicial</strong> para popular a coleção LAUNCH-001 com os 6 criativos atuais.
+            </div>
+            <button onClick={seedInitial} disabled={seeding} style={btnPrimary}>
+              {seeding ? "Populando..." : "Seed inicial"}
+            </button>
+          </div>
+        )}
+
+        {collections.length > 0 && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
+            {collections.map((c) => (
+              <button
+                key={c.slug}
+                onClick={() => setSelectedSlug(c.slug)}
+                style={{
+                  textAlign: "left",
+                  padding: 20,
+                  background: "var(--bg-card)",
+                  border: "0.5px solid var(--border-default)",
+                  borderRadius: 14,
+                  cursor: "pointer",
+                  transition: "transform 0.15s, border-color 0.15s",
+                  color: "var(--text-primary)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.borderColor = "var(--accent)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "none";
+                  e.currentTarget.style.borderColor = "var(--border-default)";
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                  <div style={{ fontSize: 32, lineHeight: 1 }}>{c.icon ?? "📁"}</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>
+                      {c.name}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                      <code>{c.slug}</code>
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Info + actions */}
-              <div style={{ flex: 1, minWidth: 240, display: "flex", flexDirection: "column", gap: 12 }}>
-                <div>
-                  <div
+                {c.description && (
+                  <p
                     style={{
-                      display: "inline-block",
+                      fontSize: 12,
+                      color: "var(--text-secondary)",
+                      margin: "0 0 12px 0",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {c.description.length > 140 ? c.description.slice(0, 140) + "..." : c.description}
+                  </p>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    paddingTop: 10,
+                    borderTop: "0.5px solid var(--border-subtle)",
+                  }}
+                >
+                  <span
+                    style={{
                       fontSize: 11,
                       fontWeight: 700,
                       color: "var(--accent)",
                       textTransform: "uppercase",
-                      letterSpacing: "0.08em",
-                      marginBottom: 6,
+                      letterSpacing: "0.05em",
                     }}
                   >
-                    {c.format} · {c.width}×{c.height}
-                  </div>
-                  <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-                    {c.label}
-                  </h2>
+                    {c.creativesCount} criativo{c.creativesCount === 1 ? "" : "s"}
+                  </span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                    {new Date(c.createdAt).toLocaleDateString("pt-BR")}
+                  </span>
                 </div>
-                <button
-                  onClick={() => downloadCreative(c.id, c.width, c.height)}
-                  disabled={downloadingId === c.id}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Nova coleção modal */}
+        {creatingCollection && (
+          <>
+            <div
+              onClick={() => setCreatingCollection(false)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.5)",
+                zIndex: 100,
+              }}
+            />
+            <form
+              onSubmit={createCollection}
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                background: "var(--bg-card)",
+                border: "0.5px solid var(--border-default)",
+                borderRadius: 14,
+                padding: 28,
+                width: "min(480px, 92vw)",
+                zIndex: 101,
+                display: "flex",
+                flexDirection: "column",
+                gap: 14,
+              }}
+            >
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+                Nova coleção
+              </h2>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Slug (URL-friendly)
+                </label>
+                <input
+                  value={newForm.slug}
+                  onChange={(e) => setNewForm({ ...newForm, slug: e.target.value })}
+                  placeholder="launch-002-retarget"
+                  required
                   style={{
-                    padding: "10px 18px",
-                    borderRadius: 10,
-                    background: downloadingId === c.id ? "var(--border-default)" : "var(--accent)",
-                    color: "#fff",
-                    border: "none",
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "0.5px solid var(--border-default)",
+                    background: "var(--bg-secondary)",
+                    color: "var(--text-primary)",
                     fontSize: 13,
-                    fontWeight: 600,
-                    cursor: downloadingId === c.id ? "wait" : "pointer",
-                    width: "fit-content",
+                    fontFamily: "monospace",
                   }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Nome
+                </label>
+                <input
+                  value={newForm.name}
+                  onChange={(e) => setNewForm({ ...newForm, name: e.target.value })}
+                  placeholder="LAUNCH-002 · Retargeting"
+                  required
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "0.5px solid var(--border-default)",
+                    background: "var(--bg-secondary)",
+                    color: "var(--text-primary)",
+                    fontSize: 13,
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Ícone (emoji)
+                </label>
+                <input
+                  value={newForm.icon}
+                  onChange={(e) => setNewForm({ ...newForm, icon: e.target.value })}
+                  placeholder="✨"
+                  style={{
+                    width: 80,
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "0.5px solid var(--border-default)",
+                    background: "var(--bg-secondary)",
+                    color: "var(--text-primary)",
+                    fontSize: 18,
+                    textAlign: "center",
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>
+                  Descrição
+                </label>
+                <textarea
+                  value={newForm.description}
+                  onChange={(e) => setNewForm({ ...newForm, description: e.target.value })}
+                  rows={3}
+                  style={{
+                    width: "100%",
+                    padding: "10px 12px",
+                    borderRadius: 8,
+                    border: "0.5px solid var(--border-default)",
+                    background: "var(--bg-secondary)",
+                    color: "var(--text-primary)",
+                    fontSize: 13,
+                    resize: "vertical",
+                  }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => setCreatingCollection(false)}
+                  style={btnSecondary}
                 >
-                  {downloadingId === c.id ? "Gerando PNG..." : `↓ Baixar PNG (${c.width}×${c.height})`}
+                  Cancelar
                 </button>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                  Preview escalado em {Math.round(scale * 100)}%. PNG e exportado em
-                  resolucao real ({c.width}×{c.height}).
+                <button type="submit" style={btnPrimary}>
+                  Criar coleção
+                </button>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>
+                Criativos são adicionados via seed ou API após criar a coleção.
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // ─── MODE 2: DETALHE DE COLEÇÃO ────────────────────
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      {header}
+
+      {loadingDetail && (
+        <div style={{ color: "var(--text-muted)", fontSize: 14 }}>Carregando coleção...</div>
+      )}
+
+      {selectedCollection && (
+        <>
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+              <div style={{ fontSize: 32, lineHeight: 1 }}>{selectedCollection.icon ?? "📁"}</div>
+              <div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>
+                  {selectedCollection.name}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                  <code>{selectedCollection.slug}</code> · {selectedCollection.creatives.length}{" "}
+                  criativo{selectedCollection.creatives.length === 1 ? "" : "s"}
                 </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+            {selectedCollection.description && (
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>
+                {selectedCollection.description}
+              </p>
+            )}
+          </div>
+
+          {selectedCollection.creatives.length === 0 ? (
+            <div
+              style={{
+                padding: 32,
+                background: "var(--bg-card)",
+                border: "0.5px dashed var(--border-default)",
+                borderRadius: 14,
+                textAlign: "center",
+                color: "var(--text-muted)",
+                fontSize: 14,
+              }}
+            >
+              Coleção vazia. Criativos são adicionados via seed ou API.
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              {selectedCollection.creatives.map((c) => {
+                const registryEntry = CREATIVES_REGISTRY[c.componentKey];
+                if (!registryEntry) {
+                  return (
+                    <div
+                      key={c.id}
+                      style={{
+                        padding: 16,
+                        background: "rgba(196,120,122,0.1)",
+                        border: "0.5px solid rgba(196,120,122,0.3)",
+                        borderRadius: 10,
+                        color: "#C4787A",
+                        fontSize: 13,
+                      }}
+                    >
+                      ⚠ Componente <code>{c.componentKey}</code> não encontrado no registry.
+                      Verifica <code>src/components/creatives/registry.ts</code>.
+                    </div>
+                  );
+                }
+
+                const Comp = registryEntry.Component as React.ForwardRefExoticComponent<
+                  React.RefAttributes<HTMLDivElement>
+                >;
+                const aspect = c.height / c.width;
+                const previewWidth = Math.min(520, c.width);
+                const previewHeight = previewWidth * aspect;
+                const scale = previewWidth / c.width;
+
+                return (
+                  <div
+                    key={c.id}
+                    style={{
+                      background: "var(--bg-card)",
+                      border: "0.5px solid var(--border-default)",
+                      borderRadius: 14,
+                      padding: 24,
+                      display: "flex",
+                      gap: 24,
+                      flexWrap: "wrap",
+                      alignItems: "flex-start",
+                    }}
+                  >
+                    <div style={{ flexShrink: 0 }}>
+                      <div
+                        style={{
+                          width: previewWidth,
+                          height: previewHeight,
+                          overflow: "hidden",
+                          borderRadius: 10,
+                          border: "0.5px solid var(--border-subtle)",
+                          background: "#000",
+                        }}
+                      >
+                        <div
+                          style={{
+                            transform: `scale(${scale})`,
+                            transformOrigin: "top left",
+                            width: c.width,
+                            height: c.height,
+                          }}
+                        >
+                          <Comp
+                            ref={(el: HTMLDivElement | null) => {
+                              refs.current[c.slug] = el;
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 240,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 12,
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            display: "inline-block",
+                            fontSize: 10,
+                            fontWeight: 700,
+                            color: "var(--accent)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.08em",
+                            marginBottom: 6,
+                          }}
+                        >
+                          {c.format} · {c.width}×{c.height}
+                        </div>
+                        <h2
+                          style={{
+                            margin: 0,
+                            fontSize: 16,
+                            fontWeight: 700,
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          {c.name}
+                        </h2>
+                      </div>
+
+                      {c.description && (
+                        <p
+                          style={{
+                            fontSize: 12,
+                            color: "var(--text-secondary)",
+                            margin: 0,
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {c.description}
+                        </p>
+                      )}
+
+                      {c.tags.length > 0 && (
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          {c.tags.map((t) => (
+                            <span
+                              key={t}
+                              style={{
+                                fontSize: 10,
+                                padding: "2px 8px",
+                                borderRadius: 999,
+                                background: "var(--bg-secondary)",
+                                color: "var(--text-muted)",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      <button
+                        onClick={() => downloadCreative(c)}
+                        disabled={downloadingId === c.slug}
+                        style={{
+                          ...btnPrimary,
+                          padding: "8px 16px",
+                          fontSize: 13,
+                          width: "fit-content",
+                        }}
+                      >
+                        {downloadingId === c.slug ? "Gerando..." : `↓ Baixar PNG`}
+                      </button>
+
+                      {c.metaImageHash && (
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                          Meta hash: <code>{c.metaImageHash}</code>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
