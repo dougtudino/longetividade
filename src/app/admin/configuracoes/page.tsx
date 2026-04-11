@@ -125,8 +125,9 @@ const META_KEYS = [
   {
     key: "META_PAGE_ID",
     label: "Meta Page ID (Facebook Page)",
-    hint: "ID da Pagina do Facebook que vai veicular os anuncios. Necessario para Gaia criar ads automaticamente. Pegue em business.facebook.com → Pages → About",
+    hint: "ID da Page 'Saude do corpo e mente' (357054767494527). Necessario para Gaia criar ads automaticamente.",
     sensitive: false,
+    defaultValue: "357054767494527",
   },
 ] as const;
 
