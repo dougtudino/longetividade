@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 
 // POST /api/app/logout
-// Clears cookies app_token and app_email, efectively loggging the user out.
-// Chama do client apos o usuario clicar "Sair" no drawer/perfil.
+// Limpa cookies app_token e app_email. Limpa AMBOS os paths (novo "/"
+// e legacy "/app") pra garantir que sessoes antigas tambem sejam
+// invalidadas, independente de qual path foi usado pra set.
 export async function POST() {
   const response = NextResponse.json({ ok: true });
-  const expired = "Path=/app; HttpOnly; SameSite=Lax; Max-Age=0";
-  response.headers.append("Set-Cookie", `app_token=; ${expired}`);
-  response.headers.append("Set-Cookie", `app_email=; ${expired}`);
+
+  // Path novo (correto)
+  response.headers.append("Set-Cookie", `app_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  response.headers.append("Set-Cookie", `app_email=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+
+  // Path legacy (bug antigo) — clean-up de sessoes que foram criadas
+  // antes do fix do Path=/
+  response.headers.append("Set-Cookie", `app_token=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0`);
+  response.headers.append("Set-Cookie", `app_email=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0`);
+
   return response;
 }
 

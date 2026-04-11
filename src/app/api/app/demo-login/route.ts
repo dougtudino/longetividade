@@ -53,9 +53,10 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Setar cookies — Secure em producao
+    // Setar cookies — Path=/ (nao /app) pra que client-side fetches
+    // para /api/app/* incluam as cookies. Secure em producao.
     const token = uuid();
-    const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isDev ? "" : "; Secure"}`;
+    const cookieOpts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${isDev ? "" : "; Secure"}`;
 
     const response = NextResponse.json({ ok: true, email: ADMIN_EMAIL });
     response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
