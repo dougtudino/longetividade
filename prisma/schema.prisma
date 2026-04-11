@@ -53,6 +53,48 @@ model Lead {
   @@index([createdAt])
 }
 
+// ─── AIOX Agents — Knowledge & Decisions ───────────────
+
+model AgentKnowledge {
+  id        String   @id @default(uuid())
+  agentId   String   // "gaia" | "maya" | "uma" | "alex" | ...
+  kind      String   // "fact" | "rule" | "benchmark" | "reference" | "learning" | "policy"
+  title     String
+  body      String   @db.Text
+  source    String?  // where it came from (manual, gaia-persona, meta-docs, blog-url, etc)
+  metadata  Json?    // optional structured data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([kind])
+  @@index([createdAt])
+}
+
+model AgentDecision {
+  id          String   @id @default(uuid())
+  agentId     String   // who proposed
+  action      String   // "PAUSE_ADSET" | "DUPLICATE_ADSET" | "INCREASE_BUDGET" | "DECREASE_BUDGET" | "ACTIVATE_ADSET"
+  targetType  String   // "adset" | "campaign" | "ad" | "creative"
+  targetId    String   // Meta ID
+  targetName  String   // human-readable
+  params      Json     // action params (e.g. { budget_cents: 3600, reason: "..." })
+  reasoning   String   @db.Text
+  priority    String   @default("normal") // "low" | "normal" | "high" | "critical"
+  status      String   @default("proposed") // "proposed" | "approved" | "executed" | "rejected" | "failed"
+  approvedBy  String?  // admin email who approved
+  approvedAt  DateTime?
+  executedAt  DateTime?
+  executionResult Json?
+  rejectedReason String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([agentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
 model Campaign {
   id              String    @id @default(uuid())
   name            String

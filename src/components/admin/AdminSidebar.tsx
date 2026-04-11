@@ -112,6 +112,17 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    label: "Gaia 🌱",
+    href: "/admin/agents/gaia",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2v20" />
+        <path d="M6 8c0-4 6-6 6-6s6 2 6 6-6 6-6 6-6-2-6-6z" />
+        <path d="M6 16c0 4 6 6 6 6s6-2 6-6" />
+      </svg>
+    ),
+  },
+  {
     label: "Criativos",
     href: "/admin/criativos",
     icon: (
