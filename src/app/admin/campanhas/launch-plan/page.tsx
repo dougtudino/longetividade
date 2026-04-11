@@ -299,9 +299,25 @@ export default function LaunchPlanPage() {
   const [launchLog, setLaunchLog] = useState<LaunchLogEntry[]>([]);
   const [launchError, setLaunchError] = useState<string | null>(null);
 
+  async function persistStepsAsFeito(stepIds: readonly string[]) {
+    const payload: Record<string, string> = {};
+    for (const id of stepIds) payload[id] = "feito";
+    setStatuses((prev) => ({ ...prev, ...payload }));
+    try {
+      await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch {
+      /* silent */
+    }
+  }
+
   async function uploadAllCreatives() {
     setLaunchError(null);
     const { toPng } = await import("html-to-image");
+    let allOk = true;
     for (const c of CREATIVE_KEYS) {
       setUploadingKey(c.key);
       setUploadProgress((p) => ({ ...p, [c.key]: "pending" }));
@@ -309,6 +325,7 @@ export default function LaunchPlanPage() {
         const node = hiddenRefs.current[c.key];
         if (!node) {
           setUploadProgress((p) => ({ ...p, [c.key]: "error" }));
+          allOk = false;
           continue;
         }
         const dataUrl = await toPng(node, {
@@ -325,14 +342,21 @@ export default function LaunchPlanPage() {
         const data = await res.json();
         setUploadProgress((p) => ({ ...p, [c.key]: data.ok ? "ok" : "error" }));
         if (!data.ok) {
+          allOk = false;
           setLaunchError(`Upload ${c.key}: ${data.error ?? "falhou"}`);
         }
       } catch (e) {
         setUploadProgress((p) => ({ ...p, [c.key]: "error" }));
+        allOk = false;
         setLaunchError(`Upload ${c.key}: ${(e as Error).message}`);
       }
     }
     setUploadingKey(null);
+
+    // Auto-marca steps 1 (pre-req) e 2 (criativos baixados) quando upload tem sucesso
+    if (allOk) {
+      await persistStepsAsFeito([STEP_KEYS[0], STEP_KEYS[1]]);
+    }
   }
 
   async function launchCampaign(dryRun: boolean) {
@@ -348,6 +372,18 @@ export default function LaunchPlanPage() {
       const data = await res.json();
       if (data.log) setLaunchLog(data.log);
       if (!data.ok) setLaunchError(data.error ?? "Falha ao lancar");
+
+      // Auto-marca steps 3-7 quando launch real (nao dry-run) cria a campanha
+      // Step 8 (review dia 4) fica pendente — a usuaria precisa voltar
+      if (!dryRun && data.ok && data.campaignId) {
+        await persistStepsAsFeito([
+          STEP_KEYS[2], // 3. Custom Audiences
+          STEP_KEYS[3], // 4. Criar campanha
+          STEP_KEYS[4], // 5. Ad sets
+          STEP_KEYS[5], // 6. Subir criativos com copies
+          STEP_KEYS[6], // 7. Review & publish
+        ]);
+      }
     } catch (e) {
       setLaunchError((e as Error).message);
     } finally {
