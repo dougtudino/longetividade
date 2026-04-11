@@ -60,8 +60,10 @@ function accountStatusLabel(s: number): string {
 }
 
 export async function GET() {
-  // Canonico META_ACCESS_TOKEN, fallback para META_ADS_ACCESS_TOKEN legado
-  const token = await getSettingWithFallback("META_ACCESS_TOKEN", "META_ADS_ACCESS_TOKEN");
+  // Prioridade: env Railway (System User long-lived) > AppSetting > legado
+  const token =
+    process.env.META_ACCESS_TOKEN ||
+    (await getSettingWithFallback("META_ACCESS_TOKEN", "META_ADS_ACCESS_TOKEN"));
   const rawId = await getSetting("META_ADS_ACCOUNT_ID");
 
   if (!token) {

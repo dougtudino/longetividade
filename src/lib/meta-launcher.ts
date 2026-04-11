@@ -66,9 +66,12 @@ export type LauncherSuccess<T> = { ok: true } & T;
 
 export async function getLauncherCreds(): Promise<LauncherCreds | null> {
   // Token canonico: META_ACCESS_TOKEN (compartilhado por Marketing API,
-  // CAPI e Pixel). Fallback para META_ADS_ACCESS_TOKEN (valor legado
-  // salvo antes de 2026-04-11).
-  const token = await getSettingWithFallback("META_ACCESS_TOKEN", "META_ADS_ACCESS_TOKEN");
+  // CAPI e Pixel). Prioridade env Railway > AppSetting (UI) > legado.
+  // Razao: token long-lived (System User) vai no Railway, valores no
+  // AppSetting podem ter expirado.
+  const token =
+    process.env.META_ACCESS_TOKEN ||
+    (await getSettingWithFallback("META_ACCESS_TOKEN", "META_ADS_ACCESS_TOKEN"));
   const rawAccount = await getSetting("META_ADS_ACCOUNT_ID");
   const pixelId = await getSetting("NEXT_PUBLIC_META_PIXEL_ID");
   const pageId = await getSetting("META_PAGE_ID");
