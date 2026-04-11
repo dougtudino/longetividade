@@ -337,6 +337,19 @@ export default function CampanhasPage() {
         >
           Setup BM
         </Link>
+        <Link
+          href="/admin/campanhas/launch-plan"
+          style={{
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--text-secondary)",
+            textDecoration: "none",
+            borderBottom: "2px solid transparent",
+          }}
+        >
+          Launch Plan 🌱
+        </Link>
       </div>
 
       {/* Header */}

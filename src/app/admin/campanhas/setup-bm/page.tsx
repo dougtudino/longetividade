@@ -239,6 +239,19 @@ export default function SetupBMPage() {
         >
           Setup BM
         </span>
+        <Link
+          href="/admin/campanhas/launch-plan"
+          style={{
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--text-secondary)",
+            textDecoration: "none",
+            borderBottom: "2px solid transparent",
+          }}
+        >
+          Launch Plan 🌱
+        </Link>
       </div>
 
       <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 8px 0" }}>
