@@ -39,9 +39,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Criar token de sessao via response headers
+  // CRITICO: Path=/ (nao /app) porque o client-side fetch precisa
+  // mandar cookies para /api/app/* — paths que nao comecam com /app.
+  // Path=/app bloquearia todas as chamadas de API do app.
   const token = uuid();
   const isProduction = process.env.NODE_ENV === "production";
-  const cookieOpts = `Path=/app; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
+  const cookieOpts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
 
   const response = NextResponse.json({ ok: true, token });
   response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
