@@ -28,6 +28,10 @@ export type Targeting = {
   geo_locations: { countries: string[] };
   flexible_spec?: Array<{ interests?: Array<{ id: string; name: string }> }>;
   excluded_custom_audiences?: Array<{ id: string }>;
+  // Meta exigencia 2024+: precisa declarar explicitamente se Advantage
+  // Audience (expansao automatica via IA) esta on (1) ou off (0).
+  // Default 0 para experimentos controlados.
+  targeting_automation?: { advantage_audience: 0 | 1 };
 };
 
 export type AdSetSpec = {
@@ -354,6 +358,13 @@ export async function createAdSet(
   // Inicia em 1 hora pra dar tempo de revisar
   const startTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
+  // Mescla default targeting_automation.advantage_audience=0 (Meta exige
+  // declaracao explicita desde 2024 — 0 = sem expansao automatica)
+  const targeting: Targeting = {
+    ...spec.targeting,
+    targeting_automation: spec.targeting.targeting_automation ?? { advantage_audience: 0 },
+  };
+
   const data = await postGraph<{ id: string }>(
     `act_${creds.accountId}/adsets`,
     creds.token,
@@ -368,7 +379,7 @@ export async function createAdSet(
         pixel_id: creds.pixelId,
         custom_event_type: "PURCHASE",
       },
-      targeting: spec.targeting,
+      targeting,
       status: spec.status ?? "PAUSED",
       start_time: startTime,
     }
