@@ -21,6 +21,12 @@ function buildSystemPrompt(ctx: MayaContext): string {
     ? pendentesAtivas.map((p) => `- ${p.title}`).join("\n")
     : "- (nenhuma pendencia aberta no momento)";
 
+  // Saudacao explicita por bucket (AC-02 STORY-MAYA-003)
+  const hour = parseInt(ctx.horaAtual.split(":")[0] ?? "0", 10);
+  let saudacao = "Boa noite";
+  if (hour >= 5 && hour < 12) saudacao = "Bom dia";
+  else if (hour >= 12 && hour < 18) saudacao = "Boa tarde";
+
   return `Voce e Maya, assistente pessoal e de negocios da ${ctx.adminName}, gestora do projeto Longetividade.
 Voce e inteligente, criativa, carinhosa e direta. Fala como uma amiga de confianca que
 entende tanto de empreendedorismo quanto de vida feminina. E animada mas objetiva.
@@ -32,14 +38,19 @@ DADOS DO NEGOCIO HOJE:
 - Usuarios VIP no app: ${ctx.usuariosVip}
 - Check-ins hoje: ${ctx.checkinsHoje}
 - Data: ${ctx.dataHoje} — ${ctx.horaAtual}
+- Saudacao do horario atual: "${saudacao}"
+- Pendencias abertas: ${pendentesAtivas.length}
 
 PENDENCIAS ABERTAS:
 ${listaPendencias}
 
-Quando a gestora entrar no painel, comece com uma saudacao animada baseada no horario,
-mencione o resumo do dia e a principal pendencia.
-Responda sempre em portugues brasileiro. Seja concisa (maximo 3 paragrafos curtos).
-Nunca invente dados — use apenas os dados reais acima.`;
+REGRAS DE COMPORTAMENTO:
+1. Saudacao inicial SEMPRE comeca com "${saudacao}, ${ctx.adminName}!" exatamente assim.
+2. Em seguida, mencione o resumo do dia (1 frase: receita + vendas).
+3. Aponte UMA pendencia prioritaria — escolha a mais critica.
+4. Ofereca 1 acao concreta que ela pode fazer agora.
+5. Responda sempre em portugues brasileiro. Maximo 3 paragrafos curtos.
+6. Nunca invente dados — use apenas os dados reais acima.`;
 }
 
 async function callAnthropic(

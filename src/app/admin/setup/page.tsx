@@ -238,11 +238,20 @@ TXT _dmarc   v=DMARC1; p=quarantine; rua=mailto:contato@longetividade.com.br`}
   },
 };
 
+type ReportResult = {
+  ok: boolean;
+  sent?: number;
+  failed?: Array<{ email: string; error?: string }>;
+  error?: string;
+};
+
 export default function SetupPage() {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [marking, setMarking] = useState<string | null>(null);
+  const [sendingReport, setSendingReport] = useState(false);
+  const [reportResult, setReportResult] = useState<ReportResult | null>(null);
 
   useEffect(() => {
     fetch("/api/admin/maya/context")
@@ -273,6 +282,20 @@ export default function SetupPage() {
       setItems(data.pendencias ?? []);
     } finally {
       setMarking(null);
+    }
+  }
+
+  async function sendDailyReport() {
+    setSendingReport(true);
+    setReportResult(null);
+    try {
+      const res = await fetch("/api/admin/maya/daily-report", { cache: "no-store" });
+      const data = (await res.json()) as ReportResult;
+      setReportResult(data);
+    } catch (e) {
+      setReportResult({ ok: false, error: (e as Error).message });
+    } finally {
+      setSendingReport(false);
     }
   }
 
@@ -315,6 +338,82 @@ export default function SetupPage() {
             }}
           />
         </div>
+      </div>
+
+      {/* Maya — Relatório Diario manual trigger */}
+      <div
+        style={{
+          background: "var(--bg-card)",
+          border: "0.5px solid var(--border-default)",
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>📨</div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+            Relatorio diario da Maya
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+            Resumo de vendas, receita, ROAS Meta e pendencias enviado pros admins via Brevo.
+          </div>
+        </div>
+        <a
+          href="/api/admin/maya/daily-report?preview=1"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: "8px 14px",
+            borderRadius: 8,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            fontSize: 13,
+            fontWeight: 500,
+            textDecoration: "none",
+          }}
+        >
+          Preview
+        </a>
+        <button
+          onClick={sendDailyReport}
+          disabled={sendingReport}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 8,
+            background: "var(--accent)",
+            color: "#fff",
+            border: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: sendingReport ? "wait" : "pointer",
+            opacity: sendingReport ? 0.6 : 1,
+          }}
+        >
+          {sendingReport ? "Enviando..." : "Enviar agora"}
+        </button>
+        {reportResult && (
+          <div
+            style={{
+              fontSize: 12,
+              padding: "6px 10px",
+              borderRadius: 6,
+              background: reportResult.ok ? "rgba(107,158,107,0.15)" : "rgba(196,120,122,0.15)",
+              color: reportResult.ok ? "#6B9E6B" : "#C4787A",
+              fontWeight: 600,
+              flexBasis: "100%",
+            }}
+          >
+            {reportResult.ok
+              ? `OK — enviado para ${reportResult.sent} admin(s)`
+              : `Erro: ${reportResult.error ?? reportResult.failed?.[0]?.error ?? "falha"}`}
+          </div>
+        )}
       </div>
 
       {loading ? (
