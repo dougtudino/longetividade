@@ -147,7 +147,16 @@ export default function GaiaControlPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ preset: "last_7d", dryRun: cmd === "review-dry" }),
         });
-        const data = (await res.json()) as ReviewResponse;
+        const raw = await res.text();
+        let data: ReviewResponse;
+        try {
+          data = raw ? JSON.parse(raw) : { ok: false, error: "Resposta vazia" };
+        } catch {
+          data = {
+            ok: false,
+            error: `HTTP ${res.status}. Body: ${raw.slice(0, 200) || "(vazio)"}`,
+          };
+        }
         setLastReview(data);
         if (!data.ok) setError(data.error ?? "Falha");
         await loadDecisions();
@@ -156,7 +165,16 @@ export default function GaiaControlPage() {
         const res = await fetch("/api/admin/agents/gaia/seed-knowledge", {
           method: "POST",
         });
-        const data = await res.json();
+        const raw = await res.text();
+        let data: { ok: boolean; error?: string };
+        try {
+          data = raw ? JSON.parse(raw) : { ok: false, error: "Resposta vazia" };
+        } catch {
+          data = {
+            ok: false,
+            error: `HTTP ${res.status}. Body: ${raw.slice(0, 200) || "(vazio)"}. Se aparecer logo apos deploy, aguarde 1-2min pro Railway rodar prisma db push.`,
+          };
+        }
         if (!data.ok) setError(data.error ?? "Falha");
         await loadKnowledge();
       }

@@ -3,26 +3,35 @@ import { prisma } from "@/lib/prisma";
 
 // GET /api/admin/agents/gaia/knowledge?kind=rule
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const kind = url.searchParams.get("kind") ?? undefined;
+  try {
+    const url = new URL(req.url);
+    const kind = url.searchParams.get("kind") ?? undefined;
 
-  const entries = await prisma.agentKnowledge.findMany({
-    where: {
-      agentId: "gaia",
-      ...(kind ? { kind } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-  });
+    const entries = await prisma.agentKnowledge.findMany({
+      where: {
+        agentId: "gaia",
+        ...(kind ? { kind } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+    });
 
-  const counts = await prisma.agentKnowledge.groupBy({
-    by: ["kind"],
-    where: { agentId: "gaia" },
-    _count: true,
-  });
-  const countsMap: Record<string, number> = {};
-  for (const c of counts) countsMap[c.kind] = c._count;
+    const counts = await prisma.agentKnowledge.groupBy({
+      by: ["kind"],
+      where: { agentId: "gaia" },
+      _count: true,
+    });
+    const countsMap: Record<string, number> = {};
+    for (const c of counts) countsMap[c.kind] = c._count;
 
-  return NextResponse.json({ ok: true, entries, counts: countsMap });
+    return NextResponse.json({ ok: true, entries, counts: countsMap });
+  } catch (e) {
+    return NextResponse.json({
+      ok: true,
+      entries: [],
+      counts: {},
+      warning: `Tabela AgentKnowledge indisponivel: ${(e as Error).message}`,
+    });
+  }
 }
 
 // POST /api/admin/agents/gaia/knowledge

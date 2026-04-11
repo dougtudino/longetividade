@@ -6,34 +6,43 @@ import { executeDecision } from "@/lib/gaia-executor";
 // GET /api/admin/agents/gaia/decisions?status=proposed
 // Lista decisoes da Gaia, filtradas por status
 export async function GET(req: NextRequest) {
-  const url = new URL(req.url);
-  const status = url.searchParams.get("status") ?? undefined;
-  const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
+  try {
+    const url = new URL(req.url);
+    const status = url.searchParams.get("status") ?? undefined;
+    const limit = parseInt(url.searchParams.get("limit") ?? "50", 10);
 
-  const decisions = await prisma.agentDecision.findMany({
-    where: {
-      agentId: "gaia",
-      ...(status ? { status } : {}),
-    },
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
+    const decisions = await prisma.agentDecision.findMany({
+      where: {
+        agentId: "gaia",
+        ...(status ? { status } : {}),
+      },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
 
-  // Agrega contagem por status (sempre retorna, independente do filtro)
-  const counts = await prisma.agentDecision.groupBy({
-    by: ["status"],
-    where: { agentId: "gaia" },
-    _count: true,
-  });
+    // Agrega contagem por status (sempre retorna, independente do filtro)
+    const counts = await prisma.agentDecision.groupBy({
+      by: ["status"],
+      where: { agentId: "gaia" },
+      _count: true,
+    });
 
-  const countsMap: Record<string, number> = {};
-  for (const c of counts) countsMap[c.status] = c._count;
+    const countsMap: Record<string, number> = {};
+    for (const c of counts) countsMap[c.status] = c._count;
 
-  return NextResponse.json({
-    ok: true,
-    decisions,
-    counts: countsMap,
-  });
+    return NextResponse.json({
+      ok: true,
+      decisions,
+      counts: countsMap,
+    });
+  } catch (e) {
+    return NextResponse.json({
+      ok: true,
+      decisions: [],
+      counts: {},
+      warning: `Tabela AgentDecision indisponivel: ${(e as Error).message}`,
+    });
+  }
 }
 
 // POST /api/admin/agents/gaia/decisions
