@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { runSchemaMigrations } from "@/lib/db-migrations";
 
 // POST /api/admin/reset-test-data
 // Body: { confirmPhrase: "DELETAR TUDO", preserveSynced?: boolean }
@@ -86,6 +87,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // CRITICO: garante que o schema esta up-to-date antes de deletar.
+  // Sem isso, se uma coluna nova (ex: hotmartTransactionId) ainda nao
+  // existir no banco, o delete com where: { hotmartTransactionId: null }
+  // falha. Executa migrations idempotentes primeiro.
+  const migrationSummary = await runSchemaMigrations();
+
   const preserveSynced = body.preserveSynced === true;
   const before = await countAll();
   const deleted: Counters = {};
@@ -161,6 +168,11 @@ export async function POST(req: NextRequest) {
     deleted,
     after,
     errors: errors.length > 0 ? errors : undefined,
+    migrations: {
+      ran: migrationSummary.total,
+      ok: migrationSummary.okCount,
+      failed: migrationSummary.failCount,
+    },
     note: "AdminUser, AppSetting, AgentKnowledge, AgentDecision, CreativeCollection, Creative NAO foram tocados.",
   });
 }
