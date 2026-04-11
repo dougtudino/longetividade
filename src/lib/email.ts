@@ -26,8 +26,8 @@ export async function sendEmail({
     },
     body: JSON.stringify({
       sender: {
-        name: "Emagreca sem Dieta",
-        email: process.env.EMAIL_FROM ?? "noreply@longetividade.com.br",
+        name: "Longetividade",
+        email: process.env.EMAIL_FROM ?? "contato@longetividade.com.br",
       },
       to: [{ email: to, name: toName }],
       subject,

@@ -42,7 +42,7 @@ async function buildSetupChecklist(): Promise<ChecklistItem[]> {
   return [
     {
       id: "email_pro",
-      title: "Email profissional barbara@longetividade.com.br (Registro.br)",
+      title: "Email profissional contato@longetividade.com.br (Registro.br)",
       done: emailDnsOk === "true",
       link: "/admin/setup#email_pro",
     },

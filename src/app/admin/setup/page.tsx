@@ -22,11 +22,11 @@ const GUIDES: Record<string, SetupGuide> = {
   email_pro: {
     id: "email_pro",
     emoji: "📧",
-    shortDesc: "Email profissional barbara@longetividade.com.br",
+    shortDesc: "Email profissional contato@longetividade.com.br",
     details: (
       <>
         <p>
-          Para que os emails de venda saiam de <code>barbara@longetividade.com.br</code>
+          Para que os emails de venda saiam de <code>contato@longetividade.com.br</code>
           (e nao caiam em spam), e preciso configurar registros DNS no
           <strong> Registro.br</strong>.
         </p>
@@ -60,7 +60,7 @@ MX  20  mx2.zoho.com
 MX  50  mx3.zoho.com
 TXT @   v=spf1 include:zoho.com ~all
 TXT @   v=DKIM1; k=rsa; p=...   (gerada pelo Zoho)
-TXT _dmarc   v=DMARC1; p=quarantine; rua=mailto:barbara@longetividade.com.br`}
+TXT _dmarc   v=DMARC1; p=quarantine; rua=mailto:contato@longetividade.com.br`}
         </pre>
         <p style={{ marginTop: 12 }}>
           <strong>3. Validar:</strong> em 1-24h o DNS propaga. Teste enviando

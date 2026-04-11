@@ -10,7 +10,7 @@ gerir o projeto Longetividade de forma autônoma.
 
 - [x] AC-01: Maya tem checklist de setup para a Bárbara no dashboard
   Items detectados automaticamente do estado real do sistema:
-  - Email profissional barbara@longetividade.com.br (Registro.br) → manual flag
+  - Email profissional contato@longetividade.com.br (Registro.br) → manual flag
   - Conta Brevo (BREVO_API_KEY em AppSetting)
   - Business Manager Meta + Conta de Anuncios (META_ADS_ACCOUNT_ID)
   - Pixel Meta proprio (NEXT_PUBLIC_META_PIXEL_ID)
