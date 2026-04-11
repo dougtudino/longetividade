@@ -237,6 +237,41 @@ export default function CampanhasPage() {
   /* ---------- render ---------- */
   return (
     <div style={{ maxWidth: 960, margin: "0 auto" }}>
+      {/* Tab nav */}
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 24,
+          borderBottom: "0.5px solid var(--border-default)",
+        }}
+      >
+        <span
+          style={{
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "var(--accent)",
+            borderBottom: "2px solid var(--accent)",
+          }}
+        >
+          Campanhas
+        </span>
+        <Link
+          href="/admin/campanhas/setup-bm"
+          style={{
+            padding: "10px 16px",
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--text-secondary)",
+            textDecoration: "none",
+            borderBottom: "2px solid transparent",
+          }}
+        >
+          Setup BM
+        </Link>
+      </div>
+
       {/* Header */}
       <div
         style={{

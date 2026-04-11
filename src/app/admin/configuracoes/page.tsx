@@ -101,6 +101,28 @@ const SETTINGS_KEYS = [
   { key: "HOTMART_OFFER_BASICO", label: "Hotmart Offer ID — Basico", hint: "Codigo da oferta Basico (padrao: zxq5tgew)" },
 ];
 
+const META_KEYS = [
+  {
+    key: "META_ADS_ACCOUNT_ID",
+    label: "Meta Ads Account ID",
+    hint: "Apenas numeros, sem 'act_'. Ex: 837047967961012 (CA01- BM Barbara Oliveira)",
+    sensitive: false,
+    defaultValue: "837047967961012",
+  },
+  {
+    key: "META_ADS_ACCESS_TOKEN",
+    label: "Meta Ads Access Token",
+    hint: "Token Graph API com permissao read_insights. Gere em developers.facebook.com/tools/explorer",
+    sensitive: true,
+  },
+  {
+    key: "NEXT_PUBLIC_META_PIXEL_ID",
+    label: "Meta Pixel ID",
+    hint: "ID do pixel criado dentro da BM da Barbara",
+    sensitive: false,
+  },
+] as const;
+
 const plans = [
   { name: "Basico", price: "R$37,00", offerId: "zxq5tgew" },
   { name: "Completo", price: "R$67,00", tag: "MAIS ESCOLHIDO", offerId: "uzvdkzkf" },
@@ -116,16 +138,52 @@ const externalLinks = [
   { label: "Google Analytics", url: "https://analytics.google.com", icon: "📈" },
 ];
 
+type MetaTestResult = {
+  ok: boolean;
+  accountId?: string;
+  accountName?: string;
+  status?: string;
+  currency?: string | null;
+  error?: string;
+};
+
 export default function ConfiguracoesPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [slots, setSlots] = useState<{ total: number; used: number; available: number } | null>(null);
+  const [metaTest, setMetaTest] = useState<MetaTestResult | null>(null);
+  const [testingMeta, setTestingMeta] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/settings").then((r) => r.json()).then(setSettings).catch(() => {});
+    fetch("/api/admin/settings")
+      .then((r) => r.json())
+      .then((data: Record<string, string>) => {
+        const next = { ...data };
+        for (const m of META_KEYS) {
+          if (!next[m.key] && "defaultValue" in m && m.defaultValue) {
+            next[m.key] = m.defaultValue;
+          }
+        }
+        setSettings(next);
+      })
+      .catch(() => {});
     fetch("/api/app/slots").then((r) => r.json()).then(setSlots).catch(() => {});
   }, []);
+
+  async function testMetaConnection() {
+    setTestingMeta(true);
+    setMetaTest(null);
+    try {
+      const res = await fetch("/api/admin/test-meta-connection", { cache: "no-store" });
+      const data = (await res.json()) as MetaTestResult;
+      setMetaTest(data);
+    } catch (e) {
+      setMetaTest({ ok: false, error: (e as Error).message });
+    } finally {
+      setTestingMeta(false);
+    }
+  }
 
   function updateSetting(key: string, value: string) {
     setSettings((prev) => ({ ...prev, [key]: value }));
@@ -199,6 +257,57 @@ export default function ConfiguracoesPage() {
         <button onClick={saveSettings} disabled={saving} style={saveBtnStyle}>
           {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Configuracoes"}
         </button>
+      </div>
+
+      {/* 1.5 Meta Ads / Business Manager */}
+      <div id="meta" style={cardStyle}>
+        <h2 style={sectionTitle}>Meta Business / Ads API</h2>
+        <p style={{ ...hintStyle, marginTop: 0, marginBottom: 16 }}>
+          Configure as credenciais da BM da Barbara para o painel ler ROAS, gasto
+          e conversoes direto da Meta Ads API. O Account ID ja vem preenchido com
+          a conta <strong>CA01- BM Barbara Oliveira</strong>.
+        </p>
+
+        {META_KEYS.map((s) => (
+          <div key={s.key} style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>{s.label}</label>
+            <input
+              type={s.sensitive ? "password" : "text"}
+              value={settings[s.key] ?? ""}
+              onChange={(e) => updateSetting(s.key, e.target.value)}
+              placeholder={s.hint}
+              style={inputStyle}
+            />
+            <p style={hintStyle}>{s.hint}</p>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button onClick={saveSettings} disabled={saving} style={saveBtnStyle}>
+            {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Meta"}
+          </button>
+          <button
+            onClick={testMetaConnection}
+            disabled={testingMeta || !settings.META_ADS_ACCESS_TOKEN}
+            style={{
+              ...saveBtnStyle,
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              border: "0.5px solid var(--border-default)",
+              opacity: testingMeta || !settings.META_ADS_ACCESS_TOKEN ? 0.6 : 1,
+            }}
+          >
+            {testingMeta ? "Testando..." : "Testar Conexao"}
+          </button>
+
+          {metaTest && (
+            <span style={metaTest.ok ? badgeActive : badgePending}>
+              {metaTest.ok
+                ? `OK — ${metaTest.accountName} (${metaTest.status})`
+                : `Erro: ${metaTest.error}`}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* 2. Vagas VIP */}
