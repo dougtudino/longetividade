@@ -174,8 +174,13 @@ export async function findCustomAudienceByName(
 // Image upload
 // ─────────────────────────────────────────────────────────────────────
 
-// Recebe base64 (sem prefixo data:image/...) e faz upload via POST
-// /act_{ID}/adimages. Retorna o hash que sera usado em adcreatives.
+// Recebe base64 (com ou sem prefixo data:image/...) e faz upload via
+// POST /act_{ID}/adimages. Parametro canonico da Marketing API e
+// "bytes" (nao "bytes_<filename>"). Retorna o hash usado em adcreatives.
+//
+// Resposta da Meta varia:
+//   - { images: { "filename": { hash, url } } } (formato comum)
+//   - { hash: "...", id: "..." } (raro, alguns SDKs retornam direto)
 export async function uploadAdImage(
   creds: LauncherCreds,
   base64: string,
@@ -183,22 +188,49 @@ export async function uploadAdImage(
 ): Promise<{ ok: true; hash: string } | LauncherError> {
   const cleanBase64 = base64.replace(/^data:image\/\w+;base64,/, "");
 
-  const data = await postGraph<{
-    images?: Record<string, { hash: string; url: string }>;
-  }>(`act_${creds.accountId}/adimages`, creds.token, {
-    [`bytes_${filename}`]: cleanBase64,
-  });
+  type AdImageResponse = {
+    images?: Record<string, { hash: string; url?: string }>;
+    hash?: string;
+    id?: string;
+  };
 
-  if (isError(data) || !("images" in data) || !data.images) {
-    const errMsg = isError(data) ? data.error.message : "Sem imagens retornadas";
-    return { ok: false, step: "uploadAdImage", error: errMsg, raw: data };
+  const data = await postGraph<AdImageResponse>(
+    `act_${creds.accountId}/adimages`,
+    creds.token,
+    {
+      bytes: cleanBase64,
+      filename,
+    }
+  );
+
+  if (isError(data)) {
+    return {
+      ok: false,
+      step: `uploadAdImage(${filename})`,
+      error: data.error.message,
+      raw: data.error,
+    };
   }
 
-  const firstImage = Object.values(data.images)[0];
-  if (!firstImage?.hash) {
-    return { ok: false, step: "uploadAdImage", error: "Hash ausente na resposta" };
+  // Tenta formato { hash } direto
+  if ("hash" in data && typeof data.hash === "string") {
+    return { ok: true, hash: data.hash };
   }
-  return { ok: true, hash: firstImage.hash };
+
+  // Tenta formato { images: { ... } }
+  if ("images" in data && data.images) {
+    const firstImage = Object.values(data.images)[0];
+    if (firstImage?.hash) {
+      return { ok: true, hash: firstImage.hash };
+    }
+  }
+
+  return {
+    ok: false,
+    step: `uploadAdImage(${filename})`,
+    error: "Resposta inesperada da Meta sem hash",
+    raw: data,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────────
