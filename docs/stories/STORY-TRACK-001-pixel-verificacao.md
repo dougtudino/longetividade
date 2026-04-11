@@ -3,7 +3,7 @@
 **Epic:** Tracking & Observabilidade
 **Agente responsável:** @dev + @qa
 **Prioridade:** P0 (bloqueia medição de ROAS)
-**Status:** [ ] Draft
+**Status:** [~] Code part done (2026-04-11) — falta execucao QA manual da Barbara
 **Data criação:** 2026-04-10
 
 ---
@@ -36,10 +36,10 @@ STORY-ADS-001 será inútil.
   - `value` = preço do plano em BRL
   - `currency` = "BRL"
 - [ ] **AC-03:** `Purchase` dispara em `/obrigado` com valor correto
-  lido de `?plan=` na URL. Validar os 3 casos:
+  lido de `?plan=` na URL. Validar os 3 casos (valores canonical em `src/config/plans.ts`):
   - `/obrigado?plan=basico` → value 37
-  - `/obrigado?plan=completo` → value 97
-  - `/obrigado?plan=vip` → value 147 (ou valor real configurado)
+  - `/obrigado?plan=completo` → value 67
+  - `/obrigado?plan=vip` → value 97
 - [ ] **AC-04:** Abrir cada página com Meta Pixel Helper instalado
   no Chrome e registrar: **0 erros, 0 avisos**. Documentar prints em
   `docs/qa/pixel-verification-2026-04-10.md`.

@@ -148,6 +148,15 @@ type MetaTestResult = {
   error?: string;
 };
 
+type BrevoTestResult = {
+  ok: boolean;
+  email?: string | null;
+  name?: string | null;
+  company?: string | null;
+  sendCredits?: number;
+  error?: string;
+};
+
 export default function ConfiguracoesPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -155,6 +164,8 @@ export default function ConfiguracoesPage() {
   const [slots, setSlots] = useState<{ total: number; used: number; available: number } | null>(null);
   const [metaTest, setMetaTest] = useState<MetaTestResult | null>(null);
   const [testingMeta, setTestingMeta] = useState(false);
+  const [brevoTest, setBrevoTest] = useState<BrevoTestResult | null>(null);
+  const [testingBrevo, setTestingBrevo] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/settings")
@@ -198,6 +209,20 @@ export default function ConfiguracoesPage() {
       setMetaTest({ ok: false, error: (e as Error).message });
     } finally {
       setTestingMeta(false);
+    }
+  }
+
+  async function testBrevoConnection() {
+    setTestingBrevo(true);
+    setBrevoTest(null);
+    try {
+      const res = await fetch("/api/admin/test-brevo", { cache: "no-store" });
+      const data = (await res.json()) as BrevoTestResult;
+      setBrevoTest(data);
+    } catch (e) {
+      setBrevoTest({ ok: false, error: (e as Error).message });
+    } finally {
+      setTestingBrevo(false);
     }
   }
 
@@ -321,6 +346,54 @@ export default function ConfiguracoesPage() {
               {metaTest.ok
                 ? `OK — ${metaTest.accountName} (${metaTest.status})`
                 : `Erro: ${metaTest.error}`}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 1.6 Brevo */}
+      <div id="brevo" style={cardStyle}>
+        <h2 style={sectionTitle}>Brevo (Email Marketing)</h2>
+        <p style={{ ...hintStyle, marginTop: 0, marginBottom: 16 }}>
+          Chave da API Brevo usada para enviar emails de entrega de ebook,
+          confirmacao e listas. Crie em <a href="https://app.brevo.com/settings/keys/api" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>app.brevo.com/settings/keys/api</a>.
+        </p>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={labelStyle}>BREVO_API_KEY</label>
+          <input
+            type="password"
+            value={settings.BREVO_API_KEY ?? ""}
+            onChange={(e) => updateSetting("BREVO_API_KEY", e.target.value)}
+            placeholder="xkeysib-..."
+            style={inputStyle}
+          />
+          <p style={hintStyle}>Comeca com xkeysib-... — gere uma chave SMTP/API com permissao de envio.</p>
+        </div>
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button onClick={saveSettings} disabled={saving} style={saveBtnStyle}>
+            {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Brevo"}
+          </button>
+          <button
+            onClick={testBrevoConnection}
+            disabled={testingBrevo || !settings.BREVO_API_KEY}
+            style={{
+              ...saveBtnStyle,
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              border: "0.5px solid var(--border-default)",
+              opacity: testingBrevo || !settings.BREVO_API_KEY ? 0.6 : 1,
+            }}
+          >
+            {testingBrevo ? "Testando..." : "Testar Conexao"}
+          </button>
+
+          {brevoTest && (
+            <span style={brevoTest.ok ? badgeActive : badgePending}>
+              {brevoTest.ok
+                ? `OK — ${brevoTest.email ?? "conta conectada"}${brevoTest.sendCredits ? ` · ${brevoTest.sendCredits} creditos` : ""}`
+                : `Erro: ${brevoTest.error}`}
             </span>
           )}
         </div>

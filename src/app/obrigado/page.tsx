@@ -4,29 +4,29 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { trackPurchase } from "@/lib/tracking";
 import LeadCapture from "@/components/LeadCapture";
+import { getPlanById } from "@/config/plans";
 
-const PLAN_VALUES: Record<string, { name: string; value: number }> = {
-  basico: { name: "Metodo S.E.M — Basico", value: 37 },
-  completo: { name: "Metodo S.E.M — Completo", value: 67 },
-  vip: { name: "Metodo S.E.M — VIP", value: 97 },
-};
+type PlanId = "basico" | "completo" | "vip";
 
 export default function ObrigadoPage() {
   const [countdown, setCountdown] = useState(15 * 60); // 15 min
-  const [plan, setPlan] = useState<"basico" | "completo" | "vip">("basico");
+  const [plan, setPlan] = useState<PlanId>("basico");
 
   useEffect(() => {
     // Hotmart pode passar ?plan=basico|completo|vip ou ?transaction=...
-    // Detecta plano pelo query param e dispara Purchase com valor correto.
+    // Detecta plano pelo query param e dispara Purchase com valor canonical
+    // (fonte unica em src/config/plans.ts).
     const params = new URLSearchParams(window.location.search);
     const planParam = (params.get("plan") || "").toLowerCase();
-    const resolved: "basico" | "completo" | "vip" =
+    const resolved: PlanId =
       planParam === "vip" || planParam === "completo" || planParam === "basico"
         ? planParam
         : "basico";
     setPlan(resolved);
-    const info = PLAN_VALUES[resolved];
-    trackPurchase(info.name, info.value);
+    const info = getPlanById(resolved);
+    if (info) {
+      trackPurchase(`Metodo S.E.M — ${info.name}`, info.price);
+    }
   }, []);
 
   useEffect(() => {

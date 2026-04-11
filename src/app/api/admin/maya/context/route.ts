@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { getSetting } from "@/lib/settings";
 
 export type ChecklistItem = {
   id: string;
@@ -21,14 +22,62 @@ export type MayaContext = {
   adminName: string;
 };
 
-const DEFAULT_CHECKLIST: ChecklistItem[] = [
-  { id: "brevo_key", title: "Configurar BREVO_API_KEY real", done: false },
-  { id: "bm_create", title: "Criar Business Manager no Meta", done: false },
-  { id: "pixel_create", title: "Criar Pixel Meta Ads proprio", done: false },
-  { id: "meta_token", title: "Inserir Token Meta Ads em Configuracoes", done: false },
-  { id: "purchase_test", title: "Fazer compra teste com cupom 100% off", done: true },
-  { id: "email_pro", title: "Criar email barbara@longetividade.com.br", done: false },
-];
+async function buildSetupChecklist(): Promise<ChecklistItem[]> {
+  const [brevoKey, metaAccount, metaPixel, metaToken, emailDnsOk] = await Promise.all([
+    getSetting("BREVO_API_KEY"),
+    getSetting("META_ADS_ACCOUNT_ID"),
+    getSetting("NEXT_PUBLIC_META_PIXEL_ID"),
+    getSetting("META_ADS_ACCESS_TOKEN"),
+    getSetting("EMAIL_PRO_DNS_OK"),
+  ]);
+
+  let approvedExists = false;
+  try {
+    const approved = await prisma.order.count({ where: { status: "approved" } });
+    approvedExists = approved > 0;
+  } catch {
+    approvedExists = false;
+  }
+
+  return [
+    {
+      id: "email_pro",
+      title: "Email profissional barbara@longetividade.com.br (Registro.br)",
+      done: emailDnsOk === "true",
+      link: "/admin/setup#email_pro",
+    },
+    {
+      id: "brevo_key",
+      title: "Conectar Brevo (BREVO_API_KEY)",
+      done: !!brevoKey,
+      link: "/admin/setup#brevo_key",
+    },
+    {
+      id: "bm_create",
+      title: "Business Manager Meta + Conta de Anuncios",
+      done: !!metaAccount,
+      link: "/admin/setup#bm_create",
+    },
+    {
+      id: "pixel_create",
+      title: "Pixel Meta vinculado ao dominio",
+      done: !!metaPixel,
+      link: "/admin/setup#pixel_create",
+    },
+    {
+      id: "meta_token",
+      title: "Token Meta Ads API em Configuracoes",
+      done: !!metaToken,
+      link: "/admin/configuracoes#meta",
+    },
+    {
+      id: "purchase_test",
+      title: "Compra teste validada (Hotmart -> webhook -> Order)",
+      done: approvedExists,
+      link: "/admin/configuracoes",
+    },
+  ];
+}
 
 export async function buildMayaContext(adminName: string): Promise<MayaContext> {
   const now = new Date();
@@ -77,20 +126,7 @@ export async function buildMayaContext(adminName: string): Promise<MayaContext> 
     // tabela pode nao existir
   }
 
-  let pendencias: ChecklistItem[] = DEFAULT_CHECKLIST;
-  try {
-    const row = await prisma.appSetting.findUnique({
-      where: { key: "admin_checklist" },
-    });
-    if (row?.value) {
-      const parsed = JSON.parse(row.value);
-      if (Array.isArray(parsed)) {
-        pendencias = parsed as ChecklistItem[];
-      }
-    }
-  } catch {
-    // usa default
-  }
+  const pendencias: ChecklistItem[] = await buildSetupChecklist();
 
   const dataHoje = now.toLocaleDateString("pt-BR", {
     weekday: "long",
