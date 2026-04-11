@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { clearSettingsCache } from "@/lib/settings";
 
 export async function GET() {
   try {
@@ -19,12 +20,15 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const entries = Object.entries(body) as [string, string][];
 
-  for (const [key, value] of entries) {
+  for (const [key, rawValue] of entries) {
+    // Trim para evitar espacos invisiveis colados de tokens/chaves
+    const value = typeof rawValue === "string" ? rawValue.trim() : rawValue;
     await prisma.appSetting.upsert({
       where: { key },
       update: { value },
       create: { key, value },
     });
+    clearSettingsCache(key);
   }
 
   return NextResponse.json({ ok: true });

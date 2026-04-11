@@ -26,3 +26,11 @@ export async function getSetting(key: string, fallback?: string): Promise<string
 
   return fallback ?? "";
 }
+
+export function clearSettingsCache(key?: string): void {
+  if (key) {
+    cache.delete(key);
+  } else {
+    cache.clear();
+  }
+}
