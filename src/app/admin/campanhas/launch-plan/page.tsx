@@ -300,7 +300,7 @@ export default function LaunchPlanPage() {
   const [launchError, setLaunchError] = useState<string | null>(null);
 
   async function persistStepsAsFeito(stepIds: readonly string[]) {
-    const payload: Record<string, string> = {};
+    const payload: Record<string, StepStatus> = {};
     for (const id of stepIds) payload[id] = "feito";
     setStatuses((prev) => ({ ...prev, ...payload }));
     try {
@@ -396,7 +396,8 @@ export default function LaunchPlanPage() {
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => r.json())
-      .then((data: Record<string, string>) => {
+      .then(async (data: Record<string, string>) => {
+        // 1. Carrega valores salvos
         setStatuses((prev) => {
           const next = { ...prev };
           for (const k of STEP_KEYS) {
@@ -405,6 +406,28 @@ export default function LaunchPlanPage() {
           }
           return next;
         });
+
+        // 2. Auto-detecta progresso do launcher Gaia a partir das settings reais
+        const allCreativeHashes = CREATIVE_KEYS.every(
+          (c) => !!data[`meta_creative_hash_${c.key}`]
+        );
+        // Pre-carrega upload progress visual se hashes existem
+        if (allCreativeHashes) {
+          const progress: Record<string, "ok"> = {};
+          for (const c of CREATIVE_KEYS) progress[c.key] = "ok";
+          setUploadProgress(progress);
+        }
+
+        // 3. Auto-marca steps com base no que ja existe
+        const toMark: string[] = [];
+        if (allCreativeHashes) {
+          // Upload feito → step 1 (pre-req) e 2 (criativos) feitos
+          if (data[STEP_KEYS[0]] !== "feito") toMark.push(STEP_KEYS[0]);
+          if (data[STEP_KEYS[1]] !== "feito") toMark.push(STEP_KEYS[1]);
+        }
+        if (toMark.length > 0) {
+          await persistStepsAsFeito(toMark);
+        }
       })
       .catch(() => {});
   }, []);
