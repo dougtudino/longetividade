@@ -1,7 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import CreativeFeedDor from "@/components/creatives/creative-feed-dor";
+import CreativeFeedProva from "@/components/creatives/creative-feed-prova";
+import CreativeFeedObjecao from "@/components/creatives/creative-feed-objecao";
+import CreativeStoryStat from "@/components/creatives/creative-story-stat";
+import CreativeStoryCta from "@/components/creatives/creative-story-cta";
+import CreativeBannerDisplay from "@/components/creatives/creative-banner-display";
+
+const CREATIVE_KEYS = [
+  { key: "feed_dor", Component: CreativeFeedDor, w: 1080, h: 1080 },
+  { key: "feed_prova", Component: CreativeFeedProva, w: 1080, h: 1080 },
+  { key: "feed_objecao", Component: CreativeFeedObjecao, w: 1080, h: 1080 },
+  { key: "story_stat", Component: CreativeStoryStat, w: 1080, h: 1920 },
+  { key: "story_cta", Component: CreativeStoryCta, w: 1080, h: 1920 },
+  { key: "banner_display", Component: CreativeBannerDisplay, w: 1200, h: 628 },
+] as const;
+
+type LaunchLogEntry = {
+  step: string;
+  status: "ok" | "skip" | "error";
+  detail?: string;
+  id?: string;
+};
 
 const STEP_KEYS = [
   "launch_pioneer_step_1",
@@ -269,6 +291,72 @@ export default function LaunchPlanPage() {
   const [expanded, setExpanded] = useState<string | null>(STEP_KEYS[0]);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
+  // Auto launcher state
+  const hiddenRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [uploadingKey, setUploadingKey] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, "pending" | "ok" | "error">>({});
+  const [launching, setLaunching] = useState(false);
+  const [launchLog, setLaunchLog] = useState<LaunchLogEntry[]>([]);
+  const [launchError, setLaunchError] = useState<string | null>(null);
+
+  async function uploadAllCreatives() {
+    setLaunchError(null);
+    const { toPng } = await import("html-to-image");
+    for (const c of CREATIVE_KEYS) {
+      setUploadingKey(c.key);
+      setUploadProgress((p) => ({ ...p, [c.key]: "pending" }));
+      try {
+        const node = hiddenRefs.current[c.key];
+        if (!node) {
+          setUploadProgress((p) => ({ ...p, [c.key]: "error" }));
+          continue;
+        }
+        const dataUrl = await toPng(node, {
+          cacheBust: true,
+          pixelRatio: 1,
+          width: c.w,
+          height: c.h,
+        });
+        const res = await fetch("/api/admin/campaigns/upload-creative", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key: c.key, base64: dataUrl }),
+        });
+        const data = await res.json();
+        setUploadProgress((p) => ({ ...p, [c.key]: data.ok ? "ok" : "error" }));
+        if (!data.ok) {
+          setLaunchError(`Upload ${c.key}: ${data.error ?? "falhou"}`);
+        }
+      } catch (e) {
+        setUploadProgress((p) => ({ ...p, [c.key]: "error" }));
+        setLaunchError(`Upload ${c.key}: ${(e as Error).message}`);
+      }
+    }
+    setUploadingKey(null);
+  }
+
+  async function launchCampaign(dryRun: boolean) {
+    setLaunching(true);
+    setLaunchLog([]);
+    setLaunchError(null);
+    try {
+      const res = await fetch("/api/admin/campaigns/launch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blueprint: "LAUNCH-001", dryRun }),
+      });
+      const data = await res.json();
+      if (data.log) setLaunchLog(data.log);
+      if (!data.ok) setLaunchError(data.error ?? "Falha ao lancar");
+    } catch (e) {
+      setLaunchError((e as Error).message);
+    } finally {
+      setLaunching(false);
+    }
+  }
+
+  const allUploaded = CREATIVE_KEYS.every((c) => uploadProgress[c.key] === "ok");
+
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => r.json())
@@ -369,6 +457,186 @@ export default function LaunchPlanPage() {
           Blueprint completo da primeira campanha. Filosofia: <em>start small, test aggressive, scale what works</em>.
           R$ 90/dia inicial, 3 ad sets cold, 72h sem mexer. Meta: 1 vencedor com ROAS ≥ 1.5 em 7 dias.
         </p>
+      </div>
+
+      {/* Auto launcher — Gaia mode */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(122,158,126,0.12), rgba(212,169,75,0.08))",
+          border: "0.5px solid rgba(122,158,126,0.4)",
+          borderRadius: 14,
+          padding: 20,
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <div style={{ fontSize: 32, lineHeight: 1 }}>🌱</div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#3D5A3E", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+              Gaia · Launch automatico
+            </div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>
+              Lancar via Marketing API (sem clicar no Meta Ads Manager)
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.5 }}>
+              2 passos: <strong>1)</strong> Upload dos 6 criativos pra Meta · <strong>2)</strong> Launch (campanha + 3 ad sets + ads, tudo PAUSED)
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+          <button
+            onClick={uploadAllCreatives}
+            disabled={!!uploadingKey}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 10,
+              background: "#7A9E7E",
+              color: "#fff",
+              border: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: uploadingKey ? "wait" : "pointer",
+              opacity: uploadingKey ? 0.6 : 1,
+            }}
+          >
+            {uploadingKey ? `Enviando ${uploadingKey}...` : "1. Upload criativos pra Meta"}
+          </button>
+          <button
+            onClick={() => launchCampaign(true)}
+            disabled={launching}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 10,
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              border: "0.5px solid var(--border-default)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: launching ? "wait" : "pointer",
+              opacity: launching ? 0.6 : 1,
+            }}
+          >
+            Dry-run (so audiences, nao cria nada)
+          </button>
+          <button
+            onClick={() => launchCampaign(false)}
+            disabled={launching || !allUploaded}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 10,
+              background: allUploaded ? "#3D5A3E" : "var(--border-default)",
+              color: "#fff",
+              border: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: launching ? "wait" : allUploaded ? "pointer" : "not-allowed",
+              opacity: launching ? 0.6 : 1,
+            }}
+            title={allUploaded ? "Lanca a campanha (PAUSED)" : "Faca upload dos criativos primeiro"}
+          >
+            {launching ? "Lancando..." : "2. Launch campaign (PAUSED)"}
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: launchLog.length || launchError ? 14 : 0 }}>
+          {CREATIVE_KEYS.map((c) => {
+            const status = uploadProgress[c.key];
+            const bg =
+              status === "ok"
+                ? "rgba(107,158,107,0.2)"
+                : status === "error"
+                  ? "rgba(196,120,122,0.2)"
+                  : status === "pending"
+                    ? "rgba(74,144,217,0.2)"
+                    : "var(--bg-secondary)";
+            const color =
+              status === "ok"
+                ? "#6B9E6B"
+                : status === "error"
+                  ? "#C4787A"
+                  : status === "pending"
+                    ? "#4A90D9"
+                    : "var(--text-muted)";
+            return (
+              <span
+                key={c.key}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: "4px 10px",
+                  borderRadius: 999,
+                  background: bg,
+                  color,
+                  border: `0.5px solid ${color}`,
+                }}
+              >
+                {status === "ok" ? "✓ " : status === "error" ? "✗ " : ""}
+                {c.key}
+              </span>
+            );
+          })}
+        </div>
+
+        {launchError && (
+          <div
+            style={{
+              padding: 12,
+              borderRadius: 8,
+              background: "rgba(196,120,122,0.12)",
+              border: "0.5px solid rgba(196,120,122,0.4)",
+              color: "#C4787A",
+              fontSize: 12,
+              marginBottom: launchLog.length ? 10 : 0,
+              fontWeight: 600,
+            }}
+          >
+            {launchError}
+          </div>
+        )}
+
+        {launchLog.length > 0 && (
+          <div
+            style={{
+              background: "rgba(0,0,0,0.04)",
+              borderRadius: 8,
+              padding: 12,
+              maxHeight: 320,
+              overflowY: "auto",
+              fontSize: 12,
+              fontFamily: "ui-monospace, monospace",
+              lineHeight: 1.6,
+            }}
+          >
+            {launchLog.map((entry, i) => {
+              const icon = entry.status === "ok" ? "✓" : entry.status === "skip" ? "○" : "✗";
+              const color =
+                entry.status === "ok" ? "#6B9E6B" : entry.status === "skip" ? "#888" : "#C4787A";
+              return (
+                <div key={i} style={{ color, marginBottom: 2 }}>
+                  {icon} <strong>{entry.step}</strong>
+                  {entry.id && <span style={{ opacity: 0.7 }}> · id={entry.id}</span>}
+                  {entry.detail && <span style={{ opacity: 0.7 }}> · {entry.detail}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Hidden creative components for upload (offscreen) */}
+      <div style={{ position: "absolute", left: -10000, top: 0, pointerEvents: "none" }} aria-hidden>
+        {CREATIVE_KEYS.map((c) => {
+          const Comp = c.Component;
+          return (
+            <Comp
+              key={c.key}
+              ref={(el: HTMLDivElement | null) => {
+                hiddenRefs.current[c.key] = el;
+              }}
+            />
+          );
+        })}
       </div>
 
       {/* Resumo numérico */}

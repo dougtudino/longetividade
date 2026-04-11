@@ -122,6 +122,12 @@ const META_KEYS = [
     sensitive: false,
     defaultValue: "953736244279938",
   },
+  {
+    key: "META_PAGE_ID",
+    label: "Meta Page ID (Facebook Page)",
+    hint: "ID da Pagina do Facebook que vai veicular os anuncios. Necessario para Gaia criar ads automaticamente. Pegue em business.facebook.com → Pages → About",
+    sensitive: false,
+  },
 ] as const;
 
 const plans = [

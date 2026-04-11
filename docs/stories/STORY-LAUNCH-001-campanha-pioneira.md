@@ -3,7 +3,7 @@
 **Epic:** Lançamento de Tráfego Pago
 **Agente responsável:** @growth (Gaia) — desenho · Bárbara — execução manual no Meta Ads Manager
 **Prioridade:** P0
-**Status:** [x] Blueprint pronto (2026-04-11) · [ ] Execução pendente
+**Status:** [x] Blueprint pronto (2026-04-11) · [x] Launcher autônomo implementado (2026-04-11) · [ ] Execução pendente
 **Data criação:** 2026-04-11
 
 ---
@@ -288,6 +288,36 @@ Os UTMs são capturados pelo `UTMCapture` e persistidos no `Order` quando vier a
 | Budget queima sem retorno | Kill criteria automáticos; max R$1.050 em 7 dias |
 
 ---
+
+## Launcher Autônomo (implementado)
+
+A Gaia agora pode executar o blueprint inteiro via Marketing API sem clique
+manual no Meta Ads Manager. Comando: `*launch-campaign LAUNCH-001`.
+
+**Componentes:**
+- `src/lib/meta-launcher.ts` — wrapper Graph API v21.0 (idempotente por nome)
+- `src/lib/blueprints/launch-001.ts` — blueprint LAUNCH-001 como dados TS
+- `/api/admin/campaigns/upload-creative` — POST PNG → /act_/adimages → persiste hash
+- `/api/admin/campaigns/launch` — POST executa o blueprint, retorna log step-by-step
+- UI em `/admin/campanhas/launch-plan` — botões "Upload criativos" + "Launch"
+
+**Fluxo de execução:**
+1. Usuario clica "Upload criativos" — render html-to-image dos 6 components → POST cada PNG → Meta retorna hash → persistido em AppSetting `meta_creative_hash_<key>`
+2. (Opcional) "Dry-run" — só cria custom audiences, não toca em campanha
+3. Usuario clica "Launch campaign" — executa toda a estrutura PAUSED:
+   - 3 custom audiences (Compradores, PageView 7d/30d) via /customaudiences
+   - 1 campanha (OUTCOME_SALES, PAUSED) via /campaigns
+   - 3 ad sets cold (PAUSED) com promoted_object Pixel + Purchase via /adsets
+   - Para cada ad set: 2 ad creatives + 2 ads (PAUSED) — só se META_PAGE_ID configurado
+4. Log step-by-step retornado em tempo real
+5. Bárbara revisa no Meta Ads Manager e clica Activate quando confortável
+
+**Idempotência:** se a campanha já existe (mesmo nome), o launcher reusa o ID. Não cria duplicata.
+
+**Pré-requisitos:**
+- Token Meta com `ads_management` (já temos)
+- Pixel ID configurado (já temos)
+- META_PAGE_ID configurado (NOVO — campo em /admin/configuracoes#meta) — opcional, mas necessário para criar ads automaticamente
 
 ## Próximas stories que podem nascer dessa
 
