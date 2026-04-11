@@ -143,6 +143,20 @@ const STATEMENTS: Array<{ label: string; sql: string }> = [
     sql: `CREATE INDEX IF NOT EXISTS "AgentDecision_createdAt_idx" ON "AgentDecision"("createdAt")`,
   },
 
+  // ─── Order: novas colunas ────────────────────────────────
+  {
+    label: "Order.hotmartTransactionId column",
+    sql: `ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "hotmartTransactionId" TEXT`,
+  },
+  {
+    label: "Order.hotmartTransactionId unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "Order_hotmartTransactionId_key" ON "Order"("hotmartTransactionId")`,
+  },
+  {
+    label: "Order.syncedFromApiAt column",
+    sql: `ALTER TABLE "Order" ADD COLUMN IF NOT EXISTS "syncedFromApiAt" TIMESTAMP(3)`,
+  },
+
   // ─── Lead ────────────────────────────────────────────────
   {
     label: "Lead table",

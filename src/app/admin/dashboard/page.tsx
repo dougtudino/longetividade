@@ -682,12 +682,25 @@ const tdStyle: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
+type HotmartSyncResult = {
+  ok: boolean;
+  syncedAt?: string;
+  total?: number;
+  created?: number;
+  updated?: number;
+  skipped?: number;
+  errors?: string[];
+  error?: string;
+};
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendencias, setPendencias] = useState<ChecklistItem[] | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<HotmartSyncResult | null>(null);
 
-  useEffect(() => {
+  const loadStats = useCallback(() => {
     fetch("/api/admin/stats")
       .then((r) => {
         if (!r.ok) throw new Error("Falha ao carregar dados");
@@ -696,6 +709,31 @@ export default function AdminDashboard() {
       .then(setStats)
       .catch((e) => setError(e.message));
   }, []);
+
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  async function syncHotmart() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await fetch("/api/admin/sync-hotmart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ days: 30 }),
+      });
+      const data = (await res.json()) as HotmartSyncResult;
+      setSyncResult(data);
+      if (data.ok) {
+        loadStats(); // recarrega KPIs com dados atualizados
+      }
+    } catch (e) {
+      setSyncResult({ ok: false, error: (e as Error).message });
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const handleMayaContext = useCallback(
     (ctx: { pendencias: ChecklistItem[] }) => {
@@ -739,14 +777,20 @@ export default function AdminDashboard() {
           quickActions={[
             { label: "Chat Maya", description: "Pergunta sobre receita, vendas, VIP, pendências — ela tem contexto" },
             { label: "PendingChecklist", description: "Itens detectados automaticamente do estado real do sistema" },
-            { label: "KPIs", description: "Receita hoje/mês, vendas, conversão, abandonos — em tempo real" },
+            { label: "Sincronizar Hotmart", description: "Puxa vendas reais direto da Sales API (reconcilia webhook stale)" },
+            { label: "KPIs", description: "Receita hoje/mês, vendas, conversão — tudo vem de prisma.order" },
           ]}
         >
           <p>
-            Esta é a <strong>home operacional</strong> do admin. Maya aparece no canto
-            com contexto real do dia (receita/vendas/VIP) e você pode perguntar qualquer
-            coisa. As pendências à direita vêm auto-detectadas de <code>AppSetting</code>
-            + <code>Order</code> — conforme você resolve cada uma, some da lista sozinha.
+            Esta é a <strong>home operacional</strong> do admin. Os KPIs vêm de{" "}
+            <code>/api/admin/stats</code> que lê <code>prisma.order</code>. Orders são
+            criadas pelo webhook Hotmart em tempo real, mas o webhook pode falhar —
+            por isso o botão <strong>Sincronizar Hotmart</strong> reconcilia via Sales API.
+          </p>
+          <p>
+            <strong>Fluxo recomendado:</strong> webhook (realtime) + sync diário (verdade).
+            A sync compara hotmartTransactionId único, atualiza status (refund/chargeback/canceled)
+            e cria orders faltantes.
           </p>
           <p>
             <strong>Maya precisa de ANTHROPIC_API_KEY</strong> no Railway pra responder.
@@ -754,6 +798,66 @@ export default function AdminDashboard() {
             funcionam igual.
           </p>
         </PageHelp>
+
+        {/* Hotmart Sync */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(255,140,70,0.08), rgba(255,100,100,0.05))",
+            border: "0.5px solid rgba(255,140,70,0.35)",
+            borderRadius: 12,
+            padding: 16,
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>🔥</div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
+              Hotmart Sales API — reconciliar vendas reais
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+              Busca vendas dos últimos 30 dias direto da Hotmart e reconcilia com o DB local.
+              Complementa o webhook, que pode falhar silenciosamente.
+            </div>
+          </div>
+          <button
+            onClick={syncHotmart}
+            disabled={syncing}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 10,
+              background: syncing ? "var(--border-default)" : "#FF8C46",
+              color: "#fff",
+              border: "none",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: syncing ? "wait" : "pointer",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {syncing ? "Sincronizando..." : "↻ Sincronizar Hotmart"}
+          </button>
+          {syncResult && (
+            <div
+              style={{
+                flexBasis: "100%",
+                padding: 10,
+                borderRadius: 8,
+                background: syncResult.ok ? "rgba(107,158,107,0.12)" : "rgba(196,120,122,0.12)",
+                border: `0.5px solid ${syncResult.ok ? "rgba(107,158,107,0.4)" : "rgba(196,120,122,0.4)"}`,
+                color: syncResult.ok ? "#6B9E6B" : "#C4787A",
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              {syncResult.ok
+                ? `✓ OK — ${syncResult.total ?? 0} vendas processadas (${syncResult.created ?? 0} novas, ${syncResult.updated ?? 0} atualizadas, ${syncResult.skipped ?? 0} sem mudança)`
+                : `✗ Erro: ${syncResult.error}`}
+            </div>
+          )}
+        </div>
 
         <div
           className="maya-row"

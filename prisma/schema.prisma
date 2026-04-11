@@ -8,20 +8,22 @@ datasource db {
 }
 
 model Order {
-  id              String    @id @default(uuid())
-  email           String
-  name            String
-  phone           String?
-  plan            String    // "basico" | "completo" | "vip"
-  amount          Int       // em centavos
-  status          String    @default("pending") // pending | approved | rejected
-  mpPaymentId     String?   @unique
-  mpPreferenceId  String?   @unique
-  downloadToken   String?   @unique
-  downloadCount   Int       @default(0)
-  tokenExpiresAt  DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                    String    @id @default(uuid())
+  email                 String
+  name                  String
+  phone                 String?
+  plan                  String    // "basico" | "completo" | "vip"
+  amount                Int       // em centavos
+  status                String    @default("pending") // pending | approved | refunded | canceled | chargeback
+  mpPaymentId           String?   @unique
+  mpPreferenceId        String?   @unique
+  hotmartTransactionId  String?   @unique // ID Hotmart (HP...) — source of truth
+  downloadToken         String?   @unique
+  downloadCount         Int       @default(0)
+  tokenExpiresAt        DateTime?
+  syncedFromApiAt       DateTime? // quando foi reconciliada via Hotmart Sales API
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
   @@index([email])
   @@index([status])

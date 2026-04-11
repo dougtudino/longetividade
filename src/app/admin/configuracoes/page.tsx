@@ -97,6 +97,8 @@ const linkBtnStyle: React.CSSProperties = {
 
 const SETTINGS_KEYS = [
   { key: "HOTMART_WEBHOOK_SECRET", label: "Hotmart Webhook Secret (hottok)", hint: "Copie do painel Hotmart > Ferramentas > Webhooks", sensitive: true },
+  { key: "HOTMART_CLIENT_ID", label: "Hotmart Client ID (Sales API)", hint: "developers.hotmart.com → Minhas credenciais → Client ID", sensitive: false },
+  { key: "HOTMART_CLIENT_SECRET", label: "Hotmart Client Secret (Sales API)", hint: "developers.hotmart.com → Minhas credenciais → Client Secret", sensitive: true },
   { key: "HOTMART_OFFER_VIP", label: "Hotmart Offer ID — VIP", hint: "Codigo da oferta VIP (padrao: h84hak4e)" },
   { key: "HOTMART_OFFER_COMPLETO", label: "Hotmart Offer ID — Completo", hint: "Codigo da oferta Completo (padrao: uzvdkzkf)" },
   { key: "HOTMART_OFFER_BASICO", label: "Hotmart Offer ID — Basico", hint: "Codigo da oferta Basico (padrao: zxq5tgew)" },
