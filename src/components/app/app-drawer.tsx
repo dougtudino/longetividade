@@ -80,8 +80,12 @@ export function AppDrawer({ open, onClose }: DrawerProps) {
       : 0;
   const xpRemaining = level ? Math.max(0, level.nextLevelXp - level.xp) : 0;
 
-  function handleLogout() {
-    document.cookie = "app-session=; path=/; max-age=0";
+  async function handleLogout() {
+    try {
+      await fetch("/api/app/logout", { method: "POST" });
+    } catch {
+      /* mesmo se falhar, segue pro login */
+    }
     window.location.href = "/app/login";
   }
 

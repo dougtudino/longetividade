@@ -18,6 +18,14 @@ type Measurements = {
   hip: string;
 };
 
+type MeasurementLog = {
+  id: string;
+  waist: number | null;
+  hip: number | null;
+  note: string | null;
+  loggedAt: string;
+};
+
 export default function ProgressoPage() {
   const [logs, setLogs] = useState<WeightLog[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -27,20 +35,37 @@ export default function ProgressoPage() {
   const [measurements, setMeasurements] = useState<Measurements>({ waist: "", hip: "" });
   const [savingMeasures, setSavingMeasures] = useState(false);
   const [measureSaved, setMeasureSaved] = useState(false);
+  const [measureLogs, setMeasureLogs] = useState<MeasurementLog[]>([]);
 
   useEffect(() => {
     fetch("/api/app/weight").then((r) => r.json()).then((d) => setLogs(d.logs ?? []));
     fetch("/api/app/profile").then((r) => r.json()).then((d) => setProfile(d.profile));
 
-    // Load measurements from localStorage
-    const saved = localStorage.getItem("body_measurements");
-    if (saved) {
-      try {
-        setMeasurements(JSON.parse(saved));
-      } catch {
-        // ignore
-      }
-    }
+    // Carrega medidas do banco (não mais localStorage)
+    fetch("/api/app/measurements")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.ok) {
+          setMeasureLogs(d.measurements ?? []);
+          if (d.latest) {
+            setMeasurements({
+              waist: d.latest.waist != null ? String(d.latest.waist) : "",
+              hip: d.latest.hip != null ? String(d.latest.hip) : "",
+            });
+          }
+        }
+      })
+      .catch(() => {
+        // Fallback: tenta localStorage (migração pra usuários existentes)
+        const saved = localStorage.getItem("body_measurements");
+        if (saved) {
+          try {
+            setMeasurements(JSON.parse(saved));
+          } catch {
+            /* ignore */
+          }
+        }
+      });
   }, []);
 
   async function saveWeight() {
@@ -58,12 +83,37 @@ export default function ProgressoPage() {
     setSaving(false);
   }
 
-  function saveMeasurements() {
+  async function saveMeasurements() {
     setSavingMeasures(true);
-    localStorage.setItem("body_measurements", JSON.stringify(measurements));
-    setSavingMeasures(false);
-    setMeasureSaved(true);
-    setTimeout(() => setMeasureSaved(false), 2000);
+    const payload: { waist?: number; hip?: number } = {};
+    const waistNum = parseFloat(measurements.waist);
+    const hipNum = parseFloat(measurements.hip);
+    if (!isNaN(waistNum)) payload.waist = waistNum;
+    if (!isNaN(hipNum)) payload.hip = hipNum;
+
+    try {
+      const res = await fetch("/api/app/measurements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.ok && data.measurement) {
+        setMeasureLogs((prev) => [...prev, data.measurement]);
+        // Remove do localStorage se estava lá (cleanup da migração)
+        try {
+          localStorage.removeItem("body_measurements");
+        } catch {
+          /* ignore */
+        }
+        setMeasureSaved(true);
+        setTimeout(() => setMeasureSaved(false), 2000);
+      }
+    } catch {
+      /* silent */
+    } finally {
+      setSavingMeasures(false);
+    }
   }
 
   const startWeight = profile?.currentWeight ?? (logs.length > 0 ? logs[0].weight : null);
