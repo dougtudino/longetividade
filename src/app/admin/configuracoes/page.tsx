@@ -110,9 +110,9 @@ const META_KEYS = [
     defaultValue: "837047967961012",
   },
   {
-    key: "META_ADS_ACCESS_TOKEN",
-    label: "Meta Ads Access Token",
-    hint: "Token Graph API com permissao read_insights. Gere em developers.facebook.com/tools/explorer",
+    key: "META_ACCESS_TOKEN",
+    label: "Meta Access Token",
+    hint: "Token Graph API com ads_read + ads_management + read_insights. Compartilhado entre Marketing API, Pixel e CAPI. Gere em developers.facebook.com/tools/explorer ou via Marketing API page",
     sensitive: true,
   },
   {
@@ -179,6 +179,13 @@ export default function ConfiguracoesPage() {
       .then(async (data: Record<string, string>) => {
         const next = { ...data };
         const toPersist: Record<string, string> = {};
+
+        // Migracao silenciosa: META_ADS_ACCESS_TOKEN (legado) -> META_ACCESS_TOKEN (canonico)
+        if (!next.META_ACCESS_TOKEN && next.META_ADS_ACCESS_TOKEN) {
+          next.META_ACCESS_TOKEN = next.META_ADS_ACCESS_TOKEN;
+          toPersist.META_ACCESS_TOKEN = next.META_ADS_ACCESS_TOKEN;
+        }
+
         for (const m of META_KEYS) {
           if (!next[m.key] && "defaultValue" in m && m.defaultValue) {
             next[m.key] = m.defaultValue;

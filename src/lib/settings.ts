@@ -34,3 +34,15 @@ export function clearSettingsCache(key?: string): void {
     cache.clear();
   }
 }
+
+// Helper para vars que mudaram de nome — le da chave canonica primeiro,
+// fallback para a chave antiga. Usado por META_ACCESS_TOKEN (canonico)
+// que tem fallback META_ADS_ACCESS_TOKEN (legado, ja salvo em prod).
+export async function getSettingWithFallback(
+  canonicalKey: string,
+  fallbackKey: string
+): Promise<string> {
+  const canonical = await getSetting(canonicalKey);
+  if (canonical) return canonical;
+  return getSetting(fallbackKey);
+}

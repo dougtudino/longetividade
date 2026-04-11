@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSetting } from "@/lib/settings";
+import { getSetting, getSettingWithFallback } from "@/lib/settings";
 
 const GRAPH_VERSION = "v21.0";
 
@@ -60,7 +60,8 @@ function accountStatusLabel(s: number): string {
 }
 
 export async function GET() {
-  const token = await getSetting("META_ADS_ACCESS_TOKEN");
+  // Canonico META_ACCESS_TOKEN, fallback para META_ADS_ACCESS_TOKEN legado
+  const token = await getSettingWithFallback("META_ACCESS_TOKEN", "META_ADS_ACCESS_TOKEN");
   const rawId = await getSetting("META_ADS_ACCOUNT_ID");
 
   if (!token) {
