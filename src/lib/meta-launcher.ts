@@ -81,11 +81,29 @@ export async function getLauncherCreds(): Promise<LauncherCreds | null> {
 // HTTP helper
 // ─────────────────────────────────────────────────────────────────────
 
+// Tipo do erro Meta enriquecido — error_user_msg traz a mensagem
+// humanizada que a Meta exibe na UI (muito mais util que message generico)
+type GraphError = {
+  message: string;
+  code?: number;
+  type?: string;
+  error_subcode?: number;
+  error_user_title?: string;
+  error_user_msg?: string;
+};
+
+// Extrai a melhor mensagem de erro disponivel
+function extractErrorMessage(err: GraphError): string {
+  if (err.error_user_msg) return err.error_user_msg;
+  if (err.error_user_title) return err.error_user_title;
+  return err.message;
+}
+
 async function postGraph<T>(
   path: string,
   token: string,
   body: Record<string, unknown>
-): Promise<T | { error: { message: string; code?: number; type?: string } }> {
+): Promise<T | { error: GraphError }> {
   const params = new URLSearchParams();
   params.set("access_token", token);
   for (const [k, v] of Object.entries(body)) {
@@ -101,22 +119,20 @@ async function postGraph<T>(
     body: params,
     cache: "no-store",
   });
-  return (await res.json()) as T | { error: { message: string; code?: number; type?: string } };
+  return (await res.json()) as T | { error: GraphError };
 }
 
 async function getGraph<T>(
   path: string,
   token: string,
   query: Record<string, string> = {}
-): Promise<T | { error: { message: string; code?: number } }> {
+): Promise<T | { error: GraphError }> {
   const params = new URLSearchParams({ access_token: token, ...query });
   const res = await fetch(`${BASE}/${path}?${params}`, { cache: "no-store" });
-  return (await res.json()) as T | { error: { message: string; code?: number } };
+  return (await res.json()) as T | { error: GraphError };
 }
 
-function isError(
-  data: unknown
-): data is { error: { message: string; code?: number; type?: string } } {
+function isError(data: unknown): data is { error: GraphError } {
   return typeof data === "object" && data !== null && "error" in data;
 }
 
@@ -127,7 +143,7 @@ function isError(
 type ListResponse = { data: Array<{ id: string; name: string }> };
 
 function findInList(
-  data: ListResponse | { error: { message: string } },
+  data: ListResponse | { error: GraphError },
   name: string
 ): string | null {
   if ("error" in data) return null;
@@ -275,7 +291,9 @@ export async function createWebsiteCustomAudience(
     return {
       ok: false,
       step: "createWebsiteCustomAudience",
-      error: isError(data) ? data.error.message : "Sem ID retornado",
+      error: isError(data)
+        ? `${extractErrorMessage(data.error)} (token pode precisar de business_management ou app com Advanced Access)`
+        : "Sem ID retornado",
       raw: data,
     };
   }
@@ -304,6 +322,9 @@ export async function createCampaign(
       status,
       special_ad_categories: [],
       buying_type: "AUCTION",
+      // Obrigatorio quando CBO esta off (Meta exigencia 2024+)
+      // false = budget definido por ad set, sem compartilhamento
+      is_adset_budget_sharing_enabled: false,
     }
   );
 
@@ -311,7 +332,7 @@ export async function createCampaign(
     return {
       ok: false,
       step: "createCampaign",
-      error: isError(data) ? data.error.message : "Sem ID retornado",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
       raw: data,
     };
   }
@@ -357,7 +378,7 @@ export async function createAdSet(
     return {
       ok: false,
       step: `createAdSet(${spec.name})`,
-      error: isError(data) ? data.error.message : "Sem ID retornado",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
       raw: data,
     };
   }
@@ -406,7 +427,7 @@ export async function createAdCreative(
     return {
       ok: false,
       step: "createAdCreative",
-      error: isError(data) ? data.error.message : "Sem ID retornado",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
       raw: data,
     };
   }
@@ -435,7 +456,7 @@ export async function createAd(
     return {
       ok: false,
       step: `createAd(${name})`,
-      error: isError(data) ? data.error.message : "Sem ID retornado",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
       raw: data,
     };
   }
