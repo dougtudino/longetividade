@@ -46,6 +46,8 @@ export default function CriativosPage() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [seeding, setSeeding] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const [needsMigration, setNeedsMigration] = useState(false);
 
   // Download / creation UI state
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -63,13 +65,43 @@ export default function CriativosPage() {
       const raw = await res.text();
       const data = raw ? JSON.parse(raw) : { collections: [] };
       setCollections(data.collections ?? []);
-      if (data.warning) setError(data.warning);
+      if (data.warning) {
+        setError(data.warning);
+        if (data.warning.includes("does not exist") || data.warning.includes("nao existe")) {
+          setNeedsMigration(true);
+        }
+      } else {
+        setNeedsMigration(false);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setLoadingList(false);
     }
   }, []);
+
+  async function runMigration() {
+    setMigrating(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/migrate/schema", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setNeedsMigration(false);
+        await loadCollections();
+      } else {
+        const failed = (data.results ?? [])
+          .filter((r: { ok: boolean }) => !r.ok)
+          .map((r: { label: string; error?: string }) => `${r.label}: ${r.error}`)
+          .join(" · ");
+        setError(`Migration falhou: ${failed || "erro desconhecido"}`);
+      }
+    } catch (e) {
+      setError(`Migration falhou: ${(e as Error).message}`);
+    } finally {
+      setMigrating(false);
+    }
+  }
 
   const loadCollectionDetail = useCallback(async (slug: string) => {
     setLoadingDetail(true);
@@ -292,7 +324,26 @@ export default function CriativosPage() {
             marginBottom: 18,
           }}
         >
-          {error}
+          <div style={{ marginBottom: needsMigration ? 10 : 0 }}>{error}</div>
+          {needsMigration && (
+            <button
+              onClick={runMigration}
+              disabled={migrating}
+              style={{
+                padding: "8px 14px",
+                borderRadius: 8,
+                background: "#C4787A",
+                color: "#fff",
+                border: "none",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: migrating ? "wait" : "pointer",
+                opacity: migrating ? 0.6 : 1,
+              }}
+            >
+              {migrating ? "Aplicando schema..." : "⚡ Aplicar schema agora"}
+            </button>
+          )}
         </div>
       )}
     </>
