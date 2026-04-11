@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import PageHelp from "@/components/admin/PageHelp";
 
 type Decision = {
   id: string;
@@ -225,6 +226,45 @@ export default function GaiaControlPage() {
         Paid media operator autonoma. Analisa campanhas Meta, propoe acoes (kill/scale/budget),
         executa via Marketing API apos aprovacao humana. Filosofia: <em>start small, test aggressive, scale what works</em>.
       </p>
+
+      <PageHelp
+        pageId="agents-gaia"
+        agent={{ icon: "🌱", name: "Gaia", role: "Paid Media Operator" }}
+        title="Painel de controle da operação de mídia paga"
+        quickActions={[
+          { label: "*review", description: "Analisa 7 dias de campanhas e cria propostas de ação (kill/scale/budget)" },
+          { label: "*review --dry-run", description: "Só analisa, não cria decisões — útil pra validar sem comprometer" },
+          { label: "*seed-knowledge", description: "Popula a base inicial da Gaia (13 entries: regras, benchmarks, policy)" },
+          { label: "Approve + Execute", description: "Aprova a decisão e executa via Marketing API em 1 clique" },
+          { label: "Só aprovar", description: "Aprova mas deixa a execução pra depois (fluxo mais cauteloso)" },
+          { label: "Rejeitar", description: "Descarta a proposta — fica no histórico com o motivo" },
+        ]}
+      >
+        <p>
+          A Gaia é a operadora de mídia paga do Longetividade. Ela não cria criativos
+          (isso é a Uma) nem implementa código (isso é o Dex) — o foco dela é decidir
+          <strong> o que fazer com as campanhas rodando</strong>: matar losers, escalar
+          vencedores, ajustar budget.
+        </p>
+        <p>
+          <strong>Fluxo típico:</strong> você clica <code>*review</code> → Gaia consulta
+          os insights Meta dos últimos 7 dias → aplica as regras kill/scale (ex: mata
+          ad sets com CTR {"<"} 0.8% após 5k impressões) → cria decisões em
+          <code> status=proposed</code>. Você revisa cada uma e aprova/rejeita. Decisões
+          aprovadas viram chamadas reais à Marketing API.
+        </p>
+        <p>
+          <strong>Tudo reversível:</strong> pause pode virar unpause, duplicate pode ser
+          deletado, budget pode voltar. A Gaia nunca faz nada sem seu OK — exceto no
+          autopilot mode (futuro, ainda não implementado).
+        </p>
+        <p>
+          <strong>Knowledge base:</strong> a base de conhecimento é o que torna a Gaia
+          inteligente. Ela lê as regras da base pra tomar decisões. Você pode adicionar
+          entries novas via API ou pedir pra mim via chat. Quando o conhecimento crescer,
+          a Gaia fica mais precisa.
+        </p>
+      </PageHelp>
 
       {error && (
         <div

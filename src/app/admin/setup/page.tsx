@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
+import PageHelp from "@/components/admin/PageHelp";
 
 type ChecklistItem = {
   id: string;
@@ -304,6 +305,30 @@ export default function SetupPage() {
       <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 8px 0" }}>
         Setup da Barbara
       </h1>
+
+      <PageHelp
+        pageId="setup"
+        agent={{ icon: "📋", name: "Maya", role: "Auto-detectado" }}
+        title="Checklist completo de setup da operação"
+        quickActions={[
+          { label: "Expandir item", description: "Abre instruções detalhadas com links externos" },
+          { label: "Marcar como feito", description: "Apenas email_pro — os outros auto-detectam" },
+          { label: "Enviar relatório agora", description: "Dispara Maya daily report via Brevo pros admins imediatamente" },
+          { label: "Preview relatório", description: "Abre HTML do email numa aba nova (sem enviar)" },
+        ]}
+      >
+        <p>
+          Cobre todos os itens pra Barbara operar o Longetividade com autonomia: email
+          profissional, Brevo, BM Meta, Pixel, Token, compra teste. <strong>5 dos 6 itens
+          auto-detectam</strong> baseado em estado real do sistema — só o email precisa
+          marcação manual (porque o DNS pode estar propagando).
+        </p>
+        <p>
+          No topo tem a ação <strong>Gaia daily report</strong>: testa o email diário da
+          Maya sem esperar o cron rodar. Útil pra validar que Brevo + sender estão
+          funcionando.
+        </p>
+      </PageHelp>
       <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 24px 0", lineHeight: 1.5 }}>
         Configuracao completa para a Barbara operar o Longetividade de forma autonoma.
         Cada item e detectado automaticamente pelo sistema — quando voce conectar

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import PageHelp from "@/components/admin/PageHelp";
 import CreativeFeedDor from "@/components/creatives/creative-feed-dor";
 import CreativeFeedProva from "@/components/creatives/creative-feed-prova";
 import CreativeFeedObjecao from "@/components/creatives/creative-feed-objecao";
@@ -507,6 +508,34 @@ export default function LaunchPlanPage() {
           Launch Plan
         </span>
       </div>
+
+      <PageHelp
+        pageId="campanhas-launch-plan"
+        agent={{ icon: "🌱", name: "Gaia", role: "Paid Media Operator" }}
+        title="Blueprint + launcher autônomo da primeira campanha"
+        quickActions={[
+          { label: "1. Upload criativos pra Meta", description: "Renderiza os 6 criativos offscreen via html-to-image e faz upload pra Meta /adimages" },
+          { label: "2. Launch campaign (PAUSED)", description: "Cria campanha + 3 ad sets + 6 creatives + 6 ads via Marketing API. Tudo PAUSED." },
+          { label: "Dry-run", description: "Só simula, não cria nada. Útil pra validar sem comprometer." },
+          { label: "Copiar copy", description: "Cada copy tem botão Copiar — usa no Meta Ads Manager se precisar colar manual" },
+        ]}
+      >
+        <p>
+          Esta página executa o <strong>LAUNCH-001</strong>, o blueprint da primeira
+          campanha do Longetividade. Filosofia Gaia: <em>start small, test aggressive</em>.
+          R$ 90/dia × 3 ad sets cold × 5 criativos rotation.
+        </p>
+        <p>
+          O launcher é <strong>idempotente</strong>: você pode clicar várias vezes sem
+          duplicar nada. Se um recurso já existe (mesmo nome), ele é reusado. Ótimo
+          quando um retry é necessário depois de corrigir algum problema.
+        </p>
+        <p>
+          <strong>Tudo fica PAUSED</strong> após o launch. Você revisa tudo no Meta Ads
+          Manager, e só ativa quando estiver confortável. Risco zero de queimar budget
+          acidental.
+        </p>
+      </PageHelp>
 
       {/* Header */}
       <div style={{ marginBottom: 24 }}>

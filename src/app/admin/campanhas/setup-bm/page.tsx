@@ -6,6 +6,7 @@ import SetupChecklist, {
   type ChecklistStep,
   type StepStatus,
 } from "@/components/admin/setup-checklist";
+import PageHelp from "@/components/admin/PageHelp";
 
 const STEP_KEYS = [
   "barbara_bm_setup_step_1",
@@ -289,6 +290,28 @@ export default function SetupBMPage() {
           Launch Plan 🌱
         </Link>
       </div>
+
+      <PageHelp
+        pageId="campanhas-setup-bm"
+        agent={{ icon: "🏢", name: "Barbara (exec)", role: "Setup manual do Meta BM" }}
+        title="Checklist 6 passos pra configurar a BM do Meta"
+        quickActions={[
+          { label: "Expandir passo", description: "Abre instruções detalhadas com links diretos" },
+          { label: "Testar Conexão", description: "Chama /api/admin/test-meta-connection — valida token + account ID + pixel" },
+          { label: "Auto-detecção", description: "Steps 1-5 auto-marcam quando o sistema detecta as settings configuradas" },
+        ]}
+      >
+        <p>
+          Checklist guiado pra <strong>Barbara criar a BM dedicada</strong> ao Longetividade
+          no Meta for Business. Cada passo tem instruções detalhadas, link externo pro
+          painel certo do Meta, e persiste status em <code>AppSetting</code>.
+        </p>
+        <p>
+          <strong>Auto-detecção:</strong> quando uma setting é salva (ex: META_ACCESS_TOKEN),
+          o passo correspondente marca como feito automaticamente. Você não precisa clicar
+          manualmente — só o step 6 (&ldquo;Testar conexão&rdquo;) exige ação manual.
+        </p>
+      </PageHelp>
 
       <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 8px 0" }}>
         Setup Business Manager

@@ -1,6 +1,8 @@
 "use client";
 
 import { useRef, useState, type RefObject, type ComponentType, type ForwardRefExoticComponent, type RefAttributes } from "react";
+import Link from "next/link";
+import PageHelp from "@/components/admin/PageHelp";
 import CreativeFeedDor from "@/components/creatives/creative-feed-dor";
 import CreativeFeedProva from "@/components/creatives/creative-feed-prova";
 import CreativeFeedObjecao from "@/components/creatives/creative-feed-objecao";
@@ -106,6 +108,36 @@ export default function CriativosPage() {
         dimensoes pixel-perfect e exportado em PNG. Briefing: @ux-design-expert Uma
         (council 2026-04-11).
       </p>
+
+      <PageHelp
+        pageId="criativos"
+        agent={{ icon: "🎨", name: "Uma", role: "UX Designer / Criativos" }}
+        title="6 criativos React renderizados pixel-perfect"
+        quickActions={[
+          { label: "Baixar PNG individual", description: "Gera PNG do criativo específico via html-to-image" },
+          { label: "Baixar todos", description: "Baixa os 6 em sequência (um por vez, ~3s cada)" },
+        ]}
+      >
+        <p>
+          Os criativos são <strong>componentes React</strong> em{" "}
+          <code>src/components/creatives/</code>. Cada um é SVG/HTML puro com paleta da
+          marca (verde-oliva) e renderizado offscreen, depois capturado via{" "}
+          <code>html-to-image</code> pra virar PNG. Resolução nativa mantida
+          (1080×1080, 1080×1920, 1200×628).
+        </p>
+        <p>
+          <strong>Meta Ad Policy compliance:</strong> as copies foram reescritas pela Uma
+          (conselho 2026-04-11) removendo triggers como números de peso (&ldquo;-4kg&rdquo;),
+          timeframes (&ldquo;30 dias&rdquo;) e quick-fix language. Foco: método, relação
+          com a comida, experiência emocional.
+        </p>
+        <p>
+          <strong>Pra mudar copy ou paleta:</strong> edita o componente em{" "}
+          <code>src/components/creatives/creative-*.tsx</code>. Você também tem o launcher
+          automatizado em <Link href="/admin/campanhas/launch-plan" style={{ color: "var(--accent)" }}>/admin/campanhas/launch-plan</Link>{" "}
+          que faz upload direto pro Meta sem precisar baixar PNG manualmente.
+        </p>
+      </PageHelp>
 
       {error && (
         <div

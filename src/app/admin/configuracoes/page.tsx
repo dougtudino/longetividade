@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import PageHelp from "@/components/admin/PageHelp";
 
 const cardStyle: React.CSSProperties = {
   background: "var(--bg-card)",
@@ -265,6 +266,29 @@ export default function ConfiguracoesPage() {
       <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
         Configuracoes
       </h1>
+
+      <PageHelp
+        pageId="configuracoes"
+        agent={{ icon: "⚙️", name: "Doug/Bárbara", role: "Admin setup" }}
+        title="Credenciais e configurações de integrações"
+        quickActions={[
+          { label: "Salvar", description: "Persiste valores no AppSetting. Trim automático + cache invalidation" },
+          { label: "Testar Conexão (Meta)", description: "Valida META_ACCESS_TOKEN + account ID contra Graph API" },
+          { label: "Testar Conexão (Brevo)", description: "Valida BREVO_API_KEY chamando /v3/account" },
+        ]}
+      >
+        <p>
+          Todas as integrações externas (Hotmart, Meta, Brevo) ficam aqui. Valores salvos
+          vão pra tabela <code>AppSetting</code> no banco — podem ser lidos por qualquer
+          endpoint via <code>getSetting()</code> sem redeploy.
+        </p>
+        <p>
+          <strong>Token Meta:</strong> o nome canônico é <code>META_ACCESS_TOKEN</code>.
+          Prioridade: env Railway primeiro (System User token não expira), AppSetting como
+          fallback. Use <code>META_ACCESS_TOKEN</code> pra Marketing API, Pixel e CAPI
+          (futuro).
+        </p>
+      </PageHelp>
 
       {/* 1. Webhook Hotmart */}
       <div style={cardStyle}>

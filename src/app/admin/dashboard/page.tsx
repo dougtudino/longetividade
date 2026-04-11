@@ -5,6 +5,7 @@ import MayaChat from "@/components/admin/maya-chat";
 import PendingChecklist, {
   type ChecklistItem,
 } from "@/components/admin/pending-checklist";
+import PageHelp from "@/components/admin/PageHelp";
 
 interface PlanStats {
   count: number;
@@ -731,6 +732,29 @@ export default function AdminDashboard() {
       `}</style>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <PageHelp
+          pageId="dashboard"
+          agent={{ icon: "🧠", name: "Maya", role: "Business Assistant" }}
+          title="Visão geral do negócio + chat com a Maya"
+          quickActions={[
+            { label: "Chat Maya", description: "Pergunta sobre receita, vendas, VIP, pendências — ela tem contexto" },
+            { label: "PendingChecklist", description: "Itens detectados automaticamente do estado real do sistema" },
+            { label: "KPIs", description: "Receita hoje/mês, vendas, conversão, abandonos — em tempo real" },
+          ]}
+        >
+          <p>
+            Esta é a <strong>home operacional</strong> do admin. Maya aparece no canto
+            com contexto real do dia (receita/vendas/VIP) e você pode perguntar qualquer
+            coisa. As pendências à direita vêm auto-detectadas de <code>AppSetting</code>
+            + <code>Order</code> — conforme você resolve cada uma, some da lista sozinha.
+          </p>
+          <p>
+            <strong>Maya precisa de ANTHROPIC_API_KEY</strong> no Railway pra responder.
+            Se não estiver configurado, ela responde &ldquo;offline&rdquo; — os KPIs
+            funcionam igual.
+          </p>
+        </PageHelp>
+
         <div
           className="maya-row"
           style={{
