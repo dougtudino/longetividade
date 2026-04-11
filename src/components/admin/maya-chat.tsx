@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
+/* eslint-disable react-hooks/exhaustive-deps */
+
 type ChatMessage = { role: "user" | "assistant"; content: string };
 
 type ChecklistItem = {
@@ -30,13 +32,17 @@ export default function MayaChat({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [initialized, setInitialized] = useState(false);
+  const initializedRef = useRef(false);
+  const onContextLoadedRef = useRef(onContextLoaded);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (initialized) return;
-    setInitialized(true);
-    let cancelled = false;
+    onContextLoadedRef.current = onContextLoaded;
+  }, [onContextLoaded]);
+
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
     (async () => {
       setLoading(true);
@@ -44,7 +50,7 @@ export default function MayaChat({
         const ctxRes = await fetch("/api/admin/maya/context");
         if (ctxRes.ok) {
           const ctx = (await ctxRes.json()) as MayaContext;
-          if (!cancelled && onContextLoaded) onContextLoaded(ctx);
+          onContextLoadedRef.current?.(ctx);
         }
 
         const initRes = await fetch("/api/admin/maya", {
@@ -53,14 +59,14 @@ export default function MayaChat({
           body: JSON.stringify({ message: "__init__" }),
         });
 
-        if (!cancelled && initRes.ok) {
+        if (initRes.ok) {
           const data = (await initRes.json()) as {
             reply: string;
             context: MayaContext;
           };
-          if (onContextLoaded) onContextLoaded(data.context);
+          onContextLoadedRef.current?.(data.context);
           setMessages([{ role: "assistant", content: data.reply }]);
-        } else if (!cancelled) {
+        } else {
           setMessages([
             {
               role: "assistant",
@@ -70,23 +76,17 @@ export default function MayaChat({
           ]);
         }
       } catch {
-        if (!cancelled) {
-          setMessages([
-            {
-              role: "assistant",
-              content: "Oi! Estou com dificuldade de me conectar. Tente recarregar.",
-            },
-          ]);
-        }
+        setMessages([
+          {
+            role: "assistant",
+            content: "Oi! Estou com dificuldade de me conectar. Tente recarregar.",
+          },
+        ]);
       } finally {
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [initialized, onContextLoaded]);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
