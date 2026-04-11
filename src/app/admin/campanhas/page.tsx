@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import SugestaoDoDia from "@/components/admin/sugestao-do-dia";
+import type { AggregatedInsights } from "@/lib/meta-ads";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -135,6 +137,21 @@ const inputStyle: React.CSSProperties = {
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
+type MetaInsightsResponse = {
+  ok: boolean;
+  preset: string;
+  account?: AggregatedInsights;
+  error?: string;
+};
+
+type Preset = "today" | "yesterday" | "last_7d" | "last_30d";
+const PRESET_LABEL: Record<Preset, string> = {
+  today: "Hoje",
+  yesterday: "Ontem",
+  last_7d: "7 dias",
+  last_30d: "30 dias",
+};
+
 export default function CampanhasPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -142,6 +159,14 @@ export default function CampanhasPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<CampaignForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+
+  // Meta Ads insights state
+  const [preset, setPreset] = useState<Preset>("last_7d");
+  const [insights, setInsights] = useState<AggregatedInsights | null>(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     try {
@@ -157,9 +182,51 @@ export default function CampanhasPage() {
     }
   }, []);
 
+  const fetchInsights = useCallback(async (p: Preset) => {
+    setInsightsLoading(true);
+    setInsightsError(null);
+    try {
+      const res = await fetch(`/api/admin/meta-insights?preset=${p}`, { cache: "no-store" });
+      const data = (await res.json()) as MetaInsightsResponse;
+      if (data.ok && data.account) {
+        setInsights(data.account);
+      } else {
+        setInsights(null);
+        setInsightsError(data.error ?? "Falha ao carregar metricas");
+      }
+    } catch (e) {
+      setInsightsError((e as Error).message);
+    } finally {
+      setInsightsLoading(false);
+    }
+  }, []);
+
+  async function syncNow() {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/admin/sync-meta-ads", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setLastSync(new Date().toLocaleTimeString("pt-BR"));
+        await fetchInsights(preset);
+        await fetchCampaigns();
+      } else {
+        setInsightsError(data.error ?? "Falha na sincronizacao");
+      }
+    } catch (e) {
+      setInsightsError((e as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   useEffect(() => {
     fetchCampaigns();
   }, [fetchCampaigns]);
+
+  useEffect(() => {
+    fetchInsights(preset);
+  }, [preset, fetchInsights]);
 
   /* ---------- modal helpers ---------- */
   function openNew() {
@@ -287,6 +354,151 @@ export default function CampanhasPage() {
         <button style={btnPrimary} onClick={openNew}>
           + Nova Campanha
         </button>
+      </div>
+
+      {/* Meta Ads insights block */}
+      <div style={{ ...cardStyle, marginBottom: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 14,
+            flexWrap: "wrap",
+            gap: 8,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Meta Ads · CA01- BM Barbara
+            </div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 2 }}>
+              {lastSync ? `Sincronizado as ${lastSync}` : "Dados ao vivo (cache 60s)"}
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {(["today", "yesterday", "last_7d", "last_30d"] as Preset[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPreset(p)}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  border: "0.5px solid var(--border-default)",
+                  background: preset === p ? "var(--accent)" : "var(--bg-secondary)",
+                  color: preset === p ? "#fff" : "var(--text-secondary)",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                {PRESET_LABEL[p]}
+              </button>
+            ))}
+            <button
+              onClick={syncNow}
+              disabled={syncing}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "0.5px solid var(--border-default)",
+                background: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: syncing ? "wait" : "pointer",
+                opacity: syncing ? 0.6 : 1,
+              }}
+            >
+              {syncing ? "Sincronizando..." : "↻ Sincronizar"}
+            </button>
+          </div>
+        </div>
+
+        {insightsLoading && !insights && (
+          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Carregando metricas...</div>
+        )}
+
+        {insightsError && (
+          <div
+            style={{
+              padding: 12,
+              borderRadius: 8,
+              background: "rgba(196, 120, 122, 0.1)",
+              border: "0.5px solid rgba(196, 120, 122, 0.3)",
+              color: "#C4787A",
+              fontSize: 13,
+            }}
+          >
+            <strong>Erro:</strong> {insightsError}
+            {insightsError.includes("nao configuradas") && (
+              <>
+                {" "}
+                <Link href="/admin/configuracoes#meta" style={{ color: "var(--accent)" }}>
+                  Configurar agora
+                </Link>
+              </>
+            )}
+          </div>
+        )}
+
+        {insights && (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {[
+              { label: "Gasto", value: fmtMoney(insights.spend) },
+              { label: "Impressoes", value: fmtNum(insights.impressions) },
+              { label: "Cliques", value: fmtNum(insights.clicks) },
+              { label: "CTR", value: `${insights.ctr.toFixed(2)}%` },
+              { label: "CPM", value: fmtMoney(insights.cpm) },
+              { label: "Compras", value: insights.purchases.toFixed(0) },
+              { label: "Receita", value: fmtMoney(insights.purchaseValue) },
+              {
+                label: "ROAS",
+                value: `${insights.roas.toFixed(2)}x`,
+                color: insights.roas >= 1 ? "#6B9E6B" : insights.spend > 0 ? "#C4787A" : "var(--text-primary)",
+              },
+            ].map((m) => (
+              <div
+                key={m.label}
+                style={{
+                  padding: 12,
+                  background: "var(--bg-secondary)",
+                  borderRadius: 8,
+                  border: "0.5px solid var(--border-subtle)",
+                }}
+              >
+                <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>
+                  {m.label}
+                </div>
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 700,
+                    color: m.color ?? "var(--text-primary)",
+                    marginTop: 4,
+                  }}
+                >
+                  {m.value}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Sugestao do dia */}
+      <div style={{ marginBottom: 24 }}>
+        <SugestaoDoDia
+          account={insights}
+          loading={insightsLoading && !insights}
+          error={insightsError}
+        />
       </div>
 
       {/* Campaign cards */}

@@ -40,19 +40,21 @@ model AbandonedCheckout {
 }
 
 model Campaign {
-  id        String    @id @default(uuid())
-  name      String
-  platform  String    // "meta" | "google" | "organic" | "email"
-  objective String    // "conversao" | "trafego" | "awareness"
-  status    String    @default("active") // active | paused | finished
-  budget    Float     // orçamento diário R$
-  startDate DateTime
-  endDate   DateTime?
-  notes     String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id              String    @id @default(uuid())
+  name            String
+  platform        String    // "meta" | "google" | "organic" | "email"
+  objective       String    // "conversao" | "trafego" | "awareness"
+  status          String    @default("active") // active | paused | finished
+  budget          Float     // orçamento diário R$
+  startDate       DateTime
+  endDate         DateTime?
+  notes           String?
+  metaCampaignId  String?   @unique // ID da campanha no Meta (act_xxx/campaigns)
+  lastSyncedAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  metrics   CampaignMetric[]
+  metrics         CampaignMetric[]
 }
 
 model CampaignMetric {
