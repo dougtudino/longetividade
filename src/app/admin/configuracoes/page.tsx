@@ -118,8 +118,9 @@ const META_KEYS = [
   {
     key: "NEXT_PUBLIC_META_PIXEL_ID",
     label: "Meta Pixel ID",
-    hint: "ID do pixel criado dentro da BM da Barbara",
+    hint: "ID do dataset 'Dados de Longetividade' (criado em 2026-04-11)",
     sensitive: false,
+    defaultValue: "953736244279938",
   },
 ] as const;
 
@@ -158,14 +159,29 @@ export default function ConfiguracoesPage() {
   useEffect(() => {
     fetch("/api/admin/settings")
       .then((r) => r.json())
-      .then((data: Record<string, string>) => {
+      .then(async (data: Record<string, string>) => {
         const next = { ...data };
+        const toPersist: Record<string, string> = {};
         for (const m of META_KEYS) {
           if (!next[m.key] && "defaultValue" in m && m.defaultValue) {
             next[m.key] = m.defaultValue;
+            toPersist[m.key] = m.defaultValue;
           }
         }
         setSettings(next);
+
+        // Auto-persiste defaults nao-sensiveis (account ID, pixel ID) ja conhecidos
+        if (Object.keys(toPersist).length > 0) {
+          try {
+            await fetch("/api/admin/settings", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(toPersist),
+            });
+          } catch {
+            /* silently fail */
+          }
+        }
       })
       .catch(() => {});
     fetch("/api/app/slots").then((r) => r.json()).then(setSlots).catch(() => {});

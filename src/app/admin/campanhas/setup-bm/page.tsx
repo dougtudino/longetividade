@@ -49,16 +49,18 @@ const STEPS: ChecklistStep[] = [
   },
   {
     id: STEP_KEYS[1],
-    title: "2. Criar pixel dentro da BM",
-    summary: "Conectar uma fonte de dados Web no Gerenciador de Eventos.",
+    title: "2. Criar pixel / dataset dentro da BM",
+    summary: "Dataset 'Dados de Longetividade' (ja criado: 953736244279938).",
     details: (
       <>
-        Dentro da BM, va em <strong>Gerenciador de Eventos &gt; Conectar fonte
-        de dados &gt; Web</strong>. Crie um pixel com o nome
-        <strong> &ldquo;Longetividade Pixel&rdquo;</strong> e a URL
-        <code style={{ marginLeft: 6 }}>longetividade.com.br</code>. Copie o
-        ID do pixel e cole no campo <strong>Meta Pixel ID</strong> em
-        Configuracoes.
+        Dataset criado em 2026-04-11 dentro da BM da Barbara, no
+        <strong> Gerenciador de Eventos &gt; Conjuntos de Dados</strong>.
+        <br />
+        <br />
+        Nome: <strong>Dados de Longetividade</strong> · ID
+        <code style={{ marginLeft: 6 }}>953736244279938</code> · Propriedade:
+        Barbara Oliveira · ja preenchido em Configuracoes como
+        <code style={{ marginLeft: 6 }}>NEXT_PUBLIC_META_PIXEL_ID</code>.
       </>
     ),
     externalLink: {
