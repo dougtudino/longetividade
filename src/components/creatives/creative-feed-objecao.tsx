@@ -92,9 +92,9 @@ const CreativeFeedObjecao = forwardRef<HTMLDivElement>(function CreativeFeedObje
       {/* Compare list */}
       <div>
         <div style={{ marginBottom: 20 }}>
-          <Item text="Passar fome a tarde inteira" no />
-          <Item text="Pesar comida no almoço" no />
-          <Item text="Cortar carboidrato pra sempre" no />
+          <Item text="Restrição extrema o dia todo" no />
+          <Item text="Contar caloria em cada refeição" no />
+          <Item text="Culpa depois do café da manhã" no />
         </div>
         <div
           style={{
@@ -102,9 +102,9 @@ const CreativeFeedObjecao = forwardRef<HTMLDivElement>(function CreativeFeedObje
             paddingTop: 20,
           }}
         >
-          <Item text="Comer 4-5 vezes por dia" no={false} />
-          <Item text="Sem culpa, sem balança" no={false} />
-          <Item text="Resultado real em 30 dias" no={false} />
+          <Item text="Comer com prazer e consciência" no={false} />
+          <Item text="Sem culpa, sem peso emocional" no={false} />
+          <Item text="Uma nova rotina que cabe na vida" no={false} />
         </div>
       </div>
 

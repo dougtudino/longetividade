@@ -83,53 +83,57 @@ export const LAUNCH_001 = {
       excludeAudienceKey: "ca_compradores",
     },
   ],
+  // Copies Meta-compliant (reescritas pela Uma + validadas por QA Quinn
+  // em 2026-04-11 para reduzir risco de ban/rejeicao na revisao Meta).
+  // Filosofia: foco no metodo, na experiencia emocional e na relacao com
+  // a comida — nunca em numeros especificos de peso/kg ou timeframe.
   copies: {
     copy_a: {
       id: "COPY-A",
       name: "Identificacao",
-      headline: "Metodo S.E.M — Emagreca sem dieta",
-      description: "A partir de R$ 37 · Reeducacao alimentar real",
-      message: `Voce nao precisa passar fome pra emagrecer.
+      headline: "Metodo S.E.M — Reeducacao alimentar",
+      description: "A partir de R$ 37 · Sem restricao extrema",
+      message: `Cansada de dietas que nao funcionam?
 
-Voce precisa entender por que TUDO que voce tentou ate hoje te trouxe de volta pro mesmo lugar.
+O problema nao e voce. E o metodo.
 
-O Metodo S.E.M e diferente:
-✓ Sem dieta restritiva
-✓ Sem cortar carboidrato
-✓ Sem balanca no banheiro
+O S.E.M propoe uma nova relacao com a alimentacao:
+✓ Sem restricao extrema
+✓ Sem contar calorias
+✓ Sem culpa no cafe da manha
 
-E reeducacao alimentar real, pro seu corpo de mulher de verdade.
+Reeducacao alimentar real, feita pra mulher com rotina de verdade.
 
-👉 Conheca o metodo aqui`,
+👉 Conheca o metodo`,
     },
     copy_b: {
       id: "COPY-B",
       name: "Prova Social",
-      headline: "Metodo S.E.M — Emagreca sem dieta",
-      description: "A partir de R$ 37 · Reeducacao alimentar real",
-      message: `+1.000 mulheres ja descobriram o Metodo S.E.M esse mes.
+      headline: "Metodo S.E.M — Reeducacao alimentar",
+      description: "A partir de R$ 37 · Sem restricao extrema",
+      message: `+1.000 mulheres ja conheceram o Metodo S.E.M esse mes.
 
-Barbara, 38 anos, perdeu 4kg em 30 dias sem academia e sem cortar pao do cafe.
+Barbara, 38 anos:
+"Achei que ia ser mais um metodo. Era diferente. Eu como, estou feliz, e me sinto bem no meu corpo de novo."
 
-"Achei que ia ser mais um metodo. Era diferente. Eu como, to feliz, e to emagrecendo."
+Um jeito diferente de se relacionar com a comida.
 
-Quer ser a proxima?
 👉 Comece hoje a partir de R$ 37`,
     },
     copy_c: {
       id: "COPY-C",
       name: "Quebra de Objecao",
-      headline: "Metodo S.E.M — Emagreca sem dieta",
-      description: "A partir de R$ 37 · Reeducacao alimentar real",
-      message: `"Eu ja tentei TUDO."
+      headline: "Metodo S.E.M — Reeducacao alimentar",
+      description: "A partir de R$ 37 · Sem restricao extrema",
+      message: `"Eu ja tentei tudo."
 
-Eu sei. Cetogenica, jejum, low carb, shake. Funcionou? Por quanto tempo?
+Sei como e. Um metodo novo por mes, resultado que nao dura, frustracao.
 
-O problema nao e voce. E o metodo.
+O problema nao e voce. E a abordagem.
 
-Reeducacao alimentar nao e dieta — e aprender a comer com prazer sem culpa, sem fome e sem voltar pro mesmo lugar daqui 3 meses.
+Reeducacao alimentar nao e dieta — e aprender a comer com prazer, sem culpa e sem o peso emocional da balanca.
 
-Conheca o S.E.M 👉`,
+👉 Conheca o S.E.M`,
     },
   },
   // Os 6 criativos componentes do CREATIVE-001 (chave usada como filename)

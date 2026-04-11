@@ -137,15 +137,25 @@ const CreativeBannerDisplay = forwardRef<HTMLDivElement>(function CreativeBanner
             background: "rgba(255,255,255,0.08)",
           }}
         />
-        <div style={{ position: "relative", fontSize: 28, fontWeight: 700, opacity: 0.9, marginBottom: 6 }}>
-          Resultado em
+        <div style={{ position: "relative", fontSize: 30, fontWeight: 700, opacity: 0.92, marginBottom: 10, textAlign: "center", lineHeight: 1.2 }}>
+          Reeducação<br />alimentar real
         </div>
-        <div style={{ position: "relative", fontSize: 140, fontWeight: 900, lineHeight: 0.9, color: BRAND.accent, letterSpacing: "-0.04em" }}>
-          30
+        <div
+          style={{
+            position: "relative",
+            fontSize: 72,
+            fontWeight: 900,
+            lineHeight: 1,
+            color: BRAND.accent,
+            letterSpacing: "-0.02em",
+            marginTop: 20,
+            textAlign: "center",
+          }}
+        >
+          S.E.M
         </div>
-        <div style={{ position: "relative", fontSize: 36, fontWeight: 800, marginTop: 4 }}>dias</div>
-        <div style={{ position: "relative", fontSize: 18, marginTop: 18, opacity: 0.9, fontWeight: 600 }}>
-          sem fome · sem culpa
+        <div style={{ position: "relative", fontSize: 18, marginTop: 20, opacity: 0.9, fontWeight: 600, textAlign: "center" }}>
+          sem restrição · sem culpa
         </div>
       </div>
     </div>

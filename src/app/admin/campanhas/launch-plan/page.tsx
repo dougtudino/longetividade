@@ -94,53 +94,57 @@ const ASETS = [
   },
 ];
 
+// Copies reescritas 2026-04-11 para Meta Ad Policy compliance.
+// Alex (analyst) + Uma (UX) + Quinn (QA) validaram contra regras de
+// weight loss ads: sem numeros de peso, sem timeframes, sem
+// body-shaming, sem quick-fix language.
 const COPIES = [
   {
     id: "COPY-A",
     name: "Identificação",
-    text: `Você não precisa passar fome pra emagrecer.
+    text: `Cansada de dietas que não funcionam?
 
-Você precisa entender por que TUDO que você tentou até hoje te trouxe de volta pro mesmo lugar.
+O problema não é você. É o método.
 
-O Método S.E.M é diferente:
-✓ Sem dieta restritiva
-✓ Sem cortar carboidrato
-✓ Sem balança no banheiro
+O S.E.M propõe uma nova relação com a alimentação:
+✓ Sem restrição extrema
+✓ Sem contar calorias
+✓ Sem culpa no café da manhã
 
-É reeducação alimentar real, pro seu corpo de mulher de verdade.
+Reeducação alimentar real, feita pra mulher com rotina de verdade.
 
-👉 Conhece o método aqui`,
+👉 Conheça o método`,
   },
   {
     id: "COPY-B",
     name: "Prova Social",
-    text: `+1.000 mulheres já descobriram o Método S.E.M esse mês.
+    text: `+1.000 mulheres já conheceram o Método S.E.M esse mês.
 
-Bárbara, 38 anos, perdeu 4kg em 30 dias sem academia e sem cortar pão do café.
+Bárbara, 38 anos:
+"Achei que ia ser mais um método. Era diferente. Eu como, estou feliz, e me sinto bem no meu corpo de novo."
 
-"Achei que ia ser mais um método. Era diferente. Eu como, tô feliz, e tô emagrecendo."
+Um jeito diferente de se relacionar com a comida.
 
-Quer ser a próxima?
 👉 Comece hoje a partir de R$ 37`,
   },
   {
     id: "COPY-C",
     name: "Quebra de Objeção",
-    text: `"Eu já tentei TUDO."
+    text: `"Eu já tentei tudo."
 
-Eu sei. Cetogênica, jejum, low carb, shake. Funcionou? Por quanto tempo?
+Sei como é. Um método novo por mês, resultado que não dura, frustração.
 
-O problema não é você. É o método.
+O problema não é você. É a abordagem.
 
-Reeducação alimentar não é dieta — é aprender a comer com prazer sem culpa, sem fome e sem voltar pro mesmo lugar daqui 3 meses.
+Reeducação alimentar não é dieta — é aprender a comer com prazer, sem culpa e sem o peso emocional da balança.
 
-Conhece o S.E.M 👉`,
+👉 Conheça o S.E.M`,
   },
   {
     id: "COPY-D",
     name: "Story curto",
-    text: `-4kg em 30 dias.
-Sem academia. Sem fome.
+    text: `Uma nova relação com a comida.
+Sem dieta. Sem culpa.
 
 Método S.E.M.
 👆 Arraste pra cima`,

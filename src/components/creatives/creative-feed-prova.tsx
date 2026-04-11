@@ -78,7 +78,7 @@ const CreativeFeedProva = forwardRef<HTMLDivElement>(function CreativeFeedProva(
             lineHeight: 1.3,
           }}
         >
-          mulheres descobriram
+          mulheres conheceram
           <br />o <span style={{ color: BRAND.accent }}>Método S.E.M</span> esse mês
         </div>
       </div>
@@ -93,8 +93,8 @@ const CreativeFeedProva = forwardRef<HTMLDivElement>(function CreativeFeedProva(
           backdropFilter: "blur(10px)",
         }}
       >
-        <div style={{ fontSize: 32, fontStyle: "italic", lineHeight: 1.4, marginBottom: 14 }}>
-          &ldquo;Em 30 dias eu emagreci 4kg sem passar fome.&rdquo;
+        <div style={{ fontSize: 30, fontStyle: "italic", lineHeight: 1.4, marginBottom: 14 }}>
+          &ldquo;Voltei a me sentir bem no meu corpo de novo.&rdquo;
         </div>
         <div style={{ fontSize: 22, opacity: 0.85, fontWeight: 600 }}>
           — Bárbara, 38 anos

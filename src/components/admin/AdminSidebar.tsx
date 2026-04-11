@@ -102,6 +102,16 @@ const NAV_ITEMS: NavItem[] = [
     ),
   },
   {
+    label: "App Icon",
+    href: "/admin/app-icon",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <text x="12" y="16" fontSize="11" fontWeight="900" fill="currentColor" textAnchor="middle" stroke="none">L</text>
+      </svg>
+    ),
+  },
+  {
     label: "Criativos",
     href: "/admin/criativos",
     icon: (

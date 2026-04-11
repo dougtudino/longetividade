@@ -56,17 +56,17 @@ const CreativeFeedDor = forwardRef<HTMLDivElement>(function CreativeFeedDor(_, r
           style={{
             fontSize: 28,
             fontWeight: 700,
-            color: BRAND.red,
+            color: BRAND.greenDark,
             textTransform: "uppercase",
             letterSpacing: "0.1em",
             marginBottom: 28,
           }}
         >
-          A verdade que ninguém te conta
+          Uma nova abordagem
         </div>
         <h1
           style={{
-            fontSize: 86,
+            fontSize: 78,
             fontWeight: 900,
             lineHeight: 1.05,
             color: BRAND.greenDark,
@@ -74,21 +74,20 @@ const CreativeFeedDor = forwardRef<HTMLDivElement>(function CreativeFeedDor(_, r
             letterSpacing: "-0.02em",
           }}
         >
-          Você não engorda
+          O problema não é
           <br />
-          porque come{" "}
-          <span style={{ color: BRAND.red, fontStyle: "italic" }}>muito</span>.
+          comer <span style={{ color: BRAND.red, fontStyle: "italic" }}>demais</span>.
         </h1>
         <p
           style={{
-            fontSize: 36,
+            fontSize: 34,
             color: BRAND.ink,
             marginTop: 28,
             lineHeight: 1.3,
             fontWeight: 500,
           }}
         >
-          Engorda porque come <strong style={{ color: BRAND.greenMid }}>errado</strong>.
+          É comer <strong style={{ color: BRAND.greenMid }}>sem consciência</strong>.
         </p>
       </div>
 
@@ -102,7 +101,7 @@ const CreativeFeedDor = forwardRef<HTMLDivElement>(function CreativeFeedDor(_, r
       >
         <div>
           <div style={{ fontSize: 22, color: BRAND.inkMuted, fontWeight: 600 }}>
-            Descubra o
+            Conheça o
           </div>
           <div style={{ fontSize: 44, fontWeight: 900, color: BRAND.greenDark, lineHeight: 1.1 }}>
             Método S.E.M

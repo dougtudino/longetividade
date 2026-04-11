@@ -50,10 +50,10 @@ const CreativeStoryStat = forwardRef<HTMLDivElement>(function CreativeStoryStat(
         </div>
       </div>
 
-      {/* Big stats */}
+      {/* Big center */}
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: 36, fontWeight: 700, color: BRAND.greenMid, marginBottom: 24 }}>
-          O resultado real
+          Uma nova jornada
         </div>
 
         <div
@@ -66,19 +66,46 @@ const CreativeStoryStat = forwardRef<HTMLDivElement>(function CreativeStoryStat(
             marginBottom: 32,
           }}
         >
-          <div style={{ fontSize: 280, fontWeight: 900, lineHeight: 1, color: BRAND.greenDark, letterSpacing: "-0.04em" }}>
-            -4
+          <div
+            style={{
+              fontSize: 82,
+              fontWeight: 900,
+              lineHeight: 1.1,
+              color: BRAND.greenDark,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Sem dieta.
           </div>
-          <div style={{ fontSize: 56, fontWeight: 800, color: BRAND.greenMid, marginTop: -10 }}>
-            quilos
+          <div
+            style={{
+              fontSize: 82,
+              fontWeight: 900,
+              lineHeight: 1.1,
+              color: BRAND.greenDark,
+              letterSpacing: "-0.02em",
+              marginTop: 8,
+            }}
+          >
+            Sem culpa.
+          </div>
+          <div
+            style={{
+              fontSize: 54,
+              fontWeight: 700,
+              color: BRAND.greenMid,
+              marginTop: 28,
+            }}
+          >
+            Sem peso emocional.
           </div>
         </div>
 
-        <div style={{ fontSize: 56, fontWeight: 900, color: BRAND.ink, lineHeight: 1.1 }}>
-          em <span style={{ color: BRAND.greenDark }}>30 dias</span>
+        <div style={{ fontSize: 42, fontWeight: 900, color: BRAND.ink, lineHeight: 1.2 }}>
+          Método S.E.M
         </div>
-        <div style={{ fontSize: 36, fontWeight: 700, color: BRAND.inkMuted, marginTop: 18 }}>
-          sem academia. sem fome.
+        <div style={{ fontSize: 32, fontWeight: 700, color: BRAND.inkMuted, marginTop: 14 }}>
+          Reeducação alimentar real
         </div>
       </div>
 
@@ -100,7 +127,7 @@ const CreativeStoryStat = forwardRef<HTMLDivElement>(function CreativeStoryStat(
           Arraste pra cima ↑
         </div>
         <div style={{ fontSize: 26, textAlign: "center", marginTop: 18, color: BRAND.inkMuted, fontWeight: 600 }}>
-          Método S.E.M · Resultado garantido
+          Método S.E.M · longetividade.com.br
         </div>
       </div>
     </div>
