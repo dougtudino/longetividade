@@ -3,62 +3,48 @@ import { prisma } from "@/lib/prisma";
 import { getGoogleCreds, exchangeCodeForToken, fetchUserInfo } from "@/lib/google-oauth";
 import { setAppSessionCookies } from "@/lib/app-session";
 import { signAdminToken, ADMIN_TOKEN_COOKIE, ADMIN_TOKEN_MAX_AGE } from "@/lib/admin-auth";
+import { getPublicBaseUrl } from "@/lib/server-url";
 
-// GET /api/auth/google/callback?code=...&state=...
-// Callback do Google OAuth. Fluxo:
-//   1. Verifica state contra cookie (CSRF)
-//   2. Exchange code → access_token
-//   3. Fetch user info → { id (sub), email, name, picture }
-//   4. Baseado no context (app|admin) salvo no state, cria/busca user:
-//      - "app": busca/cria AppUser por googleId ou email.
-//        Requer Order VIP aprovada (senao 403).
-//      - "admin": busca AdminUser por googleId ou email.
-//        NAO cria novos admins via Google — precisa ser pre-cadastrado.
-//   5. Seta sessao correta e redireciona
-
-function errorRedirect(req: NextRequest, context: string, error: string): NextResponse {
+function errorRedirect(baseUrl: string, context: string, error: string): NextResponse {
   const base = context === "admin" ? "/admin/login" : "/app/login";
-  return NextResponse.redirect(new URL(`${base}?error=${encodeURIComponent(error)}`, req.url));
+  return NextResponse.redirect(new URL(`${base}?error=${encodeURIComponent(error)}`, baseUrl));
 }
 
 export async function GET(req: NextRequest) {
+  const baseUrl = getPublicBaseUrl(req);
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const stateParam = url.searchParams.get("state");
   const error = url.searchParams.get("error");
 
-  // Usuario cancelou
   if (error) {
-    return errorRedirect(req, "app", `google_${error}`);
+    return errorRedirect(baseUrl, "app", `google_${error}`);
   }
 
   if (!code || !stateParam) {
-    return errorRedirect(req, "app", "google_missing_code");
+    return errorRedirect(baseUrl, "app", "google_missing_code");
   }
 
-  // Parse state: "<random>:<context>"
   const [stateToken, context = "app"] = stateParam.split(":");
   const cookieState = req.cookies.get("google_oauth_state")?.value;
 
   if (!cookieState || cookieState !== stateToken) {
-    return errorRedirect(req, context, "google_state_mismatch");
+    return errorRedirect(baseUrl, context, "google_state_mismatch");
   }
 
   const creds = await getGoogleCreds();
   if (!creds) {
-    return errorRedirect(req, context, "google_not_configured");
+    return errorRedirect(baseUrl, context, "google_not_configured");
   }
 
-  // Exchange
   const tokenResult = await exchangeCodeForToken(creds, code);
   if (!tokenResult.ok) {
-    return errorRedirect(req, context, `google_token_${tokenResult.error}`);
+    return errorRedirect(baseUrl, context, `google_token_${tokenResult.error}`);
   }
 
-  // Fetch user
   const userResult = await fetchUserInfo(tokenResult.token.access_token);
   if (!userResult.ok) {
-    return errorRedirect(req, context, `google_userinfo_${userResult.error}`);
+    return errorRedirect(baseUrl, context, `google_userinfo_${userResult.error}`);
   }
 
   const gUser = userResult.user;
@@ -66,12 +52,10 @@ export async function GET(req: NextRequest) {
 
   // ─── APP context ──────────────────────────────────────
   if (context === "app") {
-    // Busca AppUser por googleId primeiro, depois por email
     let appUser = await prisma.appUser.findFirst({
       where: { OR: [{ googleId: gUser.id }, { email }] },
     });
 
-    // Se nao existe, precisa ter Order VIP aprovada
     if (!appUser) {
       const order = await prisma.order.findFirst({
         where: { email, plan: "vip", status: "approved" },
@@ -79,7 +63,7 @@ export async function GET(req: NextRequest) {
       });
       if (!order) {
         return errorRedirect(
-          req,
+          baseUrl,
           "app",
           "Sem compra VIP aprovada. Use o mesmo email da compra Hotmart."
         );
@@ -94,14 +78,12 @@ export async function GET(req: NextRequest) {
         },
       });
     } else if (!appUser.googleId) {
-      // Linka o googleId no user existente
       appUser = await prisma.appUser.update({
         where: { id: appUser.id },
         data: { googleId: gUser.id },
       });
     }
 
-    // Cria/atualiza AppProfile com nome do Google (se ainda sem nome)
     try {
       const existing = await prisma.appProfile.findUnique({
         where: { userId: appUser.id },
@@ -122,7 +104,7 @@ export async function GET(req: NextRequest) {
       /* silent */
     }
 
-    const response = NextResponse.redirect(new URL("/app", req.url));
+    const response = NextResponse.redirect(new URL("/app", baseUrl));
     setAppSessionCookies(response, email);
     response.cookies.set("google_oauth_state", "", { maxAge: 0, path: "/" });
     return response;
@@ -130,14 +112,13 @@ export async function GET(req: NextRequest) {
 
   // ─── ADMIN context ────────────────────────────────────
   if (context === "admin") {
-    // Admin tem que estar pre-cadastrado no banco (nao cria automaticamente)
     let admin = await prisma.adminUser.findFirst({
       where: { OR: [{ googleId: gUser.id }, { email }] },
     });
 
     if (!admin) {
       return errorRedirect(
-        req,
+        baseUrl,
         "admin",
         "Admin nao cadastrado. Contate o administrador."
       );
@@ -162,7 +143,7 @@ export async function GET(req: NextRequest) {
       role: admin.role,
     });
 
-    const response = NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    const response = NextResponse.redirect(new URL("/admin/dashboard", baseUrl));
     response.cookies.set(ADMIN_TOKEN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
@@ -174,5 +155,5 @@ export async function GET(req: NextRequest) {
     return response;
   }
 
-  return errorRedirect(req, "app", "google_invalid_context");
+  return errorRedirect(baseUrl, "app", "google_invalid_context");
 }
