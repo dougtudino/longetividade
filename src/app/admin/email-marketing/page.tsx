@@ -194,106 +194,111 @@ export default function EmailMarketingPage() {
         </div>
       </div>
 
-      {/* ─── FUNIL CARRINHO ABANDONADO ──────────────── */}
+      {/* ─── 3 FUNIS COMPLETOS ───────────────────────── */}
+
+      {/* Funil 2: Carrinho Abandonado */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
-              🛒 Recuperacao de Carrinho Abandonado
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-              2 emails automaticos: 30min + 24h apos abandono. Direto pro checkout Hotmart.
-            </div>
-          </div>
-          <a
-            href="/api/admin/email-preview?email=welcome&name=Teste"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              padding: "8px 14px", borderRadius: 8, background: "var(--bg-secondary)",
-              color: "var(--text-primary)", border: "0.5px solid var(--border-default)",
-              fontSize: 12, fontWeight: 600, textDecoration: "none",
-            }}
-          >
-            Adicionar cron (30min)
-          </a>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+          🛒 Funil: Carrinho Abandonado
         </div>
-
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <div style={{
-            flex: 1, minWidth: 200, padding: 14, background: "#D4A94B12",
-            border: "2px solid #D4A94B40", borderRadius: 10, textAlign: "center",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#D4A94B", textTransform: "uppercase" }}>Email 1 · 30min</div>
-            <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6 }}>"Voce esqueceu algo..."</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Lembrete gentil + lista do que leva</div>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", color: "var(--text-muted)", fontSize: 20 }}>→</div>
-          <div style={{
-            flex: 1, minWidth: 200, padding: 14, background: "#C4787A12",
-            border: "2px solid #C4787A40", borderRadius: 10, textAlign: "center",
-          }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#C4787A", textTransform: "uppercase" }}>Email 2 · 24h</div>
-            <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 6 }}>"Sua vaga ainda esta aberta"</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>Objecoes respondidas + CTA checkout direto</div>
-          </div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>
+          Dispara quando alguem clica em comprar mas nao finaliza. Cron: <code>/api/cron/abandoned-cart</code> a cada 30min.
         </div>
-
-        <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)" }}>
-          Cron: <code>/api/cron/abandoned-cart</code> · Hoje: {stats?.abandonedToday ?? 0} abandonos
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+          {[
+            { label: "30min", subject: "Voce esqueceu algo...", desc: "Lembrete gentil. Lista o que leva. CTA: Finalizar compra → Hotmart direto.", rule: "AbandonedCheckout.step='checkout' E idade >= 30min E nao tem Order aprovada com mesmo email", color: "#D4A94B" },
+            { label: "24h", subject: "Sua vaga ainda esta aberta", desc: "Responde 3 objecoes (caro? funciona? tempo?). Box R$37 + garantia. CTA: Checkout direto.", rule: "AbandonedCheckout.step='email_30min' E idade >= 24h E nao tem Order aprovada", color: "#C4787A" },
+          ].map((e, i) => (
+            <div key={i} style={{ flex: 1, minWidth: 260 }}>
+              <div style={{ padding: 14, background: `${e.color}10`, border: `1.5px solid ${e.color}35`, borderRadius: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: e.color, textTransform: "uppercase", marginBottom: 6 }}>Email · {e.label}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>"{e.subject}"</div>
+                <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5, marginBottom: 8 }}>{e.desc}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 8, borderRadius: 6, lineHeight: 1.4 }}>
+                  <strong>Regra:</strong> {e.rule}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          Hoje: {stats?.abandonedToday ?? 0} abandonos · Auto-detecta recuperacao (se comprou, marca "recovered")
         </div>
       </div>
 
-      {/* ─── SEQUENCIAS DISPONIVEIS ─────────────────── */}
+      {/* Funil 3: Pos-Compra + Upsell */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
-          📋 Emails do Sistema
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+          🎓 Funil: Pos-Compra + Upsell VIP
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>
+          Nurture pra quem JA COMPROU. Reduz refund, aumenta engajamento, prepara upsell. Cron: <code>/api/cron/post-purchase</code> diario 10h BRT.
+        </div>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           {[
-            { id: "welcome", name: "D+0 Welcome", trigger: "Captura de lead", subject: "Bem-vinda ao Metodo S.E.M!", status: "ativo", color: "#4A90D9" },
-            { id: "value", name: "D+2 Valor", trigger: "Cron 9h (2 dias apos)", subject: "A regra das 3 horas", status: "ativo", color: "#D4A94B" },
-            { id: "offer", name: "D+5 Oferta", trigger: "Cron 9h (5 dias apos)", subject: "[Nome], hoje e o ultimo dia", status: "ativo", color: "#6B9E6B" },
-            { id: "delivery", name: "Entrega Ebook", trigger: "Webhook Hotmart", subject: "Seu ebook chegou!", status: "ativo", color: "#7A9E7E" },
-            { id: "abandoned-30", name: "Carrinho 30min", trigger: "Cron 30min", subject: "Voce esqueceu algo...", status: "novo", color: "#D4A94B" },
-            { id: "abandoned-24", name: "Carrinho 24h", trigger: "Cron 24h", subject: "Sua vaga ainda esta aberta", status: "novo", color: "#C4787A" },
-            { id: "maya-daily", name: "Maya Relatorio", trigger: "Cron 8h BRT", subject: "Resumo diario", status: "ativo", color: "#3D5A3E" },
-            { id: "gaia-review", name: "Gaia Decisoes", trigger: "Cron 8:30 BRT", subject: "Decisoes aguardando", status: "ativo", color: "#639922" },
-          ].map((e) => (
-            <div
-              key={e.id}
-              style={{
-                padding: 14, background: "var(--bg-secondary)", borderRadius: 10,
-                borderLeft: `3px solid ${e.color}`,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{e.name}</span>
-                <span style={{
-                  fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999,
-                  background: e.status === "ativo" ? "rgba(107,158,107,0.2)" : "rgba(74,144,217,0.2)",
-                  color: e.status === "ativo" ? "#6B9E6B" : "#4A90D9",
-                  textTransform: "uppercase",
-                }}>{e.status}</span>
+            { label: "D+1", subject: "[Nome], por onde comecar?", desc: "Primeiros passos: ler intro + cap 1, imprimir checklist, escolher 1 habito. Se VIP: CTA abrir app.", rule: "Order.status='approved' E idade >= 1 dia E Lead.sequenceStep=9 (comprador novo)", color: "#639922" },
+            { label: "D+7", subject: "1 semana! Como esta indo?", desc: "Checkin emocional. Menciona sinais de progresso (menos fome, mais disposicao). Dica: Regra das 3 Horas.", rule: "Lead.sequenceStep=10 E Order.idade >= 7 dias", color: "#7A9E7E" },
+            { label: "D+21", subject: "[Nome], 21 dias! Voce e incrivel", desc: "Celebracao. Se Basico/Completo: card upsell VIP (app + desafio + receitas). Se VIP: encoraja usar app.", rule: "Lead.sequenceStep=11 E Order.idade >= 21 dias. Upsell so se plan != 'vip'", color: "#3D5A3E" },
+          ].map((e, i) => (
+            <div key={i} style={{ flex: 1, minWidth: 260 }}>
+              <div style={{ padding: 14, background: `${e.color}10`, border: `1.5px solid ${e.color}35`, borderRadius: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: e.color, textTransform: "uppercase", marginBottom: 6 }}>Email · {e.label}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>"{e.subject}"</div>
+                <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5, marginBottom: 8 }}>{e.desc}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 8, borderRadius: 6, lineHeight: 1.4 }}>
+                  <strong>Regra:</strong> {e.rule}
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>
-                Trigger: {e.trigger}
-              </div>
-              <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                Assunto: <em>{e.subject}</em>
-              </div>
-              {["welcome", "value", "offer"].includes(e.id) && (
-                <a
-                  href={`/api/admin/email-preview?email=${e.id}&name=Cliente`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ fontSize: 11, color: e.color, fontWeight: 700, marginTop: 6, display: "inline-block" }}
-                >
-                  Ver preview →
-                </a>
-              )}
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ─── CATALOGO COMPLETO DE EMAILS ────────────── */}
+      <div style={{ ...card, marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
+          📋 Catalogo: Todos os Emails do Sistema ({10} emails)
+        </div>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ background: "var(--bg-secondary)" }}>
+                {["Funil", "Email", "Trigger", "Assunto", "Destino CTA", "Regra", "Status"].map((h) => (
+                  <th key={h} style={{ padding: "10px 8px", textAlign: "left", color: "var(--text-muted)", fontWeight: 700, fontSize: 10, textTransform: "uppercase", borderBottom: "0.5px solid var(--border-subtle)" }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { funnel: "Boas-vindas", name: "D+0 Welcome", trigger: "POST /api/leads (imediato)", subject: "Bem-vinda ao Metodo S.E.M!", dest: "/emagreca-sem-dieta", rule: "Lead criado, isNew=true", status: "ativo", color: "#4A90D9" },
+                { funnel: "Boas-vindas", name: "D+2 Valor", trigger: "Cron 9h BRT", subject: "A regra das 3 horas", dest: "/emagreca-sem-dieta", rule: "Lead.step=0 E idade >= 2d", status: "ativo", color: "#D4A94B" },
+                { funnel: "Boas-vindas", name: "D+5 Oferta", trigger: "Cron 9h BRT", subject: "[Nome], hoje e o ultimo dia", dest: "Hotmart checkout direto", rule: "Lead.step=1 E idade >= 5d", status: "ativo", color: "#6B9E6B" },
+                { funnel: "Carrinho", name: "30min", trigger: "Cron 30min", subject: "Voce esqueceu algo...", dest: "Hotmart checkout direto", rule: "Abandon.step=checkout E >= 30min E !comprou", status: "ativo", color: "#D4A94B" },
+                { funnel: "Carrinho", name: "24h", trigger: "Cron 30min", subject: "Sua vaga ainda esta aberta", dest: "Hotmart checkout direto", rule: "Abandon.step=email_30min E >= 24h E !comprou", status: "ativo", color: "#C4787A" },
+                { funnel: "Entrega", name: "Ebook", trigger: "Webhook Hotmart", subject: "Seu ebook chegou!", dest: "Link download (token 72h)", rule: "PURCHASE_APPROVED event", status: "ativo", color: "#7A9E7E" },
+                { funnel: "Pos-compra", name: "D+1", trigger: "Cron 10h BRT", subject: "[Nome], por onde comecar?", dest: "App VIP (se VIP) / ebook", rule: "Order approved E >= 1d E step=9", status: "ativo", color: "#639922" },
+                { funnel: "Pos-compra", name: "D+7", trigger: "Cron 10h BRT", subject: "1 semana! Como esta indo?", dest: "/emagreca-sem-dieta", rule: "step=10 E >= 7d", status: "ativo", color: "#7A9E7E" },
+                { funnel: "Pos-compra", name: "D+21 Upsell", trigger: "Cron 10h BRT", subject: "[Nome], 21 dias!", dest: "Hotmart VIP (se !vip) / App", rule: "step=11 E >= 21d. Upsell se plan!=vip", status: "ativo", color: "#3D5A3E" },
+                { funnel: "Admin", name: "Maya Daily", trigger: "Cron 8h BRT", subject: "Resumo diario", dest: "/admin/dashboard", rule: "Envia pra todos AdminUser", status: "ativo", color: "#3D5A3E" },
+              ].map((e, i) => (
+                <tr key={i} style={{ borderBottom: "0.5px solid var(--border-subtle)" }}>
+                  <td style={{ padding: "8px", fontWeight: 600, color: e.color }}>{e.funnel}</td>
+                  <td style={{ padding: "8px", fontWeight: 600 }}>{e.name}</td>
+                  <td style={{ padding: "8px", color: "var(--text-muted)", fontSize: 11 }}>{e.trigger}</td>
+                  <td style={{ padding: "8px", fontStyle: "italic" }}>{e.subject}</td>
+                  <td style={{ padding: "8px", fontSize: 11, color: "var(--text-muted)" }}>{e.dest}</td>
+                  <td style={{ padding: "8px", fontSize: 10, color: "var(--text-muted)", maxWidth: 200 }}>{e.rule}</td>
+                  <td style={{ padding: "8px" }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: "rgba(107,158,107,0.2)", color: "#6B9E6B", textTransform: "uppercase" }}>
+                      {e.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
