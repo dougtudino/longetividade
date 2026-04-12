@@ -1,3 +1,5 @@
+import { getSetting } from "./settings";
+
 interface SendEmailParams {
   to: string;
   toName: string;
@@ -11,11 +13,14 @@ export async function sendEmail({
   subject,
   htmlContent,
 }: SendEmailParams): Promise<void> {
-  const apiKey = process.env.BREVO_API_KEY;
+  // Prioridade: env Railway > AppSetting (mesmo padrão do META_ACCESS_TOKEN)
+  const apiKey = process.env.BREVO_API_KEY || (await getSetting("BREVO_API_KEY"));
   if (!apiKey) {
-    console.warn("BREVO_API_KEY not set, skipping email send");
+    console.warn("BREVO_API_KEY not set (nem em env, nem em AppSetting), skipping email send");
     return;
   }
+
+  const senderEmail = process.env.EMAIL_FROM ?? "contato@longetividade.com.br";
 
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
@@ -27,7 +32,7 @@ export async function sendEmail({
     body: JSON.stringify({
       sender: {
         name: "Longetividade",
-        email: process.env.EMAIL_FROM ?? "contato@longetividade.com.br",
+        email: senderEmail,
       },
       to: [{ email: to, name: toName }],
       subject,
