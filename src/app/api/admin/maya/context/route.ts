@@ -23,12 +23,14 @@ export type MayaContext = {
 };
 
 async function buildSetupChecklist(): Promise<ChecklistItem[]> {
-  const [brevoKey, metaAccount, metaPixel, metaToken, emailDnsOk] = await Promise.all([
+  const [brevoKey, metaAccount, metaPixel, metaToken, emailDnsOk, pageToken, igId] = await Promise.all([
     getSetting("BREVO_API_KEY"),
     getSetting("META_ADS_ACCOUNT_ID"),
     getSetting("NEXT_PUBLIC_META_PIXEL_ID"),
     getSetting("META_ADS_ACCESS_TOKEN"),
     getSetting("EMAIL_PRO_DNS_OK"),
+    getSetting("SOCIAL_PAGE_TOKEN"),
+    getSetting("INSTAGRAM_ACCOUNT_ID"),
   ]);
 
   let approvedExists = false;
@@ -38,6 +40,14 @@ async function buildSetupChecklist(): Promise<ChecklistItem[]> {
   } catch {
     approvedExists = false;
   }
+
+  let socialPostCount = 0;
+  let lunaKnowledgeCount = 0;
+  try { socialPostCount = await prisma.socialPost.count(); } catch { /* */ }
+  try { lunaKnowledgeCount = await prisma.agentKnowledge.count({ where: { agentId: "luna" } }); } catch { /* */ }
+
+  const hasCronSecret = !!process.env.CRON_SECRET;
+  const hasAnthropicKey = !!process.env.ANTHROPIC_API_KEY;
 
   return [
     {
@@ -75,6 +85,48 @@ async function buildSetupChecklist(): Promise<ChecklistItem[]> {
       title: "Compra teste validada (Hotmart -> webhook -> Order)",
       done: approvedExists,
       link: "/admin/configuracoes",
+    },
+    {
+      id: "social_page_token",
+      title: "Token de Pagina Facebook (auto-posting Luna)",
+      done: !!pageToken && pageToken.length > 20,
+      link: "/admin/setup#social_page_token",
+    },
+    {
+      id: "instagram_connect",
+      title: "Instagram Business conectado a Pagina Facebook",
+      done: !!igId,
+      link: "/admin/setup#instagram_connect",
+    },
+    {
+      id: "luna_content",
+      title: "Conteudo Luna (posts + knowledge base)",
+      done: socialPostCount > 0 && lunaKnowledgeCount > 0,
+      link: "/admin/setup#luna_content",
+    },
+    {
+      id: "cron_secret",
+      title: "CRON_SECRET configurado no Railway",
+      done: hasCronSecret,
+      link: "/admin/setup#cron_secret",
+    },
+    {
+      id: "cron_jobs",
+      title: "Crons registrados no cron-job.org (7 jobs)",
+      done: hasCronSecret,
+      link: "/admin/setup#cron_jobs",
+    },
+    {
+      id: "anthropic_key",
+      title: "ANTHROPIC_API_KEY no Railway (Maya chat)",
+      done: hasAnthropicKey,
+      link: "/admin/setup#anthropic_key",
+    },
+    {
+      id: "meta_app_review",
+      title: "Meta App Review (permissoes auto-posting)",
+      done: false,
+      link: "/admin/setup#meta_app_review",
     },
   ];
 }

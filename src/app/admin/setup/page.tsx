@@ -19,6 +19,8 @@ type SetupGuide = {
   externalLink?: { label: string; url: string };
 };
 
+const SITE_URL = "https://longetividade.com.br";
+
 const GUIDES: Record<string, SetupGuide> = {
   email_pro: {
     id: "email_pro",
@@ -237,6 +239,233 @@ TXT _dmarc   v=DMARC1; p=quarantine; rua=mailto:contato@longetividade.com.br`}
       url: "https://app.hotmart.com/products/manage/7474328",
     },
   },
+  social_page_token: {
+    id: "social_page_token",
+    emoji: "📱",
+    shortDesc: "Token da Pagina Facebook pra Luna postar automaticamente",
+    details: (
+      <>
+        <p>
+          A Luna precisa de um <strong>Page Access Token</strong> com as permissoes
+          <code>pages_manage_posts</code> e <code>instagram_content_publish</code>
+          pra publicar no Facebook e Instagram.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>1.</strong> No{" "}
+          <a href="https://developers.facebook.com/tools/explorer/" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+            Graph API Explorer
+          </a>{" "}
+          selecione o app <strong>Longetividade Admin</strong>.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>2.</strong> Clique em <strong>Get Page Access Token</strong> → autorize a
+          pagina &ldquo;Longetividade&rdquo;.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>3.</strong> Cole o token em{" "}
+          <Link href="/admin/configuracoes" style={{ color: "var(--accent)" }}>
+            Configuracoes
+          </Link>{" "}
+          → campo <code>SOCIAL_PAGE_TOKEN</code>.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>Dica:</strong> Para token permanente, use um System User (ver guia do Meta Token acima).
+        </p>
+      </>
+    ),
+    externalLink: { label: "Graph Explorer", url: "https://developers.facebook.com/tools/explorer/" },
+  },
+  instagram_connect: {
+    id: "instagram_connect",
+    emoji: "📸",
+    shortDesc: "Conectar Instagram Business a Pagina Facebook",
+    details: (
+      <>
+        <p>
+          O auto-posting do Instagram exige que a conta IG seja{" "}
+          <strong>Business ou Creator</strong> e esteja <strong>vinculada a Pagina Facebook</strong>.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>1.</strong> No Instagram: Configuracoes → Conta → Mudar para conta profissional.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>2.</strong> No Meta Business Suite:{" "}
+          <a href="https://business.facebook.com/settings/instagram-accounts" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+            Configuracoes → Contas do Instagram
+          </a>{" "}
+          → Conectar → Autorizar.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>3.</strong> Rode o discovery: va em{" "}
+          <Link href="/admin/social-media" style={{ color: "var(--accent)" }}>
+            Social Media
+          </Link>{" "}
+          — o sistema auto-detecta o ID do Instagram quando o Page Token esta configurado.
+        </p>
+      </>
+    ),
+    externalLink: { label: "Business Suite", url: "https://business.facebook.com/settings/instagram-accounts" },
+  },
+  luna_content: {
+    id: "luna_content",
+    emoji: "🌙",
+    shortDesc: "Popular banco de posts e knowledge base da Luna",
+    details: (
+      <>
+        <p>
+          A Luna precisa de conteudo inicial (25 posts pre-escritos) e da base de
+          conhecimento (persona, estrategias, hashtags, benchmarks) pra operar.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          Clique no botao abaixo pra rodar os dois seeds de uma vez:
+        </p>
+      </>
+    ),
+  },
+  cron_secret: {
+    id: "cron_secret",
+    emoji: "🔐",
+    shortDesc: "Variavel CRON_SECRET no Railway pra proteger endpoints",
+    details: (
+      <>
+        <p>
+          Todos os crons usam <code>x-cron-secret</code> ou <code>?secret=...</code>
+          pra autenticar. Sem essa variavel, nenhum cron funciona.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>1.</strong> No{" "}
+          <a href="https://railway.app/dashboard" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+            Railway
+          </a>{" "}
+          → seu servico → Variables → <code>CRON_SECRET</code> = qualquer string segura
+          (ex: <code>longetividade-cron-2026</code>).
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>2.</strong> Use essa mesma string nos headers/URLs do cron-job.org.
+        </p>
+      </>
+    ),
+    externalLink: { label: "Railway", url: "https://railway.app/dashboard" },
+  },
+  cron_jobs: {
+    id: "cron_jobs",
+    emoji: "⏰",
+    shortDesc: "Registrar 7 cron jobs no cron-job.org",
+    details: (
+      <>
+        <p>
+          Crie uma conta gratuita em{" "}
+          <a href="https://cron-job.org" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+            cron-job.org
+          </a>{" "}
+          e cadastre os jobs abaixo. Em cada um, adicione o header{" "}
+          <code>x-cron-secret: SEU_CRON_SECRET</code>.
+        </p>
+        <div style={{ marginTop: 16 }}>
+          <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid var(--border-default)" }}>
+                <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700 }}>Job</th>
+                <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700 }}>URL</th>
+                <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 700 }}>Schedule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { name: "Email Sequence", path: "/api/cron/email-sequence", cron: "0 13 * * *", note: "10h BRT" },
+                { name: "Abandoned Cart", path: "/api/cron/abandoned-cart", cron: "*/30 * * * *", note: "cada 30min" },
+                { name: "Post Purchase", path: "/api/cron/post-purchase", cron: "0 13 * * *", note: "10h BRT" },
+                { name: "Gaia Review", path: "/api/cron/gaia-review", cron: "0 14 * * *", note: "11h BRT" },
+                { name: "Maya Daily Report", path: "/api/cron/maya-daily-report", cron: "0 22 * * *", note: "19h BRT" },
+                { name: "Luna Generate", path: "/api/cron/social-generate", cron: "0 23 * * 0", note: "Dom 20h BRT" },
+                { name: "Luna Auto-Post", path: "/api/cron/social-auto-post", cron: "0 15 * * 1-6", note: "Seg-Sab 12h BRT" },
+              ].map((job) => (
+                <tr key={job.name} style={{ borderBottom: "0.5px solid var(--border-subtle)" }}>
+                  <td style={{ padding: "6px 8px", fontWeight: 600 }}>{job.name}</td>
+                  <td style={{ padding: "6px 8px" }}>
+                    <code style={{ fontSize: 10, wordBreak: "break-all" }}>{SITE_URL}{job.path}</code>
+                  </td>
+                  <td style={{ padding: "6px 8px" }}>
+                    <code>{job.cron}</code>
+                    <br />
+                    <span style={{ color: "var(--text-muted)", fontSize: 10 }}>{job.note}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)" }}>
+          Todos usam metodo GET. Adicione o header <code>x-cron-secret</code> com o valor
+          da variavel CRON_SECRET do Railway.
+        </p>
+      </>
+    ),
+    externalLink: { label: "cron-job.org", url: "https://cron-job.org" },
+  },
+  anthropic_key: {
+    id: "anthropic_key",
+    emoji: "🤖",
+    shortDesc: "Chave Anthropic API pra Maya chat funcionar",
+    details: (
+      <>
+        <p>
+          A Maya (chat no dashboard) usa a API da Anthropic (Claude) pra responder
+          perguntas sobre o negocio. Sem a chave, o chat fica offline.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>1.</strong> Acesse{" "}
+          <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+            console.anthropic.com/settings/keys
+          </a>{" "}
+          → Create Key.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>2.</strong> Cole como <code>ANTHROPIC_API_KEY</code> no Railway → Variables.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>Custo:</strong> ~$0.003 por pergunta (Claude Haiku). Budget de $5/mes cobre uso intenso.
+        </p>
+      </>
+    ),
+    externalLink: { label: "Anthropic Console", url: "https://console.anthropic.com/settings/keys" },
+  },
+  meta_app_review: {
+    id: "meta_app_review",
+    emoji: "📋",
+    shortDesc: "Submeter app pra review pra permissoes de auto-posting",
+    details: (
+      <>
+        <p>
+          Pra Luna postar automaticamente no Instagram e Facebook, o app precisa das
+          permissoes <code>pages_manage_posts</code> e <code>instagram_content_publish</code>
+          aprovadas pelo Meta App Review.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          O guia completo esta em <code>docs/guides/META-APP-REVIEW-GUIDE.md</code>.
+        </p>
+        <p style={{ marginTop: 12 }}>
+          <strong>Resumo:</strong>
+        </p>
+        <ol style={{ marginTop: 8, paddingLeft: 20, lineHeight: 2 }}>
+          <li>Va em{" "}
+            <a href="https://developers.facebook.com/apps" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
+              developers.facebook.com/apps
+            </a>{" "}
+            → seu app → App Review
+          </li>
+          <li>Solicite <code>pages_manage_posts</code> + <code>instagram_content_publish</code></li>
+          <li>Grave um screencast mostrando o fluxo (admin aprova post → sistema publica)</li>
+          <li>Descreva o uso: &ldquo;Publicacao automatizada de conteudo educativo sobre saude feminina&rdquo;</li>
+          <li>Espere aprovacao (1-5 dias uteis)</li>
+        </ol>
+        <p style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)" }}>
+          Enquanto nao aprovado, a Luna funciona em modo manual: gera conteudo, voce copia e cola.
+        </p>
+      </>
+    ),
+    externalLink: { label: "Meta App Review", url: "https://developers.facebook.com/apps" },
+  },
 };
 
 type ReportResult = {
@@ -253,6 +482,10 @@ export default function SetupPage() {
   const [marking, setMarking] = useState<string | null>(null);
   const [sendingReport, setSendingReport] = useState(false);
   const [reportResult, setReportResult] = useState<ReportResult | null>(null);
+  const [seedingLuna, setSeedingLuna] = useState(false);
+  const [seedResult, setSeedResult] = useState<string | null>(null);
+  const [healthData, setHealthData] = useState<Record<string, { ok: boolean; detail: string }> | null>(null);
+  const [loadingHealth, setLoadingHealth] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/maya/context")
@@ -283,6 +516,36 @@ export default function SetupPage() {
       setItems(data.pendencias ?? []);
     } finally {
       setMarking(null);
+    }
+  }
+
+  async function seedLunaAll() {
+    setSeedingLuna(true);
+    setSeedResult(null);
+    try {
+      const res = await fetch("/api/admin/social/setup-all", { method: "POST" });
+      const data = await res.json();
+      setSeedResult(data.summary ?? "Feito!");
+      const ctx = await fetch("/api/admin/maya/context");
+      const ctxData = await ctx.json();
+      setItems(ctxData.pendencias ?? []);
+    } catch (e) {
+      setSeedResult(`Erro: ${(e as Error).message}`);
+    } finally {
+      setSeedingLuna(false);
+    }
+  }
+
+  async function runHealthCheck() {
+    setLoadingHealth(true);
+    try {
+      const res = await fetch("/api/admin/health");
+      const data = await res.json();
+      setHealthData(data.checks ?? {});
+    } catch {
+      setHealthData(null);
+    } finally {
+      setLoadingHealth(false);
     }
   }
 
@@ -441,6 +704,124 @@ export default function SetupPage() {
         )}
       </div>
 
+      {/* Luna — Setup completo (seed content + knowledge) */}
+      <div
+        style={{
+          background: "var(--bg-card)",
+          border: "0.5px solid var(--border-default)",
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>🌙</div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+            Setup completo Luna
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+            Popula posts pre-escritos + base de conhecimento (persona, estrategias, hashtags) de uma vez.
+          </div>
+        </div>
+        <button
+          onClick={seedLunaAll}
+          disabled={seedingLuna}
+          style={{
+            padding: "8px 14px",
+            borderRadius: 8,
+            background: "var(--accent)",
+            color: "#fff",
+            border: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: seedingLuna ? "wait" : "pointer",
+            opacity: seedingLuna ? 0.6 : 1,
+          }}
+        >
+          {seedingLuna ? "Populando..." : "🌙 Seed tudo"}
+        </button>
+        {seedResult && (
+          <div
+            style={{
+              fontSize: 12,
+              padding: "6px 10px",
+              borderRadius: 6,
+              background: "rgba(107,158,107,0.15)",
+              color: "#6B9E6B",
+              fontWeight: 600,
+              flexBasis: "100%",
+            }}
+          >
+            {seedResult}
+          </div>
+        )}
+      </div>
+
+      {/* Health Check — diagnostico geral */}
+      <div
+        style={{
+          background: "var(--bg-card)",
+          border: "0.5px solid var(--border-default)",
+          borderRadius: 12,
+          padding: 16,
+          marginBottom: 20,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: healthData ? 14 : 0 }}>
+          <div style={{ fontSize: 26, lineHeight: 1, flexShrink: 0 }}>🏥</div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+              Diagnostico do sistema
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+              Verifica todas as chaves, tokens e configuracoes em tempo real.
+            </div>
+          </div>
+          <button
+            onClick={runHealthCheck}
+            disabled={loadingHealth}
+            style={{
+              padding: "8px 14px",
+              borderRadius: 8,
+              background: "var(--bg-secondary)",
+              color: "var(--text-primary)",
+              border: "0.5px solid var(--border-default)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: loadingHealth ? "wait" : "pointer",
+            }}
+          >
+            {loadingHealth ? "Verificando..." : "Rodar diagnostico"}
+          </button>
+        </div>
+        {healthData && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
+            {Object.entries(healthData).map(([key, val]) => (
+              <div
+                key={key}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  background: val.ok ? "rgba(107,158,107,0.08)" : "rgba(196,120,122,0.08)",
+                  border: `0.5px solid ${val.ok ? "rgba(107,158,107,0.3)" : "rgba(196,120,122,0.3)"}`,
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: val.ok ? "#6B9E6B" : "#C4787A" }}>
+                  {val.ok ? "✓" : "✗"} {key}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                  {val.detail}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {loading ? (
         <div style={{ color: "var(--text-muted)", fontSize: 14 }}>Carregando...</div>
       ) : (
@@ -578,6 +959,24 @@ export default function SetupPage() {
                           }}
                         >
                           {marking === "email_pro" ? "Salvando..." : "Marcar como feito"}
+                        </button>
+                      )}
+                      {item.id === "luna_content" && !item.done && (
+                        <button
+                          onClick={seedLunaAll}
+                          disabled={seedingLuna}
+                          style={{
+                            padding: "8px 14px",
+                            borderRadius: 8,
+                            background: "var(--accent)",
+                            color: "#fff",
+                            border: "none",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                          }}
+                        >
+                          {seedingLuna ? "Populando..." : "🌙 Seed conteudo + knowledge"}
                         </button>
                       )}
                     </div>
