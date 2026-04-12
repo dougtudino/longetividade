@@ -13,7 +13,17 @@
       "Bash(node -e \"console.log\\(new Date\\(Date.now\\(\\)+3600000\\).toISOString\\(\\)\\)\")",
       "Read(//home/claude/**)",
       "Read(//c/Users/dougt/Downloads/**)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "mcp__brevo__lists_get_lists",
+      "mcp__brevo__senders_get_senders",
+      "mcp__brevo__domains_get_domains",
+      "mcp__brevo__templates_get_smtp_templates",
+      "mcp__brevo__senders_create_sender",
+      "mcp__brevo__senders_validate_sender_by_otp",
+      "mcp__brevo__transac_templates_get_transac_emails_list",
+      "mcp__brevo__contacts_get_contacts",
+      "mcp__brevo__contacts_get_contact_info",
+      "mcp__brevo__accounts_get_account"
     ]
   }
 }

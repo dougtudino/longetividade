@@ -72,3 +72,23 @@ export const PLANS: Plan[] = [
 export function getPlanById(id: string): Plan | undefined {
   return PLANS.find((p) => p.id === id);
 }
+
+// Helpers pra reusar em admin pages (evita hardcode de precos/offers)
+export const PLAN_BASICO = PLANS[0];
+export const PLAN_COMPLETO = PLANS[1];
+export const PLAN_VIP = PLANS[2];
+
+export const HOTMART_CHECKOUT_URL = `https://pay.hotmart.com/${HOTMART_PRODUCT}`;
+
+export const PLAN_SUMMARY = PLANS.map((p) => ({
+  name: p.name,
+  price: `R$ ${p.price},00`,
+  offerId: p.checkoutUrl.split("off=")[1] ?? "",
+  highlighted: p.highlighted,
+}));
+
+export function getOfferIdByPlan(planId: string): string {
+  const plan = getPlanById(planId);
+  if (!plan) return "";
+  return plan.checkoutUrl.split("off=")[1] ?? "";
+}

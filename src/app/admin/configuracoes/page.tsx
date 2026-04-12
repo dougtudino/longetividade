@@ -149,11 +149,12 @@ const GOOGLE_KEYS = [
   },
 ] as const;
 
-const plans = [
-  { name: "Basico", price: "R$37,00", offerId: "zxq5tgew" },
-  { name: "Completo", price: "R$67,00", tag: "MAIS ESCOLHIDO", offerId: "uzvdkzkf" },
-  { name: "VIP", price: "R$97,00", offerId: "h84hak4e" },
-];
+// Fonte unica de precos: src/config/plans.ts (nao hardcodar aqui)
+import { PLAN_SUMMARY, HOTMART_CHECKOUT_URL } from "@/config/plans";
+const plans = PLAN_SUMMARY.map((p) => ({
+  ...p,
+  tag: p.highlighted ? "MAIS ESCOLHIDO" : undefined,
+}));
 
 const externalLinks = [
   { label: "Hotmart Painel", url: "https://app.hotmart.com/products/manage/7474328", icon: "🔥" },

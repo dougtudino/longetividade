@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import MayaChat from "@/components/admin/maya-chat";
-import PendingChecklist, {
-  type ChecklistItem,
-} from "@/components/admin/pending-checklist";
 import PageHelp from "@/components/admin/PageHelp";
+import { PLANS } from "@/config/plans";
 
 interface PlanStats {
   count: number;
@@ -390,11 +388,13 @@ function RevenueChart({ data }: { data: DailyRevenue[] }) {
 }
 
 function PlanDistribution({ byPlan }: { byPlan: Stats["byPlan"] }) {
-  const plans = [
-    { key: "basico" as const, label: "Basico", price: "R$ 37", color: "#9EBF9E" },
-    { key: "completo" as const, label: "Completo", price: "R$ 67", color: "#7A9E7E" },
-    { key: "vip" as const, label: "VIP", price: "R$ 97", color: "#3D5A3E" },
-  ];
+  const PLAN_COLORS: Record<string, string> = { basico: "#9EBF9E", completo: "#7A9E7E", vip: "#3D5A3E" };
+  const plans = PLANS.map((p) => ({
+    key: p.id as "basico" | "completo" | "vip",
+    label: p.name,
+    price: `R$ ${p.price}`,
+    color: PLAN_COLORS[p.id] ?? "#888",
+  }));
   const totalCount = plans.reduce((s, p) => s + byPlan[p.key].count, 0) || 1;
 
   return (
@@ -696,7 +696,6 @@ type HotmartSyncResult = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pendencias, setPendencias] = useState<ChecklistItem[] | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<HotmartSyncResult | null>(null);
 
@@ -736,8 +735,8 @@ export default function AdminDashboard() {
   }
 
   const handleMayaContext = useCallback(
-    (ctx: { pendencias: ChecklistItem[] }) => {
-      setPendencias(ctx.pendencias);
+    () => {
+      // Maya context carregado — pendencias agora ficam em /admin/setup
     },
     []
   );
@@ -869,7 +868,41 @@ export default function AdminDashboard() {
           }}
         >
           <MayaChat onContextLoaded={handleMayaContext} />
-          <PendingChecklist items={pendencias} loading={pendencias === null} />
+          <div
+            style={{
+              background: "var(--bg-card)",
+              border: "0.5px solid var(--border-default)",
+              borderRadius: 12,
+              padding: 20,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+              Pendencias & Setup
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+              Checklist de pendencias com auto-deteccao esta em Setup.
+            </div>
+            <a
+              href="/admin/setup"
+              style={{
+                padding: "8px 16px",
+                borderRadius: 8,
+                background: "var(--accent)",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Abrir Setup →
+            </a>
+          </div>
         </div>
 
         <div
