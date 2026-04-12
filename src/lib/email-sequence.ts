@@ -3,6 +3,8 @@
 
 const SITE = "https://www.longetividade.com.br";
 const PAGE = `${SITE}/emagreca-sem-dieta?utm_source=brevo&utm_medium=email&utm_campaign=welcome`;
+// D+5: direto pro checkout Hotmart (sem fricção — lead já conhece o produto)
+const CHECKOUT_DIRECT = `https://pay.hotmart.com/H105141835Q?off=zxq5tgew&utm_source=brevo&utm_medium=email&utm_campaign=oferta-d5`;
 
 function wrap(title: string, body: string, ctaText: string, ctaUrl: string): string {
   return `<!DOCTYPE html>
@@ -83,7 +85,8 @@ export function valueEmail(name: string | null): SequenceEmail {
 
 export function offerEmail(name: string | null): SequenceEmail {
   const firstName = name?.split(" ")[0] ?? "amiga";
-  const offerUrl = `${SITE}/emagreca-sem-dieta?utm_source=brevo&utm_medium=email&utm_campaign=oferta-d5`;
+  // Direto pro checkout — lead já conhece o produto (recebeu D+0 e D+2)
+  const offerUrl = CHECKOUT_DIRECT;
   return {
     subject: `${firstName}, hoje é o último dia da oferta especial`,
     html: wrap(
