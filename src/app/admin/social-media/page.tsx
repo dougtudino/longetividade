@@ -65,6 +65,9 @@ export default function SocialMediaPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
   const [seeding, setSeeding] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [generateResult, setGenerateResult] = useState<string | null>(null);
+  const [posting, setPosting] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +155,39 @@ export default function SocialMediaPage() {
       /* silent */
     } finally {
       setUpdating(null);
+    }
+  }
+
+  async function generateWeek() {
+    setGenerating(true);
+    setGenerateResult(null);
+    try {
+      const res = await fetch("/api/admin/social/generate-now", { method: "POST" });
+      const data = await res.json();
+      setGenerateResult(data.ok ? `${data.created} posts gerados pra semana!` : `Erro: ${data.error}`);
+      await loadPosts();
+    } catch (e) {
+      setGenerateResult(`Erro: ${(e as Error).message}`);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
+  async function publishPost(postId: string) {
+    setPosting(postId);
+    try {
+      const res = await fetch("/api/admin/social/post", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId }),
+      });
+      const data = await res.json();
+      if (data.ok) await loadPosts();
+      else setError(data.error ?? "Falha ao postar");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setPosting(null);
     }
   }
 
@@ -262,6 +298,13 @@ export default function SocialMediaPage() {
               {bulkAction === "approve-all-review" ? "Aprovando..." : `✅ Aprovar em review (${counts.review})`}
             </button>
           )}
+          <button onClick={generateWeek} disabled={generating} style={{
+            padding: "10px 18px", borderRadius: 10, background: "#4A90D9", color: "#fff",
+            border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            opacity: generating ? 0.6 : 1,
+          }}>
+            {generating ? "Gerando..." : "🔄 Gerar semana"}
+          </button>
           <button onClick={discoverIg} disabled={igDiscovery === "loading"} style={{
             padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
             border: "0.5px solid var(--border-default)", fontSize: 13, fontWeight: 600, cursor: "pointer",
@@ -270,6 +313,15 @@ export default function SocialMediaPage() {
           </button>
         </div>
       </div>
+
+      {generateResult && (
+        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
+          background: generateResult.includes("Erro") ? "rgba(196,120,122,0.1)" : "rgba(107,158,107,0.1)",
+          color: generateResult.includes("Erro") ? "#C4787A" : "#6B9E6B",
+        }}>
+          {generateResult}
+        </div>
+      )}
 
       {igDiscovery && igDiscovery !== "loading" && (
         <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
@@ -515,10 +567,16 @@ export default function SocialMediaPage() {
                         </>
                       )}
                       {p.status === "approved" && (
-                        <button onClick={() => updateStatus(p.id, "posted")} disabled={updating === p.id}
-                          style={{ padding: "6px 14px", borderRadius: 8, background: "#639922", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                          📤 Marcar como Postado
-                        </button>
+                        <>
+                          <button onClick={() => publishPost(p.id)} disabled={posting === p.id}
+                            style={{ padding: "6px 14px", borderRadius: 8, background: "#639922", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                            {posting === p.id ? "Publicando..." : "📤 Publicar no FB+IG"}
+                          </button>
+                          <button onClick={() => updateStatus(p.id, "posted")} disabled={updating === p.id}
+                            style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                            Marcar postado (manual)
+                          </button>
+                        </>
                       )}
                       <button
                         onClick={() => { navigator.clipboard.writeText(p.content + (p.hashtags ? "\n\n" + p.hashtags : "")); }}
