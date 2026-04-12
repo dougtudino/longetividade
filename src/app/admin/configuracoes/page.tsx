@@ -149,6 +149,33 @@ const GOOGLE_KEYS = [
   },
 ] as const;
 
+const SOCIAL_KEYS = [
+  {
+    key: "SOCIAL_INSTAGRAM_URL",
+    label: "Instagram — URL do perfil",
+    hint: "Ex: https://www.instagram.com/longetividade/",
+    sensitive: false,
+  },
+  {
+    key: "SOCIAL_FACEBOOK_URL",
+    label: "Facebook — URL da Page",
+    hint: "Ex: https://www.facebook.com/357054767494527",
+    sensitive: false,
+  },
+  {
+    key: "INSTAGRAM_ACCOUNT_ID",
+    label: "Instagram Business Account ID",
+    hint: "Auto-descoberto via /api/admin/social/discover-ig. Ou cole manualmente.",
+    sensitive: false,
+  },
+  {
+    key: "SOCIAL_PAGE_TOKEN",
+    label: "Page Access Token (pra auto-posting)",
+    hint: "Token com pages_manage_posts + instagram_content_publish. Necessario pra Luna postar sozinha.",
+    sensitive: true,
+  },
+] as const;
+
 // Fonte unica de precos: src/config/plans.ts (nao hardcodar aqui)
 import { PLAN_SUMMARY, HOTMART_CHECKOUT_URL } from "@/config/plans";
 const plans = PLAN_SUMMARY.map((p) => ({
@@ -618,6 +645,38 @@ export default function ConfiguracoesPage() {
           </button>
           <span style={settings.GOOGLE_CLIENT_ID ? badgeActive : badgePending}>
             {settings.GOOGLE_CLIENT_ID ? "Configurado" : "Pendente"}
+          </span>
+        </div>
+      </div>
+
+      {/* 4.2 Redes Sociais */}
+      <div id="social" style={cardStyle}>
+        <h2 style={sectionTitle}>Redes Sociais (Luna auto-posting)</h2>
+        <p style={{ ...hintStyle, marginTop: 0, marginBottom: 16 }}>
+          Configure as contas de Instagram e Facebook pra Luna postar automaticamente.
+          O <strong>Page Token</strong> e necessario pra auto-posting (requer Meta App Review).
+        </p>
+
+        {SOCIAL_KEYS.map((s) => (
+          <div key={s.key} style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>{s.label}</label>
+            <input
+              type={s.sensitive ? "password" : "text"}
+              value={settings[s.key] ?? ""}
+              onChange={(e) => updateSetting(s.key, e.target.value)}
+              placeholder={s.hint}
+              style={inputStyle}
+            />
+            <p style={hintStyle}>{s.hint}</p>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button onClick={saveSettings} disabled={saving} style={saveBtnStyle}>
+            {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Redes Sociais"}
+          </button>
+          <span style={settings.SOCIAL_PAGE_TOKEN ? badgeActive : badgePending}>
+            {settings.SOCIAL_PAGE_TOKEN ? "Auto-posting configurado" : "Auto-posting pendente"}
           </span>
         </div>
       </div>
