@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
 import PostFeed from "@/components/social-templates/post-feed";
 import PostStory from "@/components/social-templates/post-story";
+import PostCarouselSlide, { parseContentToSlides } from "@/components/social-templates/post-carousel";
 import { getTemplateForFormat } from "@/components/social-templates/registry";
 
 type Post = {
@@ -334,37 +335,81 @@ export default function SocialMediaPage() {
                       </div>
                     )}
                     {/* Preview da arte */}
-                    <div style={{ marginBottom: 14, display: "flex", gap: 14, flexWrap: "wrap" }}>
-                      <div style={{
-                        width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
-                        overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
-                        flexShrink: 0,
-                      }}>
-                        <div style={{
-                          transform: `scale(${200 / (p.format === "stories" || p.format === "reels" ? 1080 : 1080)})`,
-                          transformOrigin: "top left",
-                          width: 1080,
-                          height: p.format === "stories" || p.format === "reels" ? 1920 : 1080,
-                        }}>
-                          {p.format === "stories" || p.format === "reels" ? (
-                            <PostStory
-                              ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
-                              title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
-                              body={p.content.split("\n")[0]}
-                              pillar={p.pillar as "s" | "e" | "m" | "promo"}
-                            />
-                          ) : (
-                            <PostFeed
-                              ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
-                              title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
-                              body={p.content.split("\n")[0]}
-                              pillar={p.pillar as "s" | "e" | "m" | "promo"}
-                            />
-                          )}
+                    <div style={{ marginBottom: 14 }}>
+                      {p.format === "carrossel" ? (
+                        /* CARROSSEL: mostra todos os slides */
+                        (() => {
+                          const slides = parseContentToSlides(p.title, p.content);
+                          return (
+                            <div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
+                                📑 Carrossel: {slides.length} slides
+                              </div>
+                              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
+                                {slides.map((slide, si) => (
+                                  <div key={si} style={{ flexShrink: 0 }}>
+                                    <div style={{
+                                      width: 160, height: 160, overflow: "hidden",
+                                      borderRadius: 8, border: "0.5px solid var(--border-subtle)",
+                                    }}>
+                                      <div style={{
+                                        transform: "scale(0.148)", transformOrigin: "top left",
+                                        width: 1080, height: 1080,
+                                      }}>
+                                        <PostCarouselSlide
+                                          ref={(el: HTMLDivElement | null) => {
+                                            previewRefs.current[`${p.id}-slide-${si}`] = el;
+                                          }}
+                                          slides={slides}
+                                          pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                                          slideIndex={si}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center", marginTop: 4 }}>
+                                      {si + 1}/{slides.length} · {slide.type}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()
+                      ) : (
+                        /* SINGLE: feed ou story */
+                        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                          <div style={{
+                            width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
+                            overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
+                            flexShrink: 0,
+                          }}>
+                            <div style={{
+                              transform: `scale(${200 / 1080})`,
+                              transformOrigin: "top left",
+                              width: 1080,
+                              height: p.format === "stories" || p.format === "reels" ? 1920 : 1080,
+                            }}>
+                              {p.format === "stories" || p.format === "reels" ? (
+                                <PostStory
+                                  ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
+                                  title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                                  body={p.content.split("\n")[0]}
+                                  pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                                />
+                              ) : (
+                                <PostFeed
+                                  ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
+                                  title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                                  body={p.content.split("\n")[0]}
+                                  pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                                />
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                       {p.imageBriefing && (
-                        <div style={{ flex: 1, minWidth: 200, fontSize: 11, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 10, borderRadius: 8, lineHeight: 1.5 }}>
+                        <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 10, borderRadius: 8, lineHeight: 1.5 }}>
                           <strong>Briefing visual (Uma):</strong> {p.imageBriefing}
                         </div>
                       )}
