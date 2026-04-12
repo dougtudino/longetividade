@@ -12,6 +12,7 @@ import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { BadgeResultado } from "@/components/visual";
 import Image from "next/image";
+import LeadCapture from "@/components/LeadCapture";
 
 const AVATAR_MAP: Record<string, string> = {
   fernanda: "/images/avatar-fernanda.png",
@@ -813,6 +814,29 @@ export default function EmagrecaSemDietaPage() {
             <p>
               <strong style={{ color: "var(--text-primary)" }}>P.P.S.</strong> — Você tem 7 dias de
               garantia. Se não gostar, devolvo seu dinheiro. O único risco é não tentar.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* LEAD CAPTURE — pra quem nao comprou */}
+      <section className="py-16 px-6" style={{ background: "var(--bg-primary)" }}>
+        <div className="mx-auto max-w-lg">
+          <div
+            className="rounded-2xl border p-8 text-center"
+            style={{ borderColor: "var(--border-subtle)", background: "var(--bg-card)" }}
+          >
+            <div className="mb-2 text-3xl">📧</div>
+            <h3 className="mb-2 text-lg font-bold" style={{ color: "var(--text-primary)" }}>
+              Ainda nao decidiu?
+            </h3>
+            <p className="mb-6 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+              Receba <strong>3 dicas gratuitas</strong> do Metodo S.E.M no seu email.
+              Sem spam, sem compromisso — so conteudo que ajuda.
+            </p>
+            <LeadCapture source="sales-page" />
+            <p className="mt-4 text-xs" style={{ color: "var(--text-hint)" }}>
+              Ao se cadastrar, voce entra na lista VIP e recebe dicas exclusivas.
             </p>
           </div>
         </div>
