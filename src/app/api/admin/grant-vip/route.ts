@@ -1,19 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendEmail } from "@/lib/email";
+import { buildVipInviteEmail } from "@/lib/email-invite";
 
 // POST /api/admin/grant-vip
-// Body: { email, name? }
+// Body: { email, name?, sendInvite?: boolean }
 //
-// Cria Order VIP aprovada + AppUser pra qualquer email, sem precisar
-// de compra Hotmart. Usado pra:
-//   - Admins testarem o app com email proprio
-//   - Convidados especiais / giveaways
-//   - Parceiros e afiliados
-//
-// Se o email ja tem AppUser, retorna ok (idempotente).
-// Se o email ja tem Order mas nao AppUser, cria o AppUser.
+// Cria Order VIP + AppUser + envia email de convite com link do app.
+// Se sendInvite=true (default), envia email de boas-vindas VIP.
+// Se email ja tem AppUser, envia convite de reacesso (link do app).
 export async function POST(req: NextRequest) {
-  let body: { email?: string; name?: string };
+  let body: { email?: string; name?: string; sendInvite?: boolean };
   try {
     body = await req.json();
   } catch {
@@ -22,6 +19,7 @@ export async function POST(req: NextRequest) {
 
   const email = (body.email ?? "").trim().toLowerCase();
   const name = (body.name ?? email.split("@")[0]).trim();
+  const sendInvite = body.sendInvite !== false; // default true
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ ok: false, error: "Email invalido" }, { status: 400 });
@@ -29,12 +27,23 @@ export async function POST(req: NextRequest) {
 
   // Checa se ja tem AppUser
   const existing = await prisma.appUser.findUnique({ where: { email } });
+
   if (existing) {
+    // Ja tem VIP — envia email de reacesso se pedido
+    if (sendInvite) {
+      try {
+        const tmpl = buildVipInviteEmail(name, email);
+        await sendEmail({ to: email, toName: name, ...tmpl });
+      } catch (e) {
+        console.error("Failed to send VIP invite:", e);
+      }
+    }
     return NextResponse.json({
       ok: true,
-      message: `${email} ja tem acesso VIP`,
+      message: `${email} ja tem acesso VIP` + (sendInvite ? " · convite reenviado" : ""),
       appUserId: existing.id,
       alreadyExisted: true,
+      inviteSent: sendInvite,
     });
   }
 
@@ -49,7 +58,7 @@ export async function POST(req: NextRequest) {
         email,
         name,
         plan: "vip",
-        amount: 9700, // R$ 97
+        amount: 9700,
         status: "approved",
       },
     });
@@ -65,11 +74,22 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // Envia convite por email
+  if (sendInvite) {
+    try {
+      const tmpl = buildVipInviteEmail(name, email);
+      await sendEmail({ to: email, toName: name, ...tmpl });
+    } catch (e) {
+      console.error("Failed to send VIP invite:", e);
+    }
+  }
+
   return NextResponse.json({
     ok: true,
-    message: `Acesso VIP concedido pra ${email}`,
+    message: `Acesso VIP concedido pra ${email}` + (sendInvite ? " · convite enviado" : ""),
     appUserId: appUser.id,
     orderId: order.id,
     alreadyExisted: false,
+    inviteSent: sendInvite,
   });
 }

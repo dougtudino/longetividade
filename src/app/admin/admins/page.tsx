@@ -58,6 +58,9 @@ export default function AdminsPage() {
   const [error, setError] = useState<string | null>(null);
   const [grantingVip, setGrantingVip] = useState<string | null>(null);
   const [vipResult, setVipResult] = useState<Record<string, string>>({});
+  const [changingPw, setChangingPw] = useState<string | null>(null);
+  const [newPw, setNewPw] = useState("");
+  const [pwResult, setPwResult] = useState<Record<string, string>>({});
 
   async function load() {
     setLoading(true);
@@ -280,52 +283,104 @@ export default function AdminsPage() {
                   <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Último login</div>
                   <div style={{ fontSize: 12, fontWeight: 600 }}>{fmtDate(a.lastLoginAt)}</div>
                 </div>
-                <button
-                  onClick={async () => {
-                    setGrantingVip(a.id);
-                    try {
-                      const res = await fetch("/api/admin/grant-vip", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: a.email, name: a.name }),
-                      });
-                      const data = await res.json();
-                      setVipResult((prev) => ({
-                        ...prev,
-                        [a.id]: data.ok
-                          ? data.alreadyExisted
-                            ? "Já tem VIP ✓"
-                            : "VIP concedido ✓"
-                          : data.error ?? "Erro",
-                      }));
-                    } catch (e) {
-                      setVipResult((prev) => ({
-                        ...prev,
-                        [a.id]: (e as Error).message,
-                      }));
-                    } finally {
-                      setGrantingVip(null);
-                    }
-                  }}
-                  disabled={grantingVip === a.id}
-                  style={{
-                    padding: "5px 12px",
-                    borderRadius: 8,
-                    background: vipResult[a.id]?.includes("✓") ? "rgba(107,158,107,0.15)" : "#639922",
-                    color: vipResult[a.id]?.includes("✓") ? "#6B9E6B" : "#fff",
-                    border: "none",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: grantingVip === a.id ? "wait" : "pointer",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {grantingVip === a.id
-                    ? "..."
-                    : vipResult[a.id]
-                      ? vipResult[a.id]
-                      : "🎁 Dar acesso VIP"}
-                </button>
+                {/* Botoes de acao */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {/* VIP + convite */}
+                  <button
+                    onClick={async () => {
+                      setGrantingVip(a.id);
+                      try {
+                        const res = await fetch("/api/admin/grant-vip", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ email: a.email, name: a.name, sendInvite: true }),
+                        });
+                        const data = await res.json();
+                        setVipResult((prev) => ({
+                          ...prev,
+                          [a.id]: data.ok ? data.message : data.error ?? "Erro",
+                        }));
+                      } catch (e) {
+                        setVipResult((prev) => ({ ...prev, [a.id]: (e as Error).message }));
+                      } finally {
+                        setGrantingVip(null);
+                      }
+                    }}
+                    disabled={grantingVip === a.id}
+                    style={{
+                      padding: "5px 12px", borderRadius: 8,
+                      background: vipResult[a.id] ? "rgba(107,158,107,0.15)" : "#639922",
+                      color: vipResult[a.id] ? "#6B9E6B" : "#fff",
+                      border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap",
+                    }}
+                  >
+                    {grantingVip === a.id ? "..." : vipResult[a.id] ?? "🎁 VIP + Convite"}
+                  </button>
+
+                  {/* Trocar senha */}
+                  {changingPw === a.id ? (
+                    <div style={{ display: "flex", gap: 4 }}>
+                      <input
+                        type="password"
+                        value={newPw}
+                        onChange={(e) => setNewPw(e.target.value)}
+                        placeholder="Nova senha (min 6)"
+                        style={{
+                          width: 120, padding: "4px 8px", borderRadius: 6,
+                          border: "0.5px solid var(--border-default)",
+                          background: "var(--bg-secondary)", color: "var(--text-primary)",
+                          fontSize: 11,
+                        }}
+                      />
+                      <button
+                        onClick={async () => {
+                          if (newPw.length < 6) { setPwResult((p) => ({ ...p, [a.id]: "Min 6 chars" })); return; }
+                          try {
+                            const res = await fetch("/api/admin/admins/change-password", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ adminId: a.id, newPassword: newPw }),
+                            });
+                            const data = await res.json();
+                            setPwResult((p) => ({ ...p, [a.id]: data.ok ? "Senha salva ✓" : data.error }));
+                            if (data.ok) { setChangingPw(null); setNewPw(""); }
+                          } catch (e) {
+                            setPwResult((p) => ({ ...p, [a.id]: (e as Error).message }));
+                          }
+                        }}
+                        style={{
+                          padding: "4px 10px", borderRadius: 6, background: "var(--accent)",
+                          color: "#fff", border: "none", fontSize: 10, fontWeight: 700, cursor: "pointer",
+                        }}
+                      >
+                        Salvar
+                      </button>
+                      <button
+                        onClick={() => { setChangingPw(null); setNewPw(""); }}
+                        style={{
+                          padding: "4px 8px", borderRadius: 6, background: "var(--bg-secondary)",
+                          color: "var(--text-muted)", border: "0.5px solid var(--border-default)",
+                          fontSize: 10, cursor: "pointer",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setChangingPw(a.id)}
+                      style={{
+                        padding: "5px 12px", borderRadius: 8,
+                        background: pwResult[a.id]?.includes("✓") ? "rgba(107,158,107,0.15)" : "var(--bg-secondary)",
+                        color: pwResult[a.id]?.includes("✓") ? "#6B9E6B" : "var(--text-secondary)",
+                        border: "0.5px solid var(--border-default)",
+                        fontSize: 11, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
+                      }}
+                    >
+                      {pwResult[a.id] ?? "🔑 Trocar senha"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
