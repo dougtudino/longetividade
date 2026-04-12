@@ -6,8 +6,8 @@ import Link from "next/link";
 import { captureUTMs, appendUTMs } from "@/lib/utm";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
 
-const HOTMART = "https://pay.hotmart.com/H105141835Q";
-const KIWIFY = "https://pay.kiwify.com.br/3fle7dM";
+// Hotmart checkout com offer code do plano Basico (R$37)
+const HOTMART = "https://pay.hotmart.com/H105141835Q?off=zxq5tgew";
 
 interface CampaignVariant {
   headline: string;
@@ -17,30 +17,63 @@ interface CampaignVariant {
   utm_source: string;
 }
 
+// Copies reescritas pra Meta Ad Policy compliance (council 2026-04-11):
+// Sem numeros de peso, sem timeframe ("21 dias"), sem claims nao-verificaveis
+// ("12.400 mulheres"), sem desconto fake ("72% OFF").
 const VARIANTS: Record<string, CampaignVariant> = {
+  // ─── Meta Ads (FB + IG) ────────────────────────────────────
   "meta-ads": {
     headline: "Cansada de dietas que não funcionam?",
     subheadline:
-      "Descubra o método que ajudou 12.400+ mulheres a emagrecer sem cortar alimentos e sem academia. Resultados em 21 dias.",
-    cta: "Quero Conhecer o Método — R$37",
-    badge: "Oferta Exclusiva",
-    utm_source: "facebook",
+      "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
+    cta: "Conhecer o Método — R$ 37",
+    badge: "Reeducação alimentar",
+    utm_source: "meta",
   },
-  google: {
-    headline: "Como emagrecer sem dieta restritiva",
+  // Alias — slug "instagram" aponta pra mesma copy de Meta Ads
+  instagram: {
+    headline: "Cansada de dietas que não funcionam?",
     subheadline:
-      "Método SEM: 3 pilares científicos para perder peso de forma permanente. Sem contar calorias, sem passar fome. Acesso imediato.",
-    cta: "Ver Método Completo — R$37",
-    badge: "Comprovado Cientificamente",
+      "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
+    cta: "Conhecer o Método — R$ 37",
+    badge: "Reeducação alimentar",
+    utm_source: "meta",
+  },
+  // Alias — slug "facebook" tambem funciona
+  facebook: {
+    headline: "Cansada de dietas que não funcionam?",
+    subheadline:
+      "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
+    cta: "Conhecer o Método — R$ 37",
+    badge: "Reeducação alimentar",
+    utm_source: "meta",
+  },
+  // ─── Google Ads ─────────────────────────────────────────────
+  google: {
+    headline: "Reeducação alimentar sem dieta restritiva",
+    subheadline:
+      "Método S.E.M: 3 pilares pra uma nova relação com a comida. Sem contar calorias, sem culpa. Acesso imediato ao ebook completo.",
+    cta: "Ver Método Completo — R$ 37",
+    badge: "Método completo",
     utm_source: "google",
   },
+  // ─── Orgânico / WhatsApp ────────────────────────────────────
   organico: {
-    headline: "Você merece emagrecer sem sofrimento",
+    headline: "Uma nova relação com a comida",
     subheadline:
-      "O ebook Emagreça Sem Dieta já transformou a vida de mais de 12.000 pessoas. Um método simples que funciona no seu dia a dia corrido.",
-    cta: "Quero Meu Ebook — Apenas R$37",
-    badge: "Mais Vendido",
+      "O Método S.E.M é reeducação alimentar real — sem restrição extrema, sem culpa, sem o peso emocional da balança. Pra mulher com rotina de verdade.",
+    cta: "Quero Meu Ebook — R$ 37",
+    badge: "Método S.E.M",
     utm_source: "organico",
+  },
+  // Alias pra WhatsApp
+  whatsapp: {
+    headline: "Uma nova relação com a comida",
+    subheadline:
+      "O Método S.E.M é reeducação alimentar real — sem restrição extrema, sem culpa, sem o peso emocional da balança. Pra mulher com rotina de verdade.",
+    cta: "Quero Meu Ebook — R$ 37",
+    badge: "Método S.E.M",
+    utm_source: "whatsapp",
   },
 };
 
@@ -121,10 +154,9 @@ export default function CampaignPage() {
           </a>
           <div className="mt-4 flex flex-col items-center gap-1">
             <p className="text-sm text-[#2D2D2D]/40">
-              De{" "}
-              <span className="line-through text-[#2D2D2D]/25">R$97</span>{" "}
-              por{" "}
-              <strong className="text-[#2D2D2D]/70">R$37</strong>
+              A partir de{" "}
+              <strong className="text-[#2D2D2D]/70">R$ 37</strong>
+              <span className="text-[#2D2D2D]/30"> · ou 6x de R$ 6,17</span>
             </p>
             <p className="text-xs text-[#2D2D2D]/30">
               Pagamento seguro · Acesso imediato · Garantia 7 dias
@@ -161,12 +193,12 @@ export default function CampaignPage() {
       <section className="py-20 px-6">
         <div className="mx-auto max-w-lg text-center">
           <div className="rounded-3xl border border-[#7A9E7E]/20 bg-gradient-to-b from-[#7A9E7E]/10 to-transparent p-10">
-            <div className="mb-4 inline-flex rounded-full bg-red-500/10 px-4 py-1.5 text-xs font-bold text-red-500">
-              72% OFF — Oferta limitada
+            <div className="mb-4 inline-flex rounded-full bg-[#7A9E7E]/10 px-4 py-1.5 text-xs font-bold text-[#3D5A3E]">
+              Ebook completo + bônus
             </div>
-            <div className="my-6 flex items-baseline justify-center gap-3">
-              <span className="text-lg text-[#2D2D2D]/30 line-through">R$97</span>
-              <span className="text-6xl font-black">R$37</span>
+            <div className="my-6 flex flex-col items-center gap-1">
+              <span className="text-6xl font-black">R$ 37</span>
+              <span className="text-sm text-[#2D2D2D]/40">ou 6x de R$ 6,17 sem juros</span>
             </div>
             <a
               href={buyUrl}
