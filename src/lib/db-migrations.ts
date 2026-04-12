@@ -142,6 +142,30 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     sql: `CREATE INDEX IF NOT EXISTS "AgentDecision_createdAt_idx" ON "AgentDecision"("createdAt")`,
   },
 
+  // ─── AppUser: auth password + google ──
+  {
+    label: "AppUser.passwordHash column",
+    sql: `ALTER TABLE "AppUser" ADD COLUMN IF NOT EXISTS "passwordHash" TEXT`,
+  },
+  {
+    label: "AppUser.googleId column",
+    sql: `ALTER TABLE "AppUser" ADD COLUMN IF NOT EXISTS "googleId" TEXT`,
+  },
+  {
+    label: "AppUser.googleId unique partial",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppUser_googleId_key" ON "AppUser"("googleId") WHERE "googleId" IS NOT NULL`,
+  },
+
+  // ─── AdminUser: google login ──
+  {
+    label: "AdminUser.googleId column",
+    sql: `ALTER TABLE "AdminUser" ADD COLUMN IF NOT EXISTS "googleId" TEXT`,
+  },
+  {
+    label: "AdminUser.googleId unique partial",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AdminUser_googleId_key" ON "AdminUser"("googleId") WHERE "googleId" IS NOT NULL`,
+  },
+
   // ─── Order: novas colunas (CRITICO — reset-test-data depende delas) ──
   {
     label: "Order.hotmartTransactionId column",

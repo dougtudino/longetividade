@@ -191,12 +191,14 @@ model PageView {
 // ─── App VIP ───────────────────────────────────────
 
 model AppUser {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  orderId    String   @unique
-  plan       String   // "vip"
-  accessType String   @default("lifetime") // "lifetime" | "subscription"
-  createdAt  DateTime @default(now())
+  id           String   @id @default(uuid())
+  email        String   @unique
+  orderId      String   @unique
+  plan         String   // "vip"
+  accessType   String   @default("lifetime") // "lifetime" | "subscription"
+  passwordHash String?  // bcrypt hash (null se login via email-only ou Google)
+  googleId     String?  @unique // Google sub ID para OAuth
+  createdAt    DateTime @default(now())
 
   profile         AppProfile?
   checkins        AppCheckin[]
@@ -383,6 +385,7 @@ model AdminUser {
   email        String        @unique
   name         String
   passwordHash String
+  googleId     String?       @unique // Google sub ID para OAuth
   role         String        @default("manager")
   inviteToken  String?       @unique
   inviteUsed   Boolean       @default(false)

@@ -1,20 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { v4 as uuid } from "uuid";
+import { verifyPassword } from "@/lib/admin-auth";
+import { setAppSessionCookies } from "@/lib/app-session";
 
+// POST /api/app/auth
+// Body: { email, password? }
+//
+// Cenarios:
+//   1. AppUser existe + tem passwordHash → exige password, valida bcrypt
+//   2. AppUser existe + SEM passwordHash (legado) → aceita email-only
+//   3. AppUser nao existe → fallback cria via Order VIP aprovada,
+//      login email-only apos criacao
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const email = (body.email ?? "").trim().toLowerCase();
-
-  if (!email) {
-    return NextResponse.json({ ok: false, reason: "Email obrigatorio." }, { status: 400 });
+  let body: { email?: string; password?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ ok: false, reason: "JSON invalido" }, { status: 400 });
   }
 
-  // Verifica se tem AppUser (criado pelo webhook)
+  const email = (body.email ?? "").trim().toLowerCase();
+  const password = body.password ?? "";
+
+  if (!email) {
+    return NextResponse.json({ ok: false, reason: "Email obrigatorio" }, { status: 400 });
+  }
+
   let appUser = await prisma.appUser.findUnique({ where: { email } });
 
   if (!appUser) {
-    // Fallback: verificar Order VIP aprovada (caso webhook nao tenha criado ainda)
     const order = await prisma.order.findFirst({
       where: { email, plan: "vip", status: "approved" },
       orderBy: { createdAt: "desc" },
@@ -22,12 +36,15 @@ export async function POST(req: NextRequest) {
 
     if (!order) {
       return NextResponse.json(
-        { ok: false, reason: "Email nao encontrado. Verifique se usou o mesmo email da compra." },
+        {
+          ok: false,
+          reason:
+            "Email nao encontrado. Verifique se usou o mesmo email da compra Hotmart.",
+        },
         { status: 404 }
       );
     }
 
-    // Criar AppUser on-the-fly
     appUser = await prisma.appUser.create({
       data: {
         email,
@@ -38,17 +55,25 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Criar token de sessao via response headers
-  // CRITICO: Path=/ (nao /app) porque o client-side fetch precisa
-  // mandar cookies para /api/app/* — paths que nao comecam com /app.
-  // Path=/app bloquearia todas as chamadas de API do app.
-  const token = uuid();
-  const isProduction = process.env.NODE_ENV === "production";
-  const cookieOpts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${isProduction ? "; Secure" : ""}`;
+  // Se tem passwordHash, exige senha
+  if (appUser.passwordHash) {
+    if (!password) {
+      return NextResponse.json(
+        {
+          ok: false,
+          reason: "Essa conta tem senha. Digite sua senha para entrar.",
+          requiresPassword: true,
+        },
+        { status: 401 }
+      );
+    }
+    const valid = await verifyPassword(password, appUser.passwordHash);
+    if (!valid) {
+      return NextResponse.json({ ok: false, reason: "Senha incorreta" }, { status: 401 });
+    }
+  }
 
-  const response = NextResponse.json({ ok: true, token });
-  response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
-  response.headers.append("Set-Cookie", `app_email=${email}; ${cookieOpts}`);
-
+  const response = NextResponse.json({ ok: true });
+  setAppSessionCookies(response, email);
   return response;
 }
