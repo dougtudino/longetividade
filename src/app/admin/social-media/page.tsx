@@ -1,7 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
+import PostFeed from "@/components/social-templates/post-feed";
+import PostStory from "@/components/social-templates/post-story";
+import { getTemplateForFormat } from "@/components/social-templates/registry";
 
 type Post = {
   id: string;
@@ -63,6 +67,9 @@ export default function SocialMediaPage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const loadPosts = useCallback(async () => {
     try {
@@ -94,6 +101,22 @@ export default function SocialMediaPage() {
     } finally {
       setSeeding(false);
     }
+  }
+
+  async function downloadImage(post: Post) {
+    const node = previewRefs.current[post.id];
+    if (!node) return;
+    setDownloading(post.id);
+    try {
+      const { toPng } = await import("html-to-image");
+      const tmpl = getTemplateForFormat(post.format);
+      const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 1, width: tmpl.width, height: tmpl.height });
+      const link = document.createElement("a");
+      link.download = `longetividade-${post.pillar}-${post.id.slice(0, 8)}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch { /* silent */ }
+    finally { setDownloading(null); }
   }
 
   async function updateStatus(postId: string, newStatus: string) {
@@ -178,7 +201,29 @@ export default function SocialMediaPage() {
         </button>
       </div>
 
-      {/* Filtros */}
+      {/* View mode + Filtros + Calendar link */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button onClick={() => setViewMode("list")} style={{
+            padding: "6px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+            background: viewMode === "list" ? "var(--accent)" : "var(--bg-secondary)",
+            color: viewMode === "list" ? "#fff" : "var(--text-secondary)",
+            border: "0.5px solid var(--border-default)", cursor: "pointer",
+          }}>📋 Lista</button>
+          <button onClick={() => setViewMode("grid")} style={{
+            padding: "6px 12px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+            background: viewMode === "grid" ? "var(--accent)" : "var(--bg-secondary)",
+            color: viewMode === "grid" ? "#fff" : "var(--text-secondary)",
+            border: "0.5px solid var(--border-default)", cursor: "pointer",
+          }}>📱 Grid Instagram</button>
+        </div>
+        <Link href="/admin/social-media/calendar" style={{
+          padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)",
+          color: "var(--text-primary)", border: "0.5px solid var(--border-default)",
+          fontSize: 12, fontWeight: 600, textDecoration: "none",
+        }}>🗓 Calendário →</Link>
+      </div>
+
       <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
         {["all", "draft", "review", "approved", "posted"].map((f) => (
           <button key={f} onClick={() => setFilter(f)} style={{
@@ -198,7 +243,56 @@ export default function SocialMediaPage() {
       ) : posts.length === 0 ? (
         <div style={{ ...card, textAlign: "center", padding: 48, color: "var(--text-muted)" }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>🌙</div>
-          Nenhum post ainda. Clica <strong>"Seed conteudo Luna"</strong> pra popular 10 posts pre-escritos.
+          Nenhum post ainda. Clica <strong>"Seed conteudo Luna"</strong> pra popular 25 posts.
+        </div>
+      ) : viewMode === "grid" ? (
+        /* ─── GRID VIEW (estilo Instagram) ─── */
+        <div>
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4,
+            background: "var(--bg-card)", borderRadius: 12, overflow: "hidden",
+            border: "0.5px solid var(--border-default)", padding: 4,
+          }}>
+            {posts.filter((p) => p.format !== "stories" && p.format !== "reels").slice(0, 12).map((p) => {
+              const pillar = PILLAR_COLORS[p.pillar] ?? PILLAR_COLORS.s;
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => { setViewMode("list"); setExpanded(p.id); }}
+                  style={{
+                    aspectRatio: "1", overflow: "hidden", borderRadius: 6, cursor: "pointer",
+                    position: "relative",
+                  }}
+                >
+                  <div style={{
+                    width: "100%", height: "100%", overflow: "hidden",
+                  }}>
+                    <div style={{
+                      transform: "scale(0.185)", transformOrigin: "top left",
+                      width: 1080, height: 1080,
+                    }}>
+                      <PostFeed
+                        ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
+                        title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                        body={p.content.split("\n")[0]}
+                        pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                      />
+                    </div>
+                  </div>
+                  <div style={{
+                    position: "absolute", bottom: 0, left: 0, right: 0,
+                    background: "linear-gradient(transparent, rgba(0,0,0,0.7))",
+                    padding: "20px 8px 6px", color: "#fff", fontSize: 9, fontWeight: 600,
+                  }}>
+                    {p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "").slice(0, 30)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 10, fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>
+            Preview do feed Instagram · Clique em qualquer post pra expandir
+          </div>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -239,11 +333,42 @@ export default function SocialMediaPage() {
                         {p.hashtags}
                       </div>
                     )}
-                    {p.imageBriefing && (
-                      <div style={{ fontSize: 11, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 10, borderRadius: 8, marginBottom: 14, lineHeight: 1.5 }}>
-                        <strong>Briefing visual (pra Uma):</strong> {p.imageBriefing}
+                    {/* Preview da arte */}
+                    <div style={{ marginBottom: 14, display: "flex", gap: 14, flexWrap: "wrap" }}>
+                      <div style={{
+                        width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
+                        overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
+                        flexShrink: 0,
+                      }}>
+                        <div style={{
+                          transform: `scale(${200 / (p.format === "stories" || p.format === "reels" ? 1080 : 1080)})`,
+                          transformOrigin: "top left",
+                          width: 1080,
+                          height: p.format === "stories" || p.format === "reels" ? 1920 : 1080,
+                        }}>
+                          {p.format === "stories" || p.format === "reels" ? (
+                            <PostStory
+                              ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
+                              title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                              body={p.content.split("\n")[0]}
+                              pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                            />
+                          ) : (
+                            <PostFeed
+                              ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
+                              title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                              body={p.content.split("\n")[0]}
+                              pillar={p.pillar as "s" | "e" | "m" | "promo"}
+                            />
+                          )}
+                        </div>
                       </div>
-                    )}
+                      {p.imageBriefing && (
+                        <div style={{ flex: 1, minWidth: 200, fontSize: 11, color: "var(--text-muted)", background: "var(--bg-secondary)", padding: 10, borderRadius: 8, lineHeight: 1.5 }}>
+                          <strong>Briefing visual (Uma):</strong> {p.imageBriefing}
+                        </div>
+                      )}
+                    </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {p.status === "draft" && (
                         <button onClick={() => updateStatus(p.id, "review")} disabled={updating === p.id}
@@ -273,6 +398,12 @@ export default function SocialMediaPage() {
                         onClick={() => { navigator.clipboard.writeText(p.content + (p.hashtags ? "\n\n" + p.hashtags : "")); }}
                         style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                         📋 Copiar texto
+                      </button>
+                      <button
+                        onClick={() => downloadImage(p)}
+                        disabled={downloading === p.id}
+                        style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                        {downloading === p.id ? "Gerando..." : "🖼 Baixar arte"}
                       </button>
                     </div>
                   </div>
