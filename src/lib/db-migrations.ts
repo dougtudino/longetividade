@@ -244,6 +244,36 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "Lead createdAt index",
     sql: `CREATE INDEX IF NOT EXISTS "Lead_createdAt_idx" ON "Lead"("createdAt")`,
   },
+
+  // ─── MayaMessage ────────────────────────────────────────
+  {
+    label: "MayaMessage table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "MayaMessage" (
+        "id" TEXT NOT NULL,
+        "adminId" TEXT NOT NULL,
+        "role" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "MayaMessage_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "MayaMessage_adminId_fkey" FOREIGN KEY ("adminId") REFERENCES "AdminUser"("id") ON DELETE CASCADE
+      )
+    `,
+  },
+  {
+    label: "MayaMessage adminId index",
+    sql: `CREATE INDEX IF NOT EXISTS "MayaMessage_adminId_idx" ON "MayaMessage"("adminId")`,
+  },
+  {
+    label: "MayaMessage createdAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "MayaMessage_createdAt_idx" ON "MayaMessage"("createdAt")`,
+  },
+
+  // ─── SocialPost.createdBy column ────────────────────────
+  {
+    label: "SocialPost.createdBy column",
+    sql: `ALTER TABLE "SocialPost" ADD COLUMN IF NOT EXISTS "createdBy" TEXT`,
+  },
 ];
 
 export type MigrationResult = {
