@@ -127,7 +127,10 @@ export default function AppHome() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/app/profile").then((r) => r.json()).then((d) => setProfile(d.profile));
+    fetch("/api/app/profile").then((r) => {
+      if (r.status === 401) { window.location.href = "/app/login"; return null; }
+      return r.json();
+    }).then((d) => { if (d) setProfile(d.profile); });
     fetch("/api/app/quote").then((r) => r.json()).then((d) => setQuote(d.quote));
     fetch("/api/app/checkin").then((r) => r.json()).then((d) => setCheckin(d.checkin));
     fetch("/api/app/mood?days=1")

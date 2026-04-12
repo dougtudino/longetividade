@@ -58,21 +58,21 @@ export async function GET(req: NextRequest) {
 
     if (!appUser) {
       const order = await prisma.order.findFirst({
-        where: { email, plan: "vip", status: "approved" },
+        where: { email, status: "approved" },
         orderBy: { createdAt: "desc" },
       });
       if (!order) {
         return errorRedirect(
           baseUrl,
           "app",
-          "Sem compra VIP aprovada. Use o mesmo email da compra Hotmart."
+          "Sem compra aprovada. Use o mesmo email da compra Hotmart."
         );
       }
       appUser = await prisma.appUser.create({
         data: {
           email,
           orderId: order.id,
-          plan: "vip",
+          plan: order.plan,
           accessType: "lifetime",
           googleId: gUser.id,
         },
@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
     }
 
     const response = NextResponse.redirect(new URL("/app", baseUrl));
-    setAppSessionCookies(response, email);
+    await setAppSessionCookies(response, email, appUser.id, appUser.plan);
     response.cookies.set("google_oauth_state", "", { maxAge: 0, path: "/" });
     return response;
   }

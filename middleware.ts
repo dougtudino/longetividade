@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-token";
+import { verifyAppToken, APP_TOKEN_COOKIE } from "@/lib/app-token";
 
 const SUBDOMAIN_MAP: Record<string, string> = {
   emagrecer: "/emagreca-sem-dieta",
@@ -18,6 +19,18 @@ async function isAdminAuthenticated(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get(ADMIN_TOKEN_COOKIE)?.value;
   const payload = await verifyAdminToken(token);
   return payload !== null;
+}
+
+async function isAppAuthenticated(request: NextRequest): Promise<boolean> {
+  // Check signed token first, fallback to legacy app_email cookie
+  const token = request.cookies.get(APP_TOKEN_COOKIE)?.value;
+  if (token) {
+    const payload = await verifyAppToken(token);
+    if (payload) return true;
+  }
+  // Legacy: unsigned app_email cookie (existing sessions before token signing)
+  const email = request.cookies.get("app_email")?.value;
+  return !!email;
 }
 
 export async function middleware(request: NextRequest) {
@@ -44,6 +57,33 @@ export async function middleware(request: NextRequest) {
     !pathname.startsWith("/api/admin/migrate")
   ) {
     const ok = await isAdminAuthenticated(request);
+    if (!ok) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  // App auth — /app/login e /app/cadastro públicos; demais /app/* protegidos
+  if (
+    pathname.startsWith("/app") &&
+    !pathname.startsWith("/app/login") &&
+    !pathname.startsWith("/app/cadastro")
+  ) {
+    const ok = await isAppAuthenticated(request);
+    if (!ok) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/app/login";
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  // API app — protegida exceto /api/app/auth e /api/app/register e /api/app/demo-login
+  if (
+    pathname.startsWith("/api/app") &&
+    !pathname.startsWith("/api/app/auth") &&
+    !pathname.startsWith("/api/app/register") &&
+    !pathname.startsWith("/api/app/demo-login")
+  ) {
+    const ok = await isAppAuthenticated(request);
     if (!ok) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

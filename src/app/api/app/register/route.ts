@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
   // Busca Order VIP aprovada pra esse email
   const order = await prisma.order.findFirst({
-    where: { email, plan: "vip", status: "approved" },
+    where: { email, status: "approved" },
     orderBy: { createdAt: "desc" },
   });
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       {
         ok: false,
         reason:
-          "Nao encontramos uma compra VIP aprovada com esse email. Verifique se usou o mesmo email da compra Hotmart.",
+          "Nao encontramos uma compra aprovada com esse email. Verifique se usou o mesmo email da compra Hotmart.",
       },
       { status: 404 }
     );
@@ -57,20 +57,19 @@ export async function POST(req: NextRequest) {
 
   const hash = await hashPassword(password);
 
-  // Upsert AppUser — se ja existe, atualiza passwordHash
   const appUser = await prisma.appUser.upsert({
     where: { email },
     update: { passwordHash: hash },
     create: {
       email,
       orderId: order.id,
-      plan: "vip",
+      plan: order.plan,
       accessType: "lifetime",
       passwordHash: hash,
     },
   });
 
   const response = NextResponse.json({ ok: true, userId: appUser.id });
-  setAppSessionCookies(response, email);
+  await setAppSessionCookies(response, email, appUser.id, appUser.plan);
   return response;
 }

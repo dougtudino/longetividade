@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
-import { v4 as uuid } from "uuid";
+import { setAppSessionCookies } from "@/lib/app-session";
 
 const ADMIN_EMAIL = "admin@longetividade.com.br";
 
@@ -53,15 +53,8 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Setar cookies — Path=/ (nao /app) pra que client-side fetches
-    // para /api/app/* incluam as cookies. Secure em producao.
-    const token = uuid();
-    const cookieOpts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=31536000${isDev ? "" : "; Secure"}`;
-
     const response = NextResponse.json({ ok: true, email: ADMIN_EMAIL });
-    response.headers.append("Set-Cookie", `app_token=${token}; ${cookieOpts}`);
-    response.headers.append("Set-Cookie", `app_email=${ADMIN_EMAIL}; ${cookieOpts}`);
-
+    await setAppSessionCookies(response, ADMIN_EMAIL, appUser.id, appUser.plan);
     return response;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : String(error);

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
   if (!appUser) {
     const order = await prisma.order.findFirst({
-      where: { email, plan: "vip", status: "approved" },
+      where: { email, status: "approved" },
       orderBy: { createdAt: "desc" },
     });
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       data: {
         email,
         orderId: order.id,
-        plan: "vip",
+        plan: order.plan,
         accessType: "lifetime",
       },
     });
@@ -74,6 +74,6 @@ export async function POST(req: NextRequest) {
   }
 
   const response = NextResponse.json({ ok: true });
-  setAppSessionCookies(response, email);
+  await setAppSessionCookies(response, email, appUser.id, appUser.plan);
   return response;
 }
