@@ -70,7 +70,9 @@ export default function SocialMediaPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const lightboxRef = useRef<HTMLDivElement | null>(null);
 
   const loadPosts = useCallback(async () => {
     try {
@@ -102,6 +104,21 @@ export default function SocialMediaPage() {
     } finally {
       setSeeding(false);
     }
+  }
+
+  async function downloadFromLightbox() {
+    if (!lightboxRef.current || !lightbox) return;
+    setDownloading("lightbox");
+    try {
+      const { toPng } = await import("html-to-image");
+      const isVertical = lightbox.format === "stories" || lightbox.format === "reels";
+      const dataUrl = await toPng(lightboxRef.current, { cacheBust: true, pixelRatio: 1, width: 1080, height: isVertical ? 1920 : 1080 });
+      const link = document.createElement("a");
+      link.download = `longetividade-${lightbox.pillar}-slide${lightbox.slideIndex + 1}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch { /* silent */ }
+    finally { setDownloading(null); }
   }
 
   async function downloadImage(post: Post) {
@@ -347,7 +364,8 @@ export default function SocialMediaPage() {
                               </div>
                               <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 8 }}>
                                 {slides.map((slide, si) => (
-                                  <div key={si} style={{ flexShrink: 0 }}>
+                                  <div key={si} style={{ flexShrink: 0, cursor: "pointer" }}
+                                    onClick={(e) => { e.stopPropagation(); setLightbox({ postId: p.id, slideIndex: si, pillar: p.pillar, format: p.format, title: p.title, content: p.content }); }}>
                                     <div style={{
                                       width: 160, height: 160, overflow: "hidden",
                                       borderRadius: 8, border: "0.5px solid var(--border-subtle)",
@@ -378,11 +396,13 @@ export default function SocialMediaPage() {
                       ) : (
                         /* SINGLE: feed ou story */
                         <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-                          <div style={{
-                            width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
-                            overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
-                            flexShrink: 0,
-                          }}>
+                          <div
+                            onClick={(e) => { e.stopPropagation(); setLightbox({ postId: p.id, slideIndex: 0, pillar: p.pillar, format: p.format, title: p.title, content: p.content }); }}
+                            style={{
+                              width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
+                              overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
+                              flexShrink: 0, cursor: "pointer",
+                            }}>
                             <div style={{
                               transform: `scale(${200 / 1080})`,
                               transformOrigin: "top left",
@@ -458,6 +478,112 @@ export default function SocialMediaPage() {
           })}
         </div>
       )}
+
+      {/* ─── LIGHTBOX MODAL ─── */}
+      {lightbox && (() => {
+        const isCarousel = posts.find((p) => p.id === lightbox.postId)?.format === "carrossel";
+        const slides = isCarousel ? parseContentToSlides(lightbox.title, lightbox.content) : [];
+        const isVertical = lightbox.format === "stories" || lightbox.format === "reels";
+        const previewW = isVertical ? 360 : 540;
+        const previewH = isVertical ? 640 : 540;
+        const scale = previewW / 1080;
+
+        return (
+          <>
+            <div onClick={() => setLightbox(null)} style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 200,
+            }} />
+            <div style={{
+              position: "fixed", top: "50%", left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 201, display: "flex", flexDirection: "column",
+              alignItems: "center", gap: 16, maxHeight: "95vh", overflowY: "auto",
+            }}>
+              {/* Preview grande */}
+              <div style={{
+                width: previewW, height: previewH,
+                overflow: "hidden", borderRadius: 16,
+                border: "2px solid rgba(255,255,255,0.2)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+              }}>
+                <div style={{
+                  transform: `scale(${scale})`, transformOrigin: "top left",
+                  width: 1080, height: isVertical ? 1920 : 1080,
+                }}>
+                  {isCarousel && slides.length > 0 ? (
+                    <PostCarouselSlide
+                      ref={lightboxRef}
+                      slides={slides}
+                      pillar={lightbox.pillar as "s" | "e" | "m" | "promo"}
+                      slideIndex={lightbox.slideIndex}
+                    />
+                  ) : isVertical ? (
+                    <PostStory
+                      ref={lightboxRef}
+                      title={lightbox.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                      body={lightbox.content.split("\n")[0]}
+                      pillar={lightbox.pillar as "s" | "e" | "m" | "promo"}
+                    />
+                  ) : (
+                    <PostFeed
+                      ref={lightboxRef}
+                      title={lightbox.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
+                      body={lightbox.content.split("\n")[0]}
+                      pillar={lightbox.pillar as "s" | "e" | "m" | "promo"}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Navegação de slides (pra carrossel) */}
+              {isCarousel && slides.length > 1 && (
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <button
+                    onClick={() => setLightbox({ ...lightbox, slideIndex: Math.max(0, lightbox.slideIndex - 1) })}
+                    disabled={lightbox.slideIndex === 0}
+                    style={{
+                      padding: "8px 16px", borderRadius: 8, background: "rgba(255,255,255,0.15)",
+                      color: "#fff", border: "none", fontSize: 14, cursor: "pointer",
+                      opacity: lightbox.slideIndex === 0 ? 0.3 : 1,
+                    }}
+                  >← Anterior</button>
+                  <span style={{ color: "#fff", fontSize: 14, fontWeight: 700 }}>
+                    {lightbox.slideIndex + 1} / {slides.length}
+                  </span>
+                  <button
+                    onClick={() => setLightbox({ ...lightbox, slideIndex: Math.min(slides.length - 1, lightbox.slideIndex + 1) })}
+                    disabled={lightbox.slideIndex === slides.length - 1}
+                    style={{
+                      padding: "8px 16px", borderRadius: 8, background: "rgba(255,255,255,0.15)",
+                      color: "#fff", border: "none", fontSize: 14, cursor: "pointer",
+                      opacity: lightbox.slideIndex === slides.length - 1 ? 0.3 : 1,
+                    }}
+                  >Próximo →</button>
+                </div>
+              )}
+
+              {/* Botões */}
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  onClick={downloadFromLightbox}
+                  disabled={downloading === "lightbox"}
+                  style={{
+                    padding: "10px 20px", borderRadius: 10, background: "#639922",
+                    color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}
+                >{downloading === "lightbox" ? "Gerando..." : "🖼 Baixar PNG"}</button>
+                <button
+                  onClick={() => setLightbox(null)}
+                  style={{
+                    padding: "10px 20px", borderRadius: 10, background: "rgba(255,255,255,0.15)",
+                    color: "#fff", border: "none", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  }}
+                >Fechar</button>
+              </div>
+            </div>
+          </>
+        );
+      })()}
     </div>
   );
 }
