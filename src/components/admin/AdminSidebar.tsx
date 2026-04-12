@@ -121,6 +121,15 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Crescimento",
     items: [
       {
+        label: "Social Media 🌙",
+        href: "/admin/social-media",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
+          </svg>
+        ),
+      },
+      {
         label: "Email Marketing",
         href: "/admin/email-marketing",
         icon: (

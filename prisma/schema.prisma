@@ -94,6 +94,34 @@ model Creative {
   @@index([format])
 }
 
+// ─── Social Media — Posts & Calendar ───────────────────
+
+model SocialPost {
+  id           String    @id @default(uuid())
+  title        String
+  content      String    @db.Text // copy/legenda do post
+  platform     String    // "instagram" | "facebook" | "stories" | "reels" | "tiktok"
+  format       String    // "carrossel" | "imagem" | "reels" | "stories" | "texto"
+  pillar       String    // "s" | "e" | "m" | "promo"
+  hashtags     String?   @db.Text
+  imageUrl     String?   // URL do criativo (se tiver)
+  imageBriefing String?  @db.Text // briefing pra Uma criar o visual
+  status       String    @default("draft") // draft | review | approved | posted | rejected
+  reviewNote   String?   // nota do QA
+  scheduledAt  DateTime? // quando postar
+  postedAt     DateTime?
+  engagementData Json?   // { likes, comments, shares, reach, saves }
+  createdBy    String?   // admin que criou
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([platform])
+  @@index([pillar])
+  @@index([scheduledAt])
+  @@index([createdAt])
+}
+
 // ─── AIOX Agents — Knowledge & Decisions ───────────────
 
 model AgentKnowledge {

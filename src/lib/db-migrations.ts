@@ -166,6 +166,41 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AdminUser_googleId_key" ON "AdminUser"("googleId") WHERE "googleId" IS NOT NULL`,
   },
 
+  // ─── SocialPost ─────────────────────────────────────────
+  {
+    label: "SocialPost table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "SocialPost" (
+        "id" TEXT NOT NULL,
+        "title" TEXT NOT NULL,
+        "content" TEXT NOT NULL,
+        "platform" TEXT NOT NULL,
+        "format" TEXT NOT NULL,
+        "pillar" TEXT NOT NULL,
+        "hashtags" TEXT,
+        "imageUrl" TEXT,
+        "imageBriefing" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'draft',
+        "reviewNote" TEXT,
+        "scheduledAt" TIMESTAMP(3),
+        "postedAt" TIMESTAMP(3),
+        "engagementData" JSONB,
+        "createdBy" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "SocialPost_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "SocialPost status index",
+    sql: `CREATE INDEX IF NOT EXISTS "SocialPost_status_idx" ON "SocialPost"("status")`,
+  },
+  {
+    label: "SocialPost scheduledAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "SocialPost_scheduledAt_idx" ON "SocialPost"("scheduledAt")`,
+  },
+
   // ─── Order: novas colunas (CRITICO — reset-test-data depende delas) ──
   {
     label: "Order.hotmartTransactionId column",
