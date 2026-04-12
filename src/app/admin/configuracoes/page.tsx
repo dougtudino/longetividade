@@ -134,6 +134,21 @@ const META_KEYS = [
   },
 ] as const;
 
+const GOOGLE_KEYS = [
+  {
+    key: "GOOGLE_CLIENT_ID",
+    label: "Google OAuth Client ID",
+    hint: "console.cloud.google.com → Credentials → OAuth 2.0 Client ID",
+    sensitive: false,
+  },
+  {
+    key: "GOOGLE_CLIENT_SECRET",
+    label: "Google OAuth Client Secret",
+    hint: "Comeca com GOCSPX-... Nunca compartilhe publicamente.",
+    sensitive: true,
+  },
+] as const;
+
 const plans = [
   { name: "Basico", price: "R$37,00", offerId: "zxq5tgew" },
   { name: "Completo", price: "R$67,00", tag: "MAIS ESCOLHIDO", offerId: "uzvdkzkf" },
@@ -571,6 +586,38 @@ export default function ConfiguracoesPage() {
               {link.label}
             </a>
           ))}
+        </div>
+      </div>
+
+      {/* 4. Google OAuth */}
+      <div id="google" style={cardStyle}>
+        <h2 style={sectionTitle}>Google OAuth (Login com Google)</h2>
+        <p style={{ ...hintStyle, marginTop: 0, marginBottom: 16 }}>
+          Credenciais do Google Cloud Console pra login com Google no app e no painel admin.
+          Gere em <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>console.cloud.google.com</a>.
+        </p>
+
+        {GOOGLE_KEYS.map((s) => (
+          <div key={s.key} style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>{s.label}</label>
+            <input
+              type={s.sensitive ? "password" : "text"}
+              value={settings[s.key] ?? ""}
+              onChange={(e) => updateSetting(s.key, e.target.value)}
+              placeholder={s.hint}
+              style={inputStyle}
+            />
+            <p style={hintStyle}>{s.hint}</p>
+          </div>
+        ))}
+
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <button onClick={saveSettings} disabled={saving} style={saveBtnStyle}>
+            {saving ? "Salvando..." : saved ? "Salvo!" : "Salvar Google"}
+          </button>
+          <span style={settings.GOOGLE_CLIENT_ID ? badgeActive : badgePending}>
+            {settings.GOOGLE_CLIENT_ID ? "Configurado" : "Pendente"}
+          </span>
         </div>
       </div>
 
