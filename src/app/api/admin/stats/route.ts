@@ -58,10 +58,12 @@ export async function GET() {
         ? (totalOrders / (totalOrders + abandonedTotal)) * 100
         : 0;
 
-    // All orders (for vendas page filtering/pagination)
+    // Recent orders — capped at 50 for dashboard preview
+    // Full paginated list is at /api/admin/orders
     const recentOrders = await prisma.order.findMany({
       select: { id: true, name: true, email: true, plan: true, amount: true, status: true, createdAt: true },
       orderBy: { createdAt: "desc" },
+      take: 50,
     });
 
     // App VIP stats

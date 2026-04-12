@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -34,8 +34,14 @@ interface Stats {
   abandonedTotal: number;
   abandonedToday: number;
   conversionRate: number;
-  recentOrders: Order[];
   dailyRevenue: DailyRevenue[];
+}
+
+interface OrdersResponse {
+  orders: Order[];
+  total: number;
+  page: number;
+  totalPages: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -115,6 +121,7 @@ function fmtDate(iso: string) {
 /* ------------------------------------------------------------------ */
 export default function VendasPage() {
   const [stats, setStats] = useState<Stats | null>(null);
+  const [ordersData, setOrdersData] = useState<OrdersResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [period, setPeriod] = useState(30);
@@ -133,55 +140,44 @@ export default function VendasPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Reset page on filter change
-  useEffect(() => {
-    setPage(0);
-  }, [period, planFilter, statusFilter]);
+  const loadOrders = useCallback(async () => {
+    const params = new URLSearchParams();
+    params.set("page", String(page));
+    params.set("per_page", String(PER_PAGE));
+    if (planFilter !== "all") params.set("plan", planFilter);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (period > 0) params.set("days", String(period));
+    if (period === 0) params.set("days", "1");
+    try {
+      const res = await fetch(`/api/admin/orders?${params}`);
+      const data = await res.json();
+      setOrdersData(data);
+    } catch { /* silent */ }
+  }, [page, planFilter, statusFilter, period]);
 
-  /* ---- Filtered orders ---- */
-  const filtered = useMemo(() => {
-    if (!stats) return [];
-    const now = Date.now();
-    return stats.recentOrders.filter((o) => {
-      // Period filter
-      if (period === 0) {
-        const today = new Date();
-        const d = new Date(o.createdAt);
-        if (
-          d.getDate() !== today.getDate() ||
-          d.getMonth() !== today.getMonth() ||
-          d.getFullYear() !== today.getFullYear()
-        )
-          return false;
-      } else {
-        const age = now - new Date(o.createdAt).getTime();
-        if (age > period * 86_400_000) return false;
-      }
-      if (planFilter !== "all" && o.plan !== planFilter) return false;
-      if (statusFilter !== "all" && o.status !== statusFilter) return false;
-      return true;
-    });
-  }, [stats, period, planFilter, statusFilter]);
+  useEffect(() => { loadOrders(); }, [loadOrders]);
 
-  /* ---- Summary ---- */
-  const totalFiltered = useMemo(
-    () =>
-      filtered
-        .filter((o) => o.status === "approved")
-        .reduce((s, o) => s + o.amount, 0) / 100,
-    [filtered],
-  );
-  const countFiltered = filtered.length;
-  const avgFiltered = countFiltered > 0 ? totalFiltered / countFiltered : 0;
+  useEffect(() => { setPage(0); }, [period, planFilter, statusFilter]);
 
-  /* ---- Pagination ---- */
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const pageOrders = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
+  const pageOrders = ordersData?.orders ?? [];
+  const totalFiltered = ordersData?.total ?? 0;
+  const totalPages = ordersData?.totalPages ?? 1;
 
   /* ---- CSV export ---- */
-  function exportCSV() {
+  async function exportCSV() {
+    const params = new URLSearchParams();
+    if (planFilter !== "all") params.set("plan", planFilter);
+    if (statusFilter !== "all") params.set("status", statusFilter);
+    if (period > 0) params.set("days", String(period));
+    if (period === 0) params.set("days", "1");
+    params.set("page", "0");
+    params.set("per_page", "5000");
+    const res = await fetch(`/api/admin/orders?${params}`);
+    const data = await res.json();
+    const allOrders: Order[] = data.orders ?? [];
+
     const header = "Data,Nome,Email,Plano,Valor,Status";
-    const rows = filtered.map((o) =>
+    const rows = allOrders.map((o) =>
       [
         fmtDate(o.createdAt),
         `"${o.name}"`,
@@ -367,15 +363,15 @@ export default function VendasPage() {
         }}
       >
         <div style={cardStyle}>
-          <div style={kpiNumber}>{fmtBRL(totalFiltered)}</div>
-          <div style={kpiLabel}>Total R$</div>
+          <div style={kpiNumber}>{fmtBRL(stats.revenueThisMonth)}</div>
+          <div style={kpiLabel}>Receita mes</div>
         </div>
         <div style={cardStyle}>
-          <div style={kpiNumber}>{countFiltered}</div>
-          <div style={kpiLabel}>Pedidos</div>
+          <div style={kpiNumber}>{totalFiltered}</div>
+          <div style={kpiLabel}>Pedidos (filtro)</div>
         </div>
         <div style={cardStyle}>
-          <div style={kpiNumber}>{fmtBRL(avgFiltered)}</div>
+          <div style={kpiNumber}>{fmtBRL(stats.avgTicket)}</div>
           <div style={kpiLabel}>Ticket medio</div>
         </div>
       </div>
@@ -573,7 +569,7 @@ export default function VendasPage() {
           }}
         >
           <span>
-            {filtered.length} pedido{filtered.length !== 1 ? "s" : ""} —
+            {totalFiltered} pedido{totalFiltered !== 1 ? "s" : ""} —
             pagina {page + 1} de {totalPages}
           </span>
           <div style={{ display: "flex", gap: 8 }}>
