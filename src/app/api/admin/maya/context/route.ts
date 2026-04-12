@@ -112,7 +112,7 @@ async function buildSetupChecklist(): Promise<ChecklistItem[]> {
     },
     {
       id: "cron_jobs",
-      title: "Crons registrados no cron-job.org (7 jobs)",
+      title: "Crons registrados no cron-job.org (8 jobs)",
       done: hasCronSecret,
       link: "/admin/setup#cron_jobs",
     },
