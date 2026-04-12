@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { captureUTMs, appendUTMs } from "@/lib/utm";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
+import LeadCapture from "@/components/LeadCapture";
 
 // Hotmart checkout com offer code do plano Basico (R$37)
 const HOTMART = "https://pay.hotmart.com/H105141835Q?off=zxq5tgew";
@@ -211,6 +212,27 @@ export default function CampaignPage() {
             </a>
             <p className="mt-4 text-xs text-[#2D2D2D]/30">
               Garantia incondicional de 7 dias
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* LEAD CAPTURE — pra quem nao compra na hora */}
+      <section className="py-16 px-6 bg-[#FAF8F5]">
+        <div className="mx-auto max-w-lg">
+          <div className="rounded-2xl border border-[#7A9E7E]/20 bg-white p-8 text-center">
+            <div className="mb-2 text-3xl">📧</div>
+            <h3 className="mb-2 text-lg font-bold text-[#2D2D2D]">
+              Ainda não decidiu?
+            </h3>
+            <p className="mb-6 text-sm text-[#2D2D2D]/50 leading-relaxed">
+              Receba <strong>3 dicas gratuitas</strong> do Método S.E.M no seu email.
+              Sem spam, sem compromisso — só conteúdo que ajuda.
+            </p>
+            <LeadCapture source={`campaign-${slug}`} />
+            <p className="mt-4 text-xs text-[#2D2D2D]/25">
+              Ao se cadastrar, você entra na lista VIP e recebe dicas exclusivas.
+              Pode sair a qualquer momento.
             </p>
           </div>
         </div>
