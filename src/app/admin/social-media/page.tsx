@@ -70,6 +70,8 @@ export default function SocialMediaPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [bulkAction, setBulkAction] = useState<string | null>(null);
+  const [igDiscovery, setIgDiscovery] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -153,6 +155,30 @@ export default function SocialMediaPage() {
     }
   }
 
+  async function bulkApprove(action: string) {
+    setBulkAction(action);
+    try {
+      await fetch("/api/admin/social/bulk-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      });
+      await loadPosts();
+    } catch { /* silent */ }
+    finally { setBulkAction(null); }
+  }
+
+  async function discoverIg() {
+    setIgDiscovery("loading");
+    try {
+      const res = await fetch("/api/admin/social/discover-ig");
+      const data = await res.json();
+      setIgDiscovery(data.ok ? `IG ID: ${data.igId}` : `Erro: ${data.error}`);
+    } catch (e) {
+      setIgDiscovery(`Erro: ${(e as Error).message}`);
+    }
+  }
+
   const totalPosts = Object.values(counts).reduce((s, c) => s + c, 0);
 
   return (
@@ -211,13 +237,48 @@ export default function SocialMediaPage() {
             </div>
           ))}
         </div>
-        <button onClick={seedContent} disabled={seeding} style={{
-          padding: "10px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff",
-          border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
-        }}>
-          {seeding ? "Populando..." : `🌙 Seed conteudo Luna (${totalPosts > 0 ? "adicionar" : "10 posts"})`}
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={seedContent} disabled={seeding} style={{
+            padding: "10px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff",
+            border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+          }}>
+            {seeding ? "Populando..." : `🌙 Seed conteudo Luna (${totalPosts > 0 ? "adicionar" : "10 posts"})`}
+          </button>
+          {(counts.draft ?? 0) > 0 && (
+            <button onClick={() => bulkApprove("approve-all-drafts")} disabled={!!bulkAction} style={{
+              padding: "10px 18px", borderRadius: 10, background: "#6B9E6B", color: "#fff",
+              border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              opacity: bulkAction ? 0.6 : 1,
+            }}>
+              {bulkAction === "approve-all-drafts" ? "Aprovando..." : `✅ Aprovar todos (${counts.draft})`}
+            </button>
+          )}
+          {(counts.review ?? 0) > 0 && (
+            <button onClick={() => bulkApprove("approve-all-review")} disabled={!!bulkAction} style={{
+              padding: "10px 18px", borderRadius: 10, background: "#6B9E6B", color: "#fff",
+              border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              opacity: bulkAction ? 0.6 : 1,
+            }}>
+              {bulkAction === "approve-all-review" ? "Aprovando..." : `✅ Aprovar em review (${counts.review})`}
+            </button>
+          )}
+          <button onClick={discoverIg} disabled={igDiscovery === "loading"} style={{
+            padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+          }}>
+            {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir Instagram"}
+          </button>
+        </div>
       </div>
+
+      {igDiscovery && igDiscovery !== "loading" && (
+        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
+          background: igDiscovery.startsWith("IG ID") ? "rgba(107,158,107,0.1)" : "rgba(196,120,122,0.1)",
+          color: igDiscovery.startsWith("IG ID") ? "#6B9E6B" : "#C4787A",
+        }}>
+          {igDiscovery}
+        </div>
+      )}
 
       {/* View mode + Filtros + Calendar link */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
