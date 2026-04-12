@@ -23,7 +23,8 @@
       "mcp__brevo__transac_templates_get_transac_emails_list",
       "mcp__brevo__contacts_get_contacts",
       "mcp__brevo__contacts_get_contact_info",
-      "mcp__brevo__accounts_get_account"
+      "mcp__brevo__accounts_get_account",
+      "Bash(ls:*)"
     ]
   }
 }
