@@ -75,6 +75,7 @@ export default function SocialMediaPage() {
   const [downloading, setDownloading] = useState<string | null>(null);
   const [bulkAction, setBulkAction] = useState<string | null>(null);
   const [igDiscovery, setIgDiscovery] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -155,6 +156,20 @@ export default function SocialMediaPage() {
       /* silent */
     } finally {
       setUpdating(null);
+    }
+  }
+
+  async function resetAndReseed() {
+    if (!confirm("Apagar TODOS os posts e reseedar com conteúdo corrigido?")) return;
+    setResetting(true);
+    try {
+      await fetch("/api/admin/social/reset", { method: "DELETE" });
+      await fetch("/api/admin/social/seed", { method: "POST" });
+      await loadPosts();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -311,6 +326,15 @@ export default function SocialMediaPage() {
           }}>
             {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir Instagram"}
           </button>
+          {totalPosts > 0 && (
+            <button onClick={resetAndReseed} disabled={resetting} style={{
+              padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "#C4787A",
+              border: "0.5px solid rgba(196,120,122,0.3)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              opacity: resetting ? 0.6 : 1,
+            }}>
+              {resetting ? "Limpando..." : "🗑 Limpar e reseedar"}
+            </button>
+          )}
         </div>
       </div>
 
