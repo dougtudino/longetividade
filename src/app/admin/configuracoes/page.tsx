@@ -128,9 +128,9 @@ const META_KEYS = [
   {
     key: "META_PAGE_ID",
     label: "Meta Page ID (Facebook Page)",
-    hint: "ID da Page 'Saude do corpo e mente' (357054767494527). Necessario para Gaia criar ads automaticamente.",
+    hint: "ID da Page 'Saude do corpo e mente' (61562570061004). Necessario para Gaia criar ads automaticamente.",
     sensitive: false,
-    defaultValue: "357054767494527",
+    defaultValue: "61562570061004",
   },
 ] as const;
 
@@ -159,7 +159,7 @@ const SOCIAL_KEYS = [
   {
     key: "SOCIAL_FACEBOOK_URL",
     label: "Facebook — URL da Page",
-    hint: "Ex: https://www.facebook.com/357054767494527",
+    hint: "Ex: https://www.facebook.com/61562570061004",
     sensitive: false,
   },
   {
