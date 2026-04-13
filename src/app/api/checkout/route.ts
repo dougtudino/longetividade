@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { preferenceClient } from "@/lib/mercadopago";
 import { getPlanById } from "@/config/plans";
+import { rateLimit, getIp } from "@/lib/rate-limit";
 import { z } from "zod/v4";
 
 const checkoutSchema = z.object({
@@ -13,6 +14,14 @@ const checkoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getIp(request);
+    if (!rateLimit("checkout", ip, { windowMs: 60_000, max: 10 })) {
+      return NextResponse.json(
+        { error: "Muitas requisicoes. Aguarde um minuto." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const parsed = checkoutSchema.safeParse(body);
 

@@ -379,6 +379,7 @@ TXT _dmarc   v=DMARC1; p=quarantine; rua=mailto:contato@longetividade.com.br`}
                 { name: "Maya Daily Report", path: "/api/cron/maya-daily-report", cron: "0 22 * * *", note: "19h BRT" },
                 { name: "Luna Generate", path: "/api/cron/social-generate", cron: "0 23 * * 0", note: "Dom 20h BRT" },
                 { name: "Luna Auto-Post", path: "/api/cron/social-auto-post", cron: "0 15 * * 1-6", note: "Seg-Sab 12h BRT" },
+                { name: "Luna Sync Engagement", path: "/api/cron/social-sync-engagement", cron: "0 0 * * *", note: "21h BRT — metricas reais + learnings" },
                 { name: "Sync Hotmart", path: "/api/cron/sync-hotmart", cron: "0 6 * * *", note: "3h BRT" },
               ].map((job) => (
                 <tr key={job.name} style={{ borderBottom: "0.5px solid var(--border-subtle)" }}>

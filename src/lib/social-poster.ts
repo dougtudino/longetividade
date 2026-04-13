@@ -218,6 +218,124 @@ export async function discoverInstagramId(): Promise<{
   }
 }
 
+// ─── Insights de post publicado ──────────────────────────
+
+export type PostInsights = {
+  ok: boolean;
+  platform: string;
+  postId: string;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  reach?: number;
+  impressions?: number;
+  engagement?: number;
+  error?: string;
+};
+
+// Facebook: GET /{post_id}?fields=likes.summary(total_count),comments.summary(total_count),shares
+// Retorna contadores publicos (nao precisa insights permission).
+export async function fetchFacebookInsights(postId: string): Promise<PostInsights> {
+  const token = await getPageToken();
+  if (!token) {
+    return { ok: false, platform: "facebook", postId, error: "SOCIAL_PAGE_TOKEN ausente" };
+  }
+
+  try {
+    const fields = "likes.summary(total_count),comments.summary(total_count),shares";
+    const res = await fetch(
+      `${GRAPH}/${postId}?fields=${fields}&access_token=${encodeURIComponent(token)}`,
+      { cache: "no-store" }
+    );
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      return {
+        ok: false,
+        platform: "facebook",
+        postId,
+        error: data.error?.message ?? `HTTP ${res.status}`,
+      };
+    }
+
+    const likes = data.likes?.summary?.total_count ?? 0;
+    const comments = data.comments?.summary?.total_count ?? 0;
+    const shares = data.shares?.count ?? 0;
+    return {
+      ok: true,
+      platform: "facebook",
+      postId,
+      likes,
+      comments,
+      shares,
+      engagement: likes + comments + shares,
+    };
+  } catch (e) {
+    return { ok: false, platform: "facebook", postId, error: (e as Error).message };
+  }
+}
+
+// Instagram: GET /{media_id}/insights?metric=impressions,reach,engagement,saved
+// Requer instagram_manage_insights permission.
+export async function fetchInstagramInsights(postId: string): Promise<PostInsights> {
+  const token = await getPageToken();
+  if (!token) {
+    return { ok: false, platform: "instagram", postId, error: "SOCIAL_PAGE_TOKEN ausente" };
+  }
+
+  try {
+    // Primeiro: counters publicos (like_count, comments_count)
+    const counterRes = await fetch(
+      `${GRAPH}/${postId}?fields=like_count,comments_count&access_token=${encodeURIComponent(token)}`,
+      { cache: "no-store" }
+    );
+    const counterData = await counterRes.json();
+    if (!counterRes.ok || counterData.error) {
+      return {
+        ok: false,
+        platform: "instagram",
+        postId,
+        error: counterData.error?.message ?? `HTTP ${counterRes.status}`,
+      };
+    }
+
+    const likes = counterData.like_count ?? 0;
+    const comments = counterData.comments_count ?? 0;
+
+    // Insights (best-effort — depende de permissao)
+    let reach: number | undefined;
+    let impressions: number | undefined;
+    try {
+      const insightRes = await fetch(
+        `${GRAPH}/${postId}/insights?metric=reach,impressions&access_token=${encodeURIComponent(token)}`,
+        { cache: "no-store" }
+      );
+      const insightData = await insightRes.json();
+      if (insightRes.ok && Array.isArray(insightData.data)) {
+        for (const m of insightData.data) {
+          if (m.name === "reach") reach = m.values?.[0]?.value;
+          if (m.name === "impressions") impressions = m.values?.[0]?.value;
+        }
+      }
+    } catch {
+      /* insights opcional */
+    }
+
+    return {
+      ok: true,
+      platform: "instagram",
+      postId,
+      likes,
+      comments,
+      reach,
+      impressions,
+      engagement: likes + comments,
+    };
+  } catch (e) {
+    return { ok: false, platform: "instagram", postId, error: (e as Error).message };
+  }
+}
+
 // ─── Post em ambas plataformas ───────────────────────────
 
 export async function postToAll(

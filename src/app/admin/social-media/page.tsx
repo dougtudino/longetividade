@@ -24,6 +24,15 @@ type Post = {
   createdAt: string;
 };
 
+type DiagnoseCheck = { ok: boolean; label: string; detail: string; action?: string };
+type DiagnoseResult = {
+  ok: boolean;
+  score: string;
+  summary?: { canPostFacebook: boolean; canPostInstagram: boolean; approvedReady: number };
+  checks: DiagnoseCheck[];
+  nextSteps?: string;
+};
+
 const PILLAR_COLORS: Record<string, { bg: string; color: string; label: string }> = {
   s: { bg: "rgba(122,158,126,0.2)", color: "#7A9E7E", label: "S · Nutricao" },
   e: { bg: "rgba(212,169,75,0.2)", color: "#D4A94B", label: "E · Emocional" },
@@ -76,6 +85,10 @@ export default function SocialMediaPage() {
   const [bulkAction, setBulkAction] = useState<string | null>(null);
   const [igDiscovery, setIgDiscovery] = useState<string | null>(null);
   const [resetting, setResetting] = useState(false);
+  const [diagnose, setDiagnose] = useState<DiagnoseResult | null>(null);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [postingTest, setPostingTest] = useState(false);
+  const [testResult, setTestResult] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -219,6 +232,40 @@ export default function SocialMediaPage() {
     finally { setBulkAction(null); }
   }
 
+  async function runDiagnose() {
+    setDiagnosing(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/admin/social/diagnose");
+      const data = await res.json();
+      setDiagnose(data);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDiagnosing(false);
+    }
+  }
+
+  async function postTestReal() {
+    if (!confirm("Isso vai publicar 1 post APROVADO de verdade no Facebook/Instagram. Confirmar?")) return;
+    setPostingTest(true);
+    setTestResult(null);
+    try {
+      const res = await fetch("/api/admin/social/diagnose?test=1", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setTestResult(`OK — publicado: "${data.title}". ${data.results.map((r: { platform: string; ok: boolean; postId?: string; error?: string }) => `${r.platform}: ${r.ok ? r.postId : r.error}`).join(" · ")}`);
+        await loadPosts();
+      } else {
+        setTestResult(`Falhou — ${data.error ?? (data.results ? data.results.map((r: { platform: string; error?: string }) => `${r.platform}: ${r.error}`).join(" · ") : "erro desconhecido")}`);
+      }
+    } catch (e) {
+      setTestResult(`Erro: ${(e as Error).message}`);
+    } finally {
+      setPostingTest(false);
+    }
+  }
+
   async function discoverIg() {
     setIgDiscovery("loading");
     try {
@@ -326,6 +373,13 @@ export default function SocialMediaPage() {
           }}>
             {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir Instagram"}
           </button>
+          <button onClick={runDiagnose} disabled={diagnosing} style={{
+            padding: "10px 18px", borderRadius: 10, background: "#7A9E7E", color: "#fff",
+            border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            opacity: diagnosing ? 0.6 : 1,
+          }}>
+            {diagnosing ? "Checando..." : "🔍 Diagnosticar Luna"}
+          </button>
           {totalPosts > 0 && (
             <button onClick={resetAndReseed} disabled={resetting} style={{
               padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "#C4787A",
@@ -353,6 +407,65 @@ export default function SocialMediaPage() {
           color: igDiscovery.startsWith("IG ID") ? "#6B9E6B" : "#C4787A",
         }}>
           {igDiscovery}
+        </div>
+      )}
+
+      {diagnose && (
+        <div style={{ ...card, marginBottom: 16, padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
+              🔍 Diagnostico da Luna — {diagnose.score} {diagnose.ok ? "✅" : "⚠️"}
+            </div>
+            <button onClick={() => setDiagnose(null)} style={{
+              background: "none", border: "none", color: "var(--text-muted)",
+              cursor: "pointer", fontSize: 18,
+            }}>×</button>
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {diagnose.checks.map((c, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "flex-start", gap: 8, fontSize: 12,
+                padding: "6px 8px", borderRadius: 6,
+                background: c.ok ? "rgba(107,158,107,0.08)" : "rgba(196,120,122,0.08)",
+              }}>
+                <div style={{ fontSize: 14, flexShrink: 0 }}>{c.ok ? "✅" : "❌"}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{c.label}</div>
+                  <div style={{ color: "var(--text-muted)", marginTop: 2 }}>{c.detail}</div>
+                  {c.action && (
+                    <div style={{ color: "#C4787A", marginTop: 2, fontStyle: "italic" }}>
+                      → {c.action}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+          {diagnose.summary && (
+            <div style={{ marginTop: 12, padding: 10, background: "var(--bg-secondary)", borderRadius: 8, fontSize: 12 }}>
+              <div><strong>FB:</strong> {diagnose.summary.canPostFacebook ? "✅ pode postar" : "❌ bloqueado"}</div>
+              <div><strong>IG:</strong> {diagnose.summary.canPostInstagram ? "✅ pode postar" : "❌ bloqueado"}</div>
+              <div><strong>Posts prontos:</strong> {diagnose.summary.approvedReady}</div>
+            </div>
+          )}
+          {diagnose.summary?.canPostFacebook && diagnose.summary.approvedReady > 0 && (
+            <button onClick={postTestReal} disabled={postingTest} style={{
+              marginTop: 12, padding: "10px 18px", borderRadius: 10, background: "#D4A94B",
+              color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              opacity: postingTest ? 0.6 : 1, width: "100%",
+            }}>
+              {postingTest ? "Postando..." : "🚀 Postar 1 post aprovado AGORA (teste real)"}
+            </button>
+          )}
+          {testResult && (
+            <div style={{
+              marginTop: 10, padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600,
+              background: testResult.startsWith("OK") ? "rgba(107,158,107,0.1)" : "rgba(196,120,122,0.1)",
+              color: testResult.startsWith("OK") ? "#6B9E6B" : "#C4787A",
+            }}>
+              {testResult}
+            </div>
+          )}
         </div>
       )}
 

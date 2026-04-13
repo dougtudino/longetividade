@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
 import { buildMayaContext, type MayaContext } from "./context/route";
 
 type ChatMessage = { role: "user" | "assistant"; content: string };
@@ -100,6 +101,14 @@ export async function POST(request: NextRequest) {
   const payload = await verifyAdminToken(token);
   if (!payload) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Rate limit por admin (Claude API custa $)
+  if (!rateLimit("maya", payload.adminId, { windowMs: 60_000, max: 20 })) {
+    return NextResponse.json(
+      { error: "Muitas mensagens em sequencia. Aguarde um minuto." },
+      { status: 429 }
+    );
   }
 
   let body: { message?: string; history?: ChatMessage[] };
