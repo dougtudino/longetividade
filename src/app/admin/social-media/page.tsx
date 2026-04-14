@@ -34,6 +34,17 @@ type DiagnoseResult = {
   nextSteps?: string;
 };
 
+type ActivityData = {
+  recentPosted: Array<{
+    id: string;
+    title: string;
+    format: string;
+    pillar: string;
+    postedAt: string | null;
+  }>;
+  recentRuns: Array<{ title: string; source: string | null; createdAt: string }>;
+};
+
 const PILLAR_COLORS: Record<string, { bg: string; color: string; label: string }> = {
   s: { bg: "rgba(122,158,126,0.2)", color: "#7A9E7E", label: "S · Nutricao" },
   e: { bg: "rgba(212,169,75,0.2)", color: "#D4A94B", label: "E · Emocional" },
@@ -91,6 +102,13 @@ export default function SocialMediaPage() {
   const [postingTest, setPostingTest] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [generatingImage, setGeneratingImage] = useState<string | null>(null);
+  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+  const [editingPost, setEditingPost] = useState<Post | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [activity, setActivity] = useState<ActivityData | null>(null);
+  const [showActivity, setShowActivity] = useState(false);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -213,6 +231,79 @@ export default function SocialMediaPage() {
       setError((e as Error).message);
     } finally {
       setGeneratingImage(null);
+    }
+  }
+
+  async function deletePost(postId: string) {
+    if (!confirm("Apagar esse post? Acao irreversivel.")) return;
+    setDeleting(postId);
+    try {
+      await fetch(`/api/admin/social?id=${postId}`, { method: "DELETE" });
+      await loadPosts();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDeleting(null);
+    }
+  }
+
+  async function saveEdit() {
+    if (!editingPost) return;
+    setSavingEdit(true);
+    try {
+      await fetch("/api/admin/social", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingPost.id,
+          title: editingPost.title,
+          content: editingPost.content,
+          hashtags: editingPost.hashtags,
+          imageBriefing: editingPost.imageBriefing,
+          pillar: editingPost.pillar,
+          format: editingPost.format,
+        }),
+      });
+      setEditingPost(null);
+      await loadPosts();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function loadActivity() {
+    try {
+      const res = await fetch("/api/admin/social/activity");
+      const data = await res.json();
+      setActivity(data);
+    } catch {
+      /* silent */
+    }
+  }
+
+  useEffect(() => {
+    if (showActivity && !activity) loadActivity();
+  }, [showActivity, activity]);
+
+  async function generateAllImages() {
+    const pending = posts.filter((p) => p.status === "approved" && !p.imageUrl);
+    if (pending.length === 0) {
+      setError("Nenhum post approved sem imagem.");
+      return;
+    }
+    if (!confirm(`Gerar imagens de ${pending.length} posts aprovados? Pode levar ${pending.length * 3}s.`)) return;
+    setBulkGenerating(true);
+    setBulkProgress({ done: 0, total: pending.length });
+    try {
+      for (let i = 0; i < pending.length; i++) {
+        await generateImages(pending[i]);
+        setBulkProgress({ done: i + 1, total: pending.length });
+      }
+    } finally {
+      setBulkGenerating(false);
+      setBulkProgress(null);
     }
   }
 
@@ -402,11 +493,11 @@ export default function SocialMediaPage() {
           ))}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={seedContent} disabled={seeding} style={{
+          <button onClick={seedContent} disabled={seeding} title="Popula banco com 10 posts pre-escritos do content bank. Status=draft, agendados 1 a cada 2 dias." style={{
             padding: "10px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
           }}>
-            {seeding ? "Populando..." : `🌙 Seed conteudo Luna (${totalPosts > 0 ? "adicionar" : "10 posts"})`}
+            {seeding ? "Populando..." : `① Seed conteudo (+${totalPosts > 0 ? "templates" : "10 posts"})`}
           </button>
           {(counts.draft ?? 0) > 0 && (
             <button onClick={() => bulkApprove("approve-all-drafts")} disabled={!!bulkAction} style={{
@@ -426,33 +517,48 @@ export default function SocialMediaPage() {
               {bulkAction === "approve-all-review" ? "Aprovando..." : `✅ Aprovar em review (${counts.review})`}
             </button>
           )}
-          <button onClick={generateWeek} disabled={generating} style={{
+          <button onClick={generateWeek} disabled={generating} title="Gera 6 posts pra proxima semana (seg-sab). Rotacao S/E/S/M/E/Promo. Usa datas comemorativas quando houver, senao templates random do pilar. Status=approved." style={{
             padding: "10px 18px", borderRadius: 10, background: "#4A90D9", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
             opacity: generating ? 0.6 : 1,
           }}>
-            {generating ? "Gerando..." : "🔄 Gerar semana"}
+            {generating ? "Gerando..." : "② Gerar semana (6 posts approved)"}
           </button>
-          <button onClick={discoverIg} disabled={igDiscovery === "loading"} style={{
-            padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
-            border: "0.5px solid var(--border-default)", fontSize: 13, fontWeight: 600, cursor: "pointer",
-          }}>
-            {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir Instagram"}
-          </button>
-          <button onClick={runDiagnose} disabled={diagnosing} style={{
+          <button onClick={generateAllImages} disabled={bulkGenerating} title="Renderiza imagens PNG de todos os posts approved que ainda nao tem imageUrl. Necessario antes de publicar." style={{
             padding: "10px 18px", borderRadius: 10, background: "#7A9E7E", color: "#fff",
+            border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            opacity: bulkGenerating ? 0.6 : 1,
+          }}>
+            {bulkGenerating && bulkProgress
+              ? `Gerando ${bulkProgress.done}/${bulkProgress.total}...`
+              : "③ Gerar imagens de todos approved"}
+          </button>
+          <button onClick={runDiagnose} disabled={diagnosing} title="Checa token, permissoes, IG vinculado, posts prontos. E mostra botao pra postar de verdade agora." style={{
+            padding: "10px 18px", borderRadius: 10, background: "#D4A94B", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
             opacity: diagnosing ? 0.6 : 1,
           }}>
-            {diagnosing ? "Checando..." : "🔍 Diagnosticar Luna"}
+            {diagnosing ? "Checando..." : "④ Diagnosticar + Postar agora"}
+          </button>
+          <button onClick={() => setShowActivity(!showActivity)} style={{
+            padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+          }}>
+            {showActivity ? "Fechar logs" : "📜 Logs"}
+          </button>
+          <button onClick={discoverIg} disabled={igDiscovery === "loading"} style={{
+            padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)", fontSize: 12, fontWeight: 600, cursor: "pointer",
+          }}>
+            {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir IG"}
           </button>
           {totalPosts > 0 && (
-            <button onClick={resetAndReseed} disabled={resetting} style={{
+            <button onClick={resetAndReseed} disabled={resetting} title="APAGA TODOS os SocialPosts (inclui drafts, approved, posted) e chama Seed de novo. Util pra resetar tudo e comecar limpo." style={{
               padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "#C4787A",
-              border: "0.5px solid rgba(196,120,122,0.3)", fontSize: 13, fontWeight: 600, cursor: "pointer",
+              border: "0.5px solid rgba(196,120,122,0.3)", fontSize: 12, fontWeight: 600, cursor: "pointer",
               opacity: resetting ? 0.6 : 1,
             }}>
-              {resetting ? "Limpando..." : "🗑 Limpar e reseedar"}
+              {resetting ? "Limpando..." : "🗑 Limpar tudo"}
             </button>
           )}
         </div>
@@ -473,6 +579,59 @@ export default function SocialMediaPage() {
           color: igDiscovery.startsWith("IG ID") ? "#6B9E6B" : "#C4787A",
         }}>
           {igDiscovery}
+        </div>
+      )}
+
+      {showActivity && (
+        <div style={{ ...card, padding: 14, marginBottom: 14 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>📜 Atividade recente da Luna</div>
+            <button onClick={loadActivity} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 11 }}>↻ atualizar</button>
+          </div>
+          {!activity ? (
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Carregando...</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, fontSize: 11 }}>
+              <div>
+                <div style={{ fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6 }}>
+                  Ultimos publicados ({activity.recentPosted.length})
+                </div>
+                {activity.recentPosted.length === 0 ? (
+                  <div style={{ color: "var(--text-muted)" }}>Ainda nenhum post publicado.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {activity.recentPosted.map((p) => (
+                      <div key={p.id} style={{ padding: "4px 8px", background: "var(--bg-secondary)", borderRadius: 6 }}>
+                        <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.title}</div>
+                        <div style={{ color: "var(--text-muted)", marginTop: 2 }}>
+                          {p.pillar}/{p.format} · {p.postedAt ? new Date(p.postedAt).toLocaleString("pt-BR") : "-"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div>
+                <div style={{ fontWeight: 700, color: "var(--text-secondary)", marginBottom: 6 }}>
+                  Runs de cron / learnings
+                </div>
+                {activity.recentRuns.length === 0 ? (
+                  <div style={{ color: "var(--text-muted)" }}>Nenhum run registrado.</div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {activity.recentRuns.map((r, i) => (
+                      <div key={i} style={{ padding: "4px 8px", background: "var(--bg-secondary)", borderRadius: 6 }}>
+                        <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{r.title}</div>
+                        <div style={{ color: "var(--text-muted)", marginTop: 2 }}>
+                          {r.source ?? "manual"} · {new Date(r.createdAt).toLocaleString("pt-BR")}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -762,17 +921,18 @@ export default function SocialMediaPage() {
                       )}
                     </div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {/* WORKFLOW: draft → review → approved → (gerar img) → publicar */}
                       {p.status === "draft" && (
                         <button onClick={() => updateStatus(p.id, "review")} disabled={updating === p.id}
                           style={{ padding: "6px 14px", borderRadius: 8, background: "#4A90D9", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                          🔍 Enviar pra Review
+                          ① Enviar pra Review
                         </button>
                       )}
                       {p.status === "review" && (
                         <>
                           <button onClick={() => updateStatus(p.id, "approved")} disabled={updating === p.id}
                             style={{ padding: "6px 14px", borderRadius: 8, background: "#6B9E6B", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                            ✅ Aprovar
+                            ② Aprovar
                           </button>
                           <button onClick={() => updateStatus(p.id, "rejected")} disabled={updating === p.id}
                             style={{ padding: "6px 14px", borderRadius: 8, background: "#C4787A", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
@@ -782,16 +942,33 @@ export default function SocialMediaPage() {
                       )}
                       {p.status === "approved" && (
                         <>
-                          <button onClick={() => publishPost(p.id)} disabled={posting === p.id}
-                            style={{ padding: "6px 14px", borderRadius: 8, background: "#639922", color: "#fff", border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                            {posting === p.id ? "Publicando..." : "📤 Publicar no FB+IG"}
+                          <button
+                            onClick={() => generateImages(p)}
+                            disabled={generatingImage === p.id}
+                            style={{ padding: "6px 14px", borderRadius: 8, background: p.imageUrl ? "var(--bg-secondary)" : "#7A9E7E", color: p.imageUrl ? "var(--text-primary)" : "#fff", border: p.imageUrl ? "0.5px solid var(--border-default)" : "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                            {generatingImage === p.id ? "Subindo..." : p.imageUrl ? "③ Regerar imagens" : "③ Gerar imagens"}
                           </button>
-                          <button onClick={() => updateStatus(p.id, "posted")} disabled={updating === p.id}
-                            style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
-                            Marcar postado (manual)
+                          <button onClick={() => publishPost(p.id)} disabled={posting === p.id || !p.imageUrl}
+                            title={!p.imageUrl ? "Gere as imagens primeiro (passo ③)" : "Publica agora no FB+IG"}
+                            style={{ padding: "6px 14px", borderRadius: 8, background: p.imageUrl ? "#639922" : "var(--bg-secondary)", color: p.imageUrl ? "#fff" : "var(--text-muted)", border: "none", fontSize: 11, fontWeight: 700, cursor: p.imageUrl ? "pointer" : "not-allowed", opacity: p.imageUrl ? 1 : 0.6 }}>
+                            {posting === p.id ? "Publicando..." : "④ Publicar no FB+IG"}
+                          </button>
+                          <button onClick={() => updateStatus(p.id, "draft")} disabled={updating === p.id}
+                            title="Volta post pra draft (cancela aprovacao)"
+                            style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-muted)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                            ↩ Cancelar aprovacao
                           </button>
                         </>
                       )}
+                      {/* Acoes universais */}
+                      <button onClick={() => setEditingPost(p)}
+                        style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                        ✏️ Editar
+                      </button>
+                      <button onClick={() => deletePost(p.id)} disabled={deleting === p.id}
+                        style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "#C4787A", border: "0.5px solid rgba(196,120,122,0.3)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                        {deleting === p.id ? "Apagando..." : "🗑 Apagar"}
+                      </button>
                       <button
                         onClick={() => { navigator.clipboard.writeText(p.content + (p.hashtags ? "\n\n" + p.hashtags : "")); }}
                         style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
@@ -801,14 +978,15 @@ export default function SocialMediaPage() {
                         onClick={() => downloadImage(p)}
                         disabled={downloading === p.id}
                         style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
-                        {downloading === p.id ? "Gerando..." : "🖼 Baixar arte"}
+                        {downloading === p.id ? "Gerando..." : "🖼 Baixar PNG"}
                       </button>
-                      <button
-                        onClick={() => generateImages(p)}
-                        disabled={generatingImage === p.id}
-                        style={{ padding: "6px 14px", borderRadius: 8, background: p.imageUrl ? "var(--bg-secondary)" : "#7A9E7E", color: p.imageUrl ? "var(--text-primary)" : "#fff", border: p.imageUrl ? "0.5px solid var(--border-default)" : "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
-                        {generatingImage === p.id ? "Subindo..." : p.imageUrl ? "🔄 Regerar imagens" : "✨ Gerar imagens (p/ publicar)"}
-                      </button>
+                      {p.status === "posted" && (
+                        <button onClick={() => updateStatus(p.id, "approved")} disabled={updating === p.id}
+                          title="Volta pra approved pra poder republicar"
+                          style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-muted)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                          ↩ Reabrir
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -816,6 +994,89 @@ export default function SocialMediaPage() {
             );
           })}
         </div>
+      )}
+
+      {/* ─── EDIT MODAL ─── */}
+      {editingPost && (
+        <>
+          <div onClick={() => setEditingPost(null)} style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 300,
+          }} />
+          <div style={{
+            position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
+            zIndex: 301, width: "min(640px, 94vw)", maxHeight: "90vh", overflowY: "auto",
+            background: "var(--bg-card)", border: "0.5px solid var(--border-default)",
+            borderRadius: 14, padding: 22,
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 800 }}>✏️ Editar post</div>
+              <button onClick={() => setEditingPost(null)} style={{ background: "none", border: "none", fontSize: 22, color: "var(--text-muted)", cursor: "pointer" }}>×</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Titulo</label>
+                <input type="text" value={editingPost.title} onChange={(e) => setEditingPost({ ...editingPost, title: e.target.value })}
+                  style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 13 }} />
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Pilar</label>
+                  <select value={editingPost.pillar} onChange={(e) => setEditingPost({ ...editingPost, pillar: e.target.value })}
+                    style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 13 }}>
+                    <option value="s">S — Nutricao</option>
+                    <option value="e">E — Emocional</option>
+                    <option value="m">M — Movimento</option>
+                    <option value="promo">Promo</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Formato</label>
+                  <select value={editingPost.format} onChange={(e) => setEditingPost({ ...editingPost, format: e.target.value })}
+                    style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 13 }}>
+                    <option value="imagem">Imagem (feed)</option>
+                    <option value="carrossel">Carrossel</option>
+                    <option value="stories">Stories</option>
+                    <option value="reels">Reels</option>
+                    <option value="texto">Texto</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Legenda</label>
+                <textarea value={editingPost.content} onChange={(e) => setEditingPost({ ...editingPost, content: e.target.value })}
+                  rows={8}
+                  style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 13, fontFamily: "inherit", resize: "vertical" }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Hashtags</label>
+                <textarea value={editingPost.hashtags ?? ""} onChange={(e) => setEditingPost({ ...editingPost, hashtags: e.target.value })}
+                  rows={2}
+                  style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 12, fontFamily: "inherit", resize: "vertical" }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Briefing visual</label>
+                <textarea value={editingPost.imageBriefing ?? ""} onChange={(e) => setEditingPost({ ...editingPost, imageBriefing: e.target.value })}
+                  rows={2}
+                  style={{ width: "100%", padding: 8, marginTop: 4, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 12, fontFamily: "inherit", resize: "vertical" }} />
+              </div>
+              {editingPost.imageUrl && (
+                <div style={{ padding: 8, background: "rgba(212,169,75,0.1)", borderRadius: 6, fontSize: 11, color: "#D4A94B" }}>
+                  ⚠️ Este post ja tem imagens geradas. Se alterar titulo/legenda/formato, clique &quot;③ Regerar imagens&quot; depois.
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
+                <button onClick={() => setEditingPost(null)} disabled={savingEdit}
+                  style={{ padding: "8px 16px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                  Cancelar
+                </button>
+                <button onClick={saveEdit} disabled={savingEdit}
+                  style={{ padding: "8px 16px", borderRadius: 8, background: "#6B9E6B", color: "#fff", border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+                  {savingEdit ? "Salvando..." : "Salvar alteracoes"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* ─── LIGHTBOX MODAL ─── */}

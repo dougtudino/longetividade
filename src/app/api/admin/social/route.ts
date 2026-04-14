@@ -92,6 +92,9 @@ export async function PUT(req: NextRequest) {
   if (body.title) data.title = body.title;
   if (body.content) data.content = body.content;
   if (body.hashtags !== undefined) data.hashtags = body.hashtags;
+  if (body.imageBriefing !== undefined) data.imageBriefing = body.imageBriefing;
+  if (body.pillar) data.pillar = body.pillar;
+  if (body.format) data.format = body.format;
   if (body.scheduledAt !== undefined) data.scheduledAt = body.scheduledAt ? new Date(body.scheduledAt as string) : null;
   if (body.reviewNote) data.reviewNote = body.reviewNote;
   if (body.postedAt) data.postedAt = new Date(body.postedAt as string);
@@ -99,6 +102,22 @@ export async function PUT(req: NextRequest) {
   try {
     const post = await prisma.socialPost.update({ where: { id }, data });
     return NextResponse.json({ ok: true, post });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  }
+}
+
+// DELETE /api/admin/social?id=<postId>
+// Remove o post (e imagens via cascade).
+export async function DELETE(req: NextRequest) {
+  const url = new URL(req.url);
+  const id = url.searchParams.get("id");
+  if (!id) {
+    return NextResponse.json({ ok: false, error: "id obrigatorio" }, { status: 400 });
+  }
+  try {
+    await prisma.socialPost.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
