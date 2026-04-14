@@ -104,6 +104,8 @@ export default function SocialMediaPage() {
   const [generatingImage, setGeneratingImage] = useState<string | null>(null);
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
+  const [trendsLoading, setTrendsLoading] = useState(false);
+  const [trendsResult, setTrendsResult] = useState<string | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -286,6 +288,24 @@ export default function SocialMediaPage() {
   useEffect(() => {
     if (showActivity && !activity) loadActivity();
   }, [showActivity, activity]);
+
+  async function researchTrends() {
+    setTrendsLoading(true);
+    setTrendsResult(null);
+    try {
+      const res = await fetch("/api/admin/social/trends", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setTrendsResult(`OK — ${data.trends?.length ?? 0} trends salvas. Proxima "Gerar semana" vai priorizar elas.`);
+      } else {
+        setTrendsResult(`Falhou: ${data.error ?? "erro desconhecido"}`);
+      }
+    } catch (e) {
+      setTrendsResult(`Erro: ${(e as Error).message}`);
+    } finally {
+      setTrendsLoading(false);
+    }
+  }
 
   async function generateAllImages() {
     const pending = posts.filter((p) => p.status === "approved" && !p.imageUrl);
@@ -517,12 +537,19 @@ export default function SocialMediaPage() {
               {bulkAction === "approve-all-review" ? "Aprovando..." : `✅ Aprovar em review (${counts.review})`}
             </button>
           )}
-          <button onClick={generateWeek} disabled={generating} title="Gera 6 posts pra proxima semana (seg-sab). Rotacao S/E/S/M/E/Promo. Usa datas comemorativas quando houver, senao templates random do pilar. Status=approved." style={{
+          <button onClick={researchTrends} disabled={trendsLoading} title="Luna pesquisa trends da semana de saude/wellness via Claude web_search. Salva pra proxima 'Gerar semana' usar." style={{
+            padding: "10px 18px", borderRadius: 10, background: "#8B5CF6", color: "#fff",
+            border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            opacity: trendsLoading ? 0.6 : 1,
+          }}>
+            {trendsLoading ? "Pesquisando..." : "② Pesquisar trends"}
+          </button>
+          <button onClick={generateWeek} disabled={generating} title="Gera 6 posts pra proxima semana (seg-sab). Rotacao S/E/S/M/E/Promo. Prioridade: data comemorativa > trend recente > template do bank. Status=approved." style={{
             padding: "10px 18px", borderRadius: 10, background: "#4A90D9", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
             opacity: generating ? 0.6 : 1,
           }}>
-            {generating ? "Gerando..." : "② Gerar semana (6 posts approved)"}
+            {generating ? "Gerando..." : "③ Gerar semana (6 posts approved)"}
           </button>
           <button onClick={generateAllImages} disabled={bulkGenerating} title="Renderiza imagens PNG de todos os posts approved que ainda nao tem imageUrl. Necessario antes de publicar." style={{
             padding: "10px 18px", borderRadius: 10, background: "#7A9E7E", color: "#fff",
@@ -531,14 +558,14 @@ export default function SocialMediaPage() {
           }}>
             {bulkGenerating && bulkProgress
               ? `Gerando ${bulkProgress.done}/${bulkProgress.total}...`
-              : "③ Gerar imagens de todos approved"}
+              : "④ Gerar imagens em massa"}
           </button>
           <button onClick={runDiagnose} disabled={diagnosing} title="Checa token, permissoes, IG vinculado, posts prontos. E mostra botao pra postar de verdade agora." style={{
             padding: "10px 18px", borderRadius: 10, background: "#D4A94B", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
             opacity: diagnosing ? 0.6 : 1,
           }}>
-            {diagnosing ? "Checando..." : "④ Diagnosticar + Postar agora"}
+            {diagnosing ? "Checando..." : "⑤ Diagnosticar + Postar agora"}
           </button>
           <button onClick={() => setShowActivity(!showActivity)} style={{
             padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "var(--text-primary)",
@@ -570,6 +597,15 @@ export default function SocialMediaPage() {
           color: generateResult.includes("Erro") ? "#C4787A" : "#6B9E6B",
         }}>
           {generateResult}
+        </div>
+      )}
+
+      {trendsResult && (
+        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
+          background: trendsResult.startsWith("OK") ? "rgba(139,92,246,0.1)" : "rgba(196,120,122,0.1)",
+          color: trendsResult.startsWith("OK") ? "#8B5CF6" : "#C4787A",
+        }}>
+          {trendsResult}
         </div>
       )}
 

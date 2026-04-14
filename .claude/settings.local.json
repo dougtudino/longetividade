@@ -24,7 +24,21 @@
       "mcp__brevo__contacts_get_contacts",
       "mcp__brevo__contacts_get_contact_info",
       "mcp__brevo__accounts_get_account",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(echo \"EXIT_CODE=$?\")",
+      "Bash(git add:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(grep CONTENT_BANK\\\\|LUNA_KNOWLEDGE_SEED:*)",
+      "Bash(grep -r \"NEXT_PUBLIC\\\\|META_\" .env*)",
+      "Bash(xargs grep:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(cat src/app/c/[slug]/page.tsx)",
+      "Bash(git reset:*)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(grep -oE 'href=\"[^\"]{1,80}\"')",
+      "Bash(git commit --allow-empty -m 'chore: trigger redeploy para pegar NEXT_PUBLIC_CHECKOUT_URL no bundle:*)"
     ]
   }
 }

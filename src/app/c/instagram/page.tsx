@@ -21,10 +21,22 @@ export const metadata: Metadata = {
   robots: "noindex, nofollow",
 };
 
+function resolveCheckoutUrl(): string {
+  const publicUrl = process.env.NEXT_PUBLIC_CHECKOUT_URL;
+  if (publicUrl) return publicUrl;
+
+  const offer = process.env.HOTMART_OFFER_BASICO;
+  if (offer) return `https://pay.hotmart.com/H105141835Q?off=${offer}`;
+
+  return "#";
+}
+
 export default function Page() {
+  const checkoutUrl = resolveCheckoutUrl();
+
   return (
     <div className={`${playfair.variable} ${dmSans.variable}`}>
-      <InstagramLP />
+      <InstagramLP checkoutUrl={checkoutUrl} />
     </div>
   );
 }
