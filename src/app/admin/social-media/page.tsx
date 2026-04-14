@@ -56,7 +56,14 @@ type TrendsState = {
   ok: boolean;
   message: string;
   trends?: TrendItem[];
+  savedAt?: string;
+  ageDays?: number;
 };
+
+function ageDays(iso: string | undefined): number {
+  if (!iso) return 999;
+  return Math.floor((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000));
+}
 
 const PILLAR_COLORS: Record<string, { bg: string; color: string; label: string }> = {
   s: { bg: "rgba(122,158,126,0.2)", color: "#7A9E7E", label: "S · Nutricao" },
@@ -145,6 +152,26 @@ export default function SocialMediaPage() {
   }, [filter]);
 
   useEffect(() => { loadPosts(); }, [loadPosts]);
+
+  // Carrega trends ja salvas no backend ao abrir a pagina (evita websearch caro repetido)
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/admin/social/trends");
+        const data = await res.json();
+        if (data.ok && data.payload?.trends) {
+          const age = ageDays(data.savedAt);
+          setTrendsResult({
+            ok: true,
+            message: `${data.payload.trends.length} trends salvas (${age === 0 ? "hoje" : `${age}d atras`}) — clica "② Atualizar" so se quiser pesquisar de novo`,
+            trends: data.payload.trends,
+            savedAt: data.savedAt,
+            ageDays: age,
+          });
+        }
+      } catch { /* silent */ }
+    })();
+  }, []);
 
   async function seedContent() {
     setSeeding(true);
@@ -303,16 +330,24 @@ export default function SocialMediaPage() {
   }, [showActivity, activity]);
 
   async function researchTrends() {
+    // Aviso se ja tem trends frescas (<3 dias) — websearch do Claude e caro
+    if (trendsResult?.ok && trendsResult.ageDays !== undefined && trendsResult.ageDays < 3) {
+      const ok = confirm(
+        `Ja tem ${trendsResult.trends?.length ?? 0} trends de ${trendsResult.ageDays === 0 ? "hoje" : `${trendsResult.ageDays}d atras`}.\n\nPesquisar de novo consome 30k+ palavras da API Anthropic.\n\nAtualizar mesmo assim?`,
+      );
+      if (!ok) return;
+    }
     setTrendsLoading(true);
-    setTrendsResult(null);
     try {
       const res = await fetch("/api/admin/social/trends", { method: "POST" });
       const data = await res.json();
       if (data.ok) {
         setTrendsResult({
           ok: true,
-          message: `OK — ${data.trends?.length ?? 0} trends salvas. Proxima "Gerar semana" vai priorizar elas.`,
+          message: `OK — ${data.trends?.length ?? 0} trends atualizadas agora. Proxima "Gerar semana" vai priorizar elas.`,
           trends: data.trends,
+          savedAt: new Date().toISOString(),
+          ageDays: 0,
         });
       } else {
         setTrendsResult({ ok: false, message: `Falhou: ${data.error ?? "erro desconhecido"}` });
@@ -559,7 +594,11 @@ export default function SocialMediaPage() {
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
             opacity: trendsLoading ? 0.6 : 1,
           }}>
-            {trendsLoading ? "Pesquisando..." : "② Pesquisar trends"}
+            {trendsLoading
+              ? "Pesquisando..."
+              : trendsResult?.ok && trendsResult.trends
+                ? `② Atualizar trends (${trendsResult.ageDays === 0 ? "hoje" : `${trendsResult.ageDays}d`})`
+                : "② Pesquisar trends"}
           </button>
           <button onClick={generateWeek} disabled={generating} title="Gera 6 posts pra proxima semana (seg-sab). Rotacao S/E/S/M/E/Promo. Prioridade: data comemorativa > trend recente > template do bank. Status=approved." style={{
             padding: "10px 18px", borderRadius: 10, background: "#4A90D9", color: "#fff",
