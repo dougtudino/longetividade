@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { postToAll, postToFacebook } from "@/lib/social-poster";
+import { postToAllWithImages } from "@/lib/social-poster";
+import { getPostImageUrls } from "@/lib/social-post-images";
 
 // POST /api/admin/social/post
 // Body: { postId: string, platforms?: ["facebook", "instagram"] }
@@ -35,9 +36,14 @@ export async function POST(req: NextRequest) {
   // Monta a mensagem: content + hashtags
   const message = post.content + (post.hashtags ? "\n\n" + post.hashtags : "");
 
-  // Publica
-  const imageUrl = post.imageUrl ?? undefined;
-  const results = await postToAll(message, imageUrl);
+  // Busca TODAS as URLs (carrossel tem varios slides)
+  const imageUrls = await getPostImageUrls(postId);
+  // Fallback pro imageUrl antigo (posts sem SocialPostImage mas com URL legacy)
+  if (imageUrls.length === 0 && post.imageUrl) {
+    imageUrls.push(post.imageUrl);
+  }
+
+  const results = await postToAllWithImages(message, imageUrls);
 
   const anySuccess = results.some((r) => r.ok);
 

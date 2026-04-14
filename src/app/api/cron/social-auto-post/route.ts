@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { postToAll } from "@/lib/social-poster";
+import { postToAllWithImages } from "@/lib/social-poster";
+import { getPostImageUrls } from "@/lib/social-post-images";
 
 // GET /api/cron/social-auto-post
 // Cron DIARIO (12h BRT = 15h UTC): publica posts aprovados cuja
@@ -48,9 +49,11 @@ export async function GET(req: NextRequest) {
 
   for (const post of readyPosts) {
     const message = post.content + (post.hashtags ? "\n\n" + post.hashtags : "");
-    const imageUrl = post.imageUrl ?? undefined;
 
-    const postResults = await postToAll(message, imageUrl);
+    const imageUrls = await getPostImageUrls(post.id);
+    if (imageUrls.length === 0 && post.imageUrl) imageUrls.push(post.imageUrl);
+
+    const postResults = await postToAllWithImages(message, imageUrls);
     const anySuccess = postResults.some((r) => r.ok);
 
     if (anySuccess) {

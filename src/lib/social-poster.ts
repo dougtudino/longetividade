@@ -227,6 +227,115 @@ export async function postToInstagram(
   }
 }
 
+// ─── Instagram Carrossel ─────────────────────────────────
+//
+// Fluxo 3 etapas:
+// 1. Pra cada imagem: cria media container com is_carousel_item=true
+// 2. Cria media container CAROUSEL com children=[id1,id2,...]
+// 3. Publica o CAROUSEL via /media_publish
+
+export async function postToInstagramCarousel(
+  caption: string,
+  imageUrls: string[]
+): Promise<PostResult> {
+  const token = await getPageToken();
+  const igId = await getInstagramId();
+
+  if (!token || !igId) {
+    return {
+      ok: false,
+      platform: "instagram",
+      error: "SOCIAL_PAGE_TOKEN ou INSTAGRAM_ACCOUNT_ID nao configurado",
+    };
+  }
+
+  if (imageUrls.length < 2) {
+    return {
+      ok: false,
+      platform: "instagram",
+      error: "Carrossel precisa de 2+ imagens",
+    };
+  }
+  if (imageUrls.length > 10) {
+    // IG aceita ate 10 slides por carrossel
+    imageUrls = imageUrls.slice(0, 10);
+  }
+
+  try {
+    // Step 1: cria child containers
+    const childIds: string[] = [];
+    for (const imageUrl of imageUrls) {
+      const params = new URLSearchParams({
+        access_token: token,
+        image_url: imageUrl,
+        is_carousel_item: "true",
+      });
+      const res = await fetch(`${GRAPH}/${igId}/media`, {
+        method: "POST",
+        body: params,
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.id) {
+        return {
+          ok: false,
+          platform: "instagram",
+          error: `Falha ao criar slide: ${data.error?.message ?? `HTTP ${res.status}`}`,
+        };
+      }
+      childIds.push(data.id);
+    }
+
+    // Step 2: cria parent carousel
+    const parentParams = new URLSearchParams({
+      access_token: token,
+      caption,
+      media_type: "CAROUSEL",
+      children: childIds.join(","),
+    });
+    const parentRes = await fetch(`${GRAPH}/${igId}/media`, {
+      method: "POST",
+      body: parentParams,
+      cache: "no-store",
+    });
+    const parentData = await parentRes.json();
+    if (!parentRes.ok || parentData.error || !parentData.id) {
+      return {
+        ok: false,
+        platform: "instagram",
+        error: `Falha ao criar carrossel: ${parentData.error?.message ?? `HTTP ${parentRes.status}`}`,
+      };
+    }
+
+    // Step 3: publica
+    const publishParams = new URLSearchParams({
+      access_token: token,
+      creation_id: parentData.id,
+    });
+    const publishRes = await fetch(`${GRAPH}/${igId}/media_publish`, {
+      method: "POST",
+      body: publishParams,
+      cache: "no-store",
+    });
+    const publishData = await publishRes.json();
+    if (!publishRes.ok || publishData.error) {
+      return {
+        ok: false,
+        platform: "instagram",
+        error: `Falha ao publicar carrossel: ${publishData.error?.message ?? `HTTP ${publishRes.status}`}`,
+      };
+    }
+
+    return {
+      ok: true,
+      platform: "instagram",
+      postId: publishData.id,
+    };
+  } catch (e) {
+    return { ok: false, platform: "instagram", error: (e as Error).message };
+  }
+}
+
 // ─── Descobrir Instagram Account ID ──────────────────────
 
 // O IG Account ID vem vinculado a Page. Busca via:
@@ -387,15 +496,27 @@ export async function postToAll(
   message: string,
   imageUrl?: string
 ): Promise<PostResult[]> {
+  return postToAllWithImages(message, imageUrl ? [imageUrl] : []);
+}
+
+// Posta em FB+IG suportando carrossel no Instagram quando ha 2+ imagens.
+// FB sempre posta com a primeira imagem (ou texto puro se nao houver).
+export async function postToAllWithImages(
+  message: string,
+  imageUrls: string[]
+): Promise<PostResult[]> {
   const results: PostResult[] = [];
 
-  // Facebook (sempre tenta)
-  const fbResult = await postToFacebook(message, imageUrl);
+  // Facebook: primeira imagem (ou texto puro)
+  const fbResult = await postToFacebook(message, imageUrls[0]);
   results.push(fbResult);
 
-  // Instagram (so se tiver imagem — IG exige)
-  if (imageUrl) {
-    const igResult = await postToInstagram(message, imageUrl);
+  // Instagram: exige imagem
+  if (imageUrls.length >= 2) {
+    const igResult = await postToInstagramCarousel(message, imageUrls);
+    results.push(igResult);
+  } else if (imageUrls.length === 1) {
+    const igResult = await postToInstagram(message, imageUrls[0]);
     results.push(igResult);
   }
 

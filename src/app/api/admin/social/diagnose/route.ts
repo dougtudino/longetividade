@@ -255,7 +255,8 @@ export async function POST(req: Request) {
 
   const fbOnly = url.searchParams.get("fb_only") === "1";
 
-  const { postToAll, postToFacebook } = await import("@/lib/social-poster");
+  const { postToAllWithImages, postToFacebook } = await import("@/lib/social-poster");
+  const { getPostImageUrls } = await import("@/lib/social-post-images");
 
   const post = await prisma.socialPost.findFirst({
     where: fbOnly
@@ -274,9 +275,14 @@ export async function POST(req: Request) {
   }
 
   const message = post.content + (post.hashtags ? "\n\n" + post.hashtags : "");
+
+  // Busca TODAS as URLs (carrossel)
+  const imageUrls = await getPostImageUrls(post.id);
+  if (imageUrls.length === 0 && post.imageUrl) imageUrls.push(post.imageUrl);
+
   const results = fbOnly
     ? [await postToFacebook(message)]
-    : await postToAll(message, post.imageUrl ?? undefined);
+    : await postToAllWithImages(message, imageUrls);
   const anySuccess = results.some((r) => r.ok);
 
   if (anySuccess) {
