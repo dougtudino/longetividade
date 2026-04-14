@@ -102,9 +102,14 @@ function buildFromCommemorative(c: CommemorativeDate, dKey: string, slot: Slot):
 }
 
 function buildFromTrend(t: TrendItem, dKey: string, slot: Slot, pillar: Pillar): BuiltContent {
+  const content =
+    slot === "REEL"
+      ? `${t.topic}\n\n${t.angle}\n\n💬 Comenta se faz sentido pra você.`
+      : `${t.topic}\n\n${t.angle}\n\n#MétodoSEM #Longetividade`;
+
   return {
     title: `${t.topic} — ${dKey}`,
-    content: `${t.angle}\n\n(Tendência da semana — Luna Research)`,
+    content,
     hashtags: `#tendencias ${hashtagsForPillar(pillar)}`,
     imageBriefing: `${slotLabel(slot)} sobre "${t.topic}". Paleta verde-oliva. Tom acolhedor, informativo.`,
     source: "trend",

@@ -17,32 +17,31 @@ export type WeeklySlotEntry = {
   preferTrend: boolean; // se true, generate-now tenta usar trend primeiro
 };
 
-// Matriz canonica: Seg-Sab x (FEED_AM | REEL | STORY)
-// Domingo e OFF.
+// Matriz canonica: Seg-Sab x (FEED_AM | REEL).
+// Stories removidos por enquanto — template trunca texto em 120 chars e
+// fica esteticamente ruim com copy de trend. Reintroduzir quando o
+// template PostStory suportar conteudo mais longo ou quando Luna gerar
+// copy curto especifico pra Story.
+// Domingo e OFF. Total: 6 FEED + 3 REEL = 9 posts/semana.
 export const WEEKLY_SCHEDULE: WeeklySlotEntry[] = [
-  // SEG — abre semana com valor (carrossel S) + story engaja
+  // SEG — carrossel S abre a semana
   { dayOffset: 1, slot: "FEED_AM", pillar: "s", format: "carrossel", hour: 9, minute: 0, preferTrend: false },
-  { dayOffset: 1, slot: "STORY",   pillar: "s", format: "stories",   hour: 11, minute: 0, preferTrend: false },
 
-  // TER — reel M trend + story dica
+  // TER — reel M trend (movimento trending)
   { dayOffset: 2, slot: "REEL",    pillar: "m", format: "reels",     hour: 13, minute: 0, preferTrend: true },
-  { dayOffset: 2, slot: "STORY",   pillar: "m", format: "stories",   hour: 19, minute: 0, preferTrend: false },
 
-  // QUA — carrossel E emocional + story sequencia
+  // QUA — carrossel E emocional
   { dayOffset: 3, slot: "FEED_AM", pillar: "e", format: "carrossel", hour: 9, minute: 0, preferTrend: false },
-  { dayOffset: 3, slot: "STORY",   pillar: "e", format: "stories",   hour: 20, minute: 0, preferTrend: false },
 
-  // QUI — carrossel S + reel S trend + story bastidor
+  // QUI — carrossel S trend + reel S trend
   { dayOffset: 4, slot: "FEED_AM", pillar: "s", format: "carrossel", hour: 9, minute: 0, preferTrend: true },
   { dayOffset: 4, slot: "REEL",    pillar: "s", format: "reels",     hour: 19, minute: 0, preferTrend: true },
 
   // SEX — reel E conexao
   { dayOffset: 5, slot: "REEL",    pillar: "e", format: "reels",     hour: 13, minute: 0, preferTrend: false },
-  { dayOffset: 5, slot: "STORY",   pillar: "e", format: "stories",   hour: 20, minute: 0, preferTrend: false },
 
-  // SAB — promo feed + story inspiracao
+  // SAB — promo feed
   { dayOffset: 6, slot: "FEED_AM", pillar: "promo", format: "imagem",  hour: 10, minute: 0, preferTrend: false },
-  { dayOffset: 6, slot: "STORY",   pillar: "promo", format: "stories", hour: 15, minute: 0, preferTrend: false },
 ];
 
 export function computeSlotDate(baseNow: Date, entry: WeeklySlotEntry): Date {
