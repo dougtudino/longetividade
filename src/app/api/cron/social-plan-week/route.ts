@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateWeeklyPosts, logGenerationToKnowledge } from "@/lib/social-weekly-generator";
 
-// GET /api/cron/social-generate
-// Cron SEMANAL (domingo 20h BRT = 23h UTC): Luna auto-gera a semana
-// em multi-slot (FEED_AM + REEL + STORY por dia), status="approved".
+// GET /api/cron/social-plan-week
+// Cron SEMANAL (domingo 19h BRT = 22h UTC): Luna gera agenda da semana
+// em status="draft" pra Barbara revisar antes de aprovar.
 //
-// Se voce quer revisao manual, use cron/social-plan-week (status=draft) em vez disso.
+// Diferenca do social-generate: status="draft" em vez de "approved".
 //
-// Schedule: 0 23 * * 0 (domingo 23h UTC = 20h BRT)
+// Schedule sugerido: 0 22 * * 0 (domingo 22h UTC = 19h BRT)
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const result = await generateWeeklyPosts({ status: "approved", createdBy: "luna-auto" });
-  await logGenerationToKnowledge(result, "Batch semanal auto", "luna-auto-generate");
+  const result = await generateWeeklyPosts({ status: "draft", createdBy: "luna-plan-week" });
+  await logGenerationToKnowledge(result, "Plano semanal (draft)", "luna-plan-week");
 
   return NextResponse.json({
     ok: true,

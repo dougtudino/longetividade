@@ -24,8 +24,8 @@ export async function GET() {
     prisma.agentKnowledge.findMany({
       where: { agentId: "luna", kind: "learning" },
       orderBy: { createdAt: "desc" },
-      take: 5,
-      select: { title: true, source: true, createdAt: true },
+      take: 10,
+      select: { title: true, body: true, source: true, createdAt: true },
     }),
   ]);
 

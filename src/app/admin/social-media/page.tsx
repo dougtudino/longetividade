@@ -42,7 +42,20 @@ type ActivityData = {
     pillar: string;
     postedAt: string | null;
   }>;
-  recentRuns: Array<{ title: string; source: string | null; createdAt: string }>;
+  recentRuns: Array<{ title: string; body?: string; source: string | null; createdAt: string }>;
+};
+
+type TrendItem = {
+  topic: string;
+  angle: string;
+  suggestedPillar: "s" | "e" | "m" | "promo";
+  sourceUrl?: string;
+};
+
+type TrendsState = {
+  ok: boolean;
+  message: string;
+  trends?: TrendItem[];
 };
 
 const PILLAR_COLORS: Record<string, { bg: string; color: string; label: string }> = {
@@ -105,7 +118,7 @@ export default function SocialMediaPage() {
   const [bulkGenerating, setBulkGenerating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState<{ done: number; total: number } | null>(null);
   const [trendsLoading, setTrendsLoading] = useState(false);
-  const [trendsResult, setTrendsResult] = useState<string | null>(null);
+  const [trendsResult, setTrendsResult] = useState<TrendsState | null>(null);
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -296,12 +309,16 @@ export default function SocialMediaPage() {
       const res = await fetch("/api/admin/social/trends", { method: "POST" });
       const data = await res.json();
       if (data.ok) {
-        setTrendsResult(`OK — ${data.trends?.length ?? 0} trends salvas. Proxima "Gerar semana" vai priorizar elas.`);
+        setTrendsResult({
+          ok: true,
+          message: `OK — ${data.trends?.length ?? 0} trends salvas. Proxima "Gerar semana" vai priorizar elas.`,
+          trends: data.trends,
+        });
       } else {
-        setTrendsResult(`Falhou: ${data.error ?? "erro desconhecido"}`);
+        setTrendsResult({ ok: false, message: `Falhou: ${data.error ?? "erro desconhecido"}` });
       }
     } catch (e) {
-      setTrendsResult(`Erro: ${(e as Error).message}`);
+      setTrendsResult({ ok: false, message: `Erro: ${(e as Error).message}` });
     } finally {
       setTrendsLoading(false);
     }
@@ -601,11 +618,46 @@ export default function SocialMediaPage() {
       )}
 
       {trendsResult && (
-        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
-          background: trendsResult.startsWith("OK") ? "rgba(139,92,246,0.1)" : "rgba(196,120,122,0.1)",
-          color: trendsResult.startsWith("OK") ? "#8B5CF6" : "#C4787A",
+        <div style={{ padding: 12, borderRadius: 8, fontSize: 12, marginBottom: 12,
+          background: trendsResult.ok ? "rgba(139,92,246,0.08)" : "rgba(196,120,122,0.1)",
+          border: `0.5px solid ${trendsResult.ok ? "rgba(139,92,246,0.3)" : "rgba(196,120,122,0.3)"}`,
+          color: trendsResult.ok ? "#8B5CF6" : "#C4787A",
         }}>
-          {trendsResult}
+          <div style={{ fontWeight: 700, marginBottom: trendsResult.trends?.length ? 10 : 0 }}>
+            {trendsResult.message}
+          </div>
+          {trendsResult.trends && trendsResult.trends.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, color: "var(--text-primary)" }}>
+              {trendsResult.trends.map((t, i) => (
+                <div key={i} style={{
+                  padding: "8px 10px",
+                  background: "var(--bg-secondary)",
+                  borderRadius: 6,
+                  borderLeft: `3px solid ${PILLAR_COLORS[t.suggestedPillar]?.color ?? "#8B5CF6"}`,
+                }}>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 3 }}>
+                    <span style={{
+                      fontSize: 10,
+                      fontWeight: 700,
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      background: PILLAR_COLORS[t.suggestedPillar]?.bg ?? "rgba(139,92,246,0.2)",
+                      color: PILLAR_COLORS[t.suggestedPillar]?.color ?? "#8B5CF6",
+                    }}>
+                      {PILLAR_COLORS[t.suggestedPillar]?.label ?? t.suggestedPillar.toUpperCase()}
+                    </span>
+                    <span style={{ fontWeight: 600, fontSize: 12 }}>{i + 1}. {t.topic}</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.4 }}>{t.angle}</div>
+                  {t.sourceUrl && (
+                    <a href={t.sourceUrl} target="_blank" rel="noreferrer" style={{ fontSize: 10, color: "var(--text-muted)", textDecoration: "underline" }}>
+                      fonte
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -656,12 +708,30 @@ export default function SocialMediaPage() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {activity.recentRuns.map((r, i) => (
-                      <div key={i} style={{ padding: "4px 8px", background: "var(--bg-secondary)", borderRadius: 6 }}>
-                        <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{r.title}</div>
-                        <div style={{ color: "var(--text-muted)", marginTop: 2 }}>
-                          {r.source ?? "manual"} · {new Date(r.createdAt).toLocaleString("pt-BR")}
-                        </div>
-                      </div>
+                      <details key={i} style={{ padding: "4px 8px", background: "var(--bg-secondary)", borderRadius: 6 }}>
+                        <summary style={{ cursor: "pointer", listStyle: "none" }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>{r.title}</div>
+                          <div style={{ color: "var(--text-muted)", marginTop: 2 }}>
+                            {r.source ?? "manual"} · {new Date(r.createdAt).toLocaleString("pt-BR")}
+                          </div>
+                        </summary>
+                        {r.body && (
+                          <pre style={{
+                            marginTop: 6,
+                            padding: 6,
+                            background: "var(--bg-primary)",
+                            borderRadius: 4,
+                            fontSize: 10,
+                            color: "var(--text-secondary)",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            maxHeight: 300,
+                            overflow: "auto",
+                          }}>
+                            {r.body}
+                          </pre>
+                        )}
+                      </details>
                     ))}
                   </div>
                 )}

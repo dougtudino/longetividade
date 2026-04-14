@@ -148,20 +148,34 @@ export async function POST() {
       rawSummary: raw.slice(0, 2000),
     };
 
-    // Salva em AgentKnowledge pra generate-now consumir
+    const bodyFormatted = trends
+      .map(
+        (t, i) =>
+          `${i + 1}. [${t.suggestedPillar}] ${t.topic}\n   ${t.angle}${t.sourceUrl ? `\n   Fonte: ${t.sourceUrl}` : ""}`,
+      )
+      .join("\n\n");
+
+    // Salva em AgentKnowledge (kind=reference) pra generate-now consumir
     await prisma.agentKnowledge.create({
       data: {
         agentId: "luna",
         kind: "reference",
         title: `Trends da semana ${weekOf}`,
-        body: trends
-          .map(
-            (t, i) =>
-              `${i + 1}. [${t.suggestedPillar}] ${t.topic}\n   ${t.angle}${t.sourceUrl ? `\n   Fonte: ${t.sourceUrl}` : ""}`
-          )
-          .join("\n\n"),
+        body: bodyFormatted,
         source: "luna-trends-websearch",
         metadata: JSON.parse(JSON.stringify(payload)),
+      },
+    });
+
+    // Espelho em kind=learning pra aparecer em 📜 Logs (activity route le learnings)
+    await prisma.agentKnowledge.create({
+      data: {
+        agentId: "luna",
+        kind: "learning",
+        title: `Pesquisa de trends — ${trends.length} topicos (${weekOf})`,
+        body: bodyFormatted,
+        source: "luna-trends-websearch",
+        metadata: { count: trends.length, weekOf },
       },
     });
 

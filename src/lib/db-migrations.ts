@@ -274,6 +274,24 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "SocialPost.createdBy column",
     sql: `ALTER TABLE "SocialPost" ADD COLUMN IF NOT EXISTS "createdBy" TEXT`,
   },
+
+  // ─── SocialPost.slot column + index (multi-slot agenda) ─
+  {
+    label: "SocialPost.slot column",
+    sql: `ALTER TABLE "SocialPost" ADD COLUMN IF NOT EXISTS "slot" TEXT NOT NULL DEFAULT 'FEED_AM'`,
+  },
+  {
+    label: "SocialPost.slot backfill from format",
+    sql: `UPDATE "SocialPost" SET "slot" = CASE
+            WHEN "format" = 'reels' THEN 'REEL'
+            WHEN "format" = 'stories' THEN 'STORY'
+            ELSE 'FEED_AM'
+          END WHERE "slot" = 'FEED_AM' AND "createdAt" < NOW() - INTERVAL '1 minute'`,
+  },
+  {
+    label: "SocialPost.slot index",
+    sql: `CREATE INDEX IF NOT EXISTS "SocialPost_slot_idx" ON "SocialPost"("slot")`,
+  },
 ];
 
 export type MigrationResult = {

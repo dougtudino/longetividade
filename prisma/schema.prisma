@@ -106,6 +106,7 @@ model SocialPost {
   hashtags     String?   @db.Text
   imageUrl     String?   // URL do criativo (se tiver)
   imageBriefing String?  @db.Text // briefing pra Uma criar o visual
+  slot         String    @default("FEED_AM") // FEED_AM | REEL | STORY — slot de conteudo
   status       String    @default("draft") // draft | review | approved | posted | rejected
   reviewNote   String?   // nota do QA
   scheduledAt  DateTime? // quando postar
@@ -120,6 +121,7 @@ model SocialPost {
   @@index([status])
   @@index([platform])
   @@index([pillar])
+  @@index([slot])
   @@index([scheduledAt])
   @@index([createdAt])
 }
