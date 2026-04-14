@@ -115,11 +115,30 @@ model SocialPost {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  images       SocialPostImage[]
+
   @@index([status])
   @@index([platform])
   @@index([pillar])
   @@index([scheduledAt])
   @@index([createdAt])
+}
+
+// PNGs renderizados de cada post/slide. Servidos via rota publica
+// /api/public/social-image/[postId]/[slide].png pra Meta Graph buscar.
+model SocialPostImage {
+  id         String     @id @default(uuid())
+  postId     String
+  slideIndex Int        @default(0) // 0 = unica/cover; 1,2,3... = carrossel
+  mimeType   String     @default("image/png")
+  data       Bytes
+  width      Int?
+  height     Int?
+  createdAt  DateTime   @default(now())
+  post       SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, slideIndex])
+  @@index([postId])
 }
 
 // ─── AIOX Agents — Knowledge & Decisions ───────────────

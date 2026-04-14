@@ -17,6 +17,7 @@ type Post = {
   pillar: string;
   hashtags: string | null;
   imageBriefing: string | null;
+  imageUrl: string | null;
   status: string;
   reviewNote: string | null;
   scheduledAt: string | null;
@@ -89,6 +90,7 @@ export default function SocialMediaPage() {
   const [diagnosing, setDiagnosing] = useState(false);
   const [postingTest, setPostingTest] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [generatingImage, setGeneratingImage] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
   const previewRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lightboxRef = useRef<HTMLDivElement | null>(null);
@@ -154,6 +156,64 @@ export default function SocialMediaPage() {
       link.click();
     } catch { /* silent */ }
     finally { setDownloading(null); }
+  }
+
+  // Renderiza todos os slides do post em PNGs e faz upload pro DB,
+  // depois seta imageUrl com a URL publica do slide 0.
+  async function generateImages(post: Post) {
+    setGeneratingImage(post.id);
+    setError(null);
+
+    // Garante que o post esta expandido (slides soh renderizam quando expanded)
+    if (expanded !== post.id) {
+      setExpanded(post.id);
+      // 2 frames de espera pro DOM pintar os slides
+      await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+      await new Promise((r) => setTimeout(r, 200));
+    }
+
+    try {
+      const { toPng } = await import("html-to-image");
+      const tmpl = getTemplateForFormat(post.format);
+      const slidesToCapture: Array<{ slideIndex: number; dataUrl: string; width: number; height: number }> = [];
+
+      if (post.format === "carrossel") {
+        const parsed = parseContentToSlides(post.title, post.content);
+        for (let i = 0; i < parsed.length; i++) {
+          const node = previewRefs.current[`${post.id}-slide-${i}`];
+          if (!node) continue;
+          const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 1, width: tmpl.width, height: tmpl.height });
+          slidesToCapture.push({ slideIndex: i, dataUrl, width: tmpl.width, height: tmpl.height });
+        }
+      } else {
+        const node = previewRefs.current[post.id];
+        if (node) {
+          const dataUrl = await toPng(node, { cacheBust: true, pixelRatio: 1, width: tmpl.width, height: tmpl.height });
+          slidesToCapture.push({ slideIndex: 0, dataUrl, width: tmpl.width, height: tmpl.height });
+        }
+      }
+
+      if (slidesToCapture.length === 0) {
+        setError(`Nao foi possivel capturar imagens do post "${post.title}". Expande o post antes.`);
+        return;
+      }
+
+      const res = await fetch("/api/admin/social/upload-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId: post.id, slides: slidesToCapture }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error ?? "Falha no upload");
+      } else {
+        await loadPosts();
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setGeneratingImage(null);
+    }
   }
 
   async function updateStatus(postId: string, newStatus: string) {
@@ -742,6 +802,12 @@ export default function SocialMediaPage() {
                         disabled={downloading === p.id}
                         style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                         {downloading === p.id ? "Gerando..." : "🖼 Baixar arte"}
+                      </button>
+                      <button
+                        onClick={() => generateImages(p)}
+                        disabled={generatingImage === p.id}
+                        style={{ padding: "6px 14px", borderRadius: 8, background: p.imageUrl ? "var(--bg-secondary)" : "#7A9E7E", color: p.imageUrl ? "var(--text-primary)" : "#fff", border: p.imageUrl ? "0.5px solid var(--border-default)" : "none", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>
+                        {generatingImage === p.id ? "Subindo..." : p.imageUrl ? "🔄 Regerar imagens" : "✨ Gerar imagens (p/ publicar)"}
                       </button>
                     </div>
                   </div>
