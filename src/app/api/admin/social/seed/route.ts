@@ -10,20 +10,27 @@ export async function POST() {
   let skipped = 0;
 
   try {
+    const existingTitles = new Set(
+      (
+        await prisma.socialPost.findMany({
+          where: { title: { in: CONTENT_BANK.map((t) => t.title) } },
+          select: { title: true },
+        })
+      ).map((p) => p.title),
+    );
+
     for (const tmpl of CONTENT_BANK) {
-      const existing = await prisma.socialPost.findFirst({
-        where: { title: tmpl.title },
-      });
-      if (existing) {
+      if (existingTitles.has(tmpl.title)) {
         skipped += 1;
         continue;
       }
 
-      // Agenda posts distribuidos nos proximos 14 dias
-      const dayOffset = created * 2; // 1 post a cada 2 dias
+      const dayOffset = created * 2;
       const scheduledDate = new Date();
       scheduledDate.setDate(scheduledDate.getDate() + dayOffset + 1);
-      scheduledDate.setHours(12, 0, 0, 0); // meio-dia BRT
+      scheduledDate.setHours(12, 0, 0, 0);
+
+      const slot = tmpl.format === "reels" ? "REEL" : tmpl.format === "stories" ? "STORY" : "FEED_AM";
 
       await prisma.socialPost.create({
         data: {
@@ -32,6 +39,7 @@ export async function POST() {
           platform: tmpl.platform,
           format: tmpl.format,
           pillar: tmpl.pillar,
+          slot,
           hashtags: tmpl.hashtags,
           imageBriefing: tmpl.imageBriefing,
           status: "draft",

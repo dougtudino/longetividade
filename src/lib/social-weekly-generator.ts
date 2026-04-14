@@ -131,6 +131,20 @@ export async function generateWeeklyPosts(opts: { status: "approved" | "draft"; 
   const commemorativeMap = new Map(upcoming.map((d) => [d.fullDate, d]));
   const trendsByPillar = await getUnusedTrendsByPillar();
 
+  // Pega TODOS os posts agendados pros proximos 8 dias em 1 query so
+  const startRange = new Date(now.getTime());
+  const endRange = new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000);
+  const existingPosts = await prisma.socialPost.findMany({
+    where: { scheduledAt: { gte: startRange, lte: endRange } },
+    select: { slot: true, scheduledAt: true },
+  });
+  const occupiedSlots = new Set<string>();
+  for (const p of existingPosts) {
+    if (!p.scheduledAt) continue;
+    const k = `${p.scheduledAt.toISOString().slice(0, 10)}::${p.slot}`;
+    occupiedSlots.add(k);
+  }
+
   const created: GeneratedPost[] = [];
   const skipped: SkippedSlot[] = [];
   let fromCommemorative = 0;
@@ -142,17 +156,7 @@ export async function generateWeeklyPosts(opts: { status: "approved" | "draft"; 
     const dKey = dateKey(postDate);
     const { slot, pillar, format } = entry;
 
-    const existing = await prisma.socialPost.findFirst({
-      where: {
-        slot,
-        scheduledAt: {
-          gte: new Date(dKey + "T00:00:00Z"),
-          lte: new Date(dKey + "T23:59:59Z"),
-        },
-      },
-      select: { id: true },
-    });
-    if (existing) {
+    if (occupiedSlots.has(`${dKey}::${slot}`)) {
       skipped.push({ day: dKey, slot, reason: "slot ja ocupado" });
       continue;
     }

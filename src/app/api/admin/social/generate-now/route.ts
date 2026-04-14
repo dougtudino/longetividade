@@ -8,15 +8,28 @@ import { generateWeeklyPosts, logGenerationToKnowledge } from "@/lib/social-week
 // Hierarquia de fontes: commemorative > trend (preferTrend slots) > bank.
 
 export async function POST() {
-  const result = await generateWeeklyPosts({ status: "approved", createdBy: "luna-manual" });
-  await logGenerationToKnowledge(result, "Gerar semana (manual)", "luna-generate-now");
+  try {
+    const result = await generateWeeklyPosts({ status: "approved", createdBy: "luna-manual" });
+    await logGenerationToKnowledge(result, "Gerar semana (manual)", "luna-generate-now");
 
-  return NextResponse.json({
-    ok: true,
-    created: result.created.length,
-    skipped: result.skipped.length,
-    breakdown: result.breakdown,
-    posts: result.created,
-    skippedDetails: result.skipped,
-  });
+    return NextResponse.json({
+      ok: true,
+      created: result.created.length,
+      skipped: result.skipped.length,
+      breakdown: result.breakdown,
+      posts: result.created,
+      skippedDetails: result.skipped,
+    });
+  } catch (e) {
+    const err = e as Error;
+    console.error("[generate-now] falhou:", err);
+    return NextResponse.json(
+      {
+        ok: false,
+        error: err.message,
+        stack: err.stack?.split("\n").slice(0, 5).join("\n"),
+      },
+      { status: 500 },
+    );
+  }
 }
