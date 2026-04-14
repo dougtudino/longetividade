@@ -242,6 +242,50 @@ export default function SocialMediaPage() {
 
   const [seedingPlaybook, setSeedingPlaybook] = useState(false);
   const [playbookMsg, setPlaybookMsg] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  function toggleSelected(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function selectAllVisible() {
+    setSelectedIds(new Set(posts.map((p) => p.id)));
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function bulkDeleteSelected() {
+    const ids = Array.from(selectedIds);
+    if (ids.length === 0) return;
+    if (!confirm(`Apagar ${ids.length} post(s) selecionado(s)? Essa acao nao pode ser desfeita.`)) return;
+    setBulkDeleting(true);
+    try {
+      const res = await fetch("/api/admin/social/bulk-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "delete", ids }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error ?? "Erro ao apagar");
+      } else {
+        clearSelection();
+        await loadPosts();
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
 
   async function seedPlaybook() {
     setSeedingPlaybook(true);
@@ -963,7 +1007,7 @@ export default function SocialMediaPage() {
         }}>🗓 Calendário →</Link>
       </div>
 
-      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         {["all", "draft", "review", "approved", "posted"].map((f) => (
           <button key={f} onClick={() => setFilter(f)} style={{
             padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
@@ -974,6 +1018,27 @@ export default function SocialMediaPage() {
             {f === "all" ? "Todos" : f}
           </button>
         ))}
+
+        <div style={{ flex: 1 }} />
+
+        {posts.length > 0 && (
+          <button onClick={selectedIds.size === posts.length ? clearSelection : selectAllVisible} style={{
+            padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+            background: "var(--bg-secondary)", color: "var(--text-secondary)",
+            border: "0.5px solid var(--border-default)", cursor: "pointer",
+          }}>
+            {selectedIds.size === posts.length ? "☐ Desmarcar todos" : "☑ Selecionar todos"}
+          </button>
+        )}
+        {selectedIds.size > 0 && (
+          <button onClick={bulkDeleteSelected} disabled={bulkDeleting} style={{
+            padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700,
+            background: "#C4787A", color: "#fff",
+            border: "none", cursor: "pointer", opacity: bulkDeleting ? 0.6 : 1,
+          }}>
+            {bulkDeleting ? "Apagando..." : `🗑 Apagar selecionados (${selectedIds.size})`}
+          </button>
+        )}
       </div>
 
       {/* Posts */}
@@ -1039,13 +1104,21 @@ export default function SocialMediaPage() {
             const pillar = PILLAR_COLORS[p.pillar] ?? PILLAR_COLORS.s;
             const statusBadge = STATUS_BADGE[p.status] ?? STATUS_BADGE.draft;
             const isExpanded = expanded === p.id;
+            const isSelected = selectedIds.has(p.id);
 
             return (
-              <div key={p.id} style={{ ...card, borderLeft: `3px solid ${pillar.color}` }}>
+              <div key={p.id} style={{ ...card, borderLeft: `3px solid ${pillar.color}`, background: isSelected ? "rgba(196,120,122,0.06)" : undefined }}>
                 <div
                   onClick={() => setExpanded(isExpanded ? null : p.id)}
                   style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}
                 >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelected(p.id)}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ width: 18, height: 18, cursor: "pointer", accentColor: "#C4787A" }}
+                  />
                   <div style={{ flex: 1, minWidth: 200 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 18 }}>{PLATFORM_ICON[p.platform] ?? "📱"}</span>
