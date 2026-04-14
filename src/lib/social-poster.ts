@@ -147,6 +147,95 @@ export async function postToFacebook(
   }
 }
 
+// ─── Facebook Multi-Photo (carrossel) ────────────────────
+//
+// Fluxo 2 etapas:
+// 1. Pra cada imagem: POST /{page_id}/photos com published=false → pega id
+// 2. POST /{page_id}/feed com message + attached_media=[{media_fbid:id}, ...]
+
+export async function postToFacebookMultiPhoto(
+  message: string,
+  imageUrls: string[]
+): Promise<PostResult> {
+  const pageId = await getPageId();
+  const token = await getFacebookPageAccessToken();
+
+  if (!token || !pageId) {
+    return {
+      ok: false,
+      platform: "facebook",
+      error: !pageId
+        ? "META_PAGE_ID nao configurado"
+        : "Falha ao obter Page Access Token",
+    };
+  }
+
+  if (imageUrls.length < 2) {
+    return {
+      ok: false,
+      platform: "facebook",
+      error: "Multi-photo precisa de 2+ imagens",
+    };
+  }
+
+  try {
+    // Step 1: upload de cada foto como unpublished
+    const mediaIds: string[] = [];
+    for (const imageUrl of imageUrls) {
+      const params = new URLSearchParams({
+        access_token: token,
+        url: imageUrl,
+        published: "false",
+      });
+      const res = await fetch(`${GRAPH}/${pageId}/photos`, {
+        method: "POST",
+        body: params,
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.id) {
+        return {
+          ok: false,
+          platform: "facebook",
+          error: `Falha ao subir foto: ${data.error?.message ?? `HTTP ${res.status}`}`,
+        };
+      }
+      mediaIds.push(data.id);
+    }
+
+    // Step 2: cria post no feed com attached_media
+    const attached = JSON.stringify(
+      mediaIds.map((id) => ({ media_fbid: id }))
+    );
+    const feedParams = new URLSearchParams({
+      access_token: token,
+      message,
+      attached_media: attached,
+    });
+    const feedRes = await fetch(`${GRAPH}/${pageId}/feed`, {
+      method: "POST",
+      body: feedParams,
+      cache: "no-store",
+    });
+    const feedData = await feedRes.json();
+    if (!feedRes.ok || feedData.error || !feedData.id) {
+      return {
+        ok: false,
+        platform: "facebook",
+        error: `Falha ao publicar post: ${feedData.error?.message ?? `HTTP ${feedRes.status}`}`,
+      };
+    }
+
+    return {
+      ok: true,
+      platform: "facebook",
+      postId: feedData.id,
+    };
+  } catch (e) {
+    return { ok: false, platform: "facebook", error: (e as Error).message };
+  }
+}
+
 // ─── Instagram Post ──────────────────────────────────────
 
 // Instagram Content Publishing API (2 steps):
@@ -234,6 +323,31 @@ export async function postToInstagram(
 // 2. Cria media container CAROUSEL com children=[id1,id2,...]
 // 3. Publica o CAROUSEL via /media_publish
 
+// Poll status do container IG ate FINISHED ou ERROR. Graph docs recomendam
+// intervalos de 1 minuto, mas pra imagens pequenas fica pronto em 2-5s.
+async function waitContainerReady(
+  containerId: string,
+  token: string,
+  maxAttempts = 20,
+  intervalMs = 1500
+): Promise<{ ok: boolean; error?: string }> {
+  for (let i = 0; i < maxAttempts; i++) {
+    const res = await fetch(
+      `${GRAPH}/${containerId}?fields=status_code,status&access_token=${encodeURIComponent(token)}`,
+      { cache: "no-store" }
+    );
+    const data = (await res.json()) as { status_code?: string; status?: string; error?: { message: string } };
+
+    if (data.status_code === "FINISHED") return { ok: true };
+    if (data.status_code === "ERROR" || data.status_code === "EXPIRED") {
+      return { ok: false, error: data.status ?? data.status_code };
+    }
+
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  return { ok: false, error: "timeout aguardando container processar" };
+}
+
 export async function postToInstagramCarousel(
   caption: string,
   imageUrls: string[]
@@ -262,7 +376,7 @@ export async function postToInstagramCarousel(
   }
 
   try {
-    // Step 1: cria child containers
+    // Step 1: cria child containers + aguarda cada ficar FINISHED
     const childIds: string[] = [];
     for (const imageUrl of imageUrls) {
       const params = new URLSearchParams({
@@ -281,6 +395,15 @@ export async function postToInstagramCarousel(
           ok: false,
           platform: "instagram",
           error: `Falha ao criar slide: ${data.error?.message ?? `HTTP ${res.status}`}`,
+        };
+      }
+
+      const ready = await waitContainerReady(data.id, token);
+      if (!ready.ok) {
+        return {
+          ok: false,
+          platform: "instagram",
+          error: `Slide nao processou: ${ready.error}`,
         };
       }
       childIds.push(data.id);
@@ -304,6 +427,16 @@ export async function postToInstagramCarousel(
         ok: false,
         platform: "instagram",
         error: `Falha ao criar carrossel: ${parentData.error?.message ?? `HTTP ${parentRes.status}`}`,
+      };
+    }
+
+    // Aguarda o carousel parent ficar FINISHED
+    const parentReady = await waitContainerReady(parentData.id, token);
+    if (!parentReady.ok) {
+      return {
+        ok: false,
+        platform: "instagram",
+        error: `Carrossel nao processou: ${parentReady.error}`,
       };
     }
 
@@ -499,25 +632,25 @@ export async function postToAll(
   return postToAllWithImages(message, imageUrl ? [imageUrl] : []);
 }
 
-// Posta em FB+IG suportando carrossel no Instagram quando ha 2+ imagens.
-// FB sempre posta com a primeira imagem (ou texto puro se nao houver).
+// Posta em FB+IG suportando carrossel (2+ imagens) nas duas plataformas.
 export async function postToAllWithImages(
   message: string,
   imageUrls: string[]
 ): Promise<PostResult[]> {
   const results: PostResult[] = [];
 
-  // Facebook: primeira imagem (ou texto puro)
-  const fbResult = await postToFacebook(message, imageUrls[0]);
-  results.push(fbResult);
-
-  // Instagram: exige imagem
+  // Facebook
   if (imageUrls.length >= 2) {
-    const igResult = await postToInstagramCarousel(message, imageUrls);
-    results.push(igResult);
+    results.push(await postToFacebookMultiPhoto(message, imageUrls));
+  } else {
+    results.push(await postToFacebook(message, imageUrls[0]));
+  }
+
+  // Instagram (exige imagem)
+  if (imageUrls.length >= 2) {
+    results.push(await postToInstagramCarousel(message, imageUrls));
   } else if (imageUrls.length === 1) {
-    const igResult = await postToInstagram(message, imageUrls[0]);
-    results.push(igResult);
+    results.push(await postToInstagram(message, imageUrls[0]));
   }
 
   return results;
