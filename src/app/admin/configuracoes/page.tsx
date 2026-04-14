@@ -128,7 +128,7 @@ const META_KEYS = [
   {
     key: "META_PAGE_ID",
     label: "Meta Page ID (Facebook Page)",
-    hint: "ID da Page 'Saude do corpo e mente' (61562570061004). Necessario para Gaia criar ads automaticamente.",
+    hint: "Graph Page ID da Longetividade: 357054767494527 (apenas numeros). Necessario pra Luna postar e Gaia criar ads.",
     sensitive: false,
     defaultValue: "61562570061004",
   },

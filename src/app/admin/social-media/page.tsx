@@ -28,7 +28,7 @@ type DiagnoseCheck = { ok: boolean; label: string; detail: string; action?: stri
 type DiagnoseResult = {
   ok: boolean;
   score: string;
-  summary?: { canPostFacebook: boolean; canPostInstagram: boolean; approvedReady: number };
+  summary?: { canPostFacebook: boolean; canPostInstagram: boolean; approvedReady: number; approvedTotal?: number };
   checks: DiagnoseCheck[];
   nextSteps?: string;
 };
@@ -246,12 +246,18 @@ export default function SocialMediaPage() {
     }
   }
 
-  async function postTestReal() {
-    if (!confirm("Isso vai publicar 1 post APROVADO de verdade no Facebook/Instagram. Confirmar?")) return;
+  async function postTestReal(fbOnly = false) {
+    const msg = fbOnly
+      ? "Isso vai publicar 1 post APROVADO (texto puro) no Facebook. Confirmar?"
+      : "Isso vai publicar 1 post APROVADO de verdade no Facebook/Instagram. Confirmar?";
+    if (!confirm(msg)) return;
     setPostingTest(true);
     setTestResult(null);
     try {
-      const res = await fetch("/api/admin/social/diagnose?test=1", { method: "POST" });
+      const url = fbOnly
+        ? "/api/admin/social/diagnose?test=1&fb_only=1"
+        : "/api/admin/social/diagnose?test=1";
+      const res = await fetch(url, { method: "POST" });
       const data = await res.json();
       if (data.ok) {
         setTestResult(`OK — publicado: "${data.title}". ${data.results.map((r: { platform: string; ok: boolean; postId?: string; error?: string }) => `${r.platform}: ${r.ok ? r.postId : r.error}`).join(" · ")}`);
@@ -449,12 +455,23 @@ export default function SocialMediaPage() {
             </div>
           )}
           {diagnose.summary?.canPostFacebook && diagnose.summary.approvedReady > 0 && (
-            <button onClick={postTestReal} disabled={postingTest} style={{
+            <button onClick={() => postTestReal(false)} disabled={postingTest} style={{
               marginTop: 12, padding: "10px 18px", borderRadius: 10, background: "#D4A94B",
               color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
               opacity: postingTest ? 0.6 : 1, width: "100%",
             }}>
-              {postingTest ? "Postando..." : "🚀 Postar 1 post aprovado AGORA (teste real)"}
+              {postingTest ? "Postando..." : "🚀 Postar no FB+IG AGORA (teste real)"}
+            </button>
+          )}
+          {diagnose.summary?.canPostFacebook &&
+            (diagnose.summary.approvedTotal ?? 0) > 0 &&
+            diagnose.summary.approvedReady === 0 && (
+            <button onClick={() => postTestReal(true)} disabled={postingTest} style={{
+              marginTop: 12, padding: "10px 18px", borderRadius: 10, background: "#4A90D9",
+              color: "#fff", border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+              opacity: postingTest ? 0.6 : 1, width: "100%",
+            }}>
+              {postingTest ? "Postando..." : "📘 Postar SOH no Facebook (texto puro — teste sem imagem)"}
             </button>
           )}
           {testResult && (

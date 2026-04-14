@@ -230,6 +230,7 @@ export async function GET() {
       canPostFacebook: !!canPostFacebook,
       canPostInstagram: !!canPostInstagram,
       approvedReady: approvedWithImage,
+      approvedTotal,
     },
     checks,
     nextSteps:
@@ -239,8 +240,10 @@ export async function GET() {
   });
 }
 
-// POST /api/admin/social/diagnose?test=1
-// Pega o 1o post approved com imageUrl e publica AGORA (teste real).
+// POST /api/admin/social/diagnose?test=1[&fb_only=1]
+// Pega o 1o post approved e publica AGORA (teste real).
+// fb_only=1: ignora imageUrl, posta soh texto no Facebook (util pra testar
+// fluxo quando posts ainda nao tem imagem).
 export async function POST(req: Request) {
   const url = new URL(req.url);
   if (url.searchParams.get("test") !== "1") {
@@ -250,22 +253,30 @@ export async function POST(req: Request) {
     );
   }
 
-  const { postToAll } = await import("@/lib/social-poster");
+  const fbOnly = url.searchParams.get("fb_only") === "1";
+
+  const { postToAll, postToFacebook } = await import("@/lib/social-poster");
 
   const post = await prisma.socialPost.findFirst({
-    where: { status: "approved", imageUrl: { not: null } },
+    where: fbOnly
+      ? { status: "approved" }
+      : { status: "approved", imageUrl: { not: null } },
     orderBy: { createdAt: "asc" },
   });
 
   if (!post) {
     return NextResponse.json({
       ok: false,
-      error: "Nenhum post 'approved' com imageUrl encontrado",
+      error: fbOnly
+        ? "Nenhum post 'approved' encontrado"
+        : "Nenhum post 'approved' com imageUrl encontrado — use fb_only=1 pra postar texto puro no Facebook",
     });
   }
 
   const message = post.content + (post.hashtags ? "\n\n" + post.hashtags : "");
-  const results = await postToAll(message, post.imageUrl ?? undefined);
+  const results = fbOnly
+    ? [await postToFacebook(message)]
+    : await postToAll(message, post.imageUrl ?? undefined);
   const anySuccess = results.some((r) => r.ok);
 
   if (anySuccess) {
