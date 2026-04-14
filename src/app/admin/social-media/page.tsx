@@ -5,6 +5,16 @@ import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
 import PostFeed from "@/components/social-templates/post-feed";
 import PostStory from "@/components/social-templates/post-story";
+import {
+  PostStoryPoll,
+  PostStoryQuestion,
+  PostStorySequenceSlide,
+} from "@/components/social-templates/post-story-variants";
+import {
+  parsePollContent,
+  parseQuestionContent,
+  parseSequenceContent,
+} from "@/lib/social-story-parsers";
 import PostCarouselSlide, { parseContentToSlides } from "@/components/social-templates/post-carousel";
 import { getTemplateForFormat } from "@/components/social-templates/registry";
 
@@ -94,6 +104,49 @@ const card: React.CSSProperties = {
   borderRadius: 12,
   padding: 18,
 };
+
+function isVerticalFormat(format: string): boolean {
+  return format === "reels" || format.startsWith("stories");
+}
+
+type VerticalTemplateProps = {
+  format: string;
+  title: string;
+  content: string;
+  pillar: "s" | "e" | "m" | "promo";
+  refCb?: (el: HTMLDivElement | null) => void;
+};
+
+function renderVerticalTemplate({ format, title, content, pillar, refCb }: VerticalTemplateProps) {
+  const cleanTitle = title.replace(/ — \d{4}-\d{2}-\d{2}$/, "");
+
+  if (format === "stories-poll") {
+    const { question, optionA, optionB } = parsePollContent(content);
+    return <PostStoryPoll ref={refCb} question={question || cleanTitle} optionA={optionA} optionB={optionB} pillar={pillar} />;
+  }
+  if (format === "stories-question") {
+    const { question, subtitle } = parseQuestionContent(content);
+    return <PostStoryQuestion ref={refCb} question={question || cleanTitle} subtitle={subtitle} pillar={pillar} />;
+  }
+  if (format === "stories-sequence") {
+    const slides = parseSequenceContent(content);
+    const first = slides[0];
+    if (!first) {
+      return <PostStory ref={refCb} title={cleanTitle} body={content.split("\n")[0]} pillar={pillar} />;
+    }
+    return (
+      <PostStorySequenceSlide
+        ref={refCb}
+        text={first.text}
+        emoji={first.emoji}
+        slideIndex={0}
+        total={slides.length}
+        pillar={pillar}
+      />
+    );
+  }
+  return <PostStory ref={refCb} title={cleanTitle} body={content.split("\n")[0]} pillar={pillar} />;
+}
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
@@ -213,7 +266,7 @@ export default function SocialMediaPage() {
     setDownloading("lightbox");
     try {
       const { toPng } = await import("html-to-image");
-      const isVertical = lightbox.format === "stories" || lightbox.format === "reels";
+      const isVertical = isVerticalFormat(lightbox.format);
       const dataUrl = await toPng(lightboxRef.current, { cacheBust: true, pixelRatio: 1, width: 1080, height: isVertical ? 1920 : 1080 });
       const link = document.createElement("a");
       link.download = `longetividade-${lightbox.pillar}-slide${lightbox.slideIndex + 1}.png`;
@@ -939,7 +992,7 @@ export default function SocialMediaPage() {
             background: "var(--bg-card)", borderRadius: 12, overflow: "hidden",
             border: "0.5px solid var(--border-default)", padding: 4,
           }}>
-            {posts.filter((p) => p.format !== "stories" && p.format !== "reels").slice(0, 12).map((p) => {
+            {posts.filter((p) => !isVerticalFormat(p.format)).slice(0, 12).map((p) => {
               const pillar = PILLAR_COLORS[p.pillar] ?? PILLAR_COLORS.s;
               return (
                 <div
@@ -1067,7 +1120,7 @@ export default function SocialMediaPage() {
                           <div
                             onClick={(e) => { e.stopPropagation(); setLightbox({ postId: p.id, slideIndex: 0, pillar: p.pillar, format: p.format, title: p.title, content: p.content }); }}
                             style={{
-                              width: 200, height: p.format === "stories" || p.format === "reels" ? 355 : 200,
+                              width: 200, height: isVerticalFormat(p.format) ? 355 : 200,
                               overflow: "hidden", borderRadius: 8, border: "0.5px solid var(--border-subtle)",
                               flexShrink: 0, cursor: "pointer",
                             }}>
@@ -1075,15 +1128,16 @@ export default function SocialMediaPage() {
                               transform: `scale(${200 / 1080})`,
                               transformOrigin: "top left",
                               width: 1080,
-                              height: p.format === "stories" || p.format === "reels" ? 1920 : 1080,
+                              height: isVerticalFormat(p.format) ? 1920 : 1080,
                             }}>
-                              {p.format === "stories" || p.format === "reels" ? (
-                                <PostStory
-                                  ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
-                                  title={p.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
-                                  body={p.content.split("\n")[0]}
-                                  pillar={p.pillar as "s" | "e" | "m" | "promo"}
-                                />
+                              {isVerticalFormat(p.format) ? (
+                                renderVerticalTemplate({
+                                  format: p.format,
+                                  title: p.title,
+                                  content: p.content,
+                                  pillar: p.pillar as "s" | "e" | "m" | "promo",
+                                  refCb: (el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; },
+                                })
                               ) : (
                                 <PostFeed
                                   ref={(el: HTMLDivElement | null) => { previewRefs.current[p.id] = el; }}
@@ -1265,7 +1319,7 @@ export default function SocialMediaPage() {
       {lightbox && (() => {
         const isCarousel = posts.find((p) => p.id === lightbox.postId)?.format === "carrossel";
         const slides = isCarousel ? parseContentToSlides(lightbox.title, lightbox.content) : [];
-        const isVertical = lightbox.format === "stories" || lightbox.format === "reels";
+        const isVertical = isVerticalFormat(lightbox.format);
         const previewW = isVertical ? 360 : 540;
         const previewH = isVertical ? 640 : 540;
         const scale = previewW / 1080;
@@ -1300,12 +1354,13 @@ export default function SocialMediaPage() {
                       slideIndex={lightbox.slideIndex}
                     />
                   ) : isVertical ? (
-                    <PostStory
-                      ref={lightboxRef}
-                      title={lightbox.title.replace(/ — \d{4}-\d{2}-\d{2}$/, "")}
-                      body={lightbox.content.split("\n")[0]}
-                      pillar={lightbox.pillar as "s" | "e" | "m" | "promo"}
-                    />
+                    renderVerticalTemplate({
+                      format: lightbox.format,
+                      title: lightbox.title,
+                      content: lightbox.content,
+                      pillar: lightbox.pillar as "s" | "e" | "m" | "promo",
+                      refCb: (el: HTMLDivElement | null) => { lightboxRef.current = el; },
+                    })
                   ) : (
                     <PostFeed
                       ref={lightboxRef}

@@ -11,27 +11,35 @@ export type WeeklySlotEntry = {
   dayOffset: number; // 1=seg, 2=ter, ..., 6=sab (relativo ao dia atual +N)
   slot: Slot;
   pillar: Pillar;
-  format: "carrossel" | "imagem" | "reels" | "stories";
+  format:
+    | "carrossel"
+    | "imagem"
+    | "reels"
+    | "stories"
+    | "stories-poll"
+    | "stories-question"
+    | "stories-sequence";
   hour: number;
   minute: number;
   preferTrend: boolean; // se true, generate-now tenta usar trend primeiro
 };
 
-// Matriz canonica: Seg-Sab x (FEED_AM | REEL).
-// Stories removidos por enquanto — template trunca texto em 120 chars e
-// fica esteticamente ruim com copy de trend. Reintroduzir quando o
-// template PostStory suportar conteudo mais longo ou quando Luna gerar
-// copy curto especifico pra Story.
-// Domingo e OFF. Total: 6 FEED + 3 REEL = 9 posts/semana.
+// Matriz canonica: Seg-Sab x (FEED_AM | REEL | STORY).
+// Stories de volta com formatos elaborados (poll/question/sequence) baseados
+// no playbook — cada um tem template visual dedicado e content estruturado.
+// Domingo e OFF. Total: 6 FEED + 3 REEL + 3 STORY = 12 posts/semana.
 export const WEEKLY_SCHEDULE: WeeklySlotEntry[] = [
-  // SEG — carrossel S abre a semana
-  { dayOffset: 1, slot: "FEED_AM", pillar: "s", format: "carrossel", hour: 9, minute: 0, preferTrend: false },
+  // SEG — carrossel S abre a semana + story sequencia (3-5 slides tipo carrossel)
+  { dayOffset: 1, slot: "FEED_AM", pillar: "s", format: "carrossel",        hour: 9, minute: 0, preferTrend: false },
+  { dayOffset: 1, slot: "STORY",   pillar: "s", format: "stories-sequence", hour: 19, minute: 0, preferTrend: false },
 
-  // TER — reel M trend (movimento trending)
-  { dayOffset: 2, slot: "REEL",    pillar: "m", format: "reels",     hour: 13, minute: 0, preferTrend: true },
+  // TER — reel M trend (movimento trending) + enquete engajamento
+  { dayOffset: 2, slot: "REEL",    pillar: "m", format: "reels",       hour: 13, minute: 0, preferTrend: true },
+  { dayOffset: 2, slot: "STORY",   pillar: "m", format: "stories-poll", hour: 11, minute: 0, preferTrend: false },
 
-  // QUA — carrossel E emocional
-  { dayOffset: 3, slot: "FEED_AM", pillar: "e", format: "carrossel", hour: 9, minute: 0, preferTrend: false },
+  // QUA — carrossel E emocional + caixa de pergunta (gera conteudo pro proximo dia)
+  { dayOffset: 3, slot: "FEED_AM", pillar: "e", format: "carrossel",         hour: 9, minute: 0, preferTrend: false },
+  { dayOffset: 3, slot: "STORY",   pillar: "e", format: "stories-question",  hour: 20, minute: 0, preferTrend: false },
 
   // QUI — carrossel S trend + reel S trend
   { dayOffset: 4, slot: "FEED_AM", pillar: "s", format: "carrossel", hour: 9, minute: 0, preferTrend: true },

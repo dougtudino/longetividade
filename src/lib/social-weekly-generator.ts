@@ -8,6 +8,12 @@ import {
   type Slot,
   type Pillar,
 } from "./social-week-schedule";
+import {
+  STORY_POLL_TEMPLATES,
+  STORY_QUESTION_TEMPLATES,
+  STORY_SEQUENCE_TEMPLATES,
+  pickRandom,
+} from "./social-story-templates";
 
 export type TrendItem = {
   topic: string;
@@ -117,6 +123,42 @@ function buildFromTrend(t: TrendItem, dKey: string, slot: Slot, pillar: Pillar):
 }
 
 function buildFromBank(pillar: Pillar, dKey: string, format: string): BuiltContent | null {
+  // Stories tipados usam templates proprios (poll/question/sequence)
+  if (format === "stories-poll") {
+    const t = pickRandom(STORY_POLL_TEMPLATES[pillar] ?? []);
+    if (!t) return null;
+    return {
+      title: `${t.title} — ${dKey}`,
+      content: t.content,
+      hashtags: t.hashtags,
+      imageBriefing: `Story enquete 1080x1920, pilar ${pillar}, paleta verde-oliva.`,
+      source: "bank",
+    };
+  }
+  if (format === "stories-question") {
+    const t = pickRandom(STORY_QUESTION_TEMPLATES[pillar] ?? []);
+    if (!t) return null;
+    return {
+      title: `${t.title} — ${dKey}`,
+      content: t.content,
+      hashtags: t.hashtags,
+      imageBriefing: `Story caixa de pergunta 1080x1920, pilar ${pillar}, paleta verde-oliva.`,
+      source: "bank",
+    };
+  }
+  if (format === "stories-sequence") {
+    const t = pickRandom(STORY_SEQUENCE_TEMPLATES[pillar] ?? []);
+    if (!t) return null;
+    return {
+      title: `${t.title} — ${dKey}`,
+      content: t.content,
+      hashtags: t.hashtags,
+      imageBriefing: `Sequencia de 4-5 stories 1080x1920, pilar ${pillar}, paleta verde-oliva. Cada slide texto punch + emoji.`,
+      source: "bank",
+    };
+  }
+
+  // Feed/Reel/Imagem usam content bank normal
   const templates = CONTENT_BANK.filter((t) => t.pillar === pillar);
   const template = templates[Math.floor(Math.random() * templates.length)];
   if (!template) return null;
@@ -168,8 +210,17 @@ export async function generateWeeklyPosts(opts: { status: "approved" | "draft"; 
 
     let built: BuiltContent | null = null;
     const commem = commemorativeMap.get(dKey);
+    // Stories estruturados (poll/question/sequence) exigem content com "---" —
+    // commemorative/trend nao produzem nesse formato, entao vai direto pro bank.
+    const isStructuredStory =
+      format === "stories-poll" ||
+      format === "stories-question" ||
+      format === "stories-sequence";
 
-    if (commem) {
+    if (isStructuredStory) {
+      built = buildFromBank(pillar, dKey, format);
+      if (built) fromBank++;
+    } else if (commem) {
       built = buildFromCommemorative(commem, dKey, slot);
       fromCommemorative++;
     } else if (entry.preferTrend) {
