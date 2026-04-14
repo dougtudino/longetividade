@@ -67,12 +67,24 @@ async function callClaudeWithWebSearch(prompt: string): Promise<string> {
   return text || "";
 }
 
-function buildPrompt(): string {
+async function buildPrompt(): Promise<string> {
   const today = new Date().toISOString().slice(0, 10);
+
+  // Puxa o playbook core (regras do algoritmo) pra Luna priorizar trends
+  // que funcionam em cada formato (reel/carrossel/story).
+  const playbookRules = await prisma.agentKnowledge.findMany({
+    where: { agentId: "luna", source: "luna-playbook", kind: "rule" },
+    select: { title: true, body: true },
+    take: 8,
+  });
+  const playbookBlock = playbookRules.length
+    ? `\n\nBIBLIA DA LUNA (consultar SEMPRE antes de sugerir trend):\n${playbookRules.map((r) => `## ${r.title}\n${r.body}`).join("\n\n")}\n\n`
+    : "";
+
   return `Você é Luna, assistente de social media da marca Longetividade (emagrecimento
 feminino sem dieta, método S.E.M — Simplicidade, Equilíbrio, Movimento).
 Publico: mulheres 30-55 anos, Brasil.
-
+${playbookBlock}
 Hoje é ${today}. Pesquise na web as principais tendências DESTA SEMANA em:
 - Saúde feminina, bem-estar, emagrecimento saudável
 - Alimentação intuitiva, reeducação alimentar
@@ -81,6 +93,7 @@ Hoje é ${today}. Pesquise na web as principais tendências DESTA SEMANA em:
 - Notícias relevantes de saúde que mulheres brasileiras estão comentando
 
 Busque no Google Trends Brasil, Instagram (via web), blogs de saúde nacionais.
+Priorize trends que geram RETENCAO + SHARE + SAVE (nao so like).
 
 Retorne EXCLUSIVAMENTE um JSON válido neste formato (sem texto antes ou depois):
 {
@@ -128,7 +141,7 @@ function parseTrends(raw: string): TrendItem[] {
 
 export async function POST() {
   try {
-    const raw = await callClaudeWithWebSearch(buildPrompt());
+    const raw = await callClaudeWithWebSearch(await buildPrompt());
     const trends = parseTrends(raw);
 
     if (trends.length === 0) {

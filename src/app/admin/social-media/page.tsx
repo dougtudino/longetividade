@@ -187,6 +187,27 @@ export default function SocialMediaPage() {
     }
   }
 
+  const [seedingPlaybook, setSeedingPlaybook] = useState(false);
+  const [playbookMsg, setPlaybookMsg] = useState<string | null>(null);
+
+  async function seedPlaybook() {
+    setSeedingPlaybook(true);
+    setPlaybookMsg(null);
+    try {
+      const res = await fetch("/api/admin/social/seed-playbook", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setPlaybookMsg(`✅ Playbook salvo: ${data.created} criados, ${data.updated} atualizados (${data.total} total)`);
+      } else {
+        setPlaybookMsg(`Erro: ${data.error}`);
+      }
+    } catch (e) {
+      setPlaybookMsg(`Erro: ${(e as Error).message}`);
+    } finally {
+      setSeedingPlaybook(false);
+    }
+  }
+
   async function downloadFromLightbox() {
     if (!lightboxRef.current || !lightbox) return;
     setDownloading("lightbox");
@@ -571,6 +592,13 @@ export default function SocialMediaPage() {
           }}>
             {seeding ? "Populando..." : `① Seed conteudo (+${totalPosts > 0 ? "templates" : "10 posts"})`}
           </button>
+          <button onClick={seedPlaybook} disabled={seedingPlaybook} title="Popula a 'biblia da Luna': regras do algoritmo Instagram 2026, 5 creators de referencia, templates de Story. Luna consulta antes de gerar." style={{
+            padding: "10px 18px", borderRadius: 10, background: "rgba(139,92,246,0.15)", color: "#8B5CF6",
+            border: "0.5px solid rgba(139,92,246,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer",
+            opacity: seedingPlaybook ? 0.6 : 1,
+          }}>
+            {seedingPlaybook ? "Salvando..." : "📘 Treinar Luna (playbook)"}
+          </button>
           {(counts.draft ?? 0) > 0 && (
             <button onClick={() => bulkApprove("approve-all-drafts")} disabled={!!bulkAction} style={{
               padding: "10px 18px", borderRadius: 10, background: "#6B9E6B", color: "#fff",
@@ -653,6 +681,15 @@ export default function SocialMediaPage() {
           color: generateResult.includes("Erro") ? "#C4787A" : "#6B9E6B",
         }}>
           {generateResult}
+        </div>
+      )}
+
+      {playbookMsg && (
+        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
+          background: playbookMsg.startsWith("✅") ? "rgba(139,92,246,0.1)" : "rgba(196,120,122,0.1)",
+          color: playbookMsg.startsWith("✅") ? "#8B5CF6" : "#C4787A",
+        }}>
+          {playbookMsg}
         </div>
       )}
 
