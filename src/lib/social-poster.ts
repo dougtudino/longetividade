@@ -40,6 +40,48 @@ async function getPageId(): Promise<string | null> {
   );
 }
 
+// Cache do Page Access Token derivado do System User.
+// Tokens herdados de System User nao expiram quando o SU tem token perpetuo.
+let pageAccessTokenCache: { token: string; pageId: string; cachedAt: number } | null = null;
+const PAGE_TOKEN_TTL = 60 * 60 * 1000; // 1h
+
+// Extrai Page Access Token especifico via /me/accounts.
+// Necessario pra postar no Facebook — SU token direto da "publish_actions deprecated".
+async function getFacebookPageAccessToken(): Promise<string | null> {
+  const suToken = await getPageToken();
+  const pageId = await getPageId();
+  if (!suToken || !pageId) return null;
+
+  const now = Date.now();
+  if (
+    pageAccessTokenCache &&
+    pageAccessTokenCache.pageId === pageId &&
+    now - pageAccessTokenCache.cachedAt < PAGE_TOKEN_TTL
+  ) {
+    return pageAccessTokenCache.token;
+  }
+
+  try {
+    const res = await fetch(
+      `${GRAPH}/me/accounts?access_token=${encodeURIComponent(suToken)}`,
+      { cache: "no-store" }
+    );
+    const data = (await res.json()) as {
+      data?: Array<{ id: string; access_token: string }>;
+      error?: { message: string };
+    };
+    if (!res.ok || !data.data) return null;
+
+    const match = data.data.find((p) => p.id === pageId);
+    if (!match?.access_token) return null;
+
+    pageAccessTokenCache = { token: match.access_token, pageId, cachedAt: now };
+    return match.access_token;
+  } catch {
+    return null;
+  }
+}
+
 async function getInstagramId(): Promise<string | null> {
   return (
     (await getSetting("INSTAGRAM_ACCOUNT_ID")) ||
@@ -54,14 +96,17 @@ export async function postToFacebook(
   message: string,
   imageUrl?: string
 ): Promise<PostResult> {
-  const token = await getPageToken();
   const pageId = await getPageId();
+  // Facebook EXIGE Page Access Token (nao aceita System User token direto).
+  const token = await getFacebookPageAccessToken();
 
   if (!token || !pageId) {
     return {
       ok: false,
       platform: "facebook",
-      error: "SOCIAL_PAGE_TOKEN ou META_PAGE_ID nao configurado em /admin/configuracoes",
+      error: !pageId
+        ? "META_PAGE_ID nao configurado"
+        : "Falha ao obter Page Access Token via /me/accounts — System User precisa ter controle total da Page",
     };
   }
 
