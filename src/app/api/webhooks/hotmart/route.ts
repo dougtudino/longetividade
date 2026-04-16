@@ -4,6 +4,7 @@ import { claimVipSlot } from "@/lib/vip-slots";
 import { generateDownloadToken, getTokenExpiration } from "@/lib/download";
 import { sendEmail, buildDeliveryEmail } from "@/lib/email";
 import { getSetting } from "@/lib/settings";
+import { sendPurchaseEvent } from "@/lib/meta-capi";
 
 // GET handler — Hotmart valida a URL com GET antes de salvar
 export async function GET() {
@@ -97,6 +98,17 @@ export async function POST(request: NextRequest) {
     } catch (emailError: unknown) {
       console.error("Failed to send delivery email:", emailError);
     }
+
+    // CAPI: enviar evento Purchase server-side pro Meta
+    // Roda em background (nao bloqueia resposta do webhook)
+    sendPurchaseEvent({
+      email,
+      phone: buyer.phone ?? null,
+      name,
+      value: amount / 100,
+      orderId: order.id,
+      contentName: `Metodo S.E.M - ${plan}`,
+    }).catch((err) => console.error("CAPI Purchase error:", err));
 
     return NextResponse.json({ received: true, plan, orderId: order.id });
   } catch (error: unknown) {

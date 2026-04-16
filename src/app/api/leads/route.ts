@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSetting } from "@/lib/settings";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-sequence";
+import { sendLeadEvent } from "@/lib/meta-capi";
 
 const BREVO_CONTACTS = "https://api.brevo.com/v3/contacts";
 const LEADS_LIST_ID = 6; // "Leads Emagreca Sem Dieta"
@@ -109,6 +110,15 @@ export async function POST(req: NextRequest) {
     } catch (e) {
       console.error("Welcome email failed:", e);
     }
+  }
+
+  // 4. CAPI: enviar evento Lead server-side pro Meta (apenas novos)
+  if (isNew) {
+    sendLeadEvent({
+      email,
+      name: name || undefined,
+      source: utmSource || undefined,
+    }).catch((err) => console.error("CAPI Lead error:", err));
   }
 
   return NextResponse.json({
