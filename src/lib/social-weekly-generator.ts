@@ -5,7 +5,7 @@ import {
   WEEKLY_SCHEDULE,
   dateKey,
   expandScheduleAhead,
-  virtualSlotForOffDay,
+  virtualSlotsForOffDay,
   type Slot,
   type Pillar,
   type WeeklySlotEntry,
@@ -391,7 +391,7 @@ export async function fillGapsAhead(opts: {
 
   // Slots virtuais pra commem high priority em dias OFF (domingo).
   // Sem isso, Dia das Maes, Pais, Pascoa, Dia da Mulher etc. (que caem em domingo)
-  // nunca gerariam post.
+  // nunca gerariam post. Cria FEED_AM 10h + STORY 19h.
   for (const commem of upcoming) {
     if (commem.priority !== "high") continue;
     const commemDate = new Date(commem.fullDate + "T12:00:00");
@@ -399,7 +399,11 @@ export async function fillGapsAhead(opts: {
     const hasMatrixSlot = WEEKLY_SCHEDULE.some((e) => e.dayOfWeek === dow);
     if (!hasMatrixSlot && commemDate.getTime() > now.getTime()) {
       const commemPillar = (commem.pillar === "geral" ? "s" : commem.pillar) as Pillar;
-      expanded.push(virtualSlotForOffDay(commemDate, commemPillar, commem.preferredFormat));
+      const virtuals = virtualSlotsForOffDay(commemDate, commemPillar, {
+        preferredFormat: commem.preferredFormat,
+        storyTemplateType: commem.storyTemplate?.type,
+      });
+      expanded.push(...virtuals);
     }
   }
 

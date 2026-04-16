@@ -92,31 +92,59 @@ export function expandScheduleAhead(
   return out;
 }
 
-// Slot virtual pra commem high priority que cai em dia OFF (domingo).
-// Cria 1 FEED_AM 10h na data, pilar herdado da commem.
-// Se a commem tem preferredFormat="imagem" ou "carrossel", usa. Senao, carrossel.
-export function virtualSlotForOffDay(
+// Slots virtuais pra commem high priority que cai em dia OFF (domingo).
+// Cria 2 slots: FEED_AM 10h (carrossel/imagem) + STORY 19h.
+// Se a commem tem storyTemplate, STORY herda o format (poll/question/sequence);
+// senao, usa format "stories" generico (copy da commem como story).
+export function virtualSlotsForOffDay(
   date: Date,
   pillar: Pillar,
-  preferredFormat?: "carrossel" | "imagem" | "reels" | "stories",
-): { entry: WeeklySlotEntry; date: Date } {
-  const slotDate = new Date(date);
-  slotDate.setHours(10, 0, 0, 0);
-  const format = preferredFormat === "reels" || preferredFormat === "stories"
-    ? "carrossel"
-    : (preferredFormat ?? "carrossel");
-  return {
-    entry: {
-      dayOfWeek: date.getDay(),
-      slot: "FEED_AM",
-      pillar,
-      format,
-      hour: 10,
-      minute: 0,
-      preferTrend: false,
+  opts?: {
+    preferredFormat?: "carrossel" | "imagem" | "reels" | "stories";
+    storyTemplateType?: "poll" | "question" | "sequence";
+  },
+): Array<{ entry: WeeklySlotEntry; date: Date }> {
+  const dow = date.getDay();
+  const feedDate = new Date(date);
+  feedDate.setHours(10, 0, 0, 0);
+  const storyDate = new Date(date);
+  storyDate.setHours(19, 0, 0, 0);
+
+  const feedFormat =
+    opts?.preferredFormat === "reels" || opts?.preferredFormat === "stories"
+      ? "carrossel"
+      : (opts?.preferredFormat ?? "carrossel");
+
+  const storyFormat: WeeklySlotEntry["format"] = opts?.storyTemplateType
+    ? (`stories-${opts.storyTemplateType}` as WeeklySlotEntry["format"])
+    : "stories";
+
+  return [
+    {
+      entry: {
+        dayOfWeek: dow,
+        slot: "FEED_AM",
+        pillar,
+        format: feedFormat,
+        hour: 10,
+        minute: 0,
+        preferTrend: false,
+      },
+      date: feedDate,
     },
-    date: slotDate,
-  };
+    {
+      entry: {
+        dayOfWeek: dow,
+        slot: "STORY",
+        pillar,
+        format: storyFormat,
+        hour: 19,
+        minute: 0,
+        preferTrend: false,
+      },
+      date: storyDate,
+    },
+  ];
 }
 
 export function dateKey(d: Date): string {
