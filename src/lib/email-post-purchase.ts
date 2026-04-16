@@ -12,7 +12,7 @@
 
 const SITE = "https://www.longetividade.com.br";
 const APP_URL = `${SITE}/app/login`;
-const CHECKOUT_VIP = `https://pay.hotmart.com/H105141835Q?off=h84hak4e&utm_source=brevo&utm_medium=email&utm_campaign=upsell-vip`;
+const CHECKOUT_VIP = `https://pay.hotmart.com/H105141835Q?off=h84hak4e&src=email-upsell-vip&utm_source=brevo&utm_medium=email&utm_campaign=upsell-vip`;
 
 function wrap(title: string, body: string, ctaText: string, ctaUrl: string): string {
   return `<!DOCTYPE html>

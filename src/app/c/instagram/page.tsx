@@ -26,7 +26,7 @@ function resolveCheckoutUrl(): string {
   if (publicUrl) return publicUrl;
 
   const offer = process.env.HOTMART_OFFER_BASICO;
-  if (offer) return `https://pay.hotmart.com/H105141835Q?off=${offer}`;
+  if (offer) return `https://pay.hotmart.com/H105141835Q?off=${offer}&src=lp-instagram`;
 
   return "#";
 }

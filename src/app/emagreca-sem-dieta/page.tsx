@@ -25,7 +25,7 @@ const AVATAR_MAP: Record<string, string> = {
 };
 
 const LINKS = {
-  hotmart: "https://pay.hotmart.com/H105141835Q",
+  hotmart: "https://pay.hotmart.com/H105141835Q?src=pagina-vendas",
   kiwify: "https://pay.kiwify.com.br/3fle7dM",
 };
 

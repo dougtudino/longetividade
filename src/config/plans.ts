@@ -9,7 +9,7 @@ export const PLANS: Plan[] = [
     price: 37,
     priceInCents: 3700,
     installments: "6x de R$ 6,17",
-    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=zxq5tgew`,
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=zxq5tgew&src=site-basico`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",
@@ -27,7 +27,7 @@ export const PLANS: Plan[] = [
     price: 67,
     priceInCents: 6700,
     installments: "6x de R$ 11,17",
-    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=uzvdkzkf`,
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=uzvdkzkf&src=site-completo`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",
@@ -48,7 +48,7 @@ export const PLANS: Plan[] = [
     price: 97,
     priceInCents: 9700,
     installments: "6x de R$ 16,17",
-    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=h84hak4e`,
+    checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=h84hak4e&src=site-vip`,
     features: [
       "Ebook completo Metodo S.E.M",
       "Plano de 7 dias + cardapio",

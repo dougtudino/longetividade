@@ -7,7 +7,7 @@
 
 const SITE = "https://www.longetividade.com.br";
 const SALES_PAGE = `${SITE}/emagreca-sem-dieta?utm_source=brevo&utm_medium=email&utm_campaign=abandoned-cart`;
-const CHECKOUT = `https://pay.hotmart.com/H105141835Q?off=zxq5tgew&utm_source=brevo&utm_medium=email&utm_campaign=abandoned-cart`;
+const CHECKOUT = `https://pay.hotmart.com/H105141835Q?off=zxq5tgew&src=email-abandoned&utm_source=brevo&utm_medium=email&utm_campaign=abandoned-cart`;
 
 function wrap(title: string, body: string, ctaText: string, ctaUrl: string): string {
   return `<!DOCTYPE html>

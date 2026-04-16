@@ -4,7 +4,7 @@
 const SITE = "https://www.longetividade.com.br";
 const PAGE = `${SITE}/emagreca-sem-dieta?utm_source=brevo&utm_medium=email&utm_campaign=welcome`;
 // D+5: direto pro checkout Hotmart (sem fricção — lead já conhece o produto)
-const CHECKOUT_DIRECT = `https://pay.hotmart.com/H105141835Q?off=zxq5tgew&utm_source=brevo&utm_medium=email&utm_campaign=oferta-d5`;
+const CHECKOUT_DIRECT = `https://pay.hotmart.com/H105141835Q?off=zxq5tgew&src=email-oferta-d5&utm_source=brevo&utm_medium=email&utm_campaign=oferta-d5`;
 
 function wrap(title: string, body: string, ctaText: string, ctaUrl: string): string {
   return `<!DOCTYPE html>

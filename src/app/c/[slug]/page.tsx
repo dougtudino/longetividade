@@ -8,7 +8,7 @@ import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
 import LeadCapture from "@/components/LeadCapture";
 
 // Hotmart checkout com offer code do plano Basico (R$37)
-const HOTMART = "https://pay.hotmart.com/H105141835Q?off=zxq5tgew";
+const HOTMART_BASE = "https://pay.hotmart.com/H105141835Q?off=zxq5tgew";
 
 interface CampaignVariant {
   headline: string;
@@ -95,7 +95,7 @@ export default function CampaignPage() {
     trackViewContent("Emagreça Sem Dieta", 37);
   }, [searchParams, slug, variant.utm_source]);
 
-  const buyUrl = appendUTMs(HOTMART);
+  const buyUrl = appendUTMs(`${HOTMART_BASE}&src=camp-${slug}`);
 
   function handleClick() {
     trackInitiateCheckout("Emagreça Sem Dieta", 37);
