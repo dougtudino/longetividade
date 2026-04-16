@@ -92,6 +92,33 @@ export function expandScheduleAhead(
   return out;
 }
 
+// Slot virtual pra commem high priority que cai em dia OFF (domingo).
+// Cria 1 FEED_AM 10h na data, pilar herdado da commem.
+// Se a commem tem preferredFormat="imagem" ou "carrossel", usa. Senao, carrossel.
+export function virtualSlotForOffDay(
+  date: Date,
+  pillar: Pillar,
+  preferredFormat?: "carrossel" | "imagem" | "reels" | "stories",
+): { entry: WeeklySlotEntry; date: Date } {
+  const slotDate = new Date(date);
+  slotDate.setHours(10, 0, 0, 0);
+  const format = preferredFormat === "reels" || preferredFormat === "stories"
+    ? "carrossel"
+    : (preferredFormat ?? "carrossel");
+  return {
+    entry: {
+      dayOfWeek: date.getDay(),
+      slot: "FEED_AM",
+      pillar,
+      format,
+      hour: 10,
+      minute: 0,
+      preferTrend: false,
+    },
+    date: slotDate,
+  };
+}
+
 export function dateKey(d: Date): string {
   return d.toISOString().slice(0, 10);
 }

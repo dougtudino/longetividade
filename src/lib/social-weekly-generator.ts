@@ -3,9 +3,9 @@ import { getUpcomingDates, type CommemorativeDate } from "./social-calendar-date
 import { CONTENT_BANK } from "./social-content-bank";
 import {
   WEEKLY_SCHEDULE,
-  computeSlotDate,
   dateKey,
   expandScheduleAhead,
+  virtualSlotForOffDay,
   type Slot,
   type Pillar,
   type WeeklySlotEntry,
@@ -361,72 +361,23 @@ async function fetchOccupiedSlots(from: Date, daysAhead: number): Promise<Set<st
 
 // Gera posts pros proximos 7 dias (1 ocorrencia de cada entry da WEEKLY_SCHEDULE).
 // status: "approved" (generate-now manual + cron auto) ou "draft" (plan-week).
+// Agora eh wrapper de fillGapsAhead({ daysAhead: 7 }) — herda slot virtual
+// pra commem high em dias OFF (domingo — Maes, Pais, Pascoa, etc).
 export async function generateWeeklyPosts(opts: { status: "approved" | "draft"; createdBy: string }): Promise<WeeklyGenerationResult> {
-  const now = new Date();
-  const commemorativeMap = new Map(getUpcomingDates(7).map((d) => [d.fullDate, d]));
-  const trendsByPillar = await getUnusedTrendsByPillar();
-  const occupiedSlots = await fetchOccupiedSlots(now, 8);
-
-  const created: GeneratedPost[] = [];
-  const skipped: SkippedSlot[] = [];
-  let fromCommemorative = 0;
-  let fromTrend = 0;
-  let fromBank = 0;
-
-  for (const entry of WEEKLY_SCHEDULE) {
-    const postDate = computeSlotDate(now, entry);
-    const dKey = dateKey(postDate);
-    const { slot, pillar } = entry;
-
-    if (occupiedSlots.has(`${dKey}::${slot}`)) {
-      skipped.push({ day: dKey, slot, reason: "slot ja ocupado" });
-      continue;
-    }
-
-    const picked = pickContentForSlot(entry, dKey, commemorativeMap, trendsByPillar);
-    if (!picked) {
-      skipped.push({ day: dKey, slot, reason: `sem conteudo pro pilar ${pillar}` });
-      continue;
-    }
-    if (picked.source === "commemorative") fromCommemorative++;
-    else if (picked.source === "trend") fromTrend++;
-    else fromBank++;
-
-    try {
-      await prisma.socialPost.create({
-        data: {
-          title: picked.built.title,
-          content: picked.built.content,
-          platform: "instagram",
-          format: entry.format,
-          pillar,
-          slot,
-          hashtags: picked.built.hashtags,
-          imageBriefing: picked.built.imageBriefing,
-          status: opts.status,
-          scheduledAt: postDate,
-          createdBy: opts.createdBy,
-        },
-      });
-      occupiedSlots.add(`${dKey}::${slot}`);
-      created.push({ day: dKey, slot, pillar, title: picked.built.title, source: picked.source });
-    } catch (e) {
-      skipped.push({ day: dKey, slot, reason: `erro ao salvar: ${(e as Error).message.slice(0, 80)}` });
-    }
-  }
-
-  return { created, skipped, breakdown: { fromCommemorative, fromTrend, fromBank } };
+  return fillGapsAhead({ daysAhead: 7, status: opts.status, createdBy: opts.createdBy });
 }
 
 // Escaneia proximos N dias e preenche TODOS os slots vazios da WEEKLY_SCHEDULE.
 // Usado pelo botao "Preencher gaps" do admin e pelo auto-fill pos-delete.
+// Tambem cria slot virtual pra commem high priority que cai em dia OFF (dom).
 export async function fillGapsAhead(opts: {
   daysAhead: number;
   status: "approved" | "draft";
   createdBy: string;
 }): Promise<WeeklyGenerationResult> {
   const now = new Date();
-  const commemorativeMap = new Map(getUpcomingDates(opts.daysAhead).map((d) => [d.fullDate, d]));
+  const upcoming = getUpcomingDates(opts.daysAhead);
+  const commemorativeMap = new Map(upcoming.map((d) => [d.fullDate, d]));
   const trendsByPillar = await getUnusedTrendsByPillar();
   const occupiedSlots = await fetchOccupiedSlots(now, opts.daysAhead + 1);
 
@@ -437,6 +388,20 @@ export async function fillGapsAhead(opts: {
   let fromBank = 0;
 
   const expanded = expandScheduleAhead(now, opts.daysAhead);
+
+  // Slots virtuais pra commem high priority em dias OFF (domingo).
+  // Sem isso, Dia das Maes, Pais, Pascoa, Dia da Mulher etc. (que caem em domingo)
+  // nunca gerariam post.
+  for (const commem of upcoming) {
+    if (commem.priority !== "high") continue;
+    const commemDate = new Date(commem.fullDate + "T12:00:00");
+    const dow = commemDate.getDay();
+    const hasMatrixSlot = WEEKLY_SCHEDULE.some((e) => e.dayOfWeek === dow);
+    if (!hasMatrixSlot && commemDate.getTime() > now.getTime()) {
+      const commemPillar = (commem.pillar === "geral" ? "s" : commem.pillar) as Pillar;
+      expanded.push(virtualSlotForOffDay(commemDate, commemPillar, commem.preferredFormat));
+    }
+  }
 
   for (const { entry, date } of expanded) {
     const dKey = dateKey(date);
