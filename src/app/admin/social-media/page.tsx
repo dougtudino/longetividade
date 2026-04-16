@@ -150,7 +150,10 @@ function renderVerticalTemplate({ format, title, content, pillar, refCb }: Verti
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", weekday: "short" });
+  const d = new Date(iso);
+  const date = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", weekday: "short" });
+  const time = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return `${date} ${time}`;
 }
 
 export default function SocialMediaPage() {
@@ -158,6 +161,7 @@ export default function SocialMediaPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"scheduled-asc" | "scheduled-desc" | "created-desc">("scheduled-asc");
   const [fillingGaps, setFillingGaps] = useState(false);
   const [fillGapsMsg, setFillGapsMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -1051,6 +1055,21 @@ export default function SocialMediaPage() {
 
         <div style={{ flex: 1 }} />
 
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          title="Ordenar lista"
+          style={{
+            padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+            background: "var(--bg-secondary)", color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)", cursor: "pointer",
+          }}
+        >
+          <option value="scheduled-asc">📅 Agendamento ↑ (próximos)</option>
+          <option value="scheduled-desc">📅 Agendamento ↓ (distantes)</option>
+          <option value="created-desc">🆕 Recém-criados</option>
+        </select>
+
         {posts.length > 0 && (
           <button onClick={selectedIds.size === posts.length ? clearSelection : selectAllVisible} style={{
             padding: "6px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
@@ -1087,7 +1106,12 @@ export default function SocialMediaPage() {
             background: "var(--bg-card)", borderRadius: 12, overflow: "hidden",
             border: "0.5px solid var(--border-default)", padding: 4,
           }}>
-            {posts.filter((p) => !isVerticalFormat(p.format)).slice(0, 12).map((p) => {
+            {[...posts].sort((a, b) => {
+              if (sortBy === "created-desc") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+              const av = a.scheduledAt ? new Date(a.scheduledAt).getTime() : Infinity;
+              const bv = b.scheduledAt ? new Date(b.scheduledAt).getTime() : Infinity;
+              return sortBy === "scheduled-asc" ? av - bv : bv - av;
+            }).filter((p) => !isVerticalFormat(p.format)).slice(0, 12).map((p) => {
               const pillar = PILLAR_COLORS[p.pillar] ?? PILLAR_COLORS.s;
               return (
                 <div
@@ -1130,7 +1154,14 @@ export default function SocialMediaPage() {
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {posts.map((p) => {
+          {[...posts].sort((a, b) => {
+            if (sortBy === "created-desc") {
+              return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            }
+            const av = a.scheduledAt ? new Date(a.scheduledAt).getTime() : Infinity;
+            const bv = b.scheduledAt ? new Date(b.scheduledAt).getTime() : Infinity;
+            return sortBy === "scheduled-asc" ? av - bv : bv - av;
+          }).map((p) => {
             const pillar = PILLAR_COLORS[p.pillar] ?? PILLAR_COLORS.s;
             const statusBadge = STATUS_BADGE[p.status] ?? STATUS_BADGE.draft;
             const isExpanded = expanded === p.id;
