@@ -121,6 +121,11 @@ export const MOVABLE_DATES: MovableDate[] = [
       "Um ovo em familia vale mais que 10 escondidos",
     ],
     body: "Pascoa eh data pra estar junto. Se voce se cobrar e evitar a mesa, perde o essencial. Come com presenca, saboreia devagar, conversa com quem voce ama. Isso sim eh reeducacao — nao dieta, eh equilibrio com alegria.",
+    storyTemplate: {
+      type: "question",
+      question: "Qual sua lembranca favorita de Pascoa em familia?",
+      subtitle: "Responde na caixinha — lembrar de momentos bons faz bem pra mente.",
+    },
   },
   {
     dateId: "corpus-christi",
@@ -147,15 +152,34 @@ export const MOVABLE_DATES: MovableDate[] = [
     ],
     body: "Ser mae eh dar. Mas voce nao consegue dar de um reservatorio vazio. Comer sentada. Dormir o suficiente. Caminhar 15min sozinha. Isso nao eh egoismo — eh combustivel. Maes que se cuidam criam filhos que sabem o que eh cuidar de si.",
     preferredFormat: "carrossel",
+    storyTemplate: {
+      type: "question",
+      question: "O que sua mae te ensinou sobre cuidar de si?",
+      subtitle: "Responde na caixinha — a gente vai compartilhar as melhores respostas.",
+    },
   },
   {
     dateId: "fathers-day",
     compute: (y) => mmdd(8, nthWeekdayOfMonth(y, 8, 0, 2)), // 2 domingo agosto
     name: "Dia dos Pais",
     pillar: "e",
-    priority: "normal",
+    priority: "high",
     postIdea: "Os homens da sua vida — pai, marido, filho — tambem merecem cuidado. Mostra pra eles que saude eh pra toda a familia.",
     hashtags: "#diadospais #saudedafamilia #autocuidado",
+    hook: "Homem medio vai no medico so quando algo doi muito. Isso custa vida.",
+    keyPoints: [
+      "Check-up anual reduz mortalidade cardiovascular em 25%",
+      "Depressao masculina eh mascarada (irritacao, alcool) — olha os sinais",
+      "Cozinhar junto eh um ato de cuidado que muitos pais nao recebem",
+    ],
+    body: "Dia dos Pais eh sobre reconhecer quem te criou. E quem voce cria. Se seu pai ainda esta aqui, pergunta como ele esta de saude — de verdade. Se voce eh pai, mostra pros seus filhos que cuidar de si nao eh 'coisa de mulher'. Saude masculina mudou — e comeca com quem voce ama.",
+    preferredFormat: "carrossel",
+    storyTemplate: {
+      type: "poll",
+      question: "Seu pai (ou o pai dos seus filhos) cuida da saude?",
+      optionA: "Sim, faz check-up",
+      optionB: "Precisa de incentivo",
+    },
   },
   {
     dateId: "black-friday",
