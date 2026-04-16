@@ -158,7 +158,8 @@ export default function SocialMediaPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
-  const [seeding, setSeeding] = useState(false);
+  const [fillingGaps, setFillingGaps] = useState(false);
+  const [fillGapsMsg, setFillGapsMsg] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [generateResult, setGenerateResult] = useState<string | null>(null);
   const [posting, setPosting] = useState<string | null>(null);
@@ -226,17 +227,26 @@ export default function SocialMediaPage() {
     })();
   }, []);
 
-  async function seedContent() {
-    setSeeding(true);
+  async function fillGaps() {
+    setFillingGaps(true);
+    setFillGapsMsg(null);
     try {
-      const res = await fetch("/api/admin/social/seed", { method: "POST" });
+      const res = await fetch("/api/admin/social/fill-gaps?days=30", { method: "POST" });
       const data = await res.json();
-      if (!data.ok) setError(data.error);
+      if (!data.ok) {
+        setError(data.error);
+      } else {
+        setFillGapsMsg(
+          data.created > 0
+            ? `✅ ${data.created} post${data.created > 1 ? "s" : ""} novo${data.created > 1 ? "s" : ""} criado${data.created > 1 ? "s" : ""} nos slots vazios dos próximos 30 dias.`
+            : `Nenhum gap encontrado — agenda dos próximos 30 dias já está completa.`,
+        );
+      }
       await loadPosts();
     } catch (e) {
       setError((e as Error).message);
     } finally {
-      setSeeding(false);
+      setFillingGaps(false);
     }
   }
 
@@ -398,7 +408,13 @@ export default function SocialMediaPage() {
     if (!confirm("Apagar esse post? Acao irreversivel.")) return;
     setDeleting(postId);
     try {
-      await fetch(`/api/admin/social?id=${postId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/social?id=${postId}&replace=1`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({ ok: true }));
+      if (data?.replacement?.title) {
+        setFillGapsMsg(`✅ Post apagado e substituído automaticamente: "${data.replacement.title}" (${data.replacement.source})`);
+      } else if (data?.replacement?.reason) {
+        setFillGapsMsg(`Post apagado. Substituto não gerado: ${data.replacement.reason}`);
+      }
       await loadPosts();
     } catch (e) {
       setError((e as Error).message);
@@ -514,11 +530,11 @@ export default function SocialMediaPage() {
   }
 
   async function resetAndReseed() {
-    if (!confirm("Apagar TODOS os posts e reseedar com conteúdo corrigido?")) return;
+    if (!confirm("Apagar TODOS os posts e regerar a agenda dos próximos 30 dias?")) return;
     setResetting(true);
     try {
       await fetch("/api/admin/social/reset", { method: "DELETE" });
-      await fetch("/api/admin/social/seed", { method: "POST" });
+      await fetch("/api/admin/social/fill-gaps?days=30", { method: "POST" });
       await loadPosts();
     } catch (e) {
       setError((e as Error).message);
@@ -648,7 +664,7 @@ export default function SocialMediaPage() {
         agent={{ icon: "🌙", name: "Luna", role: "Social Media Manager" }}
         title="Calendario editorial + fila de posts"
         quickActions={[
-          { label: "Seed conteudo", description: "Popula 10 posts pre-escritos baseados nos pilares S.E.M" },
+          { label: "Preencher gaps", description: "Escaneia os próximos 30 dias e gera posts nos slots vazios da matriz semanal (2/dia, seg-sáb)" },
           { label: "Filtrar por status", description: "Draft / Em review / Aprovado / Postado" },
           { label: "Mudar status", description: "Avanca post no workflow: draft → review → approved → posted" },
         ]}
@@ -683,11 +699,11 @@ export default function SocialMediaPage() {
           ))}
         </div>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={seedContent} disabled={seeding} title="Popula banco com 10 posts pre-escritos do content bank. Status=draft, agendados 1 a cada 2 dias." style={{
+          <button onClick={fillGaps} disabled={fillingGaps} title="Escaneia os próximos 30 dias e gera posts nos slots vazios da matriz semanal (2 slots/dia útil, 12 posts/semana). Idempotente — não duplica." style={{
             padding: "10px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff",
             border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
           }}>
-            {seeding ? "Populando..." : `① Seed conteudo (+${totalPosts > 0 ? "templates" : "10 posts"})`}
+            {fillingGaps ? "Preenchendo..." : "① Preencher gaps (30 dias)"}
           </button>
           <button onClick={seedPlaybook} disabled={seedingPlaybook} title="Popula a 'biblia da Luna': regras do algoritmo Instagram 2026, 5 creators de referencia, templates de Story. Luna consulta antes de gerar." style={{
             padding: "10px 18px", borderRadius: 10, background: "rgba(139,92,246,0.15)", color: "#8B5CF6",
@@ -761,7 +777,7 @@ export default function SocialMediaPage() {
             {igDiscovery === "loading" ? "Buscando..." : "📸 Descobrir IG"}
           </button>
           {totalPosts > 0 && (
-            <button onClick={resetAndReseed} disabled={resetting} title="APAGA TODOS os SocialPosts (inclui drafts, approved, posted) e chama Seed de novo. Util pra resetar tudo e comecar limpo." style={{
+            <button onClick={resetAndReseed} disabled={resetting} title="APAGA TODOS os posts (drafts, approved, posted) e regera agenda dos próximos 30 dias via fill-gaps. Útil pra resetar tudo e começar limpo." style={{
               padding: "10px 18px", borderRadius: 10, background: "var(--bg-secondary)", color: "#C4787A",
               border: "0.5px solid rgba(196,120,122,0.3)", fontSize: 12, fontWeight: 600, cursor: "pointer",
               opacity: resetting ? 0.6 : 1,
@@ -787,6 +803,20 @@ export default function SocialMediaPage() {
           color: playbookMsg.startsWith("✅") ? "#8B5CF6" : "#C4787A",
         }}>
           {playbookMsg}
+        </div>
+      )}
+
+      {fillGapsMsg && (
+        <div style={{ padding: 10, borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 12,
+          background: fillGapsMsg.startsWith("✅") ? "rgba(107,158,107,0.12)" : "rgba(150,150,150,0.1)",
+          color: fillGapsMsg.startsWith("✅") ? "#6B9E6B" : "var(--text-muted)",
+          display: "flex", alignItems: "center", gap: 8,
+        }}>
+          <span style={{ flex: 1 }}>{fillGapsMsg}</span>
+          <button onClick={() => setFillGapsMsg(null)} style={{
+            background: "transparent", border: "none", cursor: "pointer",
+            color: "var(--text-muted)", fontSize: 14, padding: "2px 6px",
+          }}>✕</button>
         </div>
       )}
 
@@ -1047,7 +1077,7 @@ export default function SocialMediaPage() {
       ) : posts.length === 0 ? (
         <div style={{ ...card, textAlign: "center", padding: 48, color: "var(--text-muted)" }}>
           <div style={{ fontSize: 32, marginBottom: 10 }}>🌙</div>
-          Nenhum post ainda. Clica <strong>"Seed conteudo Luna"</strong> pra popular 25 posts.
+          Nenhum post ainda. Clica <strong>"Preencher gaps"</strong> pra gerar a agenda dos próximos 30 dias.
         </div>
       ) : viewMode === "grid" ? (
         /* ─── GRID VIEW (estilo Instagram) ─── */
@@ -1125,6 +1155,9 @@ export default function SocialMediaPage() {
                       <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{p.title}</span>
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {p.createdAt && (Date.now() - new Date(p.createdAt).getTime()) < 48 * 60 * 60 * 1000 && (
+                        <span title="Criado nas últimas 48h" style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: "rgba(107,158,107,0.18)", color: "#6B9E6B", fontWeight: 800, letterSpacing: 0.5 }}>NOVO</span>
+                      )}
                       <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: pillar.bg, color: pillar.color, fontWeight: 700 }}>{pillar.label}</span>
                       <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: statusBadge.bg, color: statusBadge.color, fontWeight: 700, textTransform: "uppercase" }}>{p.status}</span>
                       <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: "var(--bg-secondary)", color: "var(--text-muted)" }}>{p.format}</span>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { fillSingleSlot } from "@/lib/social-weekly-generator";
 
 // GET /api/admin/social?status=draft|review|approved|posted
 // Lista posts com filtros
@@ -107,17 +108,36 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE /api/admin/social?id=<postId>
-// Remove o post (e imagens via cascade).
+// DELETE /api/admin/social?id=<postId>&replace=1
+// Remove o post. Se replace=1 e o post era futuro, auto-gera substituto no mesmo slot.
 export async function DELETE(req: NextRequest) {
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
+  const replace = url.searchParams.get("replace") === "1";
   if (!id) {
     return NextResponse.json({ ok: false, error: "id obrigatorio" }, { status: 400 });
   }
   try {
+    const post = await prisma.socialPost.findUnique({
+      where: { id },
+      select: { scheduledAt: true, slot: true, status: true },
+    });
     await prisma.socialPost.delete({ where: { id } });
-    return NextResponse.json({ ok: true });
+
+    let replacement: { title?: string; source?: string; reason?: string } | null = null;
+    if (replace && post?.scheduledAt && post.scheduledAt.getTime() > Date.now()) {
+      const r = await fillSingleSlot({
+        scheduledAt: post.scheduledAt,
+        slot: post.slot as "FEED_AM" | "REEL" | "STORY",
+        createdBy: "luna-replace-on-delete",
+        status: "approved",
+      });
+      replacement = r.ok
+        ? { title: r.title, source: r.source }
+        : { reason: r.reason };
+    }
+
+    return NextResponse.json({ ok: true, replacement });
   } catch (e) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }

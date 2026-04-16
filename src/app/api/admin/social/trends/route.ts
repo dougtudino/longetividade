@@ -16,6 +16,10 @@ type TrendItem = {
   angle: string;
   suggestedPillar: "s" | "e" | "m" | "promo";
   sourceUrl?: string;
+  hook?: string;
+  keyPoints?: string[];
+  dataPoint?: string;
+  body?: string;
 };
 
 type TrendsPayload = {
@@ -38,12 +42,12 @@ async function callClaudeWithWebSearch(prompt: string): Promise<string> {
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 2000,
+      max_tokens: 6000,
       tools: [
         {
           type: "web_search_20250305",
           name: "web_search",
-          max_uses: 5,
+          max_uses: 8,
         },
       ],
       messages: [{ role: "user", content: prompt }],
@@ -81,32 +85,37 @@ async function buildPrompt(): Promise<string> {
     ? `\n\nBIBLIA DA LUNA (consultar SEMPRE antes de sugerir trend):\n${playbookRules.map((r) => `## ${r.title}\n${r.body}`).join("\n\n")}\n\n`
     : "";
 
-  return `Você é Luna, assistente de social media da marca Longetividade (emagrecimento
-feminino sem dieta, método S.E.M — Simplicidade, Equilíbrio, Movimento).
-Publico: mulheres 30-55 anos, Brasil.
+  return `Você é uma redatora editorial experiente (não uma IA genérica). Escreve pra marca
+Longetividade — emagrecimento feminino sem dieta, método S.E.M (Simplicidade, Equilíbrio,
+Movimento). Publico: mulheres 30-55 anos, Brasil. Tom: acolhedor, jornalístico, sem frases
+de IA tipo "Em conclusão" ou "É importante notar". Evita emojis demais e exclamação.
 ${playbookBlock}
-Hoje é ${today}. Pesquise na web as principais tendências DESTA SEMANA em:
-- Saúde feminina, bem-estar, emagrecimento saudável
-- Alimentação intuitiva, reeducação alimentar
-- Saúde mental (ansiedade, sono, autoestima)
-- Movimento/exercícios funcionais
-- Notícias relevantes de saúde que mulheres brasileiras estão comentando
+Hoje é ${today}. Pesquise NA WEB (use o web_search várias vezes) as principais tendências
+DESTA SEMANA em saúde feminina, nutrição, reeducação alimentar, saúde mental, movimento,
+e notícias de saúde que mulheres brasileiras estão comentando agora.
 
-Busque no Google Trends Brasil, Instagram (via web), blogs de saúde nacionais.
-Priorize trends que geram RETENCAO + SHARE + SAVE (nao so like).
+Priorize fontes confiáveis (G1 Saúde, Veja Saúde, Folha, Exame, VivaBem, Instagram de
+nutricionistas e psicólogas reconhecidas). Evite clickbait e "7 segredos pra emagrecer".
 
-Retorne EXCLUSIVAMENTE um JSON válido neste formato (sem texto antes ou depois):
+Pra cada trend, escreva MATERIAL EDITORIAL RICO que sirva de base pra um post. Não me
+dê só "topic+angle" genérico — me dê dados, contexto, estatística quando houver. Pense
+que eu vou publicar esse conteúdo no Instagram.
+
+Retorne EXCLUSIVAMENTE um JSON válido (sem markdown, sem texto antes/depois):
 {
   "trends": [
     {
-      "topic": "<tema curto em portugues>",
-      "angle": "<angulo de conteudo que a Luna pode usar, 1-2 frases>",
+      "topic": "<tema curto e específico, max 60 chars, sem clickbait>",
+      "angle": "<como a Longetividade aborda isso (1 frase)>",
       "suggestedPillar": "s|e|m|promo",
-      "sourceUrl": "<url de referencia (opcional)>"
-    },
-    ...
+      "hook": "<primeira frase do post, pega a atenção, sem 'Você sabia que'>",
+      "keyPoints": ["<ponto 1 com dado/fato>", "<ponto 2>", "<ponto 3>"],
+      "dataPoint": "<uma estatística/dado concreto com fonte quando possível>",
+      "body": "<2-3 parágrafos de texto corrido que podem virar copy de carrossel/feed. Linguagem humana, exemplos reais, zero jargão>",
+      "sourceUrl": "<url da fonte principal>"
+    }
   ],
-  "rawSummary": "<resumo de 2-3 frases do que voce aprendeu dessa semana>"
+  "rawSummary": "<resumo 2-3 frases do que você aprendeu essa semana>"
 }
 
 Pilares:
@@ -115,7 +124,7 @@ Pilares:
 - m = movimento/exercício
 - promo = produto/lançamento
 
-Retorne 5-8 trends, priorizando as mais acionáveis.`;
+Retorne 5-8 trends, priorizando as mais acionáveis e com dado concreto.`;
 }
 
 function parseTrends(raw: string): TrendItem[] {

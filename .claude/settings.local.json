@@ -38,7 +38,17 @@
       "Bash(git reset:*)",
       "Bash(echo \"exit=$?\")",
       "Bash(grep -oE 'href=\"[^\"]{1,80}\"')",
-      "Bash(git commit --allow-empty -m 'chore: trigger redeploy para pegar NEXT_PUBLIC_CHECKOUT_URL no bundle:*)"
+      "Bash(git commit --allow-empty -m 'chore: trigger redeploy para pegar NEXT_PUBLIC_CHECKOUT_URL no bundle:*)",
+      "Bash(bunx tsc:*)",
+      "Bash(npm run:*)",
+      "Bash(grep -E \"\\(page|route|layout\\)\\\\.\\(tsx|ts|jsx|js\\)$\")",
+      "Bash(cp /tmp/check-social.mjs C:/Users/dougt/projetos/ebook-emagrecimentofeminino/site/tmp-check-social.mjs)",
+      "Bash(node tmp-check-social.mjs)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(grep -E \"\\\\.\\(prisma|sql\\)$\")",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(node tmp-test-dates.mjs)",
+      "Bash(rm tmp-test-dates.mjs)"
     ]
   }
 }

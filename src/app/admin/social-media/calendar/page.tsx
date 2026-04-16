@@ -7,9 +7,13 @@ import PageHelp from "@/components/admin/PageHelp";
 type ScheduledPost = {
   id: string;
   title: string;
+  content: string;
   platform: string;
   pillar: string;
   status: string;
+  format: string;
+  hashtags: string | null;
+  slot: string;
   scheduledAt: string;
 };
 
@@ -44,19 +48,72 @@ export default function CalendarPage() {
   const [gaps, setGaps] = useState<string[]>([]);
   const [totalDates, setTotalDates] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Partial<ScheduledPost>>({});
+  const [saving, setSaving] = useState(false);
+  const [filling, setFilling] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetch("/api/admin/social/calendar?days=30")
-      .then((r) => r.json())
-      .then((d) => {
-        setCalendar(d.calendar ?? {});
-        setUpcomingDates(d.upcomingDates ?? []);
-        setGaps(d.gaps ?? []);
-        setTotalDates(d.totalDatesYear ?? 0);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+  async function reload() {
+    const r = await fetch("/api/admin/social/calendar?days=30");
+    const d = await r.json();
+    setCalendar(d.calendar ?? {});
+    setUpcomingDates(d.upcomingDates ?? []);
+    setGaps(d.gaps ?? []);
+    setTotalDates(d.totalDatesYear ?? 0);
+    setLoading(false);
+  }
+
+  useEffect(() => { reload().catch(() => setLoading(false)); }, []);
+
+  function startEdit(p: ScheduledPost) {
+    setEditingPostId(p.id);
+    setEditDraft({
+      title: p.title,
+      content: p.content,
+      status: p.status,
+      scheduledAt: p.scheduledAt,
+    });
+  }
+
+  async function saveEdit() {
+    if (!editingPostId) return;
+    setSaving(true);
+    try {
+      await fetch("/api/admin/social", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingPostId, ...editDraft }),
+      });
+      setEditingPostId(null);
+      setEditDraft({});
+      await reload();
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deletePost(id: string) {
+    if (!confirm("Apagar esse post? Um substituto será gerado automaticamente no mesmo slot.")) return;
+    await fetch(`/api/admin/social?id=${id}&replace=1`, { method: "DELETE" });
+    await reload();
+  }
+
+  async function fillDay() {
+    setFilling(true);
+    setMsg(null);
+    try {
+      const res = await fetch("/api/admin/social/fill-gaps?days=30", { method: "POST" });
+      const data = await res.json();
+      if (data.ok) {
+        setMsg(data.created > 0 ? `✅ ${data.created} posts gerados nos slots vazios` : "Nenhum gap pra preencher");
+      }
+      await reload();
+    } finally {
+      setFilling(false);
+    }
+  }
 
   // Gera array de 30 dias a partir de hoje
   const days: string[] = [];
@@ -211,6 +268,7 @@ export default function CalendarPage() {
               return (
                 <div
                   key={dateKey}
+                  onClick={() => !isSunday && setSelectedDay(dateKey)}
                   style={{
                     padding: 6,
                     borderRadius: 8,
@@ -218,7 +276,11 @@ export default function CalendarPage() {
                     background: isToday ? "rgba(99,153,34,0.1)" : isSunday ? "var(--bg-secondary)" : "transparent",
                     border: isToday ? "2px solid #639922" : isGap ? "1.5px dashed #C4787A40" : "0.5px solid var(--border-subtle)",
                     position: "relative",
+                    cursor: isSunday ? "default" : "pointer",
+                    transition: "transform 0.1s",
                   }}
+                  onMouseEnter={(e) => { if (!isSunday) (e.currentTarget as HTMLDivElement).style.transform = "scale(1.03)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "scale(1)"; }}
                 >
                   <div style={{
                     fontSize: 12, fontWeight: isToday ? 800 : 600,
@@ -259,6 +321,172 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
+
+      {msg && (
+        <div style={{
+          position: "fixed", bottom: 20, right: 20, padding: "12px 18px",
+          borderRadius: 10, background: msg.startsWith("✅") ? "#6B9E6B" : "var(--bg-card)",
+          color: msg.startsWith("✅") ? "#fff" : "var(--text-primary)",
+          fontSize: 13, fontWeight: 600, zIndex: 200, boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        }}>
+          {msg}
+          <button onClick={() => setMsg(null)} style={{ marginLeft: 10, background: "transparent", border: "none", color: "inherit", cursor: "pointer" }}>✕</button>
+        </div>
+      )}
+
+      {selectedDay && (() => {
+        const dayData = calendar[selectedDay];
+        const dayPosts = dayData?.posts ?? [];
+        const dayCommem = dayData?.commemorative ?? [];
+        const d = new Date(selectedDay + "T12:00:00");
+        const dayLabel = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", weekday: "long" });
+
+        return (
+          <div
+            onClick={() => { setSelectedDay(null); setEditingPostId(null); }}
+            style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+              display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 20,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "var(--bg-primary)", borderRadius: 14, padding: 24,
+                maxWidth: 700, width: "100%", maxHeight: "85vh", overflowY: "auto",
+                border: "0.5px solid var(--border-default)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", margin: 0, textTransform: "capitalize" }}>
+                  🗓 {dayLabel}
+                </h2>
+                <button onClick={() => { setSelectedDay(null); setEditingPostId(null); }} style={{
+                  background: "transparent", border: "none", fontSize: 20, cursor: "pointer", color: "var(--text-muted)",
+                }}>✕</button>
+              </div>
+
+              {dayCommem.length > 0 && (
+                <div style={{
+                  padding: 12, borderRadius: 8, background: "rgba(212,169,75,0.08)",
+                  border: "0.5px solid rgba(212,169,75,0.3)", marginBottom: 14,
+                }}>
+                  {dayCommem.map((c, i) => (
+                    <div key={i}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>📅 {c.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>💡 {c.postIdea}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {dayPosts.length === 0 ? (
+                <div style={{
+                  padding: 24, textAlign: "center", color: "var(--text-muted)",
+                  border: "1.5px dashed var(--border-subtle)", borderRadius: 10, marginBottom: 14,
+                }}>
+                  <div style={{ fontSize: 13, marginBottom: 12 }}>Nenhum post agendado nesse dia.</div>
+                  <button onClick={fillDay} disabled={filling} style={{
+                    padding: "10px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff",
+                    border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer",
+                  }}>
+                    {filling ? "Gerando..." : "✨ Preencher gaps dos próximos 30 dias"}
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {dayPosts.map((p) => {
+                    const isEditing = editingPostId === p.id;
+                    const pillarColor = PILLAR_COLOR[p.pillar] ?? "#888";
+                    const hour = new Date(p.scheduledAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                    return (
+                      <div key={p.id} style={{
+                        padding: 14, borderRadius: 10, border: `0.5px solid var(--border-default)`,
+                        borderLeft: `3px solid ${pillarColor}`, background: "var(--bg-card)",
+                      }}>
+                        {!isEditing ? (
+                          <>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{p.title}</div>
+                                <div style={{ display: "flex", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: `${pillarColor}20`, color: pillarColor, fontWeight: 700 }}>{p.pillar}</span>
+                                  <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: "var(--bg-secondary)", color: "var(--text-muted)" }}>{p.slot} · {p.format}</span>
+                                  <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: "var(--bg-secondary)", color: "var(--text-muted)" }}>⏰ {hour}</span>
+                                  <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 999, background: p.status === "approved" ? "rgba(107,158,107,0.2)" : p.status === "posted" ? "rgba(99,153,34,0.2)" : "var(--bg-secondary)", color: "var(--text-primary)", fontWeight: 700, textTransform: "uppercase" }}>{p.status}</span>
+                                </div>
+                              </div>
+                              <div style={{ display: "flex", gap: 6 }}>
+                                <button onClick={() => startEdit(p)} style={{
+                                  padding: "6px 12px", borderRadius: 6, background: "var(--bg-secondary)",
+                                  border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer", color: "var(--text-primary)",
+                                }}>Editar</button>
+                                <button onClick={() => deletePost(p.id)} style={{
+                                  padding: "6px 12px", borderRadius: 6, background: "transparent",
+                                  border: "0.5px solid rgba(196,120,122,0.4)", fontSize: 11, fontWeight: 600, cursor: "pointer", color: "#C4787A",
+                                }}>Apagar</button>
+                              </div>
+                            </div>
+                            <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap", maxHeight: 120, overflow: "hidden" }}>
+                              {p.content.slice(0, 240)}{p.content.length > 240 ? "..." : ""}
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <input
+                              value={editDraft.title ?? ""}
+                              onChange={(e) => setEditDraft({ ...editDraft, title: e.target.value })}
+                              placeholder="Título"
+                              style={{ padding: 10, borderRadius: 8, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 13, fontWeight: 600 }}
+                            />
+                            <textarea
+                              value={editDraft.content ?? ""}
+                              onChange={(e) => setEditDraft({ ...editDraft, content: e.target.value })}
+                              placeholder="Conteúdo"
+                              rows={6}
+                              style={{ padding: 10, borderRadius: 8, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 12, lineHeight: 1.6, resize: "vertical", fontFamily: "inherit" }}
+                            />
+                            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                              <label style={{ fontSize: 11, color: "var(--text-muted)" }}>Horário:</label>
+                              <input
+                                type="datetime-local"
+                                value={editDraft.scheduledAt ? new Date(editDraft.scheduledAt).toISOString().slice(0, 16) : ""}
+                                onChange={(e) => setEditDraft({ ...editDraft, scheduledAt: new Date(e.target.value).toISOString() })}
+                                style={{ padding: 8, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 12 }}
+                              />
+                              <select
+                                value={editDraft.status ?? "draft"}
+                                onChange={(e) => setEditDraft({ ...editDraft, status: e.target.value })}
+                                style={{ padding: 8, borderRadius: 6, border: "0.5px solid var(--border-default)", background: "var(--bg-secondary)", color: "var(--text-primary)", fontSize: 12 }}
+                              >
+                                <option value="draft">draft</option>
+                                <option value="review">review</option>
+                                <option value="approved">approved</option>
+                                <option value="posted">posted</option>
+                                <option value="rejected">rejected</option>
+                              </select>
+                            </div>
+                            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                              <button onClick={() => { setEditingPostId(null); setEditDraft({}); }} style={{
+                                padding: "8px 14px", borderRadius: 6, background: "transparent",
+                                border: "0.5px solid var(--border-default)", fontSize: 12, fontWeight: 600, cursor: "pointer", color: "var(--text-muted)",
+                              }}>Cancelar</button>
+                              <button onClick={saveEdit} disabled={saving} style={{
+                                padding: "8px 14px", borderRadius: 6, background: "#6B9E6B", color: "#fff",
+                                border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer",
+                              }}>{saving ? "Salvando..." : "Salvar"}</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
