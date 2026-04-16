@@ -190,6 +190,12 @@ export const MOVABLE_DATES: MovableDate[] = [
     postIdea: "Se voce for investir em algo essa Black Friday, invista em voce. Metodo SEM — reeducacao que dura pra sempre.",
     hashtags: "#blackfriday #investaemvoce #metodosem",
     preferredFormat: "imagem",
+    storyTemplate: {
+      type: "poll",
+      question: "Vai usar a Black Friday pra investir em voce?",
+      optionA: "Sim, ja decidi",
+      optionB: "Ainda to pensando",
+    },
   },
 ];
 
@@ -211,6 +217,11 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
     ],
     body: "Janeiro nao eh linha de largada. Eh mais um dia na sua jornada. O metodo que funciona nao eh o mais restritivo — eh o que voce consegue manter em marco, junho, outubro. Comeca simples: 1 copo de agua ao acordar, 3 refeicoes com presenca, 15min de movimento. Isso dura. Dieta, nao.",
     preferredFormat: "carrossel",
+    storyTemplate: {
+      type: "question",
+      question: "Qual 1 habito pequeno voce quer construir esse ano?",
+      subtitle: "Pequeno eh chave. Grande nao dura.",
+    },
   },
 
   // Janeiro Branco — meses tematicos espalhados (dias-chave)
@@ -250,6 +261,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Vegetais crucíferos (brocolis, couve-flor) sao protetores",
       "Acucar em excesso e ultraprocessados aumentam risco",
     ],
+    storyTemplate: {
+      type: "poll",
+      question: "Voce ja teve alguem proximo com cancer?",
+      optionA: "Sim, na familia",
+      optionB: "Nao, mas me cuido",
+    },
   },
   {
     date: "02-14", name: "Dia de Sao Valentim", pillar: "e", priority: "normal",
@@ -269,6 +286,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Sono ruim, stress e ultraprocessados sao drivers invisiveis",
     ],
     body: "A narrativa de que 'basta fechar a boca' eh cruel e errada. Obesidade eh multifatorial — envolve hormonio, microbiota, ambiente obesogeniço, historia emocional, sono, stress. O metodo que funciona trabalha tudo isso junto: alimentacao acolhedora, movimento que cabe, sono, gestao emocional. Sem julgamento. Com consistencia.",
+    storyTemplate: {
+      type: "poll",
+      question: "Obesidade eh falta de forca de vontade?",
+      optionA: "Nao — eh multifatorial",
+      optionB: "Sim, mas sem julgar",
+    },
   },
   {
     date: "03-08", name: "Dia Internacional da Mulher", pillar: "e", priority: "high",
@@ -365,6 +388,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Saude mental impacta saude fisica diretamente",
       "Pequenos habitos diarios > dieta milagrosa",
     ],
+    storyTemplate: {
+      type: "poll",
+      question: "Como esta sua saude hoje?",
+      optionA: "Bem, cuidando",
+      optionB: "Precisa de atencao",
+    },
   },
   {
     date: "04-19", name: "Dia dos Povos Indigenas", pillar: "s", priority: "low",
@@ -402,12 +431,23 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Excesso de sal nos ultraprocessados eh o grande viloi",
       "30min de caminhada diaria reduz pressao em media 5mmHg",
     ],
+    storyTemplate: {
+      type: "poll",
+      question: "Voce sabe sua pressao arterial?",
+      optionA: "Sim, meco",
+      optionB: "Nao, nunca medi",
+    },
   },
   {
     date: "05-28", name: "Dia Internacional de Acao pela Saude da Mulher", pillar: "e", priority: "high",
     postIdea: "Saude da mulher vai muito alem de ginecologista. Eh sono, alimentacao, movimento, saude mental, e apoio social.",
     hashtags: "#saudedamulher #autocuidado #bemestarfeminino",
     body: "Mulher passa anos cuidando de filho, marido, trabalho, casa. E esquece de si. Dor cronica, fadiga, ansiedade — tudo isso tem sinal antes. Cuidar de voce nao eh luxo, eh necessidade. Comeca com 15min por dia so pra voce. Pra respirar, caminhar, tomar um cha. Isso eh saude da mulher.",
+    storyTemplate: {
+      type: "question",
+      question: "O que voce precisa deixar de fazer pelos outros pra cuidar de voce?",
+      subtitle: "Responde na caixinha. Ningem eh egoista por se cuidar.",
+    },
   },
   {
     date: "05-31", name: "Dia Mundial Sem Tabaco", pillar: "geral", priority: "normal",
@@ -438,6 +478,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
     ],
     body: "Yoga no Brasil virou coisa de academia chique com roupa cara. Mas yoga eh agachar ao acordar, torcer o tronco na cadeira do escritorio, respirar fundo 3 vezes antes de comer. Eh pausa, consciencia, conexao. Nao precisa de tapete de R$300 nem professor certificado — precisa de 10 minutos e vontade de voltar pra dentro de voce.",
     preferredFormat: "reels",
+    storyTemplate: {
+      type: "poll",
+      question: "Voce se movimenta com prazer ou obrigacao?",
+      optionA: "Com prazer",
+      optionB: "Quase sempre obrigacao",
+    },
   },
 
   // ═══ JULHO ═══
@@ -465,6 +511,11 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Pressao alta, diabetes e obesidade tem prevalencia maior",
       "Representatividade em saude importa — escolha profissionais que te escutam",
     ],
+    storyTemplate: {
+      type: "question",
+      question: "Seu medico/medica te escuta de verdade?",
+      subtitle: "Representatividade importa. Procure quem acolhe.",
+    },
   },
 
   // ═══ AGOSTO ═══
@@ -492,6 +543,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Terapia online democratizou acesso — muitas por R$ 80-150",
       "Convenio cobre ate 40 sessoes/ano em quase todos os planos",
     ],
+    storyTemplate: {
+      type: "poll",
+      question: "Voce faz terapia?",
+      optionA: "Sim, faco",
+      optionB: "Ainda nao comecei",
+    },
   },
   {
     date: "08-31", name: "Dia do Nutricionista (BR)", pillar: "s", priority: "normal",
@@ -549,6 +606,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Menopausa aumenta risco por queda de estrogenio",
       "Gordura abdominal eh mais perigosa que peso total",
     ],
+    storyTemplate: {
+      type: "poll",
+      question: "Ja fez check-up cardiaco esse ano?",
+      optionA: "Sim, ja fiz",
+      optionB: "Ainda nao",
+    },
   },
 
   // ═══ OUTUBRO ═══
@@ -602,6 +665,11 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Terapia + movimento + sono eh o triple que funciona",
     ],
     body: "Saude mental da mulher eh uma emergencia silenciosa. Entre TPM, gestacao, pos-parto, perimenopausa e menopausa, o corpo da mulher oscila hormonalmente o tempo todo. Isso impacta humor, energia, desejo. Nao eh frescura — eh biologia. E tratamento existe: terapia, apoio, as vezes medicacao. Pedir ajuda eh forca, nao fraqueza.",
+    storyTemplate: {
+      type: "question",
+      question: "O que pesa mais na sua mente agora?",
+      subtitle: "Responde na caixinha — ou so pra voce. Nomear ja alivia.",
+    },
   },
   {
     date: "10-11", name: "Dia Internacional da Menina", pillar: "e", priority: "normal",
@@ -628,6 +696,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Gordura abdominal aumenta — nao eh 'falha sua', eh hormonio",
     ],
     body: "A menopausa eh cercada de silencio. Mulher chega nos 45-55 e comeca a sentir: calor, insonia, mente mais lenta, gordura abdominal que nao sai com nada, libido em baixa. Isso nao eh 'envelhecer mal' — eh o corpo se reorganizando. Precisa de novos habitos: mais forca (peso), mais proteina, sono protegido, reposicao hormonal (quando indicada). Conversar com ginecologista eh essencial. Voce nao esta sozinha.",
+    storyTemplate: {
+      type: "poll",
+      question: "Ja conversou com ginecologista sobre menopausa?",
+      optionA: "Sim, acompanho",
+      optionB: "Ainda nao",
+    },
   },
   {
     date: "10-29", name: "Dia Mundial do AVC", pillar: "geral", priority: "normal",
@@ -674,17 +748,37 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Ultraprocessados sao o combustivel da epidemia",
     ],
     body: "Diabetes tipo 2 nao aparece do nada. Leva anos de pre-diabetes silenciosa. Sinais: cansaco apos refeicoes, vontade intensa de doce, aumento de circunferencia abdominal. Exame de hemoglobina glicada (HbA1c) uma vez por ano depois dos 35 eh o que salva. Prevencao ainda eh o melhor remedio: movimento, fibras, menos acucar livre. Simples — mas precisa ser consistente.",
+    storyTemplate: {
+      type: "poll",
+      question: "Ja fez exame de glicada (HbA1c) esse ano?",
+      optionA: "Sim, fiz",
+      optionB: "Nao lembro ou nunca fiz",
+    },
   },
   {
     date: "11-20", name: "Dia da Consciencia Negra", pillar: "e", priority: "high",
     postIdea: "Racismo afeta saude — da pressao alta ao acesso a cuidado. Cuide-se. Exija ser ouvida.",
     hashtags: "#consciencianegra #saudedamulhernegra",
+    storyTemplate: {
+      type: "question",
+      question: "Voce se sente escutada no sistema de saude?",
+      subtitle: "Se nao, procure outra profissional. Voce merece.",
+    },
   },
   {
     date: "11-25", name: "Dia Internacional pela Eliminacao da Violencia Contra a Mulher", pillar: "e", priority: "high",
     postIdea: "Violencia deixa marca no corpo e na mente. Se voce sofre, nao esta sozinha. Ligue 180. Conte pra quem voce confia. Voce merece seguranca.",
     hashtags: "#25denovembro #violencia #180",
     body: "1 em cada 3 brasileiras ja sofreu violencia fisica, psicologica ou sexual. Isso mexe com sono, apetite, auto-imagem, saude mental e fisica por anos. Se voce esta nessa situacao: ligue 180 (gratuito, sigiloso, 24h). Se voce saiu dela: terapia ajuda a reconstruir. Se voce conhece alguem: escuta sem julgar. Saude da mulher passa por seguranca.",
+    storyTemplate: {
+      type: "sequence",
+      slides: [
+        { text: "Se voce sofre violencia", emoji: "💜" },
+        { text: "Ligue 180 — gratuito, sigiloso, 24h", emoji: "📞" },
+        { text: "Terapia ajuda a reconstruir", emoji: "🌱" },
+        { text: "Voce nao esta sozinha", emoji: "🤝" },
+      ],
+    },
   },
 
   // ═══ DEZEMBRO ═══
@@ -714,6 +808,12 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Dia 26 nao precisa de 'detox' — precisa de rotina normal",
     ],
     body: "Natal eh sobre estar. Sobre a mesa cheia que demorou o ano todo pra acontecer. Sobre gente que voce so ve em dezembro. Ninguem vai lembrar se voce comeu ou nao comeu a rabanada. Vao lembrar se voce estava presente ou contando carbo. Escolha presente. Segunda-feira voce volta pro copo de agua ao acordar, pra salada no almoco, pra caminhada. A rotina te espera — sem punir.",
+    storyTemplate: {
+      type: "poll",
+      question: "Vai aproveitar a ceia sem culpa?",
+      optionA: "Sim, com presenca",
+      optionB: "Ainda me cobro demais",
+    },
   },
   {
     date: "12-31", name: "Reveillon", pillar: "e", priority: "high",
@@ -725,6 +825,11 @@ export const COMMEMORATIVE_DATES: CommemorativeDate[] = [
       "Meta boa eh comportamental, nao resultado",
       "Gratidao eh ponto de partida — nao chegada",
     ],
+    storyTemplate: {
+      type: "question",
+      question: "3 vitorias que voce teve nesse ano?",
+      subtitle: "Pode ser pequeno. Pequeno conta.",
+    },
   },
 ];
 
