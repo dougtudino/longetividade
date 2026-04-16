@@ -31,11 +31,59 @@ type CalendarDay = {
   commemorative: CommemorativeDate[];
 };
 
+type Totals = {
+  total: number;
+  draft: number;
+  review: number;
+  approved: number;
+  posted: number;
+  rejected: number;
+  likes: number;
+  reach: number;
+  topPost: { id: string; title: string; likes: number } | null;
+  postedRate: number;
+};
+
 const PILLAR_COLOR: Record<string, string> = {
   s: "#7A9E7E", e: "#D4A94B", m: "#3D5A3E", promo: "#C4787A", geral: "#4A90D9",
 };
 
+const STATUS_ICON: Record<string, string> = {
+  posted: "✓",
+  approved: "●",
+  review: "◉",
+  draft: "○",
+  rejected: "✗",
+};
+
+const STATUS_COLOR: Record<string, string> = {
+  posted: "#6B9E6B",
+  approved: "var(--accent)",
+  review: "#D4A94B",
+  draft: "var(--text-muted)",
+  rejected: "#C4787A",
+};
+
 const DAY_NAMES = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+const MONTH_NAMES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+function currentMonthKey(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function buildMonthOptions(): Array<{ value: string; label: string }> {
+  const now = new Date();
+  const opts: Array<{ value: string; label: string }> = [];
+  // 6 meses anteriores + atual + 6 proximos
+  for (let i = -6; i <= 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}${i === 0 ? " (atual)" : ""}`;
+    opts.push({ value, label });
+  }
+  return opts;
+}
 
 function fmtDate(iso: string): string {
   const d = new Date(iso + "T12:00:00");
@@ -47,7 +95,9 @@ export default function CalendarPage() {
   const [upcomingDates, setUpcomingDates] = useState<CommemorativeDate[]>([]);
   const [gaps, setGaps] = useState<string[]>([]);
   const [totalDates, setTotalDates] = useState(0);
+  const [totals, setTotals] = useState<Totals | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthKey());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Partial<ScheduledPost>>({});
@@ -55,17 +105,21 @@ export default function CalendarPage() {
   const [filling, setFilling] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  const monthOptions = buildMonthOptions();
+
   async function reload() {
-    const r = await fetch("/api/admin/social/calendar?days=30");
+    setLoading(true);
+    const r = await fetch(`/api/admin/social/calendar?month=${selectedMonth}`);
     const d = await r.json();
     setCalendar(d.calendar ?? {});
     setUpcomingDates(d.upcomingDates ?? []);
     setGaps(d.gaps ?? []);
     setTotalDates(d.totalDatesYear ?? 0);
+    setTotals(d.totals ?? null);
     setLoading(false);
   }
 
-  useEffect(() => { reload().catch(() => setLoading(false)); }, []);
+  useEffect(() => { reload().catch(() => setLoading(false)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [selectedMonth]);
 
   function startEdit(p: ScheduledPost) {
     setEditingPostId(p.id);
@@ -115,12 +169,14 @@ export default function CalendarPage() {
     }
   }
 
-  // Gera array de 30 dias a partir de hoje
-  const days: string[] = [];
+  // Gera array de dias do mes selecionado (1 ate ultimo dia)
   const now = new Date();
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-    days.push(d.toISOString().slice(0, 10));
+  const [selYear, selMonth] = selectedMonth.split("-").map(Number);
+  const daysInMonth = new Date(selYear, selMonth, 0).getDate();
+  const days: string[] = [];
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${selYear}-${String(selMonth).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    days.push(dateStr);
   }
 
   return (
@@ -131,11 +187,26 @@ export default function CalendarPage() {
         </Link>
       </div>
 
-      <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "4px 0 6px 0" }}>
-        🗓 Calendario Editorial
-      </h1>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>
+          🗓 Calendario Editorial
+        </h1>
+        <select
+          value={selectedMonth}
+          onChange={(e) => setSelectedMonth(e.target.value)}
+          style={{
+            padding: "8px 14px", borderRadius: 10, fontSize: 14, fontWeight: 700,
+            background: "var(--bg-card)", color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)", cursor: "pointer",
+          }}
+        >
+          {monthOptions.map((o) => (
+            <option key={o.value} value={o.value}>{o.label}</option>
+          ))}
+        </select>
+      </div>
       <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "0 0 20px 0" }}>
-        Proximos 30 dias: posts agendados + datas comemorativas + gaps pra preencher.
+        Posts planejados e executados do mes · datas comemorativas · gaps pra preencher.
         {totalDates > 0 && ` · ${totalDates} datas comemorativas no ano.`}
       </p>
 
@@ -144,23 +215,67 @@ export default function CalendarPage() {
         agent={{ icon: "🌙", name: "Luna", role: "Content Calendar" }}
         title="Planejamento visual de conteudo"
         quickActions={[
-          { label: "30 dias", description: "Visao dos proximos 30 dias com posts + datas" },
+          { label: "Mes", description: "Navega entre meses passados e futuros pelo dropdown" },
+          { label: "Executado", description: "Posts publicados aparecem com ✓ verde e metricas" },
           { label: "Gaps", description: "Dias sem conteudo agendado (exceto domingos)" },
-          { label: "Datas comemorativas", description: "Sugestoes de post pro nicho wellness" },
         ]}
       >
         <p>
           Luna planeja conteudo baseado em <strong>datas comemorativas</strong> relevantes pro nicho
           (Dia da Mulher, Outubro Rosa, Dia Mundial da Agua, etc.) + posts regulares dos pilares S.E.M.
-          Gaps mostram dias sem post — preencha pra manter consistencia.
+          Navegue por meses pra ver historico de publicacoes e metricas reais do Instagram/Facebook.
         </p>
       </PageHelp>
 
-      {/* Stats rapido */}
+      {/* Totalizador do mes */}
+      {totals && totals.total > 0 && (
+        <div style={{
+          display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+          gap: 10, marginBottom: 20,
+        }}>
+          <div style={{ padding: "12px 16px", background: "var(--bg-card)", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Total</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{totals.total}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>posts do mês</div>
+          </div>
+          <div style={{ padding: "12px 16px", background: "var(--bg-card)", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Publicados</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#6B9E6B" }}>{totals.posted}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{totals.postedRate}% do total</div>
+          </div>
+          <div style={{ padding: "12px 16px", background: "var(--bg-card)", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Aprovados</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)" }}>{totals.approved}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>na fila</div>
+          </div>
+          {totals.likes > 0 && (
+            <div style={{ padding: "12px 16px", background: "var(--bg-card)", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Curtidas</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#D4A94B" }}>{totals.likes.toLocaleString("pt-BR")}</div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>total do mês</div>
+            </div>
+          )}
+          {totals.reach > 0 && (
+            <div style={{ padding: "12px 16px", background: "var(--bg-card)", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+              <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Alcance</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#4A90D9" }}>{totals.reach.toLocaleString("pt-BR")}</div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>pessoas alcançadas</div>
+            </div>
+          )}
+          {totals.topPost && totals.topPost.likes > 0 && (
+            <div style={{ padding: "12px 16px", background: "linear-gradient(135deg, rgba(212,169,75,0.1), rgba(212,169,75,0.02))", border: "0.5px solid rgba(212,169,75,0.3)", borderRadius: 10, gridColumn: "span 2" }}>
+              <div style={{ fontSize: 10, color: "#D4A94B", textTransform: "uppercase", fontWeight: 700 }}>🏆 Top post</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginTop: 2, lineClamp: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{totals.topPost.title}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{totals.topPost.likes} curtidas</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Stats rapido (gaps/commem) */}
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         {[
-          { label: "Posts agendados", value: Object.values(calendar).reduce((s, d) => s + d.posts.length, 0), color: "#6B9E6B" },
-          { label: "Datas proximas", value: upcomingDates.length, color: "#D4A94B" },
+          { label: "Datas comem.", value: upcomingDates.length, color: "#D4A94B" },
           { label: "Dias sem post", value: gaps.length, color: "#C4787A" },
         ].map((s) => (
           <div key={s.label} style={{
@@ -301,14 +416,22 @@ export default function CalendarPage() {
                   )}
 
                   {hasPost && dayData!.posts.map((p, i) => (
-                    <div key={i} style={{
+                    <div key={i} title={`${p.status} · ${p.title}`} style={{
                       fontSize: 8, fontWeight: 600, padding: "1px 4px", borderRadius: 4,
                       background: `${PILLAR_COLOR[p.pillar] ?? "#888"}20`,
                       color: PILLAR_COLOR[p.pillar] ?? "#888",
                       marginBottom: 1,
                       overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                      opacity: p.status === "draft" ? 0.55 : 1,
+                      textDecoration: p.status === "rejected" ? "line-through" : "none",
+                      display: "flex", alignItems: "center", gap: 3,
                     }}>
-                      {p.title.slice(0, 20)}
+                      <span style={{ color: STATUS_COLOR[p.status] ?? "#888", fontSize: 9, fontWeight: 800 }}>
+                        {STATUS_ICON[p.status] ?? "·"}
+                      </span>
+                      <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+                        {p.title.slice(0, 18)}
+                      </span>
                     </div>
                   ))}
 
