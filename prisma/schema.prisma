@@ -454,3 +454,48 @@ model MayaMessage {
   @@index([adminId])
   @@index([createdAt])
 }
+
+// ─── Video Intelligence ──────────────────────────────
+model VideoCompetitor {
+  id          String   @id @default(uuid())
+  username    String   @unique
+  category    String   @default("longetividade")
+  followers   Int      @default(0)
+  avgViews30d Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  analyses    VideoAnalysis[]
+
+  @@index([active])
+}
+
+model VideoAnalysis {
+  id           String          @id @default(uuid())
+  competitorId String
+  competitor   VideoCompetitor @relation(fields: [competitorId], references: [id])
+  instagramUrl String
+  thumbnail    String          @default("")
+  views        Int             @default(0)
+  likes        Int             @default(0)
+  comments     Int             @default(0)
+  datePosted   String          @default("")
+
+  concept      String          @default("") @db.Text
+  hook         String          @default("") @db.Text
+  retention    String          @default("") @db.Text
+  reward       String          @default("") @db.Text
+  script       String          @default("") @db.Text
+  rawAnalysis  String          @default("") @db.Text
+  lunaConcepts String          @default("") @db.Text
+
+  savedToKnowledge Boolean     @default(false)
+  knowledgeId      String?
+  starred          Boolean     @default(false)
+
+  createdAt   DateTime         @default(now())
+
+  @@index([competitorId])
+  @@index([views])
+  @@index([createdAt])
+}

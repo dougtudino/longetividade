@@ -78,6 +78,43 @@ async function getUnusedTrendsByPillar(): Promise<Map<Pillar, TrendItem[]>> {
     list.push(t);
     byPillar.set(t.suggestedPillar, list);
   }
+
+  // Enriquece com analises de Reels virais (ultimos 7 dias) — Video Intelligence.
+  // Cada VideoAnalysis espelhada em AgentKnowledge vira um TrendItem que a Luna
+  // pode consumir nos slots de REEL (preferencialmente pilar "m" — Movimento).
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  const videoRefs = await prisma.agentKnowledge.findMany({
+    where: {
+      agentId: "luna",
+      kind: "reference",
+      source: { startsWith: "video-intelligence:" },
+      createdAt: { gte: sevenDaysAgo },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
+  for (const ref of videoRefs) {
+    const meta = ref.metadata as {
+      username?: string;
+      views?: number;
+      hook?: string;
+      concept?: string;
+    } | null;
+    if (!meta?.hook) continue;
+    const trendItem: TrendItem = {
+      topic: meta.concept?.slice(0, 60) || ref.title,
+      angle: meta.hook,
+      suggestedPillar: "m", // Reels virais vao preferencialmente pro pilar M
+      hook: meta.hook,
+      body: ref.body,
+      sourceUrl: undefined,
+    };
+    const list = byPillar.get("m") ?? [];
+    list.push(trendItem);
+    byPillar.set("m", list);
+  }
+
   return byPillar;
 }
 
