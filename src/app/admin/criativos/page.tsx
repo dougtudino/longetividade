@@ -6,6 +6,7 @@ import PageHelp from "@/components/admin/PageHelp";
 import { CREATIVES_REGISTRY } from "@/components/creatives/registry";
 import { CREATIVE_PRESETS } from "@/lib/creative-presets";
 import { CREATIVE_PACKS } from "@/lib/creative-packs";
+import { CAMPAIGN_PACKS } from "@/lib/creative-campaign-packs";
 import {
   PageHeader,
   Card,
@@ -380,6 +381,53 @@ export default function CriativosPage() {
             )}
             {selectedSlug && selectedCollection && (
               <>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    const campaignPackId = prompt(
+                      `🚀 Campanha completa\n\n${CAMPAIGN_PACKS.map(
+                        (p) =>
+                          `${p.icon} ${p.label}\n   ${p.description}\n   → ID: ${p.id}`
+                      ).join("\n\n")}\n\nDigite o ID:`,
+                      "cp-launch-full"
+                    );
+                    if (!campaignPackId) return;
+                    const slugBase = prompt(
+                      "Slug base (ex: 'launch-001'):",
+                      "campaign"
+                    );
+                    if (!slugBase) return;
+                    setPackGenerating(true);
+                    setPackResult(null);
+                    fetch("/api/admin/creatives/ai-generate-campaign", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        collectionId: selectedCollection.id,
+                        campaignPackId,
+                        slugBase,
+                      }),
+                    })
+                      .then((r) => r.json())
+                      .then(async (d) => {
+                        setPackResult({
+                          ...d,
+                          results: d.results?.map((r: { angleLabel: string; formatLabel: string; ok: boolean; error?: string }) => ({
+                            slideName: `${r.angleLabel} · ${r.formatLabel}`,
+                            ok: r.ok,
+                            error: r.error,
+                          })),
+                        });
+                        await loadCollectionDetail(selectedCollection.slug);
+                      })
+                      .catch((e) => setPackResult({ ok: false, error: e.message }))
+                      .finally(() => setPackGenerating(false));
+                  }}
+                  loading={packGenerating}
+                  title="Gera bateria completa (feed + story + reel) pra campanha Meta Ads"
+                >
+                  🚀 Campanha completa
+                </Button>
                 <Button
                   variant="secondary"
                   onClick={() => {

@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
 
     for (const slide of pack.slides) {
       const slug = `${body.slugBase}-${slide.subSlug}`;
+      // Delay 3s entre requests (rate limit Anthropic)
+      if (results.length > 0) {
+        await new Promise((r) => setTimeout(r, 3000));
+      }
       try {
         const r = await createAiCreative({
           collectionId: body.collectionId,

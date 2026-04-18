@@ -164,18 +164,28 @@ Marca: verde-oliva + off-white + terroso. Tom acolhedor mas direto. Publico: mul
 
 Meta Ad Policy BLOCK: antes/depois de corpo, claim quantitativo ("perca 10kg"), "cure/elimine celulite/dieta milagrosa". Headline <=40 chars.
 
-TEMPLATES PRIORITARIOS (escolha por intencao):
-- Image Slideshow (5903b592) → multi-cena com imagem por slide. RETORNE slides:[{imagePrompt, textOverlay}]. Default pra carrossel narrativo.
-- Quote Card Paper (f941e306) → carrossel de frases. RETORNE quotes:[] (10-500 chars cada).
-- Tweet Card (ba413be6) → quotes estilo tweet (10-280 chars cada).
+⚠️ QUALIDADE DE PROMPT (CRITICO):
+Toda imagePrompt DEVE ser:
+- EM INGLES (Blotato/AI model usa ingles): "Brazilian woman in her 40s, warm natural kitchen..."
+- ESPECIFICA: idade exata, etnia brasileira, ambiente real, iluminacao, objetos concretos
+- FIEL AO BRIEFING: nao invente temas (nada de animais, paisagens genericas). Cada slide deve ter clara relacao com o angulo do briefing.
+- ESTILO: editorial photography, warm natural lighting, authentic Brazilian setting
+
+textOverlay DEVE ser:
+- EM PORTUGUES SEMPRE ("Não conto caloria." não "I don't count calories")
+- CURTO: <= 5 palavras ideal, <= 40 chars maximo
+- DIRETO, sem abstracao
+
+TEMPLATES PRIORITARIOS:
+- Image Slideshow (5903b592) → slides:[{imagePrompt, textOverlay}]. Default carrossel.
+- Quote Card Paper (f941e306) → quotes:[] (10-500 chars, em portugues).
+- Tweet Card (ba413be6) → quotes:[] (10-280 chars, em portugues).
 - Tutorial Carousel (2491f97b) → passo-a-passo com CTA.
 - AI Video AI Voice (5903fe43) → reel narrado.
 
-EVITE: Single Centered Text (9f4e66cd) — visual fraco; Whiteboard/Chalkboard legacy — val strict; AI Selfie Talking sem avatar.
+EVITE: Single Centered Text (9f4e66cd), Whiteboard legacy, AI Selfie sem avatar.
 
-NUNCA use "S1:", "Slide 1:" no enrichedBriefing — Blotato le literal.
-
-enrichedBriefing curto (<200 chars). Descreva UMA cena concreta.
+NUNCA "S1:", "Slide 1:" no enrichedBriefing. Descreva UMA cena concreta (<200 chars).
 
 Chame submit_visual_brief.`;
 
@@ -240,12 +250,18 @@ Chame submit_visual_brief.`;
           slides: {
             type: "array",
             description:
-              "OPCIONAL. Se escolher template Image Slideshow (5903b592), retorne 3-5 slides aqui. Cada slide: imagePrompt descritivo da cena + textOverlay curto (<40 chars). NUNCA use 'S1:', 'Slide 1:'.",
+              "Se escolher Image Slideshow (5903b592), retorne 4-5 slides. imagePrompt EM INGLES descrevendo cena BRASILEIRA especifica (ex: 'Brazilian woman in her 40s in warm natural kitchen, holding fresh fruit, editorial photography, soft morning light, olive green and off-white color palette'). textOverlay EM PORTUGUES <=40 chars (ex: 'Sem contar caloria'). Prompts devem ser FIEIS ao briefing — nao invente temas aleatorios.",
             items: {
               type: "object",
               properties: {
-                imagePrompt: { type: "string" },
-                textOverlay: { type: "string" },
+                imagePrompt: {
+                  type: "string",
+                  description: "EM INGLES. Cena brasileira especifica: pessoa + idade + ambiente + iluminacao + paleta.",
+                },
+                textOverlay: {
+                  type: "string",
+                  description: "EM PORTUGUES. Curto <=40 chars.",
+                },
               },
               required: ["imagePrompt", "textOverlay"],
             },
@@ -253,7 +269,7 @@ Chame submit_visual_brief.`;
           quotes: {
             type: "array",
             description:
-              "OPCIONAL. Se escolher template Quote Card (77f65d2b ou f941e306) ou Tweet Card (ba413be6), retorne 3-5 quotes aqui. Cada quote entre 10-280 chars (tweet) ou 10-500 (quote card).",
+              "Se escolher Quote Card (77f65d2b/f941e306) ou Tweet Card (ba413be6), retorne 3-5 quotes EM PORTUGUES. Tweet: 10-280 chars. Quote: 10-500.",
             items: { type: "string" },
           },
         },
@@ -266,10 +282,23 @@ Chame submit_visual_brief.`;
     brief = await schemaToolCall();
   } catch (err) {
     const e = err as Error & { status?: number };
-    // Retry 1x em 429 apos 30s
+    // Retry em 429: 2 tentativas com 65s e 130s de espera (rate limit
+    // Anthropic usa janela rolante de 1min).
     if (e.status === 429) {
-      await new Promise((r) => setTimeout(r, 30_000));
-      brief = await schemaToolCall();
+      console.log("[uma-creative] 429, aguardando 65s");
+      await new Promise((r) => setTimeout(r, 65_000));
+      try {
+        brief = await schemaToolCall();
+      } catch (err2) {
+        const e2 = err2 as Error & { status?: number };
+        if (e2.status === 429) {
+          console.log("[uma-creative] 429 again, aguardando 130s");
+          await new Promise((r) => setTimeout(r, 130_000));
+          brief = await schemaToolCall();
+        } else {
+          throw err2;
+        }
+      }
     } else {
       throw err;
     }
