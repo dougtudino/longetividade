@@ -129,12 +129,6 @@ export async function createAiCreative(
 
   console.log(`[creative-ai] prompt len=${prompt.length}, template=${brief.templateId}`);
 
-  const started = await createVisual({
-    templateId: brief.templateId,
-    prompt,
-    title: `${collection.name} · ${input.name}`,
-  });
-
   // Timeout depende do tipo: video talking-head demora 5-15min, imagem ~30s
   const isVideo =
     input.style === "talking-head" ||
@@ -142,22 +136,48 @@ export async function createAiCreative(
   const timeoutMs = isVideo ? 18 * 60_000 : 3 * 60_000;
   const intervalMs = isVideo ? 10_000 : 5_000;
 
+  // Retry ate 2 vezes se template especifico falhar em validation
+  // (Blotato valida server-side depois do POST — creation retorna status
+  // `creation-from-template-failed` e waitForCreation joga erro).
+  const FALLBACK_TEMPLATES = [
+    "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1", // Quote Card — mais tolerante
+    "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", // Single Centered Text
+  ];
+  let attemptTemplateId = brief.templateId;
+  let started;
   let done;
-  try {
-    done = await waitForCreation(started.id, { timeoutMs, intervalMs });
-  } catch (err) {
-    // Se deu timeout mas creation existe no Blotato, lance erro com ID
-    // pra admin poder buscar depois via /api/admin/blotato/creations/[id]
-    if (err instanceof BlotatoError && err.status === 504) {
-      throw new BlotatoError(
-        `Timeout apos ${timeoutMs / 1000}s esperando Blotato. ` +
-          `Creation ID: ${started.id} — use "Buscar creation" em /admin/configuracoes ` +
-          `daqui a alguns minutos pra verificar se completou. O render continua no Blotato.`,
-        504,
-        { creationId: started.id }
+  let attempts = 0;
+  while (attempts < 3) {
+    try {
+      started = await createVisual({
+        templateId: attemptTemplateId,
+        prompt,
+        title: `${collection.name} · ${input.name}`,
+      });
+      done = await waitForCreation(started.id, { timeoutMs, intervalMs });
+      break;
+    } catch (err) {
+      attempts++;
+      const msg = (err as Error).message;
+      const isValidationFail =
+        msg.includes("failed") ||
+        msg.includes("validation") ||
+        msg.includes("at most") ||
+        msg.includes("characters");
+      if (!isValidationFail || attempts >= 3) throw err;
+      const next = FALLBACK_TEMPLATES[attempts - 1];
+      if (!next || next === attemptTemplateId) throw err;
+      console.warn(
+        `[creative-ai] template ${attemptTemplateId} falhou validacao, tentando fallback ${next}`
       );
+      attemptTemplateId = next;
+      brief.templateId = next;
+      brief.templateRationale = `[fallback apos falha] ${brief.templateRationale ?? ""}`;
     }
-    throw err;
+  }
+
+  if (!done || !started) {
+    throw new Error("Impossivel gerar creative apos retries");
   }
 
   const outputUrl = getOutputUrl(done);

@@ -27,114 +27,115 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
     label: "Dor · Cansada de dietas",
     icon: "💔",
     angle: "dor",
-    headline: "Você não precisa de mais uma dieta",
+    headline: "Você merece uma relação leve com a comida",
     briefing:
-      "Mulher 35-55 frustrada com dietas restritivas que nunca duram. " +
-      "Validar a dor: comer escondido, recomeçar toda segunda, culpa. " +
-      "Método S.E.M (Simplicidade, Equilíbrio, Movimento) não exige contar calorias. " +
-      "Tom: acolhedor, sem julgamento.",
+      "Visual sereno pra mulher 35-55 interessada em reeducação alimentar. " +
+      "Validar desejo de abordagem equilibrada, sem restrição. " +
+      "Método S.E.M educa sobre Simplicidade, Equilíbrio e Movimento. " +
+      "Tom: acolhedor, educativo.",
     style: "quote-card",
     name: "Dor · cansada de dietas",
     slug: "dor-dieta",
   },
   {
     id: "dor-balanca",
-    label: "Dor · Ansiedade na balança",
-    icon: "😰",
+    label: "Dor · Bem-estar além do número",
+    icon: "🪷",
     angle: "dor",
-    headline: "A balança não devia mandar no seu humor",
+    headline: "Bem-estar é mais que um número",
     briefing:
-      "Dor: mulher acorda e sobe na balança antes de qualquer coisa. " +
-      "Humor da semana depende do número. Ebook mostra como romper esse ciclo " +
-      "sem abandonar o cuidado com o corpo.",
+      "Visual calmo que propõe olhar holístico pro cuidado com o corpo. " +
+      "Ebook educa sobre relação equilibrada com auto-monitoramento. " +
+      "Tom reflexivo, sem tom de urgência.",
     style: "quote-card",
-    name: "Dor · ansiedade balança",
+    name: "Dor · bem-estar além do número",
     slug: "dor-balanca",
   },
   {
     id: "prova-metodo",
-    label: "Prova · Método S.E.M",
+    label: "Prova · 3 pilares S.E.M",
     icon: "🌿",
     angle: "prova",
-    headline: "1.240 mulheres emagreceram sem contar caloria",
+    headline: "Simplicidade, Equilíbrio, Movimento",
     briefing:
-      "Prova social do Método S.E.M: centenas de mulheres perderam peso " +
-      "com leveza, mantendo resultado por 6+ meses. 3 pilares: Simplicidade " +
-      "alimentar, Equilíbrio emocional, Movimento diário. Visual elegante, " +
-      "paleta verde-oliva.",
+      "Infográfico educativo apresentando o conceito do Método S.E.M. " +
+      "3 pilares lado a lado: Simplicidade alimentar, Equilíbrio emocional, " +
+      "Movimento diário. Resultados individuais variam. " +
+      "Visual elegante, paleta verde-oliva.",
     style: "infographic",
     name: "Prova · método S.E.M",
     slug: "prova-metodo",
   },
   {
     id: "objecao-academia",
-    label: "Objeção · Sem academia",
-    icon: "🚫",
+    label: "Objeção · Movimento natural",
+    icon: "🚶",
     angle: "objecao",
-    headline: "Emagrecer sem pisar em academia",
+    headline: "Movimento natural, todo dia",
     briefing:
-      "Quebra a objeção 'preciso de academia'. Movimento vital: caminhar, " +
-      "subir escada, alongar. 15min/dia já muda metabolismo. Ebook ensina " +
-      "como tornar movimento natural do dia-a-dia.",
+      "Infográfico educativo sobre movimento integrado ao cotidiano: " +
+      "caminhar, subir escada, alongar. Ebook ensina princípios pra " +
+      "tornar movimento um hábito sustentável. Visual acolhedor.",
     style: "infographic",
     name: "Objeção · academia",
     slug: "objecao-academia",
   },
   {
     id: "objecao-tempo",
-    label: "Objeção · Sem tempo pra cozinhar",
+    label: "Objeção · Simplicidade na cozinha",
     icon: "⏰",
     angle: "objecao",
-    headline: "Comida boa não precisa ser complicada",
+    headline: "Comida boa, simples de montar",
     briefing:
-      "Quebra objeção 'não tenho tempo pra cozinhar'. Simplicidade alimentar: " +
-      "receitas de 10min, montagem prática, aproveitar sobras. Ebook tem " +
-      "30 receitas rápidas validadas.",
+      "Visual educativo sobre simplicidade alimentar. Receitas práticas, " +
+      "montagem rápida, aproveitamento de ingredientes. Ebook traz 30 " +
+      "receitas testadas. Tom prático, paleta quente.",
     style: "infographic",
     name: "Objeção · tempo",
     slug: "objecao-tempo",
   },
   {
     id: "promessa-leveza",
-    label: "Promessa · Leveza sem culpa",
+    label: "Promessa · Relação leve com comida",
     icon: "🍃",
     angle: "promessa",
-    headline: "Comer com prazer e emagrecer",
+    headline: "Relação leve com a comida",
     briefing:
-      "Promessa: leveza real, sem neurose com comida. Come pão, chocolate, " +
-      "sobremesa no fim de semana. O corpo responde ao PADRÃO, não ao " +
-      "detalhe isolado. Tom aspiracional, calmo.",
+      "Visual sereno e aspiracional. Conceito: equilíbrio sustentável, " +
+      "sem neurose. Flexibilidade e consistência como base. " +
+      "Tom calmo, cores quentes, respiro.",
     style: "quote-card",
     name: "Promessa · leveza",
     slug: "promessa-leveza",
   },
   {
     id: "cta-direto",
-    label: "CTA · Conheça o ebook",
+    label: "CTA · Baixe o ebook",
     icon: "📖",
     angle: "cta",
-    headline: "Descubra o Método S.E.M",
+    headline: "Conheça o Método S.E.M no ebook",
     briefing:
-      "CTA direto: conhecer ebook Emagreça Sem Dieta. Mostrar capa + 3 benefícios: " +
-      "(1) sem contagem de calorias, (2) receitas práticas, (3) comunidade VIP. " +
-      "Urgência moderada — oferta atual.",
+      "Slideshow apresentando o ebook Emagreça Sem Dieta. Mostrar capa + " +
+      "3 pontos educativos: (1) abordagem sem contagem rigorosa, (2) receitas " +
+      "práticas, (3) acesso à comunidade. Visual profissional, paleta de marca.",
     style: "slideshow",
-    name: "CTA · conheça ebook",
-    slug: "cta-direto",
+    name: "CTA · baixe ebook",
+    slug: "cta-baixe-ebook",
   },
   {
-    id: "prova-depoimento",
-    label: "Prova · Depoimento (talking head)",
+    id: "prova-jornada",
+    label: "Prova · Jornada de bem-estar (talking head)",
     icon: "🎤",
     angle: "prova",
-    headline: "Eu voltei a me sentir bem",
+    headline: "Uma jornada de bem-estar sustentável",
     briefing:
-      "Mulher brasileira 40+ falando pra camera com tom calmo e acolhedor. " +
-      "Conta que tentou N dietas e sempre voltava pior. Descobriu método S.E.M " +
-      "e em 3 meses perdeu peso sem culpa. Termina convidando pra conhecer o ebook. " +
+      "Mulher 40+ brasileira falando pra câmera com tom calmo. " +
+      "Compartilha interesse em abordagem educativa de bem-estar alimentar. " +
+      "Apresenta o Método S.E.M como proposta educacional. " +
+      "Menciona que resultados individuais variam. " +
       "Fundo casa aconchegante, luz natural.",
     style: "talking-head",
-    name: "Prova · depoimento talking head",
-    slug: "prova-depoimento-th",
+    name: "Prova · jornada bem-estar",
+    slug: "prova-jornada-th",
   },
 ];

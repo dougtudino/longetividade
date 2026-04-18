@@ -24,16 +24,28 @@ const AD_TEMPLATE_FALLBACK = [
   { id: "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1", description: "When X then Y Text Slideshow (reflexivo, before/after de HABITO)", slots: ["AD_STORY"] },
 ];
 
+// Legacy Infographics do Blotato — templates antigos com validacao strict
+// (description max 500, inputs obrigatorios). Tendem a falhar server-side
+// quando a gente manda so prompt livre. Excluidos do default pra evitar 400.
+// Doc oficial categoriza ~20 como "Legacy Infographics".
+const LEGACY_KEYWORDS =
+  /whiteboard|chalkboard|book page|newspaper|billboard infographic|classroom/i;
+
 // Le catalog cachado (synced do Blotato), classifica por slot AD_*.
+// Exclui Legacy Infographics pra reduzir taxa de falha.
 async function getAdTemplateCatalog(): Promise<
   Array<{ id: string; description: string; slots: string[] }>
 > {
   try {
     const cached = await getCachedTemplates({ autoSyncIfEmpty: true });
     if (cached.length > 0) {
-      // Filtra so imagens (ads normalmente usam estatico; video ads sao opcionais)
       return cached
         .filter((t) => t.type !== "video")
+        .filter((t) => {
+          // Exclui Legacy Infographics
+          const text = ((t.name ?? "") + " " + (t.description ?? "")).toLowerCase();
+          return !LEGACY_KEYWORDS.test(text);
+        })
         .map((t) => {
           const descLower = (t.description ?? "").toLowerCase();
           const nameLower = (t.name ?? "").toLowerCase();
