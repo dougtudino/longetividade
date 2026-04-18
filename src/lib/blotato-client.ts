@@ -129,12 +129,19 @@ export interface CreateVisualInput {
 export interface BlotatoCreation {
   id: string;
   status: "queueing" | "generating-media" | "done" | "failed" | string;
-  outputUrl?: string;
+  imageUrls?: string[] | null;
+  mediaUrl?: string | null;
   error?: string;
+  createdAt?: string;
+}
+
+// Blotato respostas de creations vem envelopadas: { item: { ... } }
+async function unwrap<T>(res: { item?: T } | T): Promise<T> {
+  return (res && typeof res === "object" && "item" in res ? (res as { item: T }).item : res) as T;
 }
 
 export async function createVisual(input: CreateVisualInput): Promise<BlotatoCreation> {
-  return request<BlotatoCreation>("/videos/from-templates", {
+  const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
     method: "POST",
     body: JSON.stringify({
       templateId: input.templateId,
@@ -143,18 +150,21 @@ export async function createVisual(input: CreateVisualInput): Promise<BlotatoCre
       render: true,
     }),
   });
+  return unwrap(res);
 }
 
 export async function getCreation(id: string): Promise<BlotatoCreation> {
-  return request<BlotatoCreation>(`/videos/creations/${id}`, { method: "GET" });
+  const res = await request<{ item: BlotatoCreation }>(`/videos/creations/${id}`, { method: "GET" });
+  return unwrap(res);
 }
 
-// Poll ate ficar `done` (ou falhar). Intervalo 3s, timeout 5min.
+// Poll ate ficar `done` (ou falhar). Intervalo 5s, timeout 5min — imagens
+// ficam prontas em ~10s, videos podem demorar 1-3min.
 export async function waitForCreation(
   id: string,
   opts: { intervalMs?: number; timeoutMs?: number } = {},
 ): Promise<BlotatoCreation> {
-  const interval = opts.intervalMs ?? 3000;
+  const interval = opts.intervalMs ?? 5000;
   const timeout = opts.timeoutMs ?? 5 * 60_000;
   const start = Date.now();
   while (Date.now() - start < timeout) {
@@ -166,6 +176,11 @@ export async function waitForCreation(
     await new Promise((r) => setTimeout(r, interval));
   }
   throw new BlotatoError(`creation ${id} timeout apos ${timeout}ms`, 504);
+}
+
+// Helper: URL final do output. Imagens em imageUrls[0], videos em mediaUrl.
+export function getOutputUrl(c: BlotatoCreation): string | null {
+  return c.imageUrls?.[0] ?? c.mediaUrl ?? null;
 }
 
 // ─── Publish / Schedule post ───────────────────────────
