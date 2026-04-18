@@ -6,6 +6,8 @@
 // - Limite de 20% de texto na imagem (nao conseguimos medir aqui, mas avisa)
 // - Claims de saude precisam de disclaimer
 
+import { parseLlmJson } from "./llm-json";
+
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 1024;
@@ -106,14 +108,13 @@ Avalie segundo Meta Ad Policy + nicho saude.`;
   };
   const raw =
     data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 
   let verdict: QuinnCreativeVerdict;
   try {
-    verdict = JSON.parse(jsonStr) as QuinnCreativeVerdict;
+    verdict = parseLlmJson<QuinnCreativeVerdict>(raw);
   } catch (err) {
     throw new Error(
-      `Quinn retornou JSON invalido: ${jsonStr.slice(0, 300)} (${(err as Error).message})`
+      `Quinn retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`
     );
   }
   return verdict;

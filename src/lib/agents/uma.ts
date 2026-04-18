@@ -9,6 +9,7 @@
 
 import { prisma } from "../prisma";
 import { getCachedTemplates } from "../blotato-templates-sync";
+import { parseLlmJson } from "./llm-json";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
@@ -295,14 +296,11 @@ Responda o JSON.`;
   };
   const raw = data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
 
-  // Claude as vezes inclui ```json ... ``` fence — remove defensive.
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
-
   let brief: UmaBrief;
   try {
-    brief = JSON.parse(jsonStr) as UmaBrief;
+    brief = parseLlmJson<UmaBrief>(raw);
   } catch (err) {
-    throw new Error(`Uma retornou JSON invalido: ${jsonStr.slice(0, 300)} (${(err as Error).message})`);
+    throw new Error(`Uma retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
   }
 
   // Validacao minima

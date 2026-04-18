@@ -9,6 +9,7 @@
 // Grava AgentDecision(agentId="quinn", action="COMPLIANCE_CHECK").
 
 import { prisma } from "../prisma";
+import { parseLlmJson } from "./llm-json";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-haiku-4-5-20251001";
@@ -106,13 +107,12 @@ Avalie.`;
     content?: Array<{ type: string; text?: string }>;
   };
   const raw = data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 
   let verdict: QuinnVerdict;
   try {
-    verdict = JSON.parse(jsonStr) as QuinnVerdict;
+    verdict = parseLlmJson<QuinnVerdict>(raw);
   } catch (err) {
-    throw new Error(`Quinn retornou JSON invalido: ${jsonStr.slice(0, 300)} (${(err as Error).message})`);
+    throw new Error(`Quinn retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
   }
 
   await prisma.agentDecision.create({

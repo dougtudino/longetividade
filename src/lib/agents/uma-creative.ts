@@ -3,6 +3,7 @@
 
 import { prisma } from "../prisma";
 import { getCachedTemplates } from "../blotato-templates-sync";
+import { parseLlmJson } from "./llm-json";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
@@ -209,12 +210,11 @@ Responda o JSON.`;
       };
       const retryRaw =
         retryData.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-      const retryJson = retryRaw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
       let brief: UmaCreativeBrief;
       try {
-        brief = JSON.parse(retryJson) as UmaCreativeBrief;
+        brief = parseLlmJson<UmaCreativeBrief>(retryRaw);
       } catch (err) {
-        throw new Error(`Uma retornou JSON invalido: ${retryJson.slice(0, 300)} (${(err as Error).message})`);
+        throw new Error(`Uma retornou JSON invalido: ${retryRaw.slice(0, 300)} (${(err as Error).message})`);
       }
       if (!brief.templateId || !brief.enrichedBriefing) {
         throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
@@ -233,13 +233,12 @@ Responda o JSON.`;
   };
   const raw =
     data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 
   let brief: UmaCreativeBrief;
   try {
-    brief = JSON.parse(jsonStr) as UmaCreativeBrief;
+    brief = parseLlmJson<UmaCreativeBrief>(raw);
   } catch (err) {
-    throw new Error(`Uma retornou JSON invalido: ${jsonStr.slice(0, 300)} (${(err as Error).message})`);
+    throw new Error(`Uma retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
   }
   if (!brief.templateId || !brief.enrichedBriefing) {
     throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
