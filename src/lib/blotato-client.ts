@@ -146,28 +146,24 @@ async function unwrap<T>(res: { item?: T } | T): Promise<T> {
   return (res && typeof res === "object" && "item" in res ? (res as { item: T }).item : res) as T;
 }
 
-// Blotato recentemente mudou e exige UUID puro em vez de path longo.
-// Exemplo de path antigo: "/base/v2/ai-story-video/5903fe43-.../v1"
-// Formato aceito hoje: "5903fe43-514d-40ee-a060-0d6628c5f8fd"
-// Extraimos o UUID de forma defensiva — aceita UUID puro OU path longo.
-const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+// Blotato usa 2 formatos de templateId:
+// 1. Path completo "/base/v2/<category>/<uuid>/v1" — templates da BIBLIOTECA base
+// 2. UUID puro "5903fe43-..." — templates clonados/customizados da conta
+// A listagem GET /videos/templates retorna o formato 1 (path) e devemos
+// enviar EXATAMENTE como veio no POST /videos/from-templates. A doc publica
+// diz "use UUID" mas testamos e 404; path funciona pro plano base.
 export function normalizeTemplateId(raw: string): string {
-  const trimmed = raw.trim();
-  if (UUID_RE.test(trimmed) && trimmed.length === 36) return trimmed;
-  const match = trimmed.match(UUID_RE);
-  return match ? match[0] : trimmed;
+  return raw.trim();
 }
 
 export async function createVisual(input: CreateVisualInput): Promise<BlotatoCreation> {
-  const normalizedId = normalizeTemplateId(input.templateId);
-  console.log(
-    `[blotato] createVisual: raw="${input.templateId}" → normalized="${normalizedId}"`
-  );
+  const templateId = input.templateId.trim();
+  console.log(`[blotato] createVisual templateId="${templateId}"`);
   try {
     const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
       method: "POST",
       body: JSON.stringify({
-        templateId: normalizedId,
+        templateId,
         inputs: input.inputs ?? {},
         ...(input.prompt ? { prompt: input.prompt } : {}),
         ...(input.title ? { title: input.title } : {}),
@@ -176,12 +172,10 @@ export async function createVisual(input: CreateVisualInput): Promise<BlotatoCre
     });
     return unwrap(res);
   } catch (err) {
-    // Enriquece erro pra ficar claro qual ID falhou — crucial pra debug
     if (err instanceof BlotatoError && err.status === 404) {
       throw new BlotatoError(
-        `Blotato 404 Unknown template ID: "${normalizedId}" (raw input: "${input.templateId}"). ` +
-          `Isso significa que esse UUID nao existe no seu plano. ` +
-          `Solucao: /admin/configuracoes → Blotato → Sincronizar templates, e tente de novo.`,
+        `Blotato 404: template "${templateId}" nao encontrado. ` +
+          `Rode sync em /admin/configuracoes → Blotato.`,
         404,
         err.body
       );
