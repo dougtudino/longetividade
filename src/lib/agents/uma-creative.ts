@@ -73,6 +73,11 @@ export interface UmaCreativeBrief {
   mood: string;
   textOverlay?: string;
   reasoning: string;
+  // Pra templates de slideshow multi-cena, Uma pode retornar slides estruturados.
+  // Cada slide vira 1 cena no carrossel com imagem AI + texto overlay.
+  slides?: Array<{ imagePrompt: string; textOverlay: string }>;
+  // Pra Quote Carousel, Uma retorna array de quotes.
+  quotes?: string[];
 }
 
 interface CreativeBriefingInput {
@@ -118,7 +123,7 @@ function filterByStyle(
 
 async function fetchKnowledgeForCreative(): Promise<string> {
   // Lean: so o essencial. blotato-templates cache NAO entra aqui (so nos templates do prompt).
-  const [persona, compliance, learnings] = await Promise.all([
+  const [persona, compliance, learnings, playbook] = await Promise.all([
     prisma.agentKnowledge.findFirst({
       where: { agentId: "luna", kind: "fact", title: { contains: "persona", mode: "insensitive" } },
       select: { body: true },
@@ -137,16 +142,28 @@ async function fetchKnowledgeForCreative(): Promise<string> {
       orderBy: { createdAt: "desc" },
       take: 1,
     }),
+    prisma.agentKnowledge.findFirst({
+      where: { agentId: "uma", source: "blotato-playbook" },
+      select: { body: true },
+    }),
   ]);
 
   const parts: string[] = [];
-  if (persona) parts.push(`## Persona\n${persona.body.slice(0, 500)}`);
-  if (compliance) parts.push(`## Compliance\n${compliance.body.slice(0, 300)}`);
+  if (persona) parts.push(`## Persona\n${persona.body.slice(0, 400)}`);
+  if (compliance) parts.push(`## Compliance\n${compliance.body.slice(0, 250)}`);
   if (learnings.length) {
     parts.push(
       `## Aprendizado recente\n` +
-        learnings.map((l) => `${l.title}: ${l.body.slice(0, 300)}`).join("\n")
+        learnings.map((l) => `${l.title}: ${l.body.slice(0, 200)}`).join("\n")
     );
+  }
+  // Playbook Blotato: truncado pra caber — foco na secao decisao + antipatterns
+  if (playbook) {
+    const body = playbook.body;
+    // Pega secao "Decisao de template" + "Antipatterns"
+    const decisaoIdx = body.indexOf("## Decisao de template");
+    const relevantSection = decisaoIdx >= 0 ? body.slice(decisaoIdx, decisaoIdx + 1800) : body.slice(0, 1800);
+    parts.push(`## Blotato Playbook (decisao + antipatterns)\n${relevantSection}`);
   }
   return parts.join("\n\n");
 }
@@ -251,14 +268,33 @@ Chame submit_visual_brief.`;
         properties: {
           enrichedBriefing: {
             type: "string",
-            description: "Briefing visual CURTO (max 250 chars, 3-4 linhas). Nao escrever paragrafo longo — templates validam tamanho.",
+            description: "Briefing visual CURTO (max 250 chars). Nao escrever paragrafo longo.",
           },
           templateId: { type: "string" },
           templateRationale: { type: "string" },
           colorPalette: { type: "string" },
           mood: { type: "string" },
-          textOverlay: { type: "string", description: "Texto curto pra aparecer no visual, <= 6 palavras" },
+          textOverlay: { type: "string", description: "Texto curto no visual, <= 6 palavras" },
           reasoning: { type: "string" },
+          slides: {
+            type: "array",
+            description:
+              "OPCIONAL. Se escolher template Image Slideshow (5903b592), retorne 3-5 slides aqui. Cada slide: imagePrompt descritivo da cena + textOverlay curto (<40 chars). NUNCA use 'S1:', 'Slide 1:'.",
+            items: {
+              type: "object",
+              properties: {
+                imagePrompt: { type: "string" },
+                textOverlay: { type: "string" },
+              },
+              required: ["imagePrompt", "textOverlay"],
+            },
+          },
+          quotes: {
+            type: "array",
+            description:
+              "OPCIONAL. Se escolher template Quote Card (77f65d2b ou f941e306) ou Tweet Card (ba413be6), retorne 3-5 quotes aqui. Cada quote entre 10-280 chars (tweet) ou 10-500 (quote card).",
+            items: { type: "string" },
+          },
         },
         required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],
       },

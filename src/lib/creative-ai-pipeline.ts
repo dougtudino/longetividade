@@ -10,6 +10,8 @@
 import { prisma } from "./prisma";
 import {
   createVisual,
+  createImageSlideshow,
+  createCarousel,
   waitForCreation,
   getOutputUrl,
   BlotatoError,
@@ -147,13 +149,35 @@ export async function createAiCreative(
   let started;
   let done;
   let attempts = 0;
+
+  // Decide qual funcao Blotato usar baseado no que Uma retornou
+  async function startCreation(tplId: string) {
+    const title = `${collection!.name} · ${input.name}`;
+    // Se Uma forneceu slides estruturados (pra Image Slideshow), usa createImageSlideshow
+    if (brief.slides && brief.slides.length > 0) {
+      console.log(`[creative-ai] usando createImageSlideshow com ${brief.slides.length} slides`);
+      return createImageSlideshow({
+        templateId: tplId,
+        slides: brief.slides,
+        title,
+      });
+    }
+    // Se Uma forneceu quotes (pra Quote Card / Tweet Card), usa createCarousel
+    if (brief.quotes && brief.quotes.length > 0) {
+      console.log(`[creative-ai] usando createCarousel com ${brief.quotes.length} quotes`);
+      return createCarousel({
+        templateId: tplId,
+        quotes: brief.quotes,
+        title,
+      });
+    }
+    // Default: prompt simples
+    return createVisual({ templateId: tplId, prompt, title });
+  }
+
   while (attempts < 3) {
     try {
-      started = await createVisual({
-        templateId: attemptTemplateId,
-        prompt,
-        title: `${collection.name} · ${input.name}`,
-      });
+      started = await startCreation(attemptTemplateId);
       done = await waitForCreation(started.id, { timeoutMs, intervalMs });
       break;
     } catch (err) {

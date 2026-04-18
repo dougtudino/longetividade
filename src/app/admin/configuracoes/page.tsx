@@ -1396,6 +1396,39 @@ function BlotatoSection() {
         </details>
       )}
 
+      <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          Knowledge Uma · Playbook Blotato
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            onClick={async () => {
+              try {
+                const r = await fetch("/api/admin/blotato/seed-playbook", { method: "POST" });
+                const d = await r.json();
+                if (d.ok) {
+                  alert(`✅ Playbook v${d.version} seedado.\n${d.templatesCount} templates documentados.\n${d.bodySize} chars no knowledge da Uma.`);
+                } else {
+                  alert(`Erro: ${d.error}`);
+                }
+              } catch (e) {
+                alert(`Erro: ${(e as Error).message}`);
+              }
+            }}
+            style={{
+              ...saveBtnStyle,
+              padding: "8px 16px",
+              fontSize: 13,
+            }}
+          >
+            🌱 Seedar playbook Uma
+          </button>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            Insere schema de 11+ templates + regras + antipatterns no knowledge da Uma
+          </span>
+        </div>
+      </div>
+
       <p style={{ ...hintStyle, marginTop: 16 }}>
         💡 Roda 1x no setup. Depois só quando Blotato adicionar templates novos
         (raro). Uma usa esse cache quando você gera criativo com IA.
