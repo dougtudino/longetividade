@@ -7,22 +7,21 @@ const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
-// Catalogo reduzido — apenas templates aptos pra AD_*.
-// Sincronizado com uma.ts TEMPLATE_CATALOG (filtrado por suits AD_*).
+// Catalogo REAL (validado em prod) — apenas IDs Blotato que existem.
+// Pra AD_* reutilizamos templates organicos que funcionam bem como anuncio.
 const AD_TEMPLATE_CATALOG = [
-  { id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", description: "Single Centered Text Quote", slots: ["AD_FEED"] },
-  { id: "ae868019-820d-434c-8fe1-74c9da99129a", description: "Whiteboard Infographic", slots: ["AD_STORY"] },
-  { id: "53cfec04-2500-41cf-8cc1-ba670d2c341a", description: "Instagram Carousel Slideshow", slots: ["AD_FEED"] },
-  { id: "76b3b959-bdbe-440d-8428-984219353f18", description: "Billboard Infographic (impacto)", slots: ["AD_FEED"] },
-  { id: "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1", description: "Quote Card Carousel with Paper Background", slots: ["AD_FEED"] },
-  { id: "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1", description: "Tutorial Carousel Minimalist Flat", slots: ["AD_FEED"] },
-  { id: "/base/v2/nano-banana-carousel/nb2-premium-v1/v1", description: "Nano Banana 2 Premium Carousel (editorial)", slots: ["AD_FEED"] },
-  { id: "/base/v2/nano-banana-carousel/nb2-soft-pastel/v1", description: "Nano Banana 2 Soft Pastel (feminino)", slots: ["AD_FEED"] },
-  { id: "/base/v2/images-with-text/3ed4bb92-dbfe-45e6-9dc8-605b77f70506/v1", description: "Video of Images and Text Minimal", slots: ["AD_FEED", "AD_STORY"] },
-  { id: "/base/v2/story-cta/stcta-01-v1/v1", description: "Story CTA Vertical with Swipe-up", slots: ["AD_STORY"] },
-  { id: "/base/v2/ad-single/adf-pain-v1/v1", description: "Ad Single Pain-Point (dor + micro-beneficio + CTA)", slots: ["AD_FEED"] },
-  { id: "/base/v2/ad-single/adf-prova-v1/v1", description: "Ad Single Social Proof (depoimento + numero)", slots: ["AD_FEED"] },
-  { id: "/base/v2/ad-single/adf-objecao-v1/v1", description: "Ad Single Quebra Objecao (mito vs verdade)", slots: ["AD_FEED"] },
+  { id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", description: "Single Centered Text Quote (impacto, frase forte)", slots: ["AD_FEED"] },
+  { id: "ae868019-820d-434c-8fe1-74c9da99129a", description: "Whiteboard Infographic (educativo, lista)", slots: ["AD_STORY", "AD_FEED"] },
+  { id: "53cfec04-2500-41cf-8cc1-ba670d2c341a", description: "Instagram Carousel Slideshow (multi-card, conta historia)", slots: ["AD_FEED"] },
+  { id: "76b3b959-bdbe-440d-8428-984219353f18", description: "Billboard Infographic (frase enorme, impacto visual)", slots: ["AD_FEED"] },
+  { id: "07a5b5c5-387c-49e3-86b1-de822cd2dfc7", description: "Newspaper Infographic (jornalistico, tom autoridade)", slots: ["AD_FEED"] },
+  { id: "b88c8273-6406-48c6-85e7-096119aefe30", description: "Book Page Infographic (literario, aspiracional)", slots: ["AD_FEED"] },
+  { id: "d9495026-3945-44f6-8b44-07c28c492e6d", description: "Classroom Chalkboard Infographic (didatico, blackboard look)", slots: ["AD_FEED"] },
+  { id: "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1", description: "Quote Card Carousel with Paper Background and Highlight", slots: ["AD_FEED"] },
+  { id: "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1", description: "Tutorial Carousel Minimalist Flat (passo-a-passo)", slots: ["AD_FEED"] },
+  { id: "/base/v2/tutorial-carousel/e095104b-e6c5-4a81-a89d-b0df3d7c5baf/v1", description: "Tutorial Carousel Monocolor (minimal)", slots: ["AD_FEED"] },
+  { id: "/base/v2/images-with-text/3ed4bb92-dbfe-45e6-9dc8-605b77f70506/v1", description: "Video of Images and Text Minimal (vertical visual)", slots: ["AD_STORY", "AD_FEED"] },
+  { id: "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1", description: "When X then Y Text Slideshow (reflexivo, before/after de HABITO)", slots: ["AD_STORY"] },
 ];
 
 export interface UmaCreativeBrief {

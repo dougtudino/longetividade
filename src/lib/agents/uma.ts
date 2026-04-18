@@ -13,9 +13,9 @@ const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
-// Catalogo de templates Blotato disponiveis (snapshot 2026-04-18 v2).
-// Uma escolhe um desses conforme slot/pilar/mood.
-// Adiciona: Nano Banana 2 carrossel, AD_FEED/AD_STORY (meta ads), slots extras.
+// Catalogo de templates Blotato REAIS (validados em prod 2026-04-18).
+// IDs chutados foram removidos — todos os abaixo existem na API Blotato.
+// AD_FEED/AD_STORY reutilizam templates organicos que funcionam em ads.
 const TEMPLATE_CATALOG: Array<{ id: string; description: string; suits: string[] }> = [
   // ─── FEED_AM (1:1 estatico) ──────────────────────
   { id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", description: "Single Centered Text Quote", suits: ["FEED_AM", "AD_FEED", "quote", "acolhedor"] },
@@ -28,27 +28,16 @@ const TEMPLATE_CATALOG: Array<{ id: string; description: string; suits: string[]
   { id: "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1", description: "Quote Card Carousel with Paper Background and Highlight", suits: ["FEED_AM", "AD_FEED", "quote"] },
   { id: "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1", description: "Tutorial Carousel Minimalist Flat", suits: ["FEED_AM", "AD_FEED", "tutorial"] },
   { id: "/base/v2/tutorial-carousel/e095104b-e6c5-4a81-a89d-b0df3d7c5baf/v1", description: "Tutorial Carousel Monocolor", suits: ["FEED_AM", "tutorial"] },
-  // Nano Banana 2 — carrossel premium do plano $29+ (editorial, alta qualidade)
-  { id: "/base/v2/nano-banana-carousel/nb2-premium-v1/v1", description: "Nano Banana 2 Premium Carousel (editorial illustrated style, ideal para conteudo aspiracional)", suits: ["FEED_AM", "AD_FEED", "carrossel", "premium", "editorial"] },
-  { id: "/base/v2/nano-banana-carousel/nb2-soft-pastel/v1", description: "Nano Banana 2 Soft Pastel Carousel (tons pastel, feminino, acolhedor)", suits: ["FEED_AM", "AD_FEED", "carrossel", "feminino"] },
 
   // ─── STORY / FEED hibrido (9:16) ──────────────────────
   { id: "/base/v2/images-with-text/3ed4bb92-dbfe-45e6-9dc8-605b77f70506/v1", description: "Video of Images and Text Minimal Style", suits: ["FEED_AM", "STORY", "AD_STORY", "visual"] },
   { id: "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1", description: "When X then Y Text Slideshow", suits: ["STORY", "AD_STORY", "reflexivo"] },
-  { id: "/base/v2/story-cta/stcta-01-v1/v1", description: "Story CTA Vertical with Swipe-up Indicator (ideal pra anuncios e promo)", suits: ["STORY", "AD_STORY", "cta", "promo"] },
 
   // ─── REEL (video vertical) ──────────────────────
   { id: "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1", description: "AI Video with AI Voice", suits: ["REEL", "narrativo"] },
   { id: "/base/v2/ai-selfie-video/57f5a565-fd17-458b-be43-4a2d8ccaca75/v1", description: "AI Selfie Talking Video Consistent Character", suits: ["REEL", "selfie", "talking-head"] },
   { id: "/base/v2/ai-avatar-broll/7c26a1cd-d5b3-42da-9c73-2413333873b3/v1", description: "AI Avatar with AI Generated B-roll", suits: ["REEL", "avatar"] },
   { id: "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1", description: "Image Slideshow with Text Overlays", suits: ["REEL", "slideshow"] },
-  { id: "/base/v2/split-screen-reel/ssr-01-v1/v1", description: "Split Screen Reel (lado-a-lado, ideal pra mostrar antes/depois de HABITO — nunca corpo)", suits: ["REEL", "split", "comparativo"] },
-  { id: "/base/v2/text-reveal-reel/trr-01-v1/v1", description: "Text Reveal Reel (tipografia animada, alta retencao)", suits: ["REEL", "AD_REEL", "tipografia"] },
-
-  // ─── AD_FEED (1:1 ou 4:5 focado em conversao) ──────────────────────
-  { id: "/base/v2/ad-single/adf-pain-v1/v1", description: "Ad Single Pain-Point (dor em destaque + micro-beneficio + CTA)", suits: ["AD_FEED", "dor", "conversao"] },
-  { id: "/base/v2/ad-single/adf-prova-v1/v1", description: "Ad Single Social Proof (depoimento + numero + CTA)", suits: ["AD_FEED", "prova", "conversao"] },
-  { id: "/base/v2/ad-single/adf-objecao-v1/v1", description: "Ad Single Quebra Objecao (dupla coluna, mito vs verdade)", suits: ["AD_FEED", "objecao"] },
 ];
 
 export interface UmaBrief {
