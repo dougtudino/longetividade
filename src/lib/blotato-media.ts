@@ -99,7 +99,7 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
     prompt = fallbackImagePrompt(post);
   }
 
-  const started = await createVisual({ templateId, prompt });
+  const started = await createVisual({ templateId, prompt, title: post.title });
   const done = await waitForCreation(started.id, { timeoutMs: 3 * 60_000 });
 
   const url = getOutputUrl(done);
@@ -199,9 +199,11 @@ export async function generateVideoForPost(postId: string): Promise<GenerateVide
     prompt = fallbackReelPrompt(post);
   }
 
-  const started = await createVisual({ templateId, prompt });
-  // video demora mais: ate 10min pra AI story video
-  const done = await waitForCreation(started.id, { timeoutMs: 10 * 60_000, intervalMs: 10_000 });
+  const started = await createVisual({ templateId, prompt, title: post.title });
+  // Video costuma demorar 3-15min. Damos 20min de folga. Se o cliente cair
+  // antes disso, a creation continua no Blotato e dá pra consultar depois
+  // via GET /v2/videos/creations/:id.
+  const done = await waitForCreation(started.id, { timeoutMs: 20 * 60_000, intervalMs: 10_000 });
 
   const url = getOutputUrl(done);
   if (!url) throw new BlotatoError(`creation ${started.id} retornou sem URL`, 500, done);

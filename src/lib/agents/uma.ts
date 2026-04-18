@@ -50,10 +50,11 @@ interface KnowledgeBits {
   compliance: string | null;
   viralRefs: Array<{ hook: string; concept: string; views: number; username: string }>;
   recentLearnings: Array<{ title: string; body: string }>;
+  umaRefs: Array<{ title: string; body: string }>;
 }
 
 async function fetchKnowledgeBits(pillar: string): Promise<KnowledgeBits> {
-  const [playbook, persona, compliance, viralRefs, learnings] = await Promise.all([
+  const [playbook, persona, compliance, viralRefs, learnings, umaRefs] = await Promise.all([
     prisma.agentKnowledge.findMany({
       where: { agentId: "luna", source: "luna-playbook", kind: "rule" },
       select: { title: true, body: true },
@@ -87,6 +88,12 @@ async function fetchKnowledgeBits(pillar: string): Promise<KnowledgeBits> {
       orderBy: { createdAt: "desc" },
       take: 5,
     }),
+    prisma.agentKnowledge.findMany({
+      where: { agentId: "uma" },
+      select: { title: true, body: true },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    }),
   ]);
 
   const viralMapped = viralRefs
@@ -110,6 +117,7 @@ async function fetchKnowledgeBits(pillar: string): Promise<KnowledgeBits> {
     compliance: compliance?.body ?? null,
     viralRefs: viralMapped,
     recentLearnings: learnings,
+    umaRefs,
   };
 }
 
@@ -135,6 +143,12 @@ function renderKnowledge(kb: KnowledgeBits): string {
     parts.push(
       `## Aprendizados recentes (engagement + auto-post)\n` +
         kb.recentLearnings.map((l) => `- ${l.title}: ${l.body.slice(0, 160)}`).join("\n"),
+    );
+  }
+  if (kb.umaRefs.length) {
+    parts.push(
+      `## Minhas referencias (Uma)\n` +
+        kb.umaRefs.map((r) => `- ${r.title}\n${r.body.slice(0, 400)}`).join("\n\n"),
     );
   }
   return parts.join("\n\n");

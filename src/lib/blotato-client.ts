@@ -124,6 +124,7 @@ export interface CreateVisualInput {
   templateId: string;
   inputs?: Record<string, unknown>;
   prompt?: string;
+  title?: string; // nome pro rastreio no dashboard Blotato
 }
 
 export interface BlotatoCreation {
@@ -147,6 +148,7 @@ export async function createVisual(input: CreateVisualInput): Promise<BlotatoCre
       templateId: input.templateId,
       inputs: input.inputs ?? {},
       ...(input.prompt ? { prompt: input.prompt } : {}),
+      ...(input.title ? { title: input.title } : {}),
       render: true,
     }),
   });
