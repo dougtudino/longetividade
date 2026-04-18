@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
         | "quote-card"
         | "infographic"
         | "carousel";
+      // Preset direct (bypass Uma)
+      presetTemplateId?: string;
+      presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
+      presetQuotes?: string[];
     };
 
     if (!body.collectionId || !body.slug || !body.name || !body.format || !body.briefing) {
@@ -56,6 +60,9 @@ export async function POST(req: NextRequest) {
       headline: body.headline,
       cta: body.cta,
       style: body.style,
+      presetTemplateId: body.presetTemplateId,
+      presetSlides: body.presetSlides,
+      presetQuotes: body.presetQuotes,
     });
 
     return NextResponse.json({ ok: true, ...result });

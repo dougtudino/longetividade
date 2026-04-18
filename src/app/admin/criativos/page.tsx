@@ -79,21 +79,33 @@ export default function CriativosPage() {
     icon: "✨",
   });
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const [aiForm, setAiForm] = useState({
-    slug: "",
-    name: "",
-    format: "feed" as "feed" | "story" | "banner",
-    briefing: "",
-    angle: "dor" as "dor" | "prova" | "objecao" | "promessa" | "cta",
-    headline: "",
-    cta: "Saiba mais",
-    style: "auto" as
+  const [aiForm, setAiForm] = useState<{
+    slug: string;
+    name: string;
+    format: "feed" | "story" | "banner";
+    briefing: string;
+    angle: "dor" | "prova" | "objecao" | "promessa" | "cta";
+    headline: string;
+    cta: string;
+    style:
       | "auto"
       | "talking-head"
       | "slideshow"
       | "quote-card"
       | "infographic"
-      | "carousel",
+      | "carousel";
+    presetTemplateId?: string;
+    presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
+    presetQuotes?: string[];
+  }>({
+    slug: "",
+    name: "",
+    format: "feed",
+    briefing: "",
+    angle: "dor",
+    headline: "",
+    cta: "Saiba mais",
+    style: "auto",
   });
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiResult, setAiResult] = useState<{
@@ -977,6 +989,10 @@ export default function CriativosPage() {
                         headline: p.headline,
                         briefing: p.briefing,
                         style: p.style,
+                        // Playbook-aligned: passa templateId + slides/quotes se preset os tem
+                        presetTemplateId: p.templateId,
+                        presetSlides: p.slides,
+                        presetQuotes: p.quotes,
                       })
                     }
                     style={{

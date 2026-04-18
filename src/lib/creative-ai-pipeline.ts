@@ -38,6 +38,11 @@ export interface CreateAiCreativeInput {
   headline?: string;
   cta?: string;
   style?: CreativeStyle; // hint pra Uma filtrar templates
+
+  // PRESET DIRECT (bypass Uma quando fornecido) — playbook-aligned
+  presetTemplateId?: string;
+  presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
+  presetQuotes?: string[];
 }
 
 export interface CreateAiCreativeResult {
@@ -82,16 +87,43 @@ export async function createAiCreative(
   const { width, height } = dimensionsFor(input.format);
   const slot = slotFor(input.format);
 
-  // 1. Uma monta brief + escolhe template
-  const brief = await buildVisualBriefForBriefing({
-    collectionName: collection.name,
-    briefing: input.briefing,
-    angle: input.angle,
-    headline: input.headline,
-    cta: input.cta,
-    slot,
-    style: input.style,
-  });
+  // 1. PRESET DIRECT path: se preset forneceu templateId + slides/quotes,
+  //    bypassa Uma (economiza ~2k tokens Anthropic, evita 429, qualidade
+  //    consistente). Brief eh montado so com dados fornecidos.
+  let brief: Awaited<ReturnType<typeof buildVisualBriefForBriefing>>;
+  const hasCompletePreset =
+    !!input.presetTemplateId &&
+    ((input.presetSlides && input.presetSlides.length > 0) ||
+      (input.presetQuotes && input.presetQuotes.length > 0));
+
+  if (hasCompletePreset) {
+    console.log(
+      `[creative-ai] PRESET DIRECT — bypass Uma. template=${input.presetTemplateId}, ` +
+        `slides=${input.presetSlides?.length ?? 0}, quotes=${input.presetQuotes?.length ?? 0}`
+    );
+    brief = {
+      enrichedBriefing: input.briefing.slice(0, 200),
+      templateId: input.presetTemplateId!,
+      templateRationale: "preset playbook-aligned",
+      colorPalette: "verde-oliva + off-white + terroso",
+      mood: "acolhedor",
+      textOverlay: input.headline,
+      reasoning: "preset playbook-aligned: templateId + slides/quotes pre-definidos",
+      slides: input.presetSlides,
+      quotes: input.presetQuotes,
+    };
+  } else {
+    // Fluxo normal: Uma decide tudo a partir do briefing livre
+    brief = await buildVisualBriefForBriefing({
+      collectionName: collection.name,
+      briefing: input.briefing,
+      angle: input.angle,
+      headline: input.headline,
+      cta: input.cta,
+      slot,
+      style: input.style,
+    });
+  }
 
   // 2. Quinn valida ANTES do render (economiza credito Blotato)
   const preVerdict = await reviewCreativeCompliance({
