@@ -97,6 +97,8 @@ export default function CriativosPage() {
     presetTemplateId?: string;
     presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
     presetQuotes?: string[];
+    presetScenes?: Array<{ description: string; narration: string }>;
+    presetCharacterDescription?: string;
   }>({
     slug: "",
     name: "",
@@ -989,10 +991,12 @@ export default function CriativosPage() {
                         headline: p.headline,
                         briefing: p.briefing,
                         style: p.style,
-                        // Playbook-aligned: passa templateId + slides/quotes se preset os tem
+                        // Playbook-aligned: passa templateId + slides/quotes/scenes se preset os tem
                         presetTemplateId: p.templateId,
                         presetSlides: p.slides,
                         presetQuotes: p.quotes,
+                        presetScenes: p.scenes,
+                        presetCharacterDescription: p.characterDescription,
                       })
                     }
                     style={{

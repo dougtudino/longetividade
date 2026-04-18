@@ -12,6 +12,7 @@ import {
   createVisual,
   createImageSlideshow,
   createCarousel,
+  createTalkingHead,
   waitForCreation,
   getOutputUrl,
   BlotatoError,
@@ -43,6 +44,8 @@ export interface CreateAiCreativeInput {
   presetTemplateId?: string;
   presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
   presetQuotes?: string[];
+  presetScenes?: Array<{ description: string; narration: string }>;
+  presetCharacterDescription?: string;
 }
 
 export interface CreateAiCreativeResult {
@@ -94,12 +97,14 @@ export async function createAiCreative(
   const hasCompletePreset =
     !!input.presetTemplateId &&
     ((input.presetSlides && input.presetSlides.length > 0) ||
-      (input.presetQuotes && input.presetQuotes.length > 0));
+      (input.presetQuotes && input.presetQuotes.length > 0) ||
+      (input.presetScenes && input.presetScenes.length > 0));
 
   if (hasCompletePreset) {
     console.log(
       `[creative-ai] PRESET DIRECT — bypass Uma. template=${input.presetTemplateId}, ` +
-        `slides=${input.presetSlides?.length ?? 0}, quotes=${input.presetQuotes?.length ?? 0}`
+        `slides=${input.presetSlides?.length ?? 0}, quotes=${input.presetQuotes?.length ?? 0}, ` +
+        `scenes=${input.presetScenes?.length ?? 0}`
     );
     brief = {
       enrichedBriefing: input.briefing.slice(0, 200),
@@ -108,9 +113,11 @@ export async function createAiCreative(
       colorPalette: "verde-oliva + off-white + terroso",
       mood: "acolhedor",
       textOverlay: input.headline,
-      reasoning: "preset playbook-aligned: templateId + slides/quotes pre-definidos",
+      reasoning: "preset playbook-aligned: templateId + slides/quotes/scenes pre-definidos",
       slides: input.presetSlides,
       quotes: input.presetQuotes,
+      scenes: input.presetScenes,
+      characterDescription: input.presetCharacterDescription,
     };
   } else {
     // Fluxo normal: Uma decide tudo a partir do briefing livre
@@ -185,18 +192,28 @@ export async function createAiCreative(
   // Decide qual funcao Blotato usar baseado no que Uma retornou
   async function startCreation(tplId: string) {
     const title = `${collection!.name} · ${input.name}`;
-    // Se Uma forneceu slides estruturados (pra Image Slideshow), usa createImageSlideshow
+    // Talking head — scenes + characterDescription
+    if (brief.scenes && brief.scenes.length > 0 && brief.characterDescription) {
+      console.log(`[creative-ai] createTalkingHead com ${brief.scenes.length} scenes`);
+      return createTalkingHead({
+        templateId: tplId,
+        scenes: brief.scenes,
+        characterDescription: brief.characterDescription,
+        title,
+      });
+    }
+    // Image Slideshow — slides com imagem + texto
     if (brief.slides && brief.slides.length > 0) {
-      console.log(`[creative-ai] usando createImageSlideshow com ${brief.slides.length} slides`);
+      console.log(`[creative-ai] createImageSlideshow com ${brief.slides.length} slides`);
       return createImageSlideshow({
         templateId: tplId,
         slides: brief.slides,
         title,
       });
     }
-    // Se Uma forneceu quotes (pra Quote Card / Tweet Card), usa createCarousel
+    // Quote Card / Tweet Card — quotes
     if (brief.quotes && brief.quotes.length > 0) {
-      console.log(`[creative-ai] usando createCarousel com ${brief.quotes.length} quotes`);
+      console.log(`[creative-ai] createCarousel com ${brief.quotes.length} quotes`);
       return createCarousel({
         templateId: tplId,
         quotes: brief.quotes,

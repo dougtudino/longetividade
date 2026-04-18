@@ -73,11 +73,10 @@ export interface UmaCreativeBrief {
   mood: string;
   textOverlay?: string;
   reasoning: string;
-  // Pra templates de slideshow multi-cena, Uma pode retornar slides estruturados.
-  // Cada slide vira 1 cena no carrossel com imagem AI + texto overlay.
   slides?: Array<{ imagePrompt: string; textOverlay: string }>;
-  // Pra Quote Carousel, Uma retorna array de quotes.
   quotes?: string[];
+  scenes?: Array<{ description: string; narration: string }>;
+  characterDescription?: string;
 }
 
 interface CreativeBriefingInput {

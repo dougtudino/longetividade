@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
       presetTemplateId?: string;
       presetSlides?: Array<{ imagePrompt: string; textOverlay: string }>;
       presetQuotes?: string[];
+      presetScenes?: Array<{ description: string; narration: string }>;
+      presetCharacterDescription?: string;
     };
 
     if (!body.collectionId || !body.slug || !body.name || !body.format || !body.briefing) {
@@ -63,6 +65,8 @@ export async function POST(req: NextRequest) {
       presetTemplateId: body.presetTemplateId,
       presetSlides: body.presetSlides,
       presetQuotes: body.presetQuotes,
+      presetScenes: body.presetScenes,
+      presetCharacterDescription: body.presetCharacterDescription,
     });
 
     return NextResponse.json({ ok: true, ...result });

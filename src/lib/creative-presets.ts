@@ -32,6 +32,9 @@ export type CreativePreset = {
   templateId?: string; // UUID Blotato oficial
   slides?: Array<{ imagePrompt: string; textOverlay: string }>; // pra Image Slideshow
   quotes?: string[]; // pra Quote Card / Tweet Card
+  // Pra AI Selfie Talking
+  scenes?: Array<{ description: string; narration: string }>;
+  characterDescription?: string;
 };
 
 // Templates oficiais do playbook — Blotato EXIGE path completo, nao UUID puro
@@ -40,6 +43,7 @@ const TPL_IMAGE_SLIDESHOW = "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8
 const TPL_QUOTE_PAPER = "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1";
 const TPL_TWEET = "/base/v2/tweet-card/ba413be6-a840-4e60-8fd6-0066d3b427df/v1";
 const TPL_AI_VIDEO = "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1";
+const TPL_AI_SELFIE = "/base/v2/ai-selfie-video/57f5a565-fd17-458b-be43-4a2d8ccaca75/v1";
 
 // Paleta brand — usada em todos imagePrompts
 const BRAND = "olive green and off-white color palette, warm natural lighting, Brazilian setting";
@@ -147,18 +151,59 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
   // ─── 🔥 WARM — PROVA SOCIAL ───────────────────────────
   {
     id: "warm-depoimento-video",
-    label: "🔥 WARM · Depoimento (reel)",
+    label: "🔥 WARM · Depoimento narrado (voiceover)",
     icon: "🎤",
     angle: "prova",
     headline: "Uma jornada de bem-estar real",
     briefing:
-      "Reel narrado por mulher brasileira 40+ compartilhando experiência educativa com método S.E.M. Tom genuíno, sem performar.",
+      "Reel narrado por voz feminina BR + imagens (cenas, mulheres, caderno).",
     style: "auto",
-    name: "WARM · depoimento reel",
+    name: "WARM · depoimento narrado",
     slug: "warm-depo-reel",
     funnel: "warm",
-    templateId: TPL_AI_VIDEO, // AI Video with AI Voice (5903fe43)
-    // Uma ainda entra pra gerar scenes[] porque AI Video tem shape diferente
+    templateId: TPL_AI_VIDEO, // AI Video with AI Voice — narração + imagens
+  },
+  {
+    id: "warm-talking-head",
+    label: "🔥 WARM · Talking head (mulher falando)",
+    icon: "👩",
+    angle: "prova",
+    headline: "Conversa real sobre o método",
+    briefing:
+      "Personagem AI consistente — mulher brasileira 40+ falando direto pra câmera.",
+    style: "talking-head",
+    name: "WARM · talking head",
+    slug: "warm-talking-head",
+    funnel: "warm",
+    templateId: TPL_AI_SELFIE,
+    characterDescription:
+      "Brazilian woman in her early 40s, warm friendly smile, natural makeup, shoulder-length dark wavy hair, kind brown eyes, casual cream blouse, sitting in a cozy home environment with soft natural light, photorealistic style",
+    scenes: [
+      {
+        description:
+          "Brazilian woman 40s sitting comfortably at home kitchen table with warm morning light, mug of tea in hand, looking directly at camera with kind expression",
+        narration:
+          "Sabe quando você tenta começar uma dieta toda segunda?",
+      },
+      {
+        description:
+          "Same Brazilian woman now thoughtful, gesturing softly with hand, soft window light",
+        narration:
+          "Eu já passei por isso. E descobri que o problema não era força de vontade.",
+      },
+      {
+        description:
+          "Brazilian woman smiling, holding a small open book, calm warm setting",
+        narration:
+          "É um método educacional simples — três pilares só. Comer, equilibrar, mover.",
+      },
+      {
+        description:
+          "Brazilian woman with reassuring expression, hand near heart, warm afternoon light",
+        narration:
+          "Vale conhecer. O ebook tá no link aqui embaixo.",
+      },
+    ],
   },
   {
     id: "warm-citacao-prova",

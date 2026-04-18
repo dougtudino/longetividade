@@ -142,6 +142,60 @@ export interface CreateCarouselInput {
   extraInputs?: Record<string, unknown>; // outros inputs especificos do template
 }
 
+// Talking head — AI Selfie Talking (consistent character).
+// Aceita scenes[] (description visual + narration verbal) + characterDescription
+// (texto OU URL de imagem referencia). Se passar so texto, Blotato gera
+// avatar consistente pelas cenas baseado na descricao.
+export interface TalkingHeadScene {
+  description: string; // descricao visual da cena (em ingles, da pra Blotato)
+  narration: string; // texto que a personagem fala (portugues OK)
+}
+
+export interface CreateTalkingHeadInput {
+  templateId: string; // tipicamente AI Selfie Talking 57f5a565
+  scenes: TalkingHeadScene[];
+  characterDescription: string; // descricao textual da personagem OU URL imagem
+  style?: "realistic" | "cartoon" | "anime" | "watercolor" | "oil-painting" | "sketch" | "cyberpunk" | "fantasy" | "minimalist";
+  aspectRatio?: "9:16" | "1:1" | "4:5";
+  title?: string;
+}
+
+export async function createTalkingHead(
+  input: CreateTalkingHeadInput
+): Promise<BlotatoCreation> {
+  const templateId = normalizeTemplateId(input.templateId);
+  console.log(
+    `[blotato] createTalkingHead raw="${input.templateId}" → "${templateId}" scenes=${input.scenes.length}`
+  );
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId,
+        inputs: {
+          scenes: input.scenes,
+          characterDescription: input.characterDescription,
+          style: input.style ?? "realistic",
+          aspectRatio: input.aspectRatio ?? "9:16",
+        },
+        ...(input.title ? { title: input.title } : {}),
+        isDraft: false,
+        render: true,
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `TalkingHead 404: template "${templateId}" nao encontrado.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
+}
+
 // Slideshow de imagens com texto por slide — cada slide tem imagePrompt
 // (Blotato gera via AI) + textOverlay. Template: Image Slideshow with Text.
 // Output: mp4 animado com N cenas distintas, cada uma com imagem real.
