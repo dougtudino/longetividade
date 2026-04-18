@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
+import { PageHeader } from "@/components/admin/ui";
 
 type Decision = {
   id: string;
@@ -210,22 +211,12 @@ export default function GaiaControlPage() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4 }}>
-        <div style={{ fontSize: 36, lineHeight: 1 }}>🌱</div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Agente AIOX · @growth
-          </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "4px 0 0 0" }}>
-            Gaia · Growth Operator
-          </h1>
-        </div>
-      </div>
-      <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "8px 0 24px 0", lineHeight: 1.5 }}>
-        Paid media operator autonoma. Analisa campanhas Meta, propoe acoes (kill/scale/budget),
-        executa via Marketing API apos aprovacao humana. Filosofia: <em>start small, test aggressive, scale what works</em>.
-      </p>
+      <PageHeader
+        title="Gaia · Growth Operator"
+        subtitle="Passo 3 do fluxo Meta Ads. Gaia analisa ROAS/CTR de campanhas ativas e propõe pause/scale/duplicate. Você aprova aqui, o executor aplica na Meta sozinho."
+        icon="🌱"
+        breadcrumb="Agente AIOX · @growth"
+      />
 
       <PageHelp
         pageId="agents-gaia"

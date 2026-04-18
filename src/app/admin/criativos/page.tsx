@@ -294,12 +294,12 @@ export default function CriativosPage() {
   const header = (
     <>
       <PageHeader
-        title={selectedCollection ? selectedCollection.name : "Criativos"}
+        title={selectedCollection ? selectedCollection.name : "Criativos · Meta Ads"}
         subtitle={
           selectedCollection
             ? selectedCollection.description ??
               `${selectedCollection.creatives.length} criativos nesta coleção`
-            : "Galeria de criativos por coleção. Gere com IA (Uma + Blotato + Quinn) ou use criativos React hardcoded."
+            : "Passo 2 do fluxo Meta Ads. Crie 1 coleção por campanha e gere 3-10 criativos (dor/prova/objeção/promessa/CTA). Uma + Quinn + Blotato fazem. Para posts orgânicos, use Social Media 🌙."
         }
         icon={selectedCollection ? selectedCollection.icon ?? "📁" : "🎨"}
         breadcrumb={

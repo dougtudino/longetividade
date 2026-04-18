@@ -106,8 +106,8 @@ export default function CampanhasPage() {
     <div style={{maxWidth:1100,margin:"0 auto"}}>
 
       <PageHeader
-        title="Campanhas"
-        subtitle="Meta Ads + Google + orgânico + email. Gaia monitora ROAS e propõe ajustes automaticamente."
+        title="Campanhas · Meta Ads"
+        subtitle="Passo 1 do fluxo Meta Ads. Defina budget, objetivo e datas. Depois crie a coleção de Criativos (passo 2) e a Gaia monitora (passo 3)."
         icon="📣"
         actions={
           pageTab === "campanhas" ? (

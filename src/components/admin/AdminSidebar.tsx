@@ -118,7 +118,7 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    title: "Crescimento",
+    title: "Social organico",
     items: [
       {
         label: "Social Media 🌙",
@@ -139,18 +139,13 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
+    ],
+  },
+  {
+    title: "Meta Ads",
+    items: [
       {
-        label: "Email Marketing",
-        href: "/admin/email-marketing",
-        icon: (
-          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-            <polyline points="22,6 12,13 2,6" />
-          </svg>
-        ),
-      },
-      {
-        label: "Campanhas",
+        label: "1. Campanhas",
         href: "/admin/campanhas",
         icon: (
           <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -160,18 +155,7 @@ const NAV_SECTIONS: NavSection[] = [
         ),
       },
       {
-        label: "Gaia 🌱",
-        href: "/admin/agents/gaia",
-        icon: (
-          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2v20" />
-            <path d="M6 8c0-4 6-6 6-6s6 2 6 6-6 6-6 6-6-2-6-6z" />
-            <path d="M6 16c0 4 6 6 6 6s6-2 6-6" />
-          </svg>
-        ),
-      },
-      {
-        label: "Criativos",
+        label: "2. Criativos 🎨",
         href: "/admin/criativos",
         icon: (
           <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -182,12 +166,28 @@ const NAV_SECTIONS: NavSection[] = [
         ),
       },
       {
-        label: "App Icon",
-        href: "/admin/app-icon",
+        label: "3. Gaia 🌱",
+        href: "/admin/agents/gaia",
         icon: (
           <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="4" y="4" width="16" height="16" rx="4" />
-            <text x="12" y="16" fontSize="11" fontWeight="900" fill="currentColor" textAnchor="middle" stroke="none">L</text>
+            <path d="M12 2v20" />
+            <path d="M6 8c0-4 6-6 6-6s6 2 6 6-6 6-6 6-6-2-6-6z" />
+            <path d="M6 16c0 4 6 6 6 6s6-2 6-6" />
+          </svg>
+        ),
+      },
+    ],
+  },
+  {
+    title: "CRM",
+    items: [
+      {
+        label: "Email Marketing",
+        href: "/admin/email-marketing",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
           </svg>
         ),
       },
@@ -200,6 +200,16 @@ const NAV_SECTIONS: NavSection[] = [
         label: "Ecossistema",
         href: "/admin/ecossistema",
         icon: <span style={{ fontSize: 16, lineHeight: 1 }}>{"\uD83D\uDDFA\uFE0F"}</span>,
+      },
+      {
+        label: "App Icon",
+        href: "/admin/app-icon",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="4" width="16" height="16" rx="4" />
+            <text x="12" y="16" fontSize="11" fontWeight="900" fill="currentColor" textAnchor="middle" stroke="none">L</text>
+          </svg>
+        ),
       },
       {
         label: "Setup",
