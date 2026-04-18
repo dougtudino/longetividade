@@ -81,13 +81,18 @@ interface CreativeBriefingInput {
 
 // Filtra catalog por estilo de video/imagem. Heuristica baseada em
 // nome/description do template (Blotato nao tem campo `style`).
+//
+// IMPORTANTE: talking-head exclui "AI Selfie Talking" (57f5a565) porque
+// esse template precisa de avatar pre-configurado no dashboard Blotato.
+// Usa "AI Avatar B-roll" que auto-gera avatar a partir do prompt.
 function filterByStyle(
   templates: Array<{ id: string; description: string; slots: string[] }>,
   style?: CreativeBriefingInput["style"]
 ): Array<{ id: string; description: string; slots: string[] }> {
   if (!style || style === "auto") return templates;
   const patterns: Record<string, RegExp> = {
-    "talking-head": /selfie|talking|avatar/i,
+    // So "avatar" + "b-roll" — NAO selfie (precisa avatar pre-setup)
+    "talking-head": /avatar.*b-?roll|ai avatar/i,
     slideshow: /slideshow|image.*text|images.*text/i,
     "quote-card": /quote|centered text|quote card/i,
     infographic: /infographic|whiteboard|chalkboard|billboard|newspaper|book page/i,
