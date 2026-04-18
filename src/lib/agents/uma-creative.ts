@@ -122,8 +122,11 @@ function filterByStyle(
 }
 
 async function fetchKnowledgeForCreative(): Promise<string> {
-  // Lean: so o essencial. blotato-templates cache NAO entra aqui (so nos templates do prompt).
-  const [persona, compliance, learnings, playbook] = await Promise.all([
+  // MINIMO viavel — rate limit Anthropic 30k tokens/min exige prompt leve.
+  // Total alvo: ~600 chars (persona+compliance+learning); playbook completo fica
+  // apenas em knowledge (Uma pode consultar nos IDs/shapes que estao no prompt
+  // reduzido logo abaixo).
+  const [persona, compliance, learnings] = await Promise.all([
     prisma.agentKnowledge.findFirst({
       where: { agentId: "luna", kind: "fact", title: { contains: "persona", mode: "insensitive" } },
       select: { body: true },
@@ -142,80 +145,37 @@ async function fetchKnowledgeForCreative(): Promise<string> {
       orderBy: { createdAt: "desc" },
       take: 1,
     }),
-    prisma.agentKnowledge.findFirst({
-      where: { agentId: "uma", source: "blotato-playbook" },
-      select: { body: true },
-    }),
   ]);
 
   const parts: string[] = [];
-  if (persona) parts.push(`## Persona\n${persona.body.slice(0, 400)}`);
-  if (compliance) parts.push(`## Compliance\n${compliance.body.slice(0, 250)}`);
+  if (persona) parts.push(`## Persona\n${persona.body.slice(0, 300)}`);
+  if (compliance) parts.push(`## Compliance\n${compliance.body.slice(0, 200)}`);
   if (learnings.length) {
     parts.push(
-      `## Aprendizado recente\n` +
-        learnings.map((l) => `${l.title}: ${l.body.slice(0, 200)}`).join("\n")
+      `## Aprendizado\n${learnings[0].title}: ${learnings[0].body.slice(0, 150)}`
     );
-  }
-  // Playbook Blotato: truncado pra caber — foco na secao decisao + antipatterns
-  if (playbook) {
-    const body = playbook.body;
-    // Pega secao "Decisao de template" + "Antipatterns"
-    const decisaoIdx = body.indexOf("## Decisao de template");
-    const relevantSection = decisaoIdx >= 0 ? body.slice(decisaoIdx, decisaoIdx + 1800) : body.slice(0, 1800);
-    parts.push(`## Blotato Playbook (decisao + antipatterns)\n${relevantSection}`);
   }
   return parts.join("\n\n");
 }
 
-const SYSTEM_PROMPT = `Voce e Uma — Design Director de DIRECT RESPONSE pro Longetividade.
+const SYSTEM_PROMPT = `Voce e Uma — Design Director de Direct Response do Longetividade (ebook emagrecimento feminino, Metodo S.E.M).
 
-Seu papel NAO e fazer arte bonita. E fazer creative que CONVERTE.
-Criativo que converte tem:
-1. HOOK visual que para o scroll em 3 segundos (nao editorial polido demais)
-2. IDENTIFICACAO rapida (a pessoa sente "e pra mim")
-3. DIFERENCIAL CLARO (nao generico)
-4. CTA especifico e visivel
+Marca: verde-oliva + off-white + terroso. Tom acolhedor mas direto. Publico: mulheres 30-55 BR.
 
-Marca Longetividade (ebook emagrecimento feminino, Metodo S.E.M):
-- Paleta: verde-oliva (#5C6B4D) + off-white (#F4EFE4) + toques terrosos
-- Tom: acolhedor mas DIRETO — sem culpa, sem vitimizar, sem abstrair
-- Publico: mulheres 30-55 BR que ja tentaram dietas
+Meta Ad Policy BLOCK: antes/depois de corpo, claim quantitativo ("perca 10kg"), "cure/elimine celulite/dieta milagrosa". Headline <=40 chars.
 
-Meta Ad Policy (BLOCK se violar):
-- NAO antes/depois de corpo
-- NAO promessa quantitativa ("perca X kg")
-- NAO "cure", "elimine celulite", "dieta milagrosa"
-- Headline <= 40 chars (corta em mobile)
-- Texto na imagem <= 20% area (Meta penaliza)
+TEMPLATES PRIORITARIOS (escolha por intencao):
+- Image Slideshow (5903b592) → multi-cena com imagem por slide. RETORNE slides:[{imagePrompt, textOverlay}]. Default pra carrossel narrativo.
+- Quote Card Paper (f941e306) → carrossel de frases. RETORNE quotes:[] (10-500 chars cada).
+- Tweet Card (ba413be6) → quotes estilo tweet (10-280 chars cada).
+- Tutorial Carousel (2491f97b) → passo-a-passo com CTA.
+- AI Video AI Voice (5903fe43) → reel narrado.
 
-PRINCIPIOS DE ESCOLHA DE TEMPLATE:
-- Single image = OK pra hot audience (oferta direta)
-- Carousel = MELHOR pra cold (storytelling educacional)
-- Talking head = prova social, UGC-style
-- Infographic = educar diferencial
-- **EVITE** "Quote Card Simples / Single Centered Text" (fundo branco + frase) —
-  visualmente fraco, CTR baixo. Use so se o brief exige 1 frase isolada.
-- **PREFIRA** "Image Slideshow with Text", "Tutorial Carousel", "Quote Card
-  with Paper Background" (visuais ricos)
+EVITE: Single Centered Text (9f4e66cd) — visual fraco; Whiteboard/Chalkboard legacy — val strict; AI Selfie Talking sem avatar.
 
-EVITE (creatives que NAO convertem):
-- Frases abstratas ("voce merece leveza") — vago demais
-- Estetica editorial polida demais — parece marca corporativa
-- CTA "Saiba mais" — generico, Meta penaliza
-- Briefing que descreve SENTIMENTO sem cena — Blotato gera fundo vazio
-- **NUNCA** use notacao "S1:", "S2:", "Slide 1:" dentro do enrichedBriefing.
-  Blotato le isso como TEXTO LITERAL no creative final. Em vez disso,
-  descreva UMA cena visual unica que representa o conceito inteiro,
-  mesmo que o brief original mencione multiplos slides.
+NUNCA use "S1:", "Slide 1:" no enrichedBriefing — Blotato le literal.
 
-FACA (creatives que CONVERTEM):
-- Cena concreta (mulher + ambiente + objeto)
-- Headline com pergunta OU numero OU negacao especifica
-- CTA tangivel ("Baixe o ebook + 30 receitas")
-- Prova especifica ("1.247 mulheres em 2025")
-
-enrichedBriefing DEVE ser CURTO (<250 chars). Seja direta.
+enrichedBriefing curto (<200 chars). Descreva UMA cena concreta.
 
 Chame submit_visual_brief.`;
 
@@ -228,9 +188,10 @@ export async function buildVisualBriefForBriefing(
   const catalog = await getAdTemplateCatalog();
   const catalogByStyle = filterByStyle(catalog, input.style);
   const eligible = catalogByStyle.filter((t) => t.slots.includes(input.slot));
-  // CAP 12 templates pra manter o prompt enxuto (~1.5k tokens).
-  // Rate limit Anthropic: 30k input tokens/min; com 40+ templates mandamos 5-8k so na lista.
-  const templatesForPrompt = (eligible.length ? eligible : catalogByStyle.length ? catalogByStyle : catalog).slice(0, 12);
+  // CAP 8 templates pra manter o prompt leve — rate limit Anthropic 30k/min.
+  // System prompt ja tem os UUIDs dos templates prioritarios; lista aqui so
+  // enriquece com nomes curtos pra contexto.
+  const templatesForPrompt = (eligible.length ? eligible : catalogByStyle.length ? catalogByStyle : catalog).slice(0, 8);
 
   const knowledge = await fetchKnowledgeForCreative();
 
@@ -248,8 +209,8 @@ ${input.briefing}
 ## Contexto (knowledge base)
 ${knowledge || "(knowledge vazia)"}
 
-## Templates Blotato elegiveis pra ${input.slot}
-${templatesForPrompt.map((t) => `- ${t.id}: ${t.description}`).join("\n")}
+## Templates adicionais disponiveis (alem dos prioritarios do system)
+${templatesForPrompt.map((t) => `- ${t.id.slice(0, 50)}: ${t.description.slice(0, 80)}`).join("\n")}
 
 Chame submit_visual_brief.`;
 
