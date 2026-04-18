@@ -28,6 +28,14 @@ export async function POST(req: NextRequest) {
     if (!username) {
       return NextResponse.json({ ok: false, error: "username obrigatorio" }, { status: 400 });
     }
+    const existing = await prisma.videoCompetitor.findUnique({ where: { username } });
+    if (existing) {
+      const verb = existing.active ? "ja cadastrado" : "ja existe inativo — reative na tabela";
+      return NextResponse.json(
+        { ok: false, error: `@${username} ${verb}` },
+        { status: 409 },
+      );
+    }
     const created = await prisma.videoCompetitor.create({
       data: {
         username,
@@ -39,9 +47,7 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ ok: true, competitor: created });
   } catch (e) {
-    const msg = (e as Error).message;
-    const status = msg.includes("Unique") || msg.includes("unique") ? 409 : 500;
-    return NextResponse.json({ ok: false, error: msg }, { status });
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
 }
 

@@ -232,6 +232,17 @@ export async function runVideoPipeline(
           const video = allTopVideos[idx++];
           const label = `${video.views.toLocaleString("pt-BR")} views`;
           try {
+            const existing = await prisma.videoAnalysis.findFirst({
+              where: { instagramUrl: video.postUrl },
+              select: { id: true },
+            });
+            if (existing) {
+              progress.videosAnalyzed++;
+              log(`@${video.username} (${label}): ja analisado antes, pulando`);
+              emit();
+              continue;
+            }
+
             log(`@${video.username} (${label}): baixando... [${memSnapshot()}]`);
             const { buf, mime, sizeMB } = await downloadVideoWithLimits(video.videoUrl);
 
