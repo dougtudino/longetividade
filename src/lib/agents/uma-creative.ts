@@ -150,6 +150,10 @@ Meta Ad Policy (CRITICO — mais restritivo que post organico):
 - Headline curta, CTA claro, visual legivel em mobile small
 - Imagem NAO pode ter texto dominando (Meta penaliza >20% texto)
 
+IMPORTANTE: enrichedBriefing DEVE ser CURTO (<250 chars, 3-4 linhas maximo).
+Alguns templates Blotato validam description <= 500 chars server-side.
+Seja direta e visual — nao escreva paragrafo longo.
+
 Chame submit_visual_brief com template + paleta + mood.`;
 
 export async function buildVisualBriefForBriefing(
@@ -199,12 +203,15 @@ Chame submit_visual_brief.`;
       schema: {
         type: "object",
         properties: {
-          enrichedBriefing: { type: "string" },
+          enrichedBriefing: {
+            type: "string",
+            description: "Briefing visual CURTO (max 250 chars, 3-4 linhas). Nao escrever paragrafo longo — templates validam tamanho.",
+          },
           templateId: { type: "string" },
           templateRationale: { type: "string" },
           colorPalette: { type: "string" },
           mood: { type: "string" },
-          textOverlay: { type: "string" },
+          textOverlay: { type: "string", description: "Texto curto pra aparecer no visual, <= 6 palavras" },
           reasoning: { type: "string" },
         },
         required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],
