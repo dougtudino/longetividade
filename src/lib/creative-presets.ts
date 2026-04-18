@@ -29,11 +29,11 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
     angle: "dor",
     headline: "Você merece uma relação leve com a comida",
     briefing:
-      "Visual sereno pra mulher 35-55 interessada em reeducação alimentar. " +
-      "Validar desejo de abordagem equilibrada, sem restrição. " +
-      "Método S.E.M educa sobre Simplicidade, Equilíbrio e Movimento. " +
-      "Tom: acolhedor, educativo.",
-    style: "quote-card",
+      "Cena: mulher 35-55 em cozinha luminosa, expressão serena, segurando " +
+      "uma fruta. Visual acolhedor com elementos naturais (madeira, verde). " +
+      "Headline no canto sobrepondo a imagem. Evoca abordagem educativa, " +
+      "sem restrição. Paleta quente: verde-oliva + terracota + off-white.",
+    style: "slideshow",
     name: "Dor · cansada de dietas",
     slug: "dor-dieta",
   },
@@ -44,10 +44,11 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
     angle: "dor",
     headline: "Bem-estar é mais que um número",
     briefing:
-      "Visual calmo que propõe olhar holístico pro cuidado com o corpo. " +
-      "Ebook educa sobre relação equilibrada com auto-monitoramento. " +
-      "Tom reflexivo, sem tom de urgência.",
-    style: "quote-card",
+      "Cena: mulher em ambiente zen (yoga, janela, luz natural da manhã). " +
+      "Olhar calmo, postura relaxada. Headline sobreposta com tipografia " +
+      "elegante. Propõe olhar holístico pro cuidado. Paleta suave: bege, " +
+      "off-white, verde-salva.",
+    style: "slideshow",
     name: "Dor · bem-estar além do número",
     slug: "dor-balanca",
   },
@@ -101,10 +102,11 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
     angle: "promessa",
     headline: "Relação leve com a comida",
     briefing:
-      "Visual sereno e aspiracional. Conceito: equilíbrio sustentável, " +
-      "sem neurose. Flexibilidade e consistência como base. " +
-      "Tom calmo, cores quentes, respiro.",
-    style: "quote-card",
+      "Mesa posta com comida real (salada, pão caseiro, fruta, chá). " +
+      "Fotografia editorial estilo revista de bem-estar. Headline em canto " +
+      "com tipografia serifada delicada. Aspiracional sem ser idealizado. " +
+      "Paleta quente, iluminação natural, respiro.",
+    style: "slideshow",
     name: "Promessa · leveza",
     slug: "promessa-leveza",
   },

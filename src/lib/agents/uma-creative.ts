@@ -167,6 +167,12 @@ Meta Ad Policy (CRITICO — mais restritivo que post organico):
 - Headline curta, CTA claro, visual legivel em mobile small
 - Imagem NAO pode ter texto dominando (Meta penaliza >20% texto)
 
+PRIORIZE templates visualmente RICOS sobre "quote card simples":
+- "Quote Card with Paper Background" > "Single Centered Text Quote"
+- "Image Slideshow with Text" > "Whiteboard"
+- "Tutorial Carousel" e "Images with Text" sao otimos pra creative ad
+- Single Centered Text so quando briefing e 100% frase isolada sem cena
+
 IMPORTANTE: enrichedBriefing DEVE ser CURTO (<250 chars, 3-4 linhas maximo).
 Alguns templates Blotato validam description <= 500 chars server-side.
 Seja direta e visual — nao escreva paragrafo longo.
