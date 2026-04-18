@@ -121,20 +121,40 @@ export async function createAiCreative(
     );
   }
 
-  // 4. Grava Creative no DB (metaImageHash sera preenchido apos upload)
-  const creative = await prisma.creative.create({
-    data: {
-      collectionId: input.collectionId,
-      slug: input.slug,
-      componentKey: `ai:${brief.templateId}`, // AI-generated; componentKey marca origem
-      name: input.name,
-      format: input.format,
-      width,
-      height,
-      description: `[AI] ${brief.mood} · ${brief.templateRationale ?? ""}`.slice(0, 500),
-      tags: ["ai", input.angle ?? "geral", brief.mood ?? ""].filter(Boolean),
-    },
-  });
+  // 4. Grava Creative no DB. Se slug ja existe na colecao, auto-sufixa -2, -3...
+  //    (ate 10 tentativas) — evita desperdicar o render que ja foi feito.
+  let creative: Awaited<ReturnType<typeof prisma.creative.create>> | null = null;
+  let attemptSlug = input.slug;
+  for (let i = 0; i < 10; i++) {
+    try {
+      creative = await prisma.creative.create({
+        data: {
+          collectionId: input.collectionId,
+          slug: attemptSlug,
+          componentKey: `ai:${brief.templateId}`,
+          name: input.name,
+          format: input.format,
+          width,
+          height,
+          description: `[AI] ${brief.mood} · ${brief.templateRationale ?? ""}`.slice(0, 500),
+          tags: ["ai", input.angle ?? "geral", brief.mood ?? ""].filter(Boolean),
+          imageUrl: outputUrl,
+          aiGenerated: true,
+        },
+      });
+      break;
+    } catch (err) {
+      const msg = (err as Error).message;
+      if (msg.includes("Unique constraint") && msg.includes("slug")) {
+        attemptSlug = `${input.slug}-${i + 2}`;
+        continue;
+      }
+      throw err;
+    }
+  }
+  if (!creative) {
+    throw new Error(`Nao conseguiu criar Creative apos 10 tentativas com slug "${input.slug}"`);
+  }
 
   // 5. Upload pra Meta /adimages (se creds disponiveis)
   let metaImageHash: string | null = null;
