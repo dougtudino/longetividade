@@ -914,6 +914,31 @@ function BlotatoSection() {
     }
   }
 
+  const [lookupId, setLookupId] = useState("");
+  const [lookupResult, setLookupResult] = useState<{
+    ok: boolean;
+    id?: string;
+    status?: string;
+    outputUrl?: string | null;
+    error?: string;
+  } | null>(null);
+  const [lookingUp, setLookingUp] = useState(false);
+
+  async function lookupCreation() {
+    if (!lookupId.trim()) return;
+    setLookingUp(true);
+    setLookupResult(null);
+    try {
+      const r = await fetch(`/api/admin/blotato/creations/${lookupId.trim()}`);
+      const d = await r.json();
+      setLookupResult(d);
+    } catch (e) {
+      setLookupResult({ ok: false, error: (e as Error).message });
+    } finally {
+      setLookingUp(false);
+    }
+  }
+
   async function fetchDebugRaw() {
     setDebuggingRaw(true);
     setDebugRaw(null);
@@ -1135,6 +1160,63 @@ function BlotatoSection() {
           {error}
         </div>
       )}
+      <div style={{ marginBottom: 14, padding: 12, borderRadius: 8, background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          Recuperar creation (timeout/debug)
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <input
+            value={lookupId}
+            onChange={(e) => setLookupId(e.target.value)}
+            placeholder="f89aa880-e2a1-410d-993f-744987600c8c"
+            style={{ ...inputStyle, flex: 1, minWidth: 260, fontFamily: "monospace", fontSize: 12 }}
+          />
+          <button
+            onClick={lookupCreation}
+            disabled={lookingUp || !lookupId.trim()}
+            style={{
+              ...saveBtnStyle,
+              padding: "10px 16px",
+              opacity: lookingUp || !lookupId.trim() ? 0.6 : 1,
+            }}
+          >
+            {lookingUp ? "Buscando..." : "🔍 Buscar"}
+          </button>
+        </div>
+        {lookupResult && (
+          <div
+            style={{
+              marginTop: 10,
+              padding: 10,
+              borderRadius: 6,
+              background: lookupResult.ok ? "rgba(107,158,107,0.08)" : "rgba(196,120,122,0.08)",
+              border: `0.5px solid ${lookupResult.ok ? "rgba(107,158,107,0.3)" : "rgba(196,120,122,0.3)"}`,
+              fontSize: 12,
+            }}
+          >
+            {lookupResult.ok ? (
+              <>
+                <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                  Status: {lookupResult.status}
+                </div>
+                {lookupResult.outputUrl && (
+                  <a
+                    href={lookupResult.outputUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: "var(--accent)", wordBreak: "break-all" }}
+                  >
+                    {lookupResult.outputUrl}
+                  </a>
+                )}
+              </>
+            ) : (
+              <div style={{ color: "#C4787A" }}>{lookupResult.error}</div>
+            )}
+          </div>
+        )}
+      </div>
+
       {history !== null && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>

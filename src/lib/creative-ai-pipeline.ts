@@ -121,7 +121,32 @@ export async function createAiCreative(
     prompt,
     title: `${collection.name} · ${input.name}`,
   });
-  const done = await waitForCreation(started.id, { timeoutMs: 3 * 60_000 });
+
+  // Timeout depende do tipo: video talking-head demora 5-15min, imagem ~30s
+  const isVideo =
+    input.style === "talking-head" ||
+    /video|selfie|avatar|story-video|slideshow/i.test(brief.templateId);
+  const timeoutMs = isVideo ? 18 * 60_000 : 3 * 60_000;
+  const intervalMs = isVideo ? 10_000 : 5_000;
+
+  let done;
+  try {
+    done = await waitForCreation(started.id, { timeoutMs, intervalMs });
+  } catch (err) {
+    // Se deu timeout mas creation existe no Blotato, lance erro com ID
+    // pra admin poder buscar depois via /api/admin/blotato/creations/[id]
+    if (err instanceof BlotatoError && err.status === 504) {
+      throw new BlotatoError(
+        `Timeout apos ${timeoutMs / 1000}s esperando Blotato. ` +
+          `Creation ID: ${started.id} — use "Buscar creation" em /admin/configuracoes ` +
+          `daqui a alguns minutos pra verificar se completou. O render continua no Blotato.`,
+        504,
+        { creationId: started.id }
+      );
+    }
+    throw err;
+  }
+
   const outputUrl = getOutputUrl(done);
   if (!outputUrl) {
     throw new BlotatoError(
