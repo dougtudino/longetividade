@@ -34,11 +34,12 @@ export type CreativePreset = {
   quotes?: string[]; // pra Quote Card / Tweet Card
 };
 
-// Templates oficiais do playbook (reuso pra evitar erro de digitacao)
-const TPL_IMAGE_SLIDESHOW = "5903b592-1255-43b4-b9ac-f8ed7cbf6a5f";
-const TPL_QUOTE_PAPER = "f941e306-76f7-45da-b3d9-7463af630e91";
-const TPL_TWEET = "ba413be6-a840-4e60-8fd6-0066d3b427df";
-const TPL_AI_VIDEO = "5903fe43-514d-40ee-a060-0d6628c5f8fd";
+// Templates oficiais do playbook — Blotato EXIGE path completo, nao UUID puro
+// (descoberto empiricamente: UUID puro retorna 404; path retorna 200)
+const TPL_IMAGE_SLIDESHOW = "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1";
+const TPL_QUOTE_PAPER = "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1";
+const TPL_TWEET = "/base/v2/tweet-card/ba413be6-a840-4e60-8fd6-0066d3b427df/v1";
+const TPL_AI_VIDEO = "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1";
 
 // Paleta brand — usada em todos imagePrompts
 const BRAND = "olive green and off-white color palette, warm natural lighting, Brazilian setting";

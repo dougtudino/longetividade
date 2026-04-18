@@ -161,9 +161,9 @@ export interface CreateImageSlideshowInput {
 export async function createImageSlideshow(
   input: CreateImageSlideshowInput
 ): Promise<BlotatoCreation> {
-  const templateId = input.templateId.trim();
+  const templateId = normalizeTemplateId(input.templateId);
   console.log(
-    `[blotato] createImageSlideshow templateId="${templateId}" slides=${input.slides.length}`
+    `[blotato] createImageSlideshow raw="${input.templateId}" → normalized="${templateId}" slides=${input.slides.length}`
   );
   try {
     const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
@@ -200,9 +200,9 @@ export async function createImageSlideshow(
 export async function createCarousel(
   input: CreateCarouselInput
 ): Promise<BlotatoCreation> {
-  const templateId = input.templateId.trim();
+  const templateId = normalizeTemplateId(input.templateId);
   console.log(
-    `[blotato] createCarousel templateId="${templateId}" slides=${input.quotes.length}`
+    `[blotato] createCarousel raw="${input.templateId}" → normalized="${templateId}" slides=${input.quotes.length}`
   );
   try {
     const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
@@ -245,19 +245,52 @@ async function unwrap<T>(res: { item?: T } | T): Promise<T> {
   return (res && typeof res === "object" && "item" in res ? (res as { item: T }).item : res) as T;
 }
 
-// Blotato usa 2 formatos de templateId:
-// 1. Path completo "/base/v2/<category>/<uuid>/v1" — templates da BIBLIOTECA base
-// 2. UUID puro "5903fe43-..." — templates clonados/customizados da conta
-// A listagem GET /videos/templates retorna o formato 1 (path) e devemos
-// enviar EXATAMENTE como veio no POST /videos/from-templates. A doc publica
-// diz "use UUID" mas testamos e 404; path funciona pro plano base.
+// Blotato EXIGE path completo "/base/v2/<category>/<uuid>/v1" pra templates
+// da biblioteca base. UUID puro retorna 404 (testado empiricamente).
+// Doc publica diz "use UUID" — esta errada pro plano base.
+//
+// Mapeamento UUID → path completo pros templates conhecidos. Se vier UUID
+// e existir mapeamento, converte. Se vier path, deixa passar.
+const UUID_TO_PATH: Record<string, string> = {
+  "5903b592-1255-43b4-b9ac-f8ed7cbf6a5f":
+    "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1",
+  "f941e306-76f7-45da-b3d9-7463af630e91":
+    "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1",
+  "ba413be6-a840-4e60-8fd6-0066d3b427df":
+    "/base/v2/tweet-card/ba413be6-a840-4e60-8fd6-0066d3b427df/v1",
+  "5903fe43-514d-40ee-a060-0d6628c5f8fd":
+    "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1",
+  "57f5a565-fd17-458b-be43-4a2d8ccaca75":
+    "/base/v2/ai-selfie-video/57f5a565-fd17-458b-be43-4a2d8ccaca75/v1",
+  "7c26a1cd-d5b3-42da-9c73-2413333873b3":
+    "/base/v2/ai-avatar-broll/7c26a1cd-d5b3-42da-9c73-2413333873b3/v1",
+  "53cfec04-2500-41cf-8cc1-ba670d2c341a":
+    "/base/v2/instagram-carousel/53cfec04-2500-41cf-8cc1-ba670d2c341a/v1",
+  "2491f97b-1b47-4efa-8b96-8c651fa7b3d5":
+    "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1",
+  "e095104b-e6c5-4a81-a89d-b0df3d7c5baf":
+    "/base/v2/tutorial-carousel/e095104b-e6c5-4a81-a89d-b0df3d7c5baf/v1",
+  "77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd":
+    "/base/v2/quote-card/77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd/v1",
+};
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function normalizeTemplateId(raw: string): string {
-  return raw.trim();
+  const trimmed = raw.trim();
+  // Se ja eh path, deixa passar
+  if (trimmed.startsWith("/base/")) return trimmed;
+  // Se eh UUID puro e tem path conhecido, converte
+  if (UUID_REGEX.test(trimmed) && UUID_TO_PATH[trimmed]) {
+    return UUID_TO_PATH[trimmed];
+  }
+  // Caso contrario, manda como veio (deixa Blotato decidir)
+  return trimmed;
 }
 
 export async function createVisual(input: CreateVisualInput): Promise<BlotatoCreation> {
-  const templateId = input.templateId.trim();
-  console.log(`[blotato] createVisual templateId="${templateId}"`);
+  const templateId = normalizeTemplateId(input.templateId);
+  console.log(`[blotato] createVisual raw="${input.templateId}" → normalized="${templateId}"`);
   try {
     const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
       method: "POST",
