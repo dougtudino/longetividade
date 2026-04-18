@@ -132,6 +132,50 @@ export interface CreateVisualInput {
   title?: string; // nome pro rastreio no dashboard Blotato
 }
 
+// Helper especifico pra carrossel multi-slide via inputs.quotes
+// Descoberto via doc: template Quote Card Carousel aceita array `quotes`
+// em inputs, gerando N slides reais de uma vez.
+export interface CreateCarouselInput {
+  templateId: string; // tipicamente Quote Card Carousel with Paper Background
+  quotes: string[]; // 3-10 quotes curtas — 1 por slide
+  title?: string;
+  extraInputs?: Record<string, unknown>; // outros inputs especificos do template
+}
+
+export async function createCarousel(
+  input: CreateCarouselInput
+): Promise<BlotatoCreation> {
+  const templateId = input.templateId.trim();
+  console.log(
+    `[blotato] createCarousel templateId="${templateId}" slides=${input.quotes.length}`
+  );
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId,
+        inputs: {
+          quotes: input.quotes,
+          ...(input.extraInputs ?? {}),
+        },
+        ...(input.title ? { title: input.title } : {}),
+        isDraft: false,
+        render: true,
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `Carrossel 404: template "${templateId}" nao encontrado.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
+}
+
 export interface BlotatoCreation {
   id: string;
   status: "queueing" | "generating-media" | "done" | "failed" | string;

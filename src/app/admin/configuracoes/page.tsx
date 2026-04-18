@@ -1046,6 +1046,36 @@ function BlotatoSection() {
           {testing ? "Testando..." : "🧪 Testar render (1o template)"}
         </button>
         <button
+          onClick={async () => {
+            setTesting(true);
+            setTestResult(null);
+            try {
+              const r = await fetch("/api/admin/blotato/test-carousel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
+              });
+              const d = await r.json();
+              setTestResult(d);
+            } catch (e) {
+              setTestResult({ ok: false, error: (e as Error).message });
+            } finally {
+              setTesting(false);
+            }
+          }}
+          disabled={testing}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: testing ? 0.6 : 1,
+          }}
+          title="Testa carrossel multi-slide via inputs.quotes (5 slides de teste)"
+        >
+          {testing ? "Testando..." : "📱 Testar carrossel (5 quotes)"}
+        </button>
+        <button
           onClick={fetchDebugRaw}
           disabled={debuggingRaw}
           style={{
