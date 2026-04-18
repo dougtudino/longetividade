@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
 import { CREATIVES_REGISTRY } from "@/components/creatives/registry";
+import { CREATIVE_PRESETS } from "@/lib/creative-presets";
 import {
   PageHeader,
   Card,
@@ -646,27 +647,7 @@ export default function CriativosPage() {
                   {/* Preview */}
                   <div style={{ flexShrink: 0 }}>
                     {isAi && c.imageUrl ? (
-                      <div
-                        style={{
-                          width: Math.min(360, c.width * 0.35),
-                          borderRadius: 10,
-                          border: "0.5px solid var(--border-subtle)",
-                          overflow: "hidden",
-                          background: "#000",
-                          aspectRatio: `${c.width} / ${c.height}`,
-                        }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={c.imageUrl}
-                          alt={c.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      </div>
+                      <AiPreview creative={c} />
                     ) : (
                       <ReactPreview creative={c} refs={refs} />
                     )}
@@ -823,6 +804,62 @@ export default function CriativosPage() {
               </Button>
             </div>
 
+            {/* Presets — 1 clique preenche o form */}
+            <div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--text-secondary)",
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  marginBottom: 8,
+                }}
+              >
+                Presets prontos (clique pra preencher)
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {CREATIVE_PRESETS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() =>
+                      setAiForm({
+                        ...aiForm,
+                        slug: p.slug,
+                        name: p.name,
+                        angle: p.angle,
+                        headline: p.headline,
+                        briefing: p.briefing,
+                        style: p.style,
+                      })
+                    }
+                    style={{
+                      padding: "6px 10px",
+                      borderRadius: 999,
+                      border: "0.5px solid var(--border-default)",
+                      background: "var(--bg-secondary)",
+                      color: "var(--text-secondary)",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "var(--accent-soft)";
+                      e.currentTarget.style.color = "var(--accent-text)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "var(--bg-secondary)";
+                      e.currentTarget.style.color = "var(--text-secondary)";
+                    }}
+                  >
+                    {p.icon} {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               <Input
                 label="Slug"
@@ -931,19 +968,35 @@ export default function CriativosPage() {
                     </Badge>
                   }
                 />
-                {aiResult.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={aiResult.imageUrl}
-                    alt="creative"
-                    style={{
-                      width: "100%",
-                      borderRadius: 8,
-                      marginBottom: 10,
-                      border: "0.5px solid var(--border-subtle)",
-                    }}
-                  />
-                )}
+                {aiResult.imageUrl &&
+                  (/\.(mp4|webm|mov)(\?|$)/i.test(aiResult.imageUrl) ? (
+                    <video
+                      src={aiResult.imageUrl}
+                      controls
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      style={{
+                        width: "100%",
+                        borderRadius: 8,
+                        marginBottom: 10,
+                        border: "0.5px solid var(--border-subtle)",
+                      }}
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={aiResult.imageUrl}
+                      alt="creative"
+                      style={{
+                        width: "100%",
+                        borderRadius: 8,
+                        marginBottom: 10,
+                        border: "0.5px solid var(--border-subtle)",
+                      }}
+                    />
+                  ))}
                 <div
                   style={{
                     fontSize: 12,
@@ -1008,6 +1061,42 @@ export default function CriativosPage() {
             </div>
           </form>
         </>
+      )}
+    </div>
+  );
+}
+
+function AiPreview({ creative }: { creative: CreativeItem }) {
+  const url = creative.imageUrl ?? "";
+  const isVideo = /\.(mp4|webm|mov)(\?|$)/i.test(url);
+  const previewWidth = Math.min(360, creative.width * 0.35);
+  return (
+    <div
+      style={{
+        width: previewWidth,
+        borderRadius: 10,
+        border: "0.5px solid var(--border-subtle)",
+        overflow: "hidden",
+        background: "#000",
+        aspectRatio: `${creative.width} / ${creative.height}`,
+      }}
+    >
+      {isVideo ? (
+        <video
+          src={url}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt={creative.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       )}
     </div>
   );
