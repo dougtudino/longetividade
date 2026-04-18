@@ -160,17 +160,34 @@ export function normalizeTemplateId(raw: string): string {
 
 export async function createVisual(input: CreateVisualInput): Promise<BlotatoCreation> {
   const normalizedId = normalizeTemplateId(input.templateId);
-  const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
-    method: "POST",
-    body: JSON.stringify({
-      templateId: normalizedId,
-      inputs: input.inputs ?? {},
-      ...(input.prompt ? { prompt: input.prompt } : {}),
-      ...(input.title ? { title: input.title } : {}),
-      render: true,
-    }),
-  });
-  return unwrap(res);
+  console.log(
+    `[blotato] createVisual: raw="${input.templateId}" → normalized="${normalizedId}"`
+  );
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId: normalizedId,
+        inputs: input.inputs ?? {},
+        ...(input.prompt ? { prompt: input.prompt } : {}),
+        ...(input.title ? { title: input.title } : {}),
+        render: true,
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    // Enriquece erro pra ficar claro qual ID falhou — crucial pra debug
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `Blotato 404 Unknown template ID: "${normalizedId}" (raw input: "${input.templateId}"). ` +
+          `Isso significa que esse UUID nao existe no seu plano. ` +
+          `Solucao: /admin/configuracoes → Blotato → Sincronizar templates, e tente de novo.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
 }
 
 export async function getCreation(id: string): Promise<BlotatoCreation> {

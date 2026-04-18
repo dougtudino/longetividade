@@ -877,6 +877,30 @@ function BlotatoSection() {
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastSync, setLastSync] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{
+    ok: boolean;
+    templateIdSent?: string;
+    templateIdNormalized?: string;
+    creationId?: string;
+    status?: string;
+    outputUrl?: string | null;
+    error?: string;
+  } | null>(null);
+
+  async function testRender() {
+    setTesting(true);
+    setTestResult(null);
+    try {
+      const r = await fetch("/api/admin/blotato/test-render", { method: "POST" });
+      const d = await r.json();
+      setTestResult(d);
+    } catch (e) {
+      setTestResult({ ok: false, error: (e as Error).message });
+    } finally {
+      setTesting(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -942,6 +966,20 @@ function BlotatoSection() {
         >
           {syncing ? "Sincronizando..." : "↻ Sincronizar templates"}
         </button>
+        <button
+          onClick={testRender}
+          disabled={testing || !templates}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: testing || !templates ? 0.6 : 1,
+          }}
+          title="Testa render com o 1o template do cache — isola se o problema eh template, auth, ou prompt"
+        >
+          {testing ? "Testando..." : "🧪 Testar render (1o template)"}
+        </button>
         {lastSync && (
           <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
             Última sync: {lastSync}
@@ -953,6 +991,64 @@ function BlotatoSection() {
           </span>
         )}
       </div>
+
+      {testResult && (
+        <div
+          style={{
+            marginBottom: 14,
+            padding: 12,
+            borderRadius: 8,
+            background: testResult.ok
+              ? "rgba(107,158,107,0.1)"
+              : "rgba(196,120,122,0.1)",
+            border: `0.5px solid ${testResult.ok ? "rgba(107,158,107,0.3)" : "rgba(196,120,122,0.3)"}`,
+            fontSize: 12,
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 700,
+              color: testResult.ok ? "#6B9E6B" : "#C4787A",
+              marginBottom: 6,
+            }}
+          >
+            {testResult.ok ? "✓ Teste render" : "✗ Falha no teste"}
+          </div>
+          {testResult.templateIdSent && (
+            <div style={{ fontFamily: "monospace", color: "var(--text-muted)", marginBottom: 4 }}>
+              Template enviado: <code>{testResult.templateIdSent}</code>
+            </div>
+          )}
+          {testResult.templateIdNormalized &&
+            testResult.templateIdNormalized !== testResult.templateIdSent && (
+              <div style={{ fontFamily: "monospace", color: "var(--text-muted)", marginBottom: 4 }}>
+                UUID normalizado: <code>{testResult.templateIdNormalized}</code>
+              </div>
+            )}
+          {testResult.creationId && (
+            <div style={{ color: "var(--text-secondary)", marginBottom: 4 }}>
+              Creation ID: <code>{testResult.creationId}</code> · Status: {testResult.status}
+            </div>
+          )}
+          {testResult.outputUrl && (
+            <div style={{ marginTop: 8 }}>
+              <a
+                href={testResult.outputUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent)", fontSize: 13, fontWeight: 600 }}
+              >
+                Ver output →
+              </a>
+            </div>
+          )}
+          {testResult.error && (
+            <div style={{ color: "#C4787A", marginTop: 4, whiteSpace: "pre-wrap" }}>
+              {testResult.error}
+            </div>
+          )}
+        </div>
+      )}
 
       {loading && !templates && (
         <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Carregando catálogo...</div>
