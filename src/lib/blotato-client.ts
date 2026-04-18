@@ -167,6 +167,10 @@ export async function createVisual(input: CreateVisualInput): Promise<BlotatoCre
         inputs: input.inputs ?? {},
         ...(input.prompt ? { prompt: input.prompt } : {}),
         ...(input.title ? { title: input.title } : {}),
+        // CRITICO: sem isDraft=false + render=true, templates de video
+        // complexos (talking head) ficam parados em script-ready aguardando
+        // render manual no dashboard Blotato.
+        isDraft: false,
         render: true,
       }),
     });
