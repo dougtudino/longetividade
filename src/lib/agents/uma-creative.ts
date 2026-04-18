@@ -2,14 +2,14 @@
 // Recebe um briefing livre do admin e retorna template+prompt enriquecido.
 
 import { prisma } from "../prisma";
+import { getCachedTemplates } from "../blotato-templates-sync";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
-// Catalogo REAL (validado em prod) — apenas IDs Blotato que existem.
-// Pra AD_* reutilizamos templates organicos que funcionam bem como anuncio.
-const AD_TEMPLATE_CATALOG = [
+// Fallback hardcoded pra quando cache DB estiver vazio.
+const AD_TEMPLATE_FALLBACK = [
   { id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", description: "Single Centered Text Quote (impacto, frase forte)", slots: ["AD_FEED"] },
   { id: "ae868019-820d-434c-8fe1-74c9da99129a", description: "Whiteboard Infographic (educativo, lista)", slots: ["AD_STORY", "AD_FEED"] },
   { id: "53cfec04-2500-41cf-8cc1-ba670d2c341a", description: "Instagram Carousel Slideshow (multi-card, conta historia)", slots: ["AD_FEED"] },
@@ -23,6 +23,35 @@ const AD_TEMPLATE_CATALOG = [
   { id: "/base/v2/images-with-text/3ed4bb92-dbfe-45e6-9dc8-605b77f70506/v1", description: "Video of Images and Text Minimal (vertical visual)", slots: ["AD_STORY", "AD_FEED"] },
   { id: "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1", description: "When X then Y Text Slideshow (reflexivo, before/after de HABITO)", slots: ["AD_STORY"] },
 ];
+
+// Le catalog cachado (synced do Blotato), classifica por slot AD_*.
+async function getAdTemplateCatalog(): Promise<
+  Array<{ id: string; description: string; slots: string[] }>
+> {
+  try {
+    const cached = await getCachedTemplates({ autoSyncIfEmpty: true });
+    if (cached.length > 0) {
+      // Filtra so imagens (ads normalmente usam estatico; video ads sao opcionais)
+      return cached
+        .filter((t) => t.type !== "video")
+        .map((t) => {
+          const descLower = (t.description ?? "").toLowerCase();
+          const nameLower = (t.name ?? "").toLowerCase();
+          const isVertical =
+            t.aspectRatio === "9:16" ||
+            /story|vertical|9:16/.test(nameLower + descLower);
+          return {
+            id: t.id,
+            description: t.name + (t.description ? ` — ${t.description.slice(0, 140)}` : ""),
+            slots: isVertical ? ["AD_STORY"] : ["AD_FEED"],
+          };
+        });
+    }
+  } catch (err) {
+    console.warn("[uma-creative] fallback pro catalog hardcoded:", (err as Error).message);
+  }
+  return AD_TEMPLATE_FALLBACK;
+}
 
 export interface UmaCreativeBrief {
   enrichedBriefing: string;
@@ -44,7 +73,8 @@ interface CreativeBriefingInput {
 }
 
 async function fetchKnowledgeForCreative(): Promise<string> {
-  const [persona, compliance, learnings, umaRefs] = await Promise.all([
+  // Lean: so o essencial. blotato-templates cache NAO entra aqui (so nos templates do prompt).
+  const [persona, compliance, learnings] = await Promise.all([
     prisma.agentKnowledge.findFirst({
       where: { agentId: "luna", kind: "fact", title: { contains: "persona", mode: "insensitive" } },
       select: { body: true },
@@ -61,29 +91,17 @@ async function fetchKnowledgeForCreative(): Promise<string> {
       },
       select: { title: true, body: true },
       orderBy: { createdAt: "desc" },
-      take: 2,
-    }),
-    prisma.agentKnowledge.findMany({
-      where: { agentId: "uma" },
-      select: { title: true, body: true },
-      orderBy: { createdAt: "desc" },
-      take: 3,
+      take: 1,
     }),
   ]);
 
   const parts: string[] = [];
-  if (persona) parts.push(`## Persona da audiencia\n${persona.body.slice(0, 700)}`);
-  if (compliance) parts.push(`## Compliance bordas\n${compliance.body.slice(0, 400)}`);
+  if (persona) parts.push(`## Persona\n${persona.body.slice(0, 500)}`);
+  if (compliance) parts.push(`## Compliance\n${compliance.body.slice(0, 300)}`);
   if (learnings.length) {
     parts.push(
-      `## Aprendizados de templates (por engagement real)\n` +
-        learnings.map((l) => `${l.title}\n${l.body.slice(0, 400)}`).join("\n\n")
-    );
-  }
-  if (umaRefs.length) {
-    parts.push(
-      `## Minhas referencias\n` +
-        umaRefs.map((r) => `- ${r.title}\n${r.body.slice(0, 300)}`).join("\n\n")
+      `## Aprendizado recente\n` +
+        learnings.map((l) => `${l.title}: ${l.body.slice(0, 300)}`).join("\n")
     );
   }
   return parts.join("\n\n");
@@ -122,8 +140,11 @@ export async function buildVisualBriefForBriefing(
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY nao configurada");
 
-  const eligible = AD_TEMPLATE_CATALOG.filter((t) => t.slots.includes(input.slot));
-  const templatesForPrompt = eligible.length ? eligible : AD_TEMPLATE_CATALOG;
+  const catalog = await getAdTemplateCatalog();
+  const eligible = catalog.filter((t) => t.slots.includes(input.slot));
+  // CAP 12 templates pra manter o prompt enxuto (~1.5k tokens).
+  // Rate limit Anthropic: 30k input tokens/min; com 40+ templates mandamos 5-8k so na lista.
+  const templatesForPrompt = (eligible.length ? eligible : catalog).slice(0, 12);
 
   const knowledge = await fetchKnowledgeForCreative();
 
@@ -162,6 +183,49 @@ Responda o JSON.`;
   });
   if (!res.ok) {
     const t = await res.text().catch(() => "");
+    // 429 rate limit: espera 30s e tenta uma vez
+    if (res.status === 429) {
+      await new Promise((r) => setTimeout(r, 30_000));
+      const retry = await fetch(ANTHROPIC_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          max_tokens: MAX_TOKENS,
+          system: SYSTEM_PROMPT,
+          messages: [{ role: "user", content: userPrompt }],
+        }),
+      });
+      if (!retry.ok) {
+        const rt = await retry.text().catch(() => "");
+        throw new Error(`Uma (creative) Claude ${retry.status} apos retry: ${rt.slice(0, 300)}`);
+      }
+      const retryData = (await retry.json()) as {
+        content?: Array<{ type: string; text?: string }>;
+      };
+      const retryRaw =
+        retryData.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
+      const retryJson = retryRaw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
+      let brief: UmaCreativeBrief;
+      try {
+        brief = JSON.parse(retryJson) as UmaCreativeBrief;
+      } catch (err) {
+        throw new Error(`Uma retornou JSON invalido: ${retryJson.slice(0, 300)} (${(err as Error).message})`);
+      }
+      if (!brief.templateId || !brief.enrichedBriefing) {
+        throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
+      }
+      const templateOk = catalog.some((t) => t.id === brief.templateId);
+      if (!templateOk) {
+        brief.templateId = (eligible[0] ?? catalog[0]).id;
+        brief.templateRationale = `[fallback] ${brief.templateRationale ?? ""}`;
+      }
+      return brief;
+    }
     throw new Error(`Uma (creative) Claude ${res.status}: ${t.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
@@ -180,9 +244,9 @@ Responda o JSON.`;
   if (!brief.templateId || !brief.enrichedBriefing) {
     throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
   }
-  const templateOk = AD_TEMPLATE_CATALOG.some((t) => t.id === brief.templateId);
+  const templateOk = AD_TEMPLATE_FALLBACK.some((t) => t.id === brief.templateId);
   if (!templateOk) {
-    brief.templateId = (eligible[0] ?? AD_TEMPLATE_CATALOG[0]).id;
+    brief.templateId = (eligible[0] ?? AD_TEMPLATE_FALLBACK[0]).id;
     brief.templateRationale = `[fallback] ${brief.templateRationale ?? ""}`;
   }
   return brief;

@@ -110,14 +110,19 @@ export interface BlotatoTemplate {
   name: string;
   type?: "image" | "video" | string;
   description?: string;
+  inputs?: Record<string, unknown>;
+  aspectRatio?: string;
+  category?: string;
 }
 
-export async function listTemplates(): Promise<BlotatoTemplate[]> {
-  const res = await request<{ templates?: BlotatoTemplate[] } | BlotatoTemplate[]>(
-    "/videos/templates",
-    { method: "GET" },
-  );
-  return Array.isArray(res) ? res : (res.templates ?? []);
+// Lista templates reais do plano. Aceita parametro fields pra filtrar payload.
+export async function listTemplates(opts?: { fields?: string[] }): Promise<BlotatoTemplate[]> {
+  const query = opts?.fields?.length ? `?fields=${opts.fields.join(",")}` : "";
+  const res = await request<
+    { items?: BlotatoTemplate[]; templates?: BlotatoTemplate[] } | BlotatoTemplate[]
+  >(`/videos/templates${query}`, { method: "GET" });
+  if (Array.isArray(res)) return res;
+  return res.items ?? res.templates ?? [];
 }
 
 export interface CreateVisualInput {
@@ -141,11 +146,24 @@ async function unwrap<T>(res: { item?: T } | T): Promise<T> {
   return (res && typeof res === "object" && "item" in res ? (res as { item: T }).item : res) as T;
 }
 
+// Blotato recentemente mudou e exige UUID puro em vez de path longo.
+// Exemplo de path antigo: "/base/v2/ai-story-video/5903fe43-.../v1"
+// Formato aceito hoje: "5903fe43-514d-40ee-a060-0d6628c5f8fd"
+// Extraimos o UUID de forma defensiva — aceita UUID puro OU path longo.
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+export function normalizeTemplateId(raw: string): string {
+  const trimmed = raw.trim();
+  if (UUID_RE.test(trimmed) && trimmed.length === 36) return trimmed;
+  const match = trimmed.match(UUID_RE);
+  return match ? match[0] : trimmed;
+}
+
 export async function createVisual(input: CreateVisualInput): Promise<BlotatoCreation> {
+  const normalizedId = normalizeTemplateId(input.templateId);
   const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
     method: "POST",
     body: JSON.stringify({
-      templateId: input.templateId,
+      templateId: normalizedId,
       inputs: input.inputs ?? {},
       ...(input.prompt ? { prompt: input.prompt } : {}),
       ...(input.title ? { title: input.title } : {}),

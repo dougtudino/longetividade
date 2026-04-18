@@ -8,15 +8,15 @@
 // Grava AgentDecision(agentId="uma", action="VISUAL_BRIEF") pra audit trail.
 
 import { prisma } from "../prisma";
+import { getCachedTemplates } from "../blotato-templates-sync";
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
-// Catalogo de templates Blotato REAIS (validados em prod 2026-04-18).
-// IDs chutados foram removidos — todos os abaixo existem na API Blotato.
-// AD_FEED/AD_STORY reutilizam templates organicos que funcionam em ads.
-const TEMPLATE_CATALOG: Array<{ id: string; description: string; suits: string[] }> = [
+// Fallback hardcoded (usado se cache DB vazio E Blotato API falha).
+// Lista minima de IDs historicamente validados em producao.
+const TEMPLATE_FALLBACK: Array<{ id: string; description: string; suits: string[] }> = [
   // ─── FEED_AM (1:1 estatico) ──────────────────────
   { id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", description: "Single Centered Text Quote", suits: ["FEED_AM", "AD_FEED", "quote", "acolhedor"] },
   { id: "ae868019-820d-434c-8fe1-74c9da99129a", description: "Whiteboard Infographic", suits: ["STORY", "FEED_AM", "AD_STORY", "educativo"] },
@@ -39,6 +39,39 @@ const TEMPLATE_CATALOG: Array<{ id: string; description: string; suits: string[]
   { id: "/base/v2/ai-avatar-broll/7c26a1cd-d5b3-42da-9c73-2413333873b3/v1", description: "AI Avatar with AI Generated B-roll", suits: ["REEL", "avatar"] },
   { id: "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1", description: "Image Slideshow with Text Overlays", suits: ["REEL", "slideshow"] },
 ];
+
+// Classifica template pelo tipo/nome pra inferir pra qual slot serve.
+// Blotato retorna type (image|video) + name/category, a gente deduz.
+async function getTemplateCatalog(): Promise<
+  Array<{ id: string; description: string; suits: string[] }>
+> {
+  try {
+    const cached = await getCachedTemplates({ autoSyncIfEmpty: true });
+    if (cached.length > 0) {
+      return cached.map((t) => {
+        const nameLower = (t.name ?? "").toLowerCase();
+        const descLower = (t.description ?? "").toLowerCase();
+        const isVideo = t.type === "video" || /video|reel|slideshow/.test(nameLower);
+        const isVertical =
+          t.aspectRatio === "9:16" ||
+          /story|vertical|9:16/.test(nameLower + descLower);
+        const suits: string[] = [];
+        if (isVideo && !isVertical) suits.push("REEL", "FEED_AM");
+        else if (isVideo && isVertical) suits.push("REEL", "STORY", "AD_STORY");
+        else if (isVertical) suits.push("STORY", "AD_STORY");
+        else suits.push("FEED_AM", "AD_FEED");
+        return {
+          id: t.id,
+          description: t.name + (t.description ? ` — ${t.description.slice(0, 160)}` : ""),
+          suits,
+        };
+      });
+    }
+  } catch (err) {
+    console.warn("[uma] fallback pro catalog hardcoded apos erro:", (err as Error).message);
+  }
+  return TEMPLATE_FALLBACK;
+}
 
 export interface UmaBrief {
   enrichedBriefing: string;
@@ -211,8 +244,10 @@ export async function buildVisualBrief(socialPostId: string): Promise<UmaBrief> 
   const kb = await fetchKnowledgeBits(post.pillar);
   const knowledgeBlock = renderKnowledge(kb);
 
-  const eligibleTemplates = TEMPLATE_CATALOG.filter((t) => t.suits.includes(post.slot));
-  const templatesForPrompt = eligibleTemplates.length ? eligibleTemplates : TEMPLATE_CATALOG;
+  const catalog = await getTemplateCatalog();
+  const eligibleTemplates = catalog.filter((t) => t.suits.includes(post.slot));
+  // Cap em 15 pra manter prompt leve (Anthropic rate limit 30k tokens/min).
+  const templatesForPrompt = (eligibleTemplates.length ? eligibleTemplates : catalog).slice(0, 15);
 
   const userPrompt = `# Post pra criar brief visual
 
@@ -274,10 +309,10 @@ Responda o JSON.`;
   if (!brief.templateId || !brief.enrichedBriefing) {
     throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
   }
-  const templateOk = TEMPLATE_CATALOG.some((t) => t.id === brief.templateId);
+  const templateOk = catalog.some((t) => t.id === brief.templateId);
   if (!templateOk) {
     // Fallback gracioso: usa o primeiro elegivel do slot
-    brief.templateId = (eligibleTemplates[0] ?? TEMPLATE_CATALOG[0]).id;
+    brief.templateId = (eligibleTemplates[0] ?? catalog[0]).id;
     brief.templateRationale = `[fallback] ${brief.templateRationale ?? ""}`;
   }
 
