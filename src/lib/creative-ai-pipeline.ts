@@ -105,16 +105,27 @@ export async function createAiCreative(
   }
 
   // 3. Blotato renderiza
-  const prompt = [
-    brief.enrichedBriefing,
-    `Paleta: ${brief.colorPalette}`,
-    `Mood: ${brief.mood}`,
+  // Truncamos o prompt final em 480 chars — alguns templates (ex: Whiteboard
+  // Infographic ae868019) validam `description <= 500 chars` no Blotato.
+  // Outros aceitam mais, mas 480 garante compatibilidade universal.
+  const MAX_PROMPT = 480;
+  const priorityParts = [
+    input.headline ? `Headline: ${input.headline}` : "",
     brief.textOverlay ? `Texto no visual: "${brief.textOverlay}"` : "",
-    input.headline ? `Headline principal: ${input.headline}` : "",
     input.cta ? `CTA: ${input.cta}` : "",
-  ]
+  ].filter(Boolean);
+  const priorityText = priorityParts.join(" · ");
+  // Reserva ~150 chars pra priority + metadata; resto pro briefing
+  const briefingBudget = Math.max(100, MAX_PROMPT - priorityText.length - 40);
+  const briefingShort =
+    brief.enrichedBriefing.length > briefingBudget
+      ? brief.enrichedBriefing.slice(0, briefingBudget - 3) + "..."
+      : brief.enrichedBriefing;
+
+  const prompt = [briefingShort, priorityText]
     .filter(Boolean)
-    .join("\n\n");
+    .join("\n")
+    .slice(0, MAX_PROMPT);
 
   const started = await createVisual({
     templateId: brief.templateId,

@@ -99,6 +99,9 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
     prompt = fallbackImagePrompt(post);
   }
 
+  // Alguns templates validam description <= 500 chars no Blotato.
+  prompt = prompt.slice(0, 480);
+
   const started = await createVisual({ templateId, prompt, title: post.title });
   const done = await waitForCreation(started.id, { timeoutMs: 3 * 60_000 });
 

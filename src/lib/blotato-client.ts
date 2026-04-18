@@ -195,6 +195,10 @@ export async function getCreation(id: string): Promise<BlotatoCreation> {
 
 // Poll ate ficar `done` (ou falhar). Intervalo 5s, timeout 5min — imagens
 // ficam prontas em ~10s, videos podem demorar 1-3min.
+//
+// Status Blotato (confirmados via doc):
+//   queueing | generating-script | script-ready | generating-media |
+//   media-ready | exporting | done | creation-from-template-failed
 export async function waitForCreation(
   id: string,
   opts: { intervalMs?: number; timeoutMs?: number } = {},
@@ -205,8 +209,15 @@ export async function waitForCreation(
   while (Date.now() - start < timeout) {
     const c = await getCreation(id);
     if (c.status === "done") return c;
-    if (c.status === "failed") {
-      throw new BlotatoError(`creation ${id} falhou: ${c.error ?? "unknown"}`, 500, c);
+    const statusLower = (c.status ?? "").toLowerCase();
+    // Aceita qualquer status que contenha "fail" ou "error" — pra cobrir
+    // `failed`, `creation-from-template-failed`, `error`, etc.
+    if (statusLower.includes("fail") || statusLower.includes("error")) {
+      throw new BlotatoError(
+        `creation ${id} falhou (status=${c.status}): ${c.error ?? "sem detalhes — veja no dashboard Blotato"}`,
+        500,
+        c
+      );
     }
     await new Promise((r) => setTimeout(r, interval));
   }
