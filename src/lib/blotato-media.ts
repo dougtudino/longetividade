@@ -15,10 +15,15 @@ import {
 const DEFAULT_TEMPLATES: Record<string, string> = {
   FEED_AM: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", // Single Centered Text Quote
   STORY: "ae868019-820d-434c-8fe1-74c9da99129a", // Whiteboard Infographic
+  REEL: "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1", // AI Video with AI Voice
 };
 
 async function getTemplateIdForSlot(slot: string): Promise<string> {
-  const key = slot === "FEED_AM" ? "BLOTATO_TPL_FEED_AM" : slot === "STORY" ? "BLOTATO_TPL_STORY" : null;
+  const key =
+    slot === "FEED_AM" ? "BLOTATO_TPL_FEED_AM" :
+    slot === "STORY" ? "BLOTATO_TPL_STORY" :
+    slot === "REEL" ? "BLOTATO_TPL_REEL" :
+    null;
   if (key) {
     const fromDb = await getSetting(key);
     if (fromDb) return fromDb;
@@ -111,4 +116,67 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
   });
 
   return { postId: post.id, creationId: started.id, outputUrl: url, slideIndex: 0 };
+}
+
+// ─── AI Reels (video) ──────────────────────────────────
+
+export interface GenerateVideoResult {
+  postId: string;
+  creationId: string;
+  videoUrl: string;
+}
+
+function buildReelPrompt(post: {
+  title: string;
+  content: string;
+  imageBriefing: string | null;
+  pillar: string;
+}): string {
+  const briefing = post.imageBriefing?.trim();
+  const script = post.content?.trim();
+  return [
+    "Reel vertical 9:16 (1080x1920) pra Instagram + Facebook.",
+    "Publico: mulheres 35+ interessadas em emagrecimento e longevidade (nicho Longetividade).",
+    "Estilo elegante, paleta verde-oliva e off-white, tom acolhedor sem clichê.",
+    briefing ? `Briefing visual: ${briefing}` : "",
+    script ? `Narracao / roteiro:\n${script}` : "",
+    "Voz feminina brasileira calorosa, ritmo natural, pausas curtas.",
+  ].filter(Boolean).join("\n\n");
+}
+
+export async function generateVideoForPost(postId: string): Promise<GenerateVideoResult> {
+  const post = await prisma.socialPost.findUnique({
+    where: { id: postId },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      imageBriefing: true,
+      pillar: true,
+      slot: true,
+    },
+  });
+  if (!post) throw new BlotatoError(`SocialPost ${postId} nao encontrado`, 404);
+  if (post.slot !== "REEL") {
+    throw new BlotatoError(`slot ${post.slot} nao suporta video — use generateImageForPost`, 400);
+  }
+
+  const templateId = await getTemplateIdForSlot("REEL");
+  const prompt = buildReelPrompt(post);
+
+  const started = await createVisual({ templateId, prompt });
+  // video demora mais: ate 10min pra AI story video
+  const done = await waitForCreation(started.id, { timeoutMs: 10 * 60_000, intervalMs: 10_000 });
+
+  const url = getOutputUrl(done);
+  if (!url) throw new BlotatoError(`creation ${started.id} retornou sem URL`, 500, done);
+
+  // Pra video nao baixamos pro DB (arquivos grandes). Guardamos a URL
+  // publica do CDN Blotato no SocialPost.imageUrl — o poster consome direto.
+  await prisma.socialPost.update({
+    where: { id: post.id },
+    data: { imageUrl: url },
+  });
+
+  return { postId: post.id, creationId: started.id, videoUrl: url };
 }
