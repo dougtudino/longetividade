@@ -10,6 +10,8 @@ export interface ApifyReel {
   ownerUsername: string;
   images: string[];
   timestamp: string;
+  caption?: string;
+  videoDuration?: number;
 }
 
 export async function scrapeReels(

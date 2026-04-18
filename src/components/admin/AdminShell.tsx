@@ -24,8 +24,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         style={{
           flex: 1,
           overflowY: "auto",
-          padding: 24,
+          padding: "28px 32px 48px",
           minHeight: "100vh",
+          minWidth: 0,
         }}
       >
         {children}

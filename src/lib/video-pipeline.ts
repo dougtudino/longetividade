@@ -1,6 +1,12 @@
 import { prisma } from "./prisma";
 import { scrapeReels } from "./video-apify";
-import { uploadVideo, analyzeVideo, parseAnalysis } from "./video-gemini";
+import {
+  uploadVideo,
+  analyzeVideo,
+  parseAnalysis,
+  analyzeFromCaptionFallback,
+  GeminiQuotaError,
+} from "./video-gemini";
 
 // Video Intelligence pipeline: scrapeia N concorrentes → filtra top K por views →
 // baixa video → upload Gemini → analisa → Luna gera 3 conceitos → salva em
@@ -180,6 +186,8 @@ export async function runVideoPipeline(
       comments: number;
       thumbnail: string;
       datePosted: string;
+      caption: string;
+      durationSec?: number;
     };
     const allTopVideos: VideoItem[] = [];
 
@@ -207,6 +215,8 @@ export async function runVideoPipeline(
             comments: r.commentsCount || 0,
             thumbnail: r.images?.[0] || "",
             datePosted: r.timestamp?.slice(0, 10) || "",
+            caption: r.caption ?? "",
+            durationSec: r.videoDuration,
           }))
           .sort((a, b) => b.views - a.views)
           .slice(0, topK);
@@ -244,16 +254,40 @@ export async function runVideoPipeline(
             }
 
             log(`@${video.username} (${label}): baixando... [${memSnapshot()}]`);
-            const { buf, mime, sizeMB } = await downloadVideoWithLimits(video.videoUrl);
+            let rawAnalysis: string;
+            let usedFallback = false;
+            try {
+              const { buf, mime, sizeMB } = await downloadVideoWithLimits(video.videoUrl);
 
-            log(`@${video.username} (${label}): Gemini upload (${sizeMB}MB) [${memSnapshot()}]`);
-            const fileData = await withRetry429("upload", () => uploadVideo(buf, mime));
+              log(`@${video.username} (${label}): Gemini upload (${sizeMB}MB) [${memSnapshot()}]`);
+              const fileData = await withRetry429("upload", () => uploadVideo(buf, mime));
 
-            log(`@${video.username} (${label}): Gemini analisando...`);
-            const rawAnalysis = await withRetry429("analyze", () =>
-              analyzeVideo(fileData.uri, fileData.mimeType)
-            );
+              log(`@${video.username} (${label}): Gemini analisando...`);
+              rawAnalysis = await withRetry429("analyze", () =>
+                analyzeVideo(fileData.uri, fileData.mimeType)
+              );
+            } catch (err) {
+              // Se Gemini quota esgotou, cai no fallback via Claude (caption-only).
+              // Outros erros (download, network) também caem aqui — não trava o pipeline inteiro.
+              const isQuota = err instanceof GeminiQuotaError;
+              const msg = err instanceof Error ? err.message : String(err);
+              log(
+                `@${video.username} (${label}): ${isQuota ? "Gemini quota" : "erro Gemini"} — usando fallback caption-only (${msg.slice(0, 80)})`
+              );
+              rawAnalysis = await analyzeFromCaptionFallback({
+                caption: video.caption,
+                username: video.username,
+                viewCount: video.views,
+                likeCount: video.likes,
+                commentCount: video.comments,
+                durationSec: video.durationSec,
+              });
+              usedFallback = true;
+            }
             const parsed = parseAnalysis(rawAnalysis);
+            if (usedFallback) {
+              parsed.concept = `[fallback caption-only] ${parsed.concept}`;
+            }
 
             log(`@${video.username} (${label}): Luna gerando conceitos...`);
             const lunaConcepts = await generateLunaConcepts(rawAnalysis);

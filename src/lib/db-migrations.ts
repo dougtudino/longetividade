@@ -71,6 +71,50 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "Creative format index",
     sql: `CREATE INDEX IF NOT EXISTS "Creative_format_idx" ON "Creative"("format")`,
   },
+  {
+    label: "Creative.imageUrl column",
+    sql: `ALTER TABLE "Creative" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT`,
+  },
+  {
+    label: "Creative.aiGenerated column",
+    sql: `ALTER TABLE "Creative" ADD COLUMN IF NOT EXISTS "aiGenerated" BOOLEAN NOT NULL DEFAULT false`,
+  },
+
+  // ─── CreativeCopy (A/B variantes de texto) ──────────────
+  {
+    label: "CreativeCopy table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "CreativeCopy" (
+        "id" TEXT NOT NULL,
+        "creativeId" TEXT NOT NULL,
+        "label" TEXT NOT NULL,
+        "headline" TEXT NOT NULL,
+        "description" TEXT,
+        "cta" TEXT,
+        "primaryText" TEXT,
+        "impressions" INTEGER NOT NULL DEFAULT 0,
+        "clicks" INTEGER NOT NULL DEFAULT 0,
+        "spendCents" INTEGER NOT NULL DEFAULT 0,
+        "conversions" INTEGER NOT NULL DEFAULT 0,
+        "active" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "CreativeCopy_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "CreativeCopy creativeId+label unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "CreativeCopy_creativeId_label_key" ON "CreativeCopy"("creativeId", "label")`,
+  },
+  {
+    label: "CreativeCopy creativeId index",
+    sql: `CREATE INDEX IF NOT EXISTS "CreativeCopy_creativeId_idx" ON "CreativeCopy"("creativeId")`,
+  },
+  {
+    label: "CreativeCopy active index",
+    sql: `CREATE INDEX IF NOT EXISTS "CreativeCopy_active_idx" ON "CreativeCopy"("active")`,
+  },
 
   // ─── AgentKnowledge ──────────────────────────────────────
   {

@@ -241,3 +241,74 @@ export async function fetchCampaignsWithInsights(
   setCached(cacheKey, result);
   return result;
 }
+
+// ─────────────────────────────────────────────────────────────────────
+// Insights por Creative (image_hash)
+//
+// Meta nao agrega insights diretamente por image_hash. O padrao e:
+//   1. buscar ads ativos do account com adcreatives{image_hash}
+//   2. filtrar quais ads usam o hash em questao
+//   3. somar insights desses ads
+// Simplificacao: buscamos todos ads + creatives + insights de uma vez, e
+// agregamos no cliente.
+// ─────────────────────────────────────────────────────────────────────
+
+export type CreativeInsights = {
+  imageHash: string;
+  adsCount: number;
+  insights: AggregatedInsights;
+};
+
+export async function fetchInsightsByImageHashes(
+  imageHashes: string[],
+  preset: InsightsPreset
+): Promise<{ ok: true; byHash: Record<string, CreativeInsights> } | MetaAdsError> {
+  if (imageHashes.length === 0) return { ok: true, byHash: {} };
+
+  const cacheKey = `by-hash:${preset}:${imageHashes.sort().join(",")}`;
+  const cached = getCached<{ ok: true; byHash: Record<string, CreativeInsights> } | MetaAdsError>(cacheKey);
+  if (cached) return cached;
+
+  const creds = await getCreds();
+  if (!creds) return { ok: false, error: "Credenciais Meta nao configuradas" };
+
+  // Pega ads + creative info + insights de uma vez
+  const path =
+    `act_${creds.accountId}/ads?fields=id,name,status,` +
+    `creative{id,image_hash,thumbnail_url},` +
+    `insights.date_preset(${PRESET_MAP[preset]}){${INSIGHT_FIELDS}}&limit=200`;
+
+  type AdRow = {
+    id: string;
+    name: string;
+    status: string;
+    creative?: { id: string; image_hash?: string; thumbnail_url?: string };
+    insights?: { data: RawInsights[] };
+  };
+  const data = await graphGet<{ data: AdRow[] }>(path, creds.token);
+  if ("ok" in data && data.ok === false) return data;
+
+  const ads = (data as { data: AdRow[] }).data ?? [];
+  const hashSet = new Set(imageHashes);
+  const byHash: Record<string, { rows: RawInsights[]; count: number }> = {};
+  for (const h of imageHashes) byHash[h] = { rows: [], count: 0 };
+
+  for (const ad of ads) {
+    const h = ad.creative?.image_hash;
+    if (!h || !hashSet.has(h)) continue;
+    byHash[h].count += 1;
+    byHash[h].rows.push(...(ad.insights?.data ?? []));
+  }
+
+  const result: { ok: true; byHash: Record<string, CreativeInsights> } = {
+    ok: true,
+    byHash: Object.fromEntries(
+      Object.entries(byHash).map(([h, v]) => [
+        h,
+        { imageHash: h, adsCount: v.count, insights: aggregate(v.rows) },
+      ])
+    ),
+  };
+  setCached(cacheKey, result);
+  return result;
+}

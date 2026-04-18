@@ -76,7 +76,7 @@ model Creative {
   id           String    @id @default(uuid())
   collectionId String
   slug         String    // identificador unico dentro da colecao (ex: "feed-dor")
-  componentKey String    // mapeia para CREATIVES_REGISTRY (registry.ts)
+  componentKey String    // mapeia para CREATIVES_REGISTRY (registry.ts) ou "ai:<templateId>" se gerado por IA
   name         String
   format       String    // "feed" | "story" | "banner" | "custom"
   width        Int
@@ -84,14 +84,44 @@ model Creative {
   description  String?
   tags         String[]  @default([])
   metaImageHash String?  // hash da imagem na Meta /adimages (se uploaded)
+  imageUrl     String?   // URL publica (CDN Blotato) pra creatives AI
+  aiGenerated  Boolean   @default(false) // true se gerado via Uma+Blotato
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   collection   CreativeCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  copies       CreativeCopy[]
 
   @@unique([collectionId, slug])
   @@index([collectionId])
   @@index([format])
+}
+
+// Variacoes de texto para A/B testing — cada Creative (visual) pode ter
+// varias copies (headline + description + cta) pra testar performance.
+// Meta Ads permite rodar mesmo visual com copies diferentes em adsets distintos.
+model CreativeCopy {
+  id          String   @id @default(uuid())
+  creativeId  String
+  label       String   // "A", "B", "controle", "variante-dor"
+  headline    String
+  description String?  @db.Text
+  cta         String?  // "Saiba mais" | "Comprar agora" | "Inscreva-se"
+  primaryText String?  @db.Text // texto principal Meta (acima do visual)
+  // metricas agregadas (sincronizadas pelo cron sync-meta-ads)
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  spendCents  Int      @default(0)
+  conversions Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  creative    Creative @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+
+  @@unique([creativeId, label])
+  @@index([creativeId])
+  @@index([active])
 }
 
 // ─── Social Media — Posts & Calendar ───────────────────

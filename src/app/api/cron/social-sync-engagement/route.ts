@@ -148,6 +148,121 @@ export async function GET(req: NextRequest) {
     } catch {
       /* silent */
     }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Auto-learning da Uma: pega os top performers, recupera AgentDecision
+    // com template escolhido, e consolida "template X + pilar Y + slot Z =
+    // engagement medio N". Uma usa isso no proximo buildVisualBrief().
+    // ═══════════════════════════════════════════════════════════════════
+    try {
+      const postedPostIds = topPerformers.map((p) => p.title); // fallback: pelo titulo se id nao disponivel aqui
+      void postedPostIds;
+
+      // Reabre: procuramos decisions da Uma pros posts recém-analisados.
+      const postIdsTop = posts.slice(0, topPerformers.length).map((p) => p.id);
+      const umaDecisions = await prisma.agentDecision.findMany({
+        where: {
+          agentId: "uma",
+          action: "VISUAL_BRIEF",
+          targetId: { in: postIdsTop },
+        },
+        select: {
+          targetId: true,
+          params: true,
+          executionResult: true,
+        },
+      });
+
+      // Agrega templateId → { totalEngagement, count, pillars, slots }
+      type TemplateStat = {
+        templateId: string;
+        totalEngagement: number;
+        count: number;
+        pillars: Set<string>;
+        slots: Set<string>;
+        moodSamples: string[];
+      };
+      const stats = new Map<string, TemplateStat>();
+
+      for (const post of posts) {
+        const dec = umaDecisions.find((d) => d.targetId === post.id);
+        if (!dec) continue;
+        const params = (dec.params ?? {}) as {
+          templateId?: string;
+          mood?: string;
+          pillar?: string;
+          slot?: string;
+        };
+        const tplId = params.templateId;
+        if (!tplId) continue;
+
+        const engagement = topPerformers.find((t) => t.title === post.title)?.engagement ?? 0;
+        const existing = stats.get(tplId) ?? {
+          templateId: tplId,
+          totalEngagement: 0,
+          count: 0,
+          pillars: new Set<string>(),
+          slots: new Set<string>(),
+          moodSamples: [],
+        };
+        existing.totalEngagement += engagement;
+        existing.count += 1;
+        if (params.pillar) existing.pillars.add(params.pillar);
+        if (params.slot) existing.slots.add(params.slot);
+        if (params.mood && existing.moodSamples.length < 3)
+          existing.moodSamples.push(params.mood);
+        stats.set(tplId, existing);
+      }
+
+      if (stats.size > 0) {
+        const ranked = Array.from(stats.values())
+          .map((s) => ({
+            ...s,
+            avgEngagement: s.count > 0 ? s.totalEngagement / s.count : 0,
+          }))
+          .sort((a, b) => b.avgEngagement - a.avgEngagement);
+
+        const body = ranked
+          .map(
+            (s, i) =>
+              `${i + 1}. templateId=${s.templateId.slice(0, 80)}
+   pilares=${Array.from(s.pillars).join(",") || "?"} · slots=${Array.from(s.slots).join(",") || "?"}
+   amostras=${s.count} · engagement medio=${s.avgEngagement.toFixed(1)}
+   moods amostrados=${s.moodSamples.join(" | ") || "(sem)"}`
+          )
+          .join("\n\n");
+
+        await prisma.agentKnowledge.create({
+          data: {
+            agentId: "uma",
+            kind: "learning",
+            title: `Template performance (${now.toISOString().slice(0, 10)}) — ${ranked.length} templates rankeados`,
+            body: `Aprendizado proprio: templates que geraram engagement mais alto nas ultimas 14 dias.
+
+${body}
+
+---
+Regra de ouro: quando escolher template, priorizar os top 3 acima SE o slot/pilar do post atual casar.`,
+            source: "uma-learnings",
+            metadata: {
+              ranked: ranked.map((s) => ({
+                templateId: s.templateId,
+                avgEngagement: s.avgEngagement,
+                count: s.count,
+                pillars: Array.from(s.pillars),
+                slots: Array.from(s.slots),
+              })),
+              analyzedPosts: posts.length,
+            },
+          },
+        });
+      }
+    } catch (err) {
+      console.warn(
+        "[uma-auto-learning] falha:",
+        err instanceof Error ? err.message : String(err)
+      );
+    }
   }
 
   return NextResponse.json({
