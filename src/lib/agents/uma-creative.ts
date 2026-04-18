@@ -187,6 +187,10 @@ EVITE (creatives que NAO convertem):
 - Estetica editorial polida demais — parece marca corporativa
 - CTA "Saiba mais" — generico, Meta penaliza
 - Briefing que descreve SENTIMENTO sem cena — Blotato gera fundo vazio
+- **NUNCA** use notacao "S1:", "S2:", "Slide 1:" dentro do enrichedBriefing.
+  Blotato le isso como TEXTO LITERAL no creative final. Em vez disso,
+  descreva UMA cena visual unica que representa o conceito inteiro,
+  mesmo que o brief original mencione multiplos slides.
 
 FACA (creatives que CONVERTEM):
 - Cena concreta (mulher + ambiente + objeto)

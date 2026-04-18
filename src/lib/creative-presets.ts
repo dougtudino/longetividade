@@ -35,18 +35,17 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
   // ─── COLD: EDUCAR PUBLICO NOVO ──────────────────────────
   {
     id: "cold-carrossel-metodo",
-    label: "🧊 COLD · Carrossel educativo S.E.M",
+    label: "🧊 COLD · Método S.E.M educativo",
     icon: "🧊",
     angle: "prova",
     headline: "Não é dieta. É um método",
     briefing:
-      "Carrossel educativo 5 slides. S1: headline + pergunta 'Quantas dietas você já tentou?'. " +
-      "S2: 'Toda dieta tem prazo. Todo prazo termina.' visual calendário. " +
-      "S3: 'Método S.E.M é educacional, não restritivo'. S4: 3 pilares — " +
-      "Simplicidade (comida real), Equilíbrio (emoções), Movimento (rotina). " +
-      "S5: CTA 'Baixe o ebook gratuito'. Paleta verde-oliva + off-white, fotografia natural.",
-    style: "carousel",
-    name: "COLD · carrossel método S.E.M",
+      "Mesa de madeira clara com comida real (pão caseiro, fruta cortada, " +
+      "xícara de café, caderno aberto). Cena aconchegante, luz natural " +
+      "de manhã. Headline 'Não é dieta. É um método' em canto sobre a cena. " +
+      "Paleta verde-oliva + off-white + terracota. Tom editorial mas caloroso.",
+    style: "slideshow",
+    name: "COLD · método S.E.M educativo",
     slug: "cold-metodo",
     funnel: "cold",
   },
@@ -87,39 +86,37 @@ export const CREATIVE_PRESETS: CreativePreset[] = [
   },
   {
     id: "warm-carrossel-prova",
-    label: "🔥 WARM · Carrossel prova social",
+    label: "🔥 WARM · Citação prova social",
     icon: "💬",
     angle: "prova",
-    headline: "O que elas dizem sobre o método",
+    headline: "Não conto caloria. Me sinto em paz.",
     briefing:
-      "Carrossel 4 slides com citações curtas de mulheres (15-20 palavras cada). " +
-      "S1: 'Depois de anos tentando, o S.E.M foi o primeiro método que fez sentido' " +
-      "S2: 'Não conto caloria há 3 meses e me sinto em paz' " +
-      "S3: 'Comi pão no café hoje. Sem culpa' " +
-      "S4: CTA 'Conheça o ebook'. " +
-      "Visual: fundos texturizados suaves, tipografia serifada elegante. Resultados variam.",
-    style: "carousel",
-    name: "WARM · carrossel prova",
-    slug: "warm-carrossel-prova",
+      "Cena: xícara de chá sobre livro aberto em mesa de madeira, " +
+      "luz natural de janela ao fundo (fora de foco). Headline em " +
+      "tipografia serifada delicada no canto superior. Aparência " +
+      "de citação literária. Paleta quente (bege, verde-oliva). " +
+      "Resultados individuais variam.",
+    style: "slideshow",
+    name: "WARM · citação prova",
+    slug: "warm-citacao-prova",
     funnel: "warm",
   },
 
   // ─── WARM: QUEBRA DE OBJEÇÃO ─────────────────────────────
   {
     id: "warm-objecoes",
-    label: "🔥 WARM · Quebra 4 objeções",
+    label: "🔥 WARM · Sem academia, sem contar",
     icon: "🚧",
     angle: "objecao",
-    headline: "Sem academia, sem contar, sem cortar",
+    headline: "Sem academia. Sem contar caloria.",
     briefing:
-      "Carrossel 4 slides respondendo objeções reais: " +
-      "S1: 'Sem academia? Sim. Movimento diário conta.' " +
-      "S2: 'Sem contar caloria? Sim. Foco em padrão.' " +
-      "S3: 'Sem cortar pão/doce? Sim. Sem demonizar alimento.' " +
-      "S4: 'Sem tempo? Receitas de 10min no ebook.' " +
-      "Visual: ícone + frase curta por slide. Paleta verde-oliva, fundo claro.",
-    style: "carousel",
-    name: "WARM · 4 objeções",
+      "Cena: mulher 40+ caminhando em calçada com árvores, luz " +
+      "da tarde, roupa casual (nao atletica academica). Atitude " +
+      "relaxada, sorriso leve. Headline sobrepondo no canto com " +
+      "tipografia direta. Comunica movimento natural acessível. " +
+      "Paleta verde, amarelo suave, off-white.",
+    style: "slideshow",
+    name: "WARM · quebra objeções",
     slug: "warm-objecoes",
     funnel: "warm",
   },
