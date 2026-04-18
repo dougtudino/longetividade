@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { PageHeader } from "@/components/admin/ui";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -227,16 +228,12 @@ export default function VendasPage() {
   /* ---- Render ---- */
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-      <h1
-        style={{
-          fontSize: 22,
-          fontWeight: 700,
-          color: "var(--text-primary)",
-          marginBottom: 24,
-        }}
-      >
-        Vendas
-      </h1>
+      <PageHeader
+        title="Vendas"
+        subtitle="Orders reconciliadas Hotmart + MercadoPago. Use os filtros de plano/status pra investigar casos."
+        icon="💰"
+      />
+
 
       {/* ================================================================ */}
       {/*  Filters                                                         */}

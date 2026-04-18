@@ -129,7 +129,12 @@ export default function CriativosPage() {
       const data = await res.json();
       if (data.ok) {
         setNeedsMigration(false);
+        const applied = (data.results ?? []).filter((r: { ok: boolean }) => r.ok).length;
+        const total = (data.results ?? []).length;
+        alert(`Schema aplicado ${applied}/${total} statements. Veja console pra detalhes.`);
+        console.log("[migrate] results:", data.results);
         await loadCollections();
+        if (selectedSlug) await loadCollectionDetail(selectedSlug);
       } else {
         const failed = (data.results ?? [])
           .filter((r: { ok: boolean }) => !r.ok)
@@ -354,6 +359,15 @@ export default function CriativosPage() {
                 )}
               </>
             )}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={runMigration}
+              loading={migrating}
+              title="Aplica colunas/tabelas novas (aiGenerated, imageUrl, CreativeCopy). Idempotente — pode rodar varias vezes."
+            >
+              ⚡ Migrar schema
+            </Button>
           </>
         }
       />

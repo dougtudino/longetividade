@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import MayaChat from "@/components/admin/maya-chat";
 import PageHelp from "@/components/admin/PageHelp";
 import { PLANS } from "@/config/plans";
+import { PageHeader, Button, Alert } from "@/components/admin/ui";
 
 interface PlanStats {
   count: number;
@@ -769,6 +770,31 @@ export default function AdminDashboard() {
       `}</style>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Visão geral do negócio — vendas, conversão, app VIP. Maya responde perguntas e o Hotmart sync reconcilia vendas reais."
+          icon="📊"
+          actions={
+            <Button
+              variant="primary"
+              onClick={syncHotmart}
+              loading={syncing}
+              icon={<span>🔥</span>}
+            >
+              Sincronizar Hotmart
+            </Button>
+          }
+        />
+        {syncResult && (
+          <Alert
+            tone={syncResult.ok ? "success" : "danger"}
+            title={syncResult.ok ? "Sync concluído" : "Erro na sync"}
+          >
+            {syncResult.ok
+              ? `${syncResult.total ?? 0} vendas processadas · ${syncResult.created ?? 0} novas · ${syncResult.updated ?? 0} atualizadas · ${syncResult.skipped ?? 0} sem mudança`
+              : syncResult.error}
+          </Alert>
+        )}
         <PageHelp
           pageId="dashboard"
           agent={{ icon: "🧠", name: "Maya", role: "Business Assistant" }}
@@ -797,66 +823,6 @@ export default function AdminDashboard() {
             funcionam igual.
           </p>
         </PageHelp>
-
-        {/* Hotmart Sync */}
-        <div
-          style={{
-            background: "linear-gradient(135deg, rgba(255,140,70,0.08), rgba(255,100,100,0.05))",
-            border: "0.5px solid rgba(255,140,70,0.35)",
-            borderRadius: 12,
-            padding: 16,
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ fontSize: 24, lineHeight: 1, flexShrink: 0 }}>🔥</div>
-          <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
-              Hotmart Sales API — reconciliar vendas reais
-            </div>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-              Busca vendas dos últimos 30 dias direto da Hotmart e reconcilia com o DB local.
-              Complementa o webhook, que pode falhar silenciosamente.
-            </div>
-          </div>
-          <button
-            onClick={syncHotmart}
-            disabled={syncing}
-            style={{
-              padding: "10px 18px",
-              borderRadius: 10,
-              background: syncing ? "var(--border-default)" : "#FF8C46",
-              color: "#fff",
-              border: "none",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: syncing ? "wait" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {syncing ? "Sincronizando..." : "↻ Sincronizar Hotmart"}
-          </button>
-          {syncResult && (
-            <div
-              style={{
-                flexBasis: "100%",
-                padding: 10,
-                borderRadius: 8,
-                background: syncResult.ok ? "rgba(107,158,107,0.12)" : "rgba(196,120,122,0.12)",
-                border: `0.5px solid ${syncResult.ok ? "rgba(107,158,107,0.4)" : "rgba(196,120,122,0.4)"}`,
-                color: syncResult.ok ? "#6B9E6B" : "#C4787A",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
-            >
-              {syncResult.ok
-                ? `✓ OK — ${syncResult.total ?? 0} vendas processadas (${syncResult.created ?? 0} novas, ${syncResult.updated ?? 0} atualizadas, ${syncResult.skipped ?? 0} sem mudança)`
-                : `✗ Erro: ${syncResult.error}`}
-            </div>
-          )}
-        </div>
 
         <div
           className="maya-row"

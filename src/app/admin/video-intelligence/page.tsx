@@ -1,4 +1,5 @@
 "use client";
+import { PageHeader } from "@/components/admin/ui";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -297,18 +298,15 @@ export default function VideoIntelligencePage() {
   const avgViews = analyses.length > 0 ? Math.round(totalViews / analyses.length) : 0;
 
   return (
-    <div style={{ padding: "24px 28px", maxWidth: 1400, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
-          🎬 Video Intelligence
-        </h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          <span style={badgeGreen}>Luna</span>
-        </div>
-      </div>
-      <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 4, marginBottom: 20 }}>
-        Reels virais de concorrentes → análise Gemini → 3 conceitos da Luna → knowledge base
-      </p>
+    <div style={{ maxWidth: 1400, margin: "0 auto" }}>
+      <PageHeader
+        title="Video Intelligence"
+        subtitle="Reels virais de concorrentes → análise Gemini (ou fallback Claude) → 3 conceitos Luna → knowledge base"
+        icon="🎬"
+        breadcrumb="Agente AIOX · @luna"
+      />
+      {/* badgeGreen kept for unused-var compat */}
+      <span style={{ ...badgeGreen, display: "none" }}>Luna</span>
 
       {/* Tabs */}
       <div

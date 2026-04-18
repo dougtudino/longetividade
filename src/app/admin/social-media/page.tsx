@@ -17,6 +17,7 @@ import {
 } from "@/lib/social-story-parsers";
 import PostCarouselSlide, { parseContentToSlides } from "@/components/social-templates/post-carousel";
 import { getTemplateForFormat } from "@/components/social-templates/registry";
+import { PageHeader, Alert } from "@/components/admin/ui";
 
 type Post = {
   id: string;
@@ -648,20 +649,12 @@ export default function SocialMediaPage() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 4 }}>
-        <div style={{ fontSize: 36, lineHeight: 1 }}>🌙</div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            Agente AIOX · @social
-          </div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "4px 0 0 0" }}>
-            Luna · Social Media
-          </h1>
-        </div>
-      </div>
-      <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "8px 0 20px 0" }}>
-        Gestao de conteudo, calendario editorial, e fila de postagens pra Facebook e Instagram.
-      </p>
+      <PageHeader
+        title="Luna · Social Media"
+        subtitle="Calendário editorial + fila de posts IG/FB. Luna gera e agenda; Uma faz a arte; Quinn aprova; Blotato publica."
+        icon="🌙"
+        breadcrumb="Agente AIOX · @social"
+      />
 
       <PageHelp
         pageId="social-media"
@@ -682,8 +675,8 @@ export default function SocialMediaPage() {
       </PageHelp>
 
       {error && (
-        <div style={{ padding: 12, background: "rgba(196,120,122,0.1)", border: "0.5px solid rgba(196,120,122,0.3)", borderRadius: 10, color: "#C4787A", fontSize: 13, marginBottom: 16 }}>
-          {error}
+        <div style={{ marginBottom: 16 }}>
+          <Alert tone="danger" title="Erro">{error}</Alert>
         </div>
       )}
 

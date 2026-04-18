@@ -4,6 +4,7 @@ import Link from "next/link";
 import SugestaoDoDia from "@/components/admin/sugestao-do-dia";
 import { MapaCampanhas } from "./MapaCampanhas";
 import type { AggregatedInsights } from "@/lib/meta-ads";
+import { PageHeader, Button, Card, Badge, Alert } from "@/components/admin/ui";
 
 interface Campaign {
   id: string; name: string; platform: "meta"|"google"|"organic"|"email";
@@ -102,7 +103,18 @@ export default function CampanhasPage() {
   });
 
   return (
-    <div style={{maxWidth:960,margin:"0 auto"}}>
+    <div style={{maxWidth:1100,margin:"0 auto"}}>
+
+      <PageHeader
+        title="Campanhas"
+        subtitle="Meta Ads + Google + orgânico + email. Gaia monitora ROAS e propõe ajustes automaticamente."
+        icon="📣"
+        actions={
+          pageTab === "campanhas" ? (
+            <Button onClick={openNew}>+ Nova campanha</Button>
+          ) : undefined
+        }
+      />
 
       {/* Tab nav */}
       <div style={{display:"flex",gap:0,marginBottom:24,borderBottom:"0.5px solid var(--border-default)"}}>
@@ -118,10 +130,6 @@ export default function CampanhasPage() {
       {/* ABA: CAMPANHAS */}
       {pageTab === "campanhas" && (
         <>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-            <h1 style={{fontSize:24,fontWeight:700,color:"var(--text-primary)",margin:0}}>Campanhas</h1>
-            <button style={btnPrimary} onClick={openNew}>+ Nova Campanha</button>
-          </div>
 
           {/* Meta Ads insights */}
           <div style={{...cardStyle,marginBottom:16}}>
