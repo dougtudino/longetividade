@@ -18,6 +18,14 @@ import { buildVisualBriefForBriefing } from "./agents/uma-creative";
 import { reviewCreativeCompliance } from "./agents/quinn-creative";
 import { getLauncherCreds, uploadAdImage } from "./meta-launcher";
 
+export type CreativeStyle =
+  | "auto"
+  | "talking-head"
+  | "slideshow"
+  | "quote-card"
+  | "infographic"
+  | "carousel";
+
 export interface CreateAiCreativeInput {
   collectionId: string;
   slug: string;
@@ -27,6 +35,7 @@ export interface CreateAiCreativeInput {
   angle?: "dor" | "prova" | "objecao" | "promessa" | "cta";
   headline?: string;
   cta?: string;
+  style?: CreativeStyle; // hint pra Uma filtrar templates
 }
 
 export interface CreateAiCreativeResult {
@@ -79,6 +88,7 @@ export async function createAiCreative(
     headline: input.headline,
     cta: input.cta,
     slot,
+    style: input.style,
   });
 
   // 2. Quinn valida ANTES do render (economiza credito Blotato)

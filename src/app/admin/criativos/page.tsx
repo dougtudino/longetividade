@@ -84,6 +84,13 @@ export default function CriativosPage() {
     angle: "dor" as "dor" | "prova" | "objecao" | "promessa" | "cta",
     headline: "",
     cta: "Saiba mais",
+    style: "auto" as
+      | "auto"
+      | "talking-head"
+      | "slideshow"
+      | "quote-card"
+      | "infographic"
+      | "carousel",
   });
   const [aiGenerating, setAiGenerating] = useState(false);
   const [aiResult, setAiResult] = useState<{
@@ -868,6 +875,21 @@ export default function CriativosPage() {
                 placeholder="Saiba mais"
               />
             </div>
+            <Select
+              label="Estilo visual"
+              value={aiForm.style}
+              onChange={(e) =>
+                setAiForm({ ...aiForm, style: e.target.value as typeof aiForm.style })
+              }
+              hint="Controla QUAL tipo de template Uma vai escolher. 'Talking head' gera vídeo com mulher falando (55+cr). 'Slideshow/Quote card' são imagens estáticas (1cr)."
+            >
+              <option value="auto">Uma decide (padrão)</option>
+              <option value="talking-head">🎤 Talking head — mulher falando (vídeo)</option>
+              <option value="slideshow">🖼️ Slideshow — imagens com texto</option>
+              <option value="quote-card">💬 Quote card — frase forte</option>
+              <option value="infographic">📊 Infográfico — educativo/impacto</option>
+              <option value="carousel">📑 Carrossel — passo-a-passo</option>
+            </Select>
             <Input
               label="Headline (aparece no visual)"
               value={aiForm.headline}

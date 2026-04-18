@@ -70,6 +70,33 @@ interface CreativeBriefingInput {
   headline?: string;
   cta?: string;
   slot: "AD_FEED" | "AD_STORY" | "AD_BANNER";
+  style?:
+    | "auto"
+    | "talking-head"
+    | "slideshow"
+    | "quote-card"
+    | "infographic"
+    | "carousel";
+}
+
+// Filtra catalog por estilo de video/imagem. Heuristica baseada em
+// nome/description do template (Blotato nao tem campo `style`).
+function filterByStyle(
+  templates: Array<{ id: string; description: string; slots: string[] }>,
+  style?: CreativeBriefingInput["style"]
+): Array<{ id: string; description: string; slots: string[] }> {
+  if (!style || style === "auto") return templates;
+  const patterns: Record<string, RegExp> = {
+    "talking-head": /selfie|talking|avatar/i,
+    slideshow: /slideshow|image.*text|images.*text/i,
+    "quote-card": /quote|centered text|quote card/i,
+    infographic: /infographic|whiteboard|chalkboard|billboard|newspaper|book page/i,
+    carousel: /carousel|tutorial|nano banana/i,
+  };
+  const re = patterns[style];
+  if (!re) return templates;
+  const filtered = templates.filter((t) => re.test(t.description));
+  return filtered.length > 0 ? filtered : templates;
 }
 
 async function fetchKnowledgeForCreative(): Promise<string> {
@@ -132,10 +159,11 @@ export async function buildVisualBriefForBriefing(
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY nao configurada");
 
   const catalog = await getAdTemplateCatalog();
-  const eligible = catalog.filter((t) => t.slots.includes(input.slot));
+  const catalogByStyle = filterByStyle(catalog, input.style);
+  const eligible = catalogByStyle.filter((t) => t.slots.includes(input.slot));
   // CAP 12 templates pra manter o prompt enxuto (~1.5k tokens).
   // Rate limit Anthropic: 30k input tokens/min; com 40+ templates mandamos 5-8k so na lista.
-  const templatesForPrompt = (eligible.length ? eligible : catalog).slice(0, 12);
+  const templatesForPrompt = (eligible.length ? eligible : catalogByStyle.length ? catalogByStyle : catalog).slice(0, 12);
 
   const knowledge = await fetchKnowledgeForCreative();
 

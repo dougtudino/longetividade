@@ -26,6 +26,13 @@ export async function POST(req: NextRequest) {
       angle?: "dor" | "prova" | "objecao" | "promessa" | "cta";
       headline?: string;
       cta?: string;
+      style?:
+        | "auto"
+        | "talking-head"
+        | "slideshow"
+        | "quote-card"
+        | "infographic"
+        | "carousel";
     };
 
     if (!body.collectionId || !body.slug || !body.name || !body.format || !body.briefing) {
@@ -48,6 +55,7 @@ export async function POST(req: NextRequest) {
       angle: body.angle,
       headline: body.headline,
       cta: body.cta,
+      style: body.style,
     });
 
     return NextResponse.json({ ok: true, ...result });
