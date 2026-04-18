@@ -60,3 +60,23 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const id = new URL(req.url).searchParams.get("id");
+    if (!id) {
+      return NextResponse.json({ ok: false, error: "id obrigatorio" }, { status: 400 });
+    }
+    const analysesCount = await prisma.videoAnalysis.count({ where: { competitorId: id } });
+    if (analysesCount > 0) {
+      return NextResponse.json(
+        { ok: false, error: `tem ${analysesCount} analise(s) — desative ao inves de apagar` },
+        { status: 409 },
+      );
+    }
+    await prisma.videoCompetitor.delete({ where: { id } });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    return NextResponse.json({ ok: false, error: (e as Error).message }, { status: 500 });
+  }
+}

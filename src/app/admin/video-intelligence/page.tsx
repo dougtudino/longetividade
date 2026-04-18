@@ -235,6 +235,19 @@ export default function VideoIntelligencePage() {
     await loadCompetitors();
   }
 
+  async function deleteCompetitor(id: string, username: string) {
+    if (!confirm(`Excluir @${username}? Essa acao e permanente.`)) return;
+    const res = await fetch(`/api/admin/video-intelligence/competitors?id=${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      alert(data.error || "Erro ao excluir");
+      return;
+    }
+    await loadCompetitors();
+  }
+
   async function addCompetitor() {
     const username = newUsername.trim().replace(/^@/, "");
     if (!username) return;
@@ -692,20 +705,39 @@ export default function VideoIntelligencePage() {
                         )}
                       </td>
                       <td style={td}>
-                        <button
-                          onClick={() => toggleCompetitor(c.id, !c.active)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            background: "transparent",
-                            color: "var(--text-secondary)",
-                            border: "1px solid var(--border-default)",
-                            fontSize: 12,
-                            cursor: "pointer",
-                          }}
-                        >
-                          {c.active ? "desativar" : "ativar"}
-                        </button>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button
+                            onClick={() => toggleCompetitor(c.id, !c.active)}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "transparent",
+                              color: "var(--text-secondary)",
+                              border: "1px solid var(--border-default)",
+                              fontSize: 12,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {c.active ? "desativar" : "ativar"}
+                          </button>
+                          <button
+                            onClick={() => deleteCompetitor(c.id, c.username)}
+                            disabled={(c._count?.analyses ?? 0) > 0}
+                            title={(c._count?.analyses ?? 0) > 0 ? "tem analises — so da pra desativar" : "excluir permanentemente"}
+                            style={{
+                              padding: "4px 10px",
+                              borderRadius: 6,
+                              background: "transparent",
+                              color: (c._count?.analyses ?? 0) > 0 ? "var(--text-tertiary, #999)" : "#c94545",
+                              border: "1px solid " + ((c._count?.analyses ?? 0) > 0 ? "var(--border-default)" : "#c94545"),
+                              fontSize: 12,
+                              cursor: (c._count?.analyses ?? 0) > 0 ? "not-allowed" : "pointer",
+                              opacity: (c._count?.analyses ?? 0) > 0 ? 0.5 : 1,
+                            }}
+                          >
+                            excluir
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
