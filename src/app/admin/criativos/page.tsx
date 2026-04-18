@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
 import { CREATIVES_REGISTRY } from "@/components/creatives/registry";
 import { CREATIVE_PRESETS } from "@/lib/creative-presets";
+import { CREATIVE_PACKS } from "@/lib/creative-packs";
 import {
   PageHeader,
   Card,
@@ -102,6 +103,38 @@ export default function CriativosPage() {
     quinnVerdict: { severity: string; issues: string[]; reasoning: string };
     skippedMetaUpload: boolean;
   } | null>(null);
+
+  const [packGenerating, setPackGenerating] = useState(false);
+  const [packResult, setPackResult] = useState<{
+    ok: boolean;
+    packLabel?: string;
+    succeeded?: number;
+    failed?: number;
+    results?: Array<{ slideName: string; ok: boolean; imageUrl?: string; error?: string }>;
+    error?: string;
+  } | null>(null);
+  const [packForm, setPackForm] = useState({ packId: "pack-metodo-sem", slugBase: "pack" });
+
+  async function generatePack(e: React.FormEvent) {
+    e.preventDefault();
+    if (!selectedCollection) return;
+    setPackGenerating(true);
+    setPackResult(null);
+    try {
+      const res = await fetch("/api/admin/creatives/ai-generate-pack", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collectionId: selectedCollection.id, ...packForm }),
+      });
+      const data = await res.json();
+      setPackResult(data);
+      await loadCollectionDetail(selectedCollection.slug);
+    } catch (err) {
+      setPackResult({ ok: false, error: (err as Error).message });
+    } finally {
+      setPackGenerating(false);
+    }
+  }
 
   const loadCollections = useCallback(async () => {
     setLoadingList(true);
@@ -348,6 +381,41 @@ export default function CriativosPage() {
             {selectedSlug && selectedCollection && (
               <>
                 <Button
+                  variant="secondary"
+                  onClick={() => {
+                    const packId = prompt(
+                      `Qual pack?\n${CREATIVE_PACKS.map((p, i) => `${i + 1}. ${p.label}`).join("\n")}\n\nDigite o ID:`,
+                      "pack-metodo-sem"
+                    );
+                    if (!packId) return;
+                    const slugBase = prompt("Slug base (ex: 'launch-001'):", "pack");
+                    if (!slugBase) return;
+                    setPackForm({ packId, slugBase });
+                    setPackGenerating(true);
+                    setPackResult(null);
+                    fetch("/api/admin/creatives/ai-generate-pack", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        collectionId: selectedCollection.id,
+                        packId,
+                        slugBase,
+                      }),
+                    })
+                      .then((r) => r.json())
+                      .then(async (d) => {
+                        setPackResult(d);
+                        await loadCollectionDetail(selectedCollection.slug);
+                      })
+                      .catch((e) => setPackResult({ ok: false, error: e.message }))
+                      .finally(() => setPackGenerating(false));
+                  }}
+                  loading={packGenerating}
+                  title="Gera 5 criativos do pack pra subir como Carousel Ad no Meta"
+                >
+                  📦 Pack carrossel
+                </Button>
+                <Button
                   variant="primary"
                   onClick={() => {
                     setAiPanelOpen(true);
@@ -415,6 +483,35 @@ export default function CriativosPage() {
           </p>
         </PageHelp>
       </div>
+
+      {packResult && (
+        <div style={{ marginBottom: 16 }}>
+          <Alert
+            tone={packResult.ok ? "success" : "danger"}
+            title={packResult.ok ? `Pack gerado: ${packResult.succeeded}/${packResult.results?.length ?? 0}` : "Pack falhou"}
+            action={
+              <Button size="sm" variant="ghost" onClick={() => setPackResult(null)}>
+                ✕
+              </Button>
+            }
+          >
+            {packResult.error ?? (
+              <div style={{ fontSize: 11 }}>
+                {packResult.results?.map((r, i) => (
+                  <div key={i} style={{ marginBottom: 2 }}>
+                    {r.ok ? "✓" : "✗"} {r.slideName}
+                    {r.error && ` — ${r.error.slice(0, 80)}`}
+                  </div>
+                ))}
+                <div style={{ marginTop: 8, opacity: 0.8 }}>
+                  💡 Baixa as 5 imagens aqui da galeria e sobe no Meta Ads Manager
+                  como Carousel Ad.
+                </div>
+              </div>
+            )}
+          </Alert>
+        </div>
+      )}
 
       {error && (
         <div style={{ marginBottom: 16 }}>
