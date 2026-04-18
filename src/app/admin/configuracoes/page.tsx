@@ -889,6 +889,30 @@ function BlotatoSection() {
   } | null>(null);
   const [debugRaw, setDebugRaw] = useState<unknown>(null);
   const [debuggingRaw, setDebuggingRaw] = useState(false);
+  const [history, setHistory] = useState<Array<{
+    source: string;
+    createdAt: string;
+    title: string;
+    templateId?: string;
+    outputUrl?: string | null;
+    mood?: string;
+    reasoning?: string;
+    ok?: boolean;
+  }> | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  async function fetchHistory() {
+    setLoadingHistory(true);
+    try {
+      const r = await fetch("/api/admin/blotato/history");
+      const d = await r.json();
+      if (d.ok) setHistory(d.items);
+    } catch {
+      /* silent */
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
 
   async function fetchDebugRaw() {
     setDebuggingRaw(true);
@@ -1010,6 +1034,20 @@ function BlotatoSection() {
         >
           {debuggingRaw ? "Carregando..." : "🐛 Debug raw"}
         </button>
+        <button
+          onClick={fetchHistory}
+          disabled={loadingHistory}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: loadingHistory ? 0.6 : 1,
+          }}
+          title="Lista todos renders feitos via Uma (creative + social)"
+        >
+          {loadingHistory ? "Carregando..." : "📜 Histórico de renders"}
+        </button>
         {lastSync && (
           <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
             Última sync: {lastSync}
@@ -1097,6 +1135,86 @@ function BlotatoSection() {
           {error}
         </div>
       )}
+      {history !== null && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Histórico ({history.length} renders)
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 500, overflow: "auto" }}>
+            {history.map((h, i) => (
+              <div
+                key={i}
+                style={{
+                  padding: 10,
+                  borderRadius: 8,
+                  background: "var(--bg-secondary)",
+                  border: `0.5px solid ${h.ok === false ? "rgba(212,169,75,0.4)" : "var(--border-subtle)"}`,
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "flex-start",
+                }}
+              >
+                {h.outputUrl && (
+                  <div style={{ flexShrink: 0, width: 72, height: 72, borderRadius: 6, overflow: "hidden", background: "#000" }}>
+                    {h.outputUrl.endsWith(".mp4") ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>🎬</div>
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={h.outputUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
+                  </div>
+                )}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 4 }}>
+                    <span style={{
+                      fontSize: 9,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      padding: "2px 6px",
+                      borderRadius: 4,
+                      background: h.source === "creative" ? "rgba(99,153,34,0.2)" : h.source === "social-post" ? "rgba(100,150,200,0.2)" : "rgba(212,169,75,0.2)",
+                      color: h.source === "creative" ? "#8FBB3F" : h.source === "social-post" ? "#6496C8" : "#D4A94B",
+                    }}>
+                      {h.source === "orphan-brief" ? "ÓRFÃO" : h.source}
+                    </span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{h.title}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                      {new Date(h.createdAt).toLocaleString("pt-BR")}
+                    </span>
+                  </div>
+                  {h.templateId && (
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace", marginBottom: 2 }}>
+                      {h.templateId.slice(0, 60)}
+                    </div>
+                  )}
+                  {h.mood && (
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                      mood: {h.mood}
+                    </div>
+                  )}
+                  {h.reasoning && (
+                    <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4, lineHeight: 1.4 }}>
+                      {h.reasoning.slice(0, 200)}
+                    </div>
+                  )}
+                  {h.outputUrl && (
+                    <a
+                      href={h.outputUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 11, color: "var(--accent)", marginTop: 4, display: "inline-block" }}
+                    >
+                      Ver output →
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {debugRaw !== null && (
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
