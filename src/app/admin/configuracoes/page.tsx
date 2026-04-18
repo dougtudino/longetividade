@@ -887,6 +887,22 @@ function BlotatoSection() {
     outputUrl?: string | null;
     error?: string;
   } | null>(null);
+  const [debugRaw, setDebugRaw] = useState<unknown>(null);
+  const [debuggingRaw, setDebuggingRaw] = useState(false);
+
+  async function fetchDebugRaw() {
+    setDebuggingRaw(true);
+    setDebugRaw(null);
+    try {
+      const r = await fetch("/api/admin/blotato/debug-raw");
+      const d = await r.json();
+      setDebugRaw(d);
+    } catch (e) {
+      setDebugRaw({ ok: false, error: (e as Error).message });
+    } finally {
+      setDebuggingRaw(false);
+    }
+  }
 
   async function testRender() {
     setTesting(true);
@@ -980,6 +996,20 @@ function BlotatoSection() {
         >
           {testing ? "Testando..." : "🧪 Testar render (1o template)"}
         </button>
+        <button
+          onClick={fetchDebugRaw}
+          disabled={debuggingRaw}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: debuggingRaw ? 0.6 : 1,
+          }}
+          title="Mostra resposta crua do endpoint /videos/templates do Blotato"
+        >
+          {debuggingRaw ? "Carregando..." : "🐛 Debug raw"}
+        </button>
         {lastSync && (
           <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
             Última sync: {lastSync}
@@ -1067,6 +1097,32 @@ function BlotatoSection() {
           {error}
         </div>
       )}
+      {debugRaw !== null && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            Raw response de /videos/templates
+          </div>
+          <pre
+            style={{
+              fontSize: 11,
+              padding: 12,
+              borderRadius: 8,
+              background: "var(--bg-secondary)",
+              border: "0.5px solid var(--border-default)",
+              color: "var(--text-primary)",
+              maxHeight: 400,
+              overflow: "auto",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              fontFamily: "monospace",
+              margin: 0,
+            }}
+          >
+            {JSON.stringify(debugRaw, null, 2)}
+          </pre>
+        </div>
+      )}
+
       {templates && templates.length > 0 && (
         <details style={{ marginTop: 10 }}>
           <summary style={{ fontSize: 13, color: "var(--text-secondary)", cursor: "pointer", fontWeight: 600 }}>
