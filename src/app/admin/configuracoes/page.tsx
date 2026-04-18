@@ -539,6 +539,9 @@ export default function ConfiguracoesPage() {
         </div>
       </div>
 
+      {/* 1.7 Blotato */}
+      <BlotatoSection />
+
       {/* 2. Vagas VIP */}
       <div style={cardStyle}>
         <h2 style={sectionTitle}>Vagas App VIP</h2>
@@ -858,6 +861,155 @@ export default function ConfiguracoesPage() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Blotato: templates + API key status ──────────────
+function BlotatoSection() {
+  const [templates, setTemplates] = useState<Array<{
+    id: string;
+    name: string;
+    type?: string;
+    description?: string;
+  }> | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/admin/blotato/templates");
+      const d = await r.json();
+      if (d.ok) {
+        setTemplates(d.templates);
+      } else {
+        setError(d.error ?? "erro");
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function syncNow() {
+    setSyncing(true);
+    setError(null);
+    try {
+      const r = await fetch("/api/admin/blotato/templates", { method: "POST" });
+      const d = await r.json();
+      if (d.ok) {
+        setTemplates(d.templates);
+        setLastSync(new Date().toLocaleTimeString("pt-BR"));
+      } else {
+        setError(d.error ?? "erro");
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  return (
+    <div id="blotato" style={cardStyle}>
+      <h2 style={sectionTitle}>Blotato (AI + Publish)</h2>
+      <p style={{ ...hintStyle, marginTop: 0, marginBottom: 16 }}>
+        Blotato gera arte (imagens/reels) e publica IG+FB via Uma e Quinn. A chave
+        fica no Railway como <code>BLOTATO_API_KEY</code>. Aqui você vê o catálogo
+        de templates disponíveis no seu plano.
+      </p>
+
+      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", marginBottom: 12 }}>
+        <button
+          onClick={syncNow}
+          disabled={syncing}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: syncing ? 0.6 : 1,
+          }}
+        >
+          {syncing ? "Sincronizando..." : "↻ Sincronizar templates"}
+        </button>
+        {lastSync && (
+          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            Última sync: {lastSync}
+          </span>
+        )}
+        {templates && (
+          <span style={badgeActive}>
+            {templates.length} templates disponíveis
+          </span>
+        )}
+      </div>
+
+      {loading && !templates && (
+        <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Carregando catálogo...</div>
+      )}
+      {error && (
+        <div
+          style={{
+            padding: 10,
+            borderRadius: 8,
+            background: "rgba(196,120,122,0.12)",
+            border: "0.5px solid rgba(196,120,122,0.3)",
+            color: "#C4787A",
+            fontSize: 12,
+          }}
+        >
+          {error}
+        </div>
+      )}
+      {templates && templates.length > 0 && (
+        <details style={{ marginTop: 10 }}>
+          <summary style={{ fontSize: 13, color: "var(--text-secondary)", cursor: "pointer", fontWeight: 600 }}>
+            Ver {templates.length} templates
+          </summary>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, maxHeight: 300, overflow: "auto" }}>
+            {templates.map((t) => (
+              <div
+                key={t.id}
+                style={{
+                  fontSize: 12,
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  background: "var(--bg-secondary)",
+                  color: "var(--text-secondary)",
+                  border: "0.5px solid var(--border-subtle)",
+                }}
+              >
+                <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>
+                  {t.name}
+                  {t.type && (
+                    <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.6 }}>
+                      · {t.type}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace" }}>
+                  {t.id.slice(0, 40)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
+      <p style={{ ...hintStyle, marginTop: 16 }}>
+        💡 Roda 1x no setup. Depois só quando Blotato adicionar templates novos
+        (raro). Uma usa esse cache quando você gera criativo com IA.
+      </p>
     </div>
   );
 }
