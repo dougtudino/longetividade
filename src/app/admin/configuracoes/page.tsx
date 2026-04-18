@@ -1326,33 +1326,11 @@ function BlotatoSection() {
       {templates && templates.length > 0 && (
         <details style={{ marginTop: 10 }}>
           <summary style={{ fontSize: 13, color: "var(--text-secondary)", cursor: "pointer", fontWeight: 600 }}>
-            Ver {templates.length} templates
+            Ver {templates.length} templates (click em cada pra ver inputs esperados)
           </summary>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, maxHeight: 300, overflow: "auto" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10, maxHeight: 500, overflow: "auto" }}>
             {templates.map((t) => (
-              <div
-                key={t.id}
-                style={{
-                  fontSize: 12,
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  background: "var(--bg-secondary)",
-                  color: "var(--text-secondary)",
-                  border: "0.5px solid var(--border-subtle)",
-                }}
-              >
-                <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>
-                  {t.name}
-                  {t.type && (
-                    <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.6 }}>
-                      · {t.type}
-                    </span>
-                  )}
-                </div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace" }}>
-                  {t.id.slice(0, 40)}
-                </div>
-              </div>
+              <TemplateRow key={t.id} template={t} />
             ))}
           </div>
         </details>
@@ -1362,6 +1340,96 @@ function BlotatoSection() {
         💡 Roda 1x no setup. Depois só quando Blotato adicionar templates novos
         (raro). Uma usa esse cache quando você gera criativo com IA.
       </p>
+    </div>
+  );
+}
+
+// ─── TemplateRow com inputs expand/collapse ──────────────
+function TemplateRow({
+  template,
+}: {
+  template: { id: string; name: string; type?: string; description?: string };
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [inputs, setInputs] = useState<unknown>(null);
+
+  async function loadInputs() {
+    if (inputs !== null) return;
+    setLoading(true);
+    try {
+      const r = await fetch(
+        `/api/admin/blotato/templates/${encodeURIComponent(template.id)}`
+      );
+      const d = await r.json();
+      const remote = d.remote as { inputs?: unknown } | null;
+      setInputs(remote?.inputs ?? d.cached ?? null);
+    } catch (e) {
+      setInputs({ error: (e as Error).message });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function toggle() {
+    setOpen(!open);
+    if (!open) loadInputs();
+  }
+
+  return (
+    <div
+      style={{
+        fontSize: 12,
+        padding: "6px 10px",
+        borderRadius: 6,
+        background: "var(--bg-secondary)",
+        color: "var(--text-secondary)",
+        border: "0.5px solid var(--border-subtle)",
+      }}
+    >
+      <div
+        onClick={toggle}
+        style={{ cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+      >
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, color: "var(--text-primary)" }}>
+            {template.name}
+            {template.type && (
+              <span style={{ fontSize: 10, marginLeft: 6, opacity: 0.6 }}>
+                · {template.type}
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "monospace" }}>
+            {template.id.slice(0, 60)}
+          </div>
+        </div>
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{open ? "▼" : "▶"}</span>
+      </div>
+      {open && (
+        <div style={{ marginTop: 8, paddingTop: 8, borderTop: "0.5px solid var(--border-subtle)" }}>
+          {loading && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Carregando inputs...</div>}
+          {!loading && inputs !== null && (
+            <pre
+              style={{
+                fontSize: 10,
+                background: "var(--bg-card)",
+                padding: 8,
+                borderRadius: 4,
+                margin: 0,
+                maxHeight: 220,
+                overflow: "auto",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontFamily: "monospace",
+                color: "var(--text-primary)",
+              }}
+            >
+              {JSON.stringify(inputs, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
     </div>
   );
 }

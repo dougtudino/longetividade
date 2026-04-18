@@ -24,7 +24,8 @@ export async function syncBlotatoTemplates(): Promise<{
   updated: number;
   templates: SyncedTemplate[];
 }> {
-  const remote = await listTemplates({ fields: ["id", "name", "description", "type", "category", "aspectRatio"] });
+  // Inclui `inputs` pra saber schema esperado (tipos, obrigatorios, limites)
+  const remote = await listTemplates({ fields: ["id", "name", "description", "type", "category", "aspectRatio", "inputs"] });
   let saved = 0;
   let updated = 0;
 
