@@ -11,6 +11,7 @@ import {
   getOutputUrl,
   BlotatoError,
 } from "./blotato-client";
+import { buildVisualBrief } from "./agents/uma";
 
 const DEFAULT_TEMPLATES: Record<string, string> = {
   FEED_AM: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", // Single Centered Text Quote
@@ -31,14 +32,16 @@ async function getTemplateIdForSlot(slot: string): Promise<string> {
   return DEFAULT_TEMPLATES[slot] ?? DEFAULT_TEMPLATES.FEED_AM;
 }
 
-function buildPrompt(post: {
+function fallbackImagePrompt(post: {
   title: string;
   content: string;
   imageBriefing: string | null;
   pillar: string;
   slot: string;
 }): string {
-  const paleta = "paleta verde-oliva e off-white (brand Longetividade)";
+  // Fallback sem Uma (se ANTHROPIC_API_KEY faltar ou Uma falhar). Melhor que
+  // nada — compoe prompt basico com os campos planos do post.
+  const paleta = "paleta verde-oliva (#5C6B4D) e off-white (#F4EFE4) — brand Longetividade";
   const aspect = post.slot === "STORY" ? "vertical 9:16 (1080x1920)" : "quadrado 1:1 (1080x1080)";
   const briefing = post.imageBriefing?.trim() || post.title;
   const linha = post.content.split("\n")[0]?.trim().slice(0, 120) || post.title;
@@ -46,7 +49,7 @@ function buildPrompt(post: {
     briefing,
     `Texto principal a destacar: "${linha}"`,
     `Formato ${aspect}, ${paleta}, estilo elegante e minimalista, boa legibilidade.`,
-    "Publico: mulheres 35+ interessadas em emagrecimento e longevidade.",
+    "Publico: mulheres 30-55 interessadas em reeducacao alimentar sem dieta.",
   ].join("\n");
 }
 
@@ -72,13 +75,29 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
   });
   if (!post) throw new BlotatoError(`SocialPost ${postId} nao encontrado`, 404);
 
-  // Slot REEL fica pra fase 4 (geracao de video).
+  // Slot REEL fica pra geracao de video.
   if (post.slot === "REEL") {
-    throw new BlotatoError("REEL precisa de geracao de video (fase 4), nao imagem", 400);
+    throw new BlotatoError("REEL precisa de generateVideoForPost — nao imagem", 400);
   }
 
-  const templateId = await getTemplateIdForSlot(post.slot);
-  const prompt = buildPrompt(post);
+  // Primeiro pedimos a Uma pra montar brief + escolher template. Se ela falhar
+  // (ex: ANTHROPIC_API_KEY ausente) caimos no fallback de prompt deterministico.
+  let templateId: string;
+  let prompt: string;
+  try {
+    const brief = await buildVisualBrief(post.id);
+    templateId = brief.templateId;
+    prompt = [
+      brief.enrichedBriefing,
+      `Paleta: ${brief.colorPalette}`,
+      `Mood: ${brief.mood}`,
+      brief.textOverlay ? `Texto no visual: "${brief.textOverlay}"` : "",
+    ].filter(Boolean).join("\n\n");
+  } catch (err) {
+    console.warn(`[uma] fallback apos erro:`, (err as Error).message);
+    templateId = await getTemplateIdForSlot(post.slot);
+    prompt = fallbackImagePrompt(post);
+  }
 
   const started = await createVisual({ templateId, prompt });
   const done = await waitForCreation(started.id, { timeoutMs: 3 * 60_000 });
@@ -126,7 +145,7 @@ export interface GenerateVideoResult {
   videoUrl: string;
 }
 
-function buildReelPrompt(post: {
+function fallbackReelPrompt(post: {
   title: string;
   content: string;
   imageBriefing: string | null;
@@ -136,8 +155,8 @@ function buildReelPrompt(post: {
   const script = post.content?.trim();
   return [
     "Reel vertical 9:16 (1080x1920) pra Instagram + Facebook.",
-    "Publico: mulheres 35+ interessadas em emagrecimento e longevidade (nicho Longetividade).",
-    "Estilo elegante, paleta verde-oliva e off-white, tom acolhedor sem clichê.",
+    "Publico: mulheres 30-55 em reeducacao alimentar sem dieta (Longetividade).",
+    "Estilo elegante, paleta verde-oliva (#5C6B4D) + off-white (#F4EFE4), tom acolhedor sem clichê.",
     briefing ? `Briefing visual: ${briefing}` : "",
     script ? `Narracao / roteiro:\n${script}` : "",
     "Voz feminina brasileira calorosa, ritmo natural, pausas curtas.",
@@ -161,8 +180,24 @@ export async function generateVideoForPost(postId: string): Promise<GenerateVide
     throw new BlotatoError(`slot ${post.slot} nao suporta video — use generateImageForPost`, 400);
   }
 
-  const templateId = await getTemplateIdForSlot("REEL");
-  const prompt = buildReelPrompt(post);
+  let templateId: string;
+  let prompt: string;
+  try {
+    const brief = await buildVisualBrief(post.id);
+    templateId = brief.templateId;
+    prompt = [
+      brief.enrichedBriefing,
+      `Paleta: ${brief.colorPalette}`,
+      `Mood: ${brief.mood}`,
+      brief.textOverlay ? `Texto no visual: "${brief.textOverlay}"` : "",
+      `Narracao (roteiro completo):\n${post.content}`,
+      "Voz feminina brasileira calorosa, ritmo natural, pausas curtas.",
+    ].filter(Boolean).join("\n\n");
+  } catch (err) {
+    console.warn(`[uma/reel] fallback apos erro:`, (err as Error).message);
+    templateId = await getTemplateIdForSlot("REEL");
+    prompt = fallbackReelPrompt(post);
+  }
 
   const started = await createVisual({ templateId, prompt });
   // video demora mais: ate 10min pra AI story video

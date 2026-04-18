@@ -12,6 +12,7 @@ import { prisma } from "./prisma";
 import { getSetting } from "./settings";
 import { publishPost, BlotatoError } from "./blotato-client";
 import { getPostImageUrls } from "./social-post-images";
+import { reviewPostCompliance } from "./agents/quinn";
 
 export interface BlotatoPostResult {
   platform: "instagram" | "facebook";
@@ -33,6 +34,21 @@ export async function publishPostViaBlotato(socialPostId: string): Promise<Blota
     },
   });
   if (!post) throw new BlotatoError(`SocialPost ${socialPostId} nao encontrado`, 404);
+
+  // Quinn (QA/compliance) — gate obrigatorio antes de qualquer publish.
+  // Se bloquear, aborta e deixa o post em status=review.
+  try {
+    const verdict = await reviewPostCompliance(socialPostId);
+    if (verdict.severity === "block") {
+      throw new BlotatoError(`Quinn bloqueou: ${verdict.issues.join(" · ")}`, 412, verdict);
+    }
+  } catch (err) {
+    if (err instanceof BlotatoError) throw err;
+    // Quinn falhou por outro motivo (LLM down, etc): loga mas segue pra
+    // nao travar publicacao por dependencia externa. Alternativa seria
+    // fail-closed — discutir com o user se preferir.
+    console.warn(`[quinn] skip (nao foi block):`, (err as Error).message);
+  }
 
   const text = post.content + (post.hashtags ? "\n\n" + post.hashtags : "");
 
