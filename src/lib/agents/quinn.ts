@@ -9,9 +9,8 @@
 // Grava AgentDecision(agentId="quinn", action="COMPLIANCE_CHECK").
 
 import { prisma } from "../prisma";
-import { parseLlmJson } from "./llm-json";
+import { callClaudeWithTool } from "./llm-json";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 1024;
 
@@ -42,18 +41,12 @@ Bandeiras AMARELAS (severity=warn):
 
 Se tudo ok, severity=pass.
 
-Retorne APENAS um JSON:
-{
-  "ok": boolean,
-  "severity": "pass" | "warn" | "block",
-  "issues": string[],
-  "suggestedFix": string (opcional, so se severity!=pass),
-  "reasoning": string (1-2 frases)
-}
+Regras de retorno:
+- severity=pass → ok=true
+- severity=warn → ok=true (deixa passar mas sinaliza)
+- severity=block → ok=false
 
-severity=pass → ok=true
-severity=warn → ok=true (deixa passar mas sinaliza)
-severity=block → ok=false`;
+Chame a ferramenta submit_verdict com o veredito.`;
 
 export async function reviewPostCompliance(socialPostId: string): Promise<QuinnVerdict> {
   const post = await prisma.socialPost.findUnique({
@@ -83,37 +76,37 @@ ${post.content}
 
 Avalie.`;
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  const verdict = await callClaudeWithTool<QuinnVerdict>({
+    apiKey,
+    model: MODEL,
+    maxTokens: MAX_TOKENS,
+    system: SYSTEM_PROMPT,
+    userPrompt,
+    toolName: "submit_verdict",
+    toolDescription:
+      "Retorna o veredito de compliance Meta Ad Policy + politica da marca",
+    schema: {
+      type: "object",
+      properties: {
+        ok: { type: "boolean" },
+        severity: { type: "string", enum: ["pass", "warn", "block"] },
+        issues: {
+          type: "array",
+          items: { type: "string" },
+          description: "Lista de problemas detectados. Array vazio se pass.",
+        },
+        suggestedFix: {
+          type: "string",
+          description: "Sugestao de correcao (opcional, so se warn/block).",
+        },
+        reasoning: {
+          type: "string",
+          description: "1-2 frases explicando o veredito.",
+        },
+      },
+      required: ["ok", "severity", "issues", "reasoning"],
     },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
   });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Quinn Claude ${res.status}: ${text.slice(0, 300)}`);
-  }
-
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
-  };
-  const raw = data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-
-  let verdict: QuinnVerdict;
-  try {
-    verdict = parseLlmJson<QuinnVerdict>(raw);
-  } catch (err) {
-    throw new Error(`Quinn retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
-  }
 
   await prisma.agentDecision.create({
     data: {

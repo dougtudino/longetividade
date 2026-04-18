@@ -9,9 +9,8 @@
 
 import { prisma } from "../prisma";
 import { getCachedTemplates } from "../blotato-templates-sync";
-import { parseLlmJson } from "./llm-json";
+import { callClaudeWithTool } from "./llm-json";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
@@ -212,16 +211,14 @@ Marca Longetividade:
 
 Vocabulario seu: empatizar, compreender, facilitar, nutrir, cuidar, acolher, criar.
 
-Sua tarefa: receber um SocialPost + contexto (playbook, persona, virais, aprendizados) e retornar UM objeto JSON com:
+Sua tarefa: receber um SocialPost + contexto (playbook, persona, virais, aprendizados) e chamar submit_visual_brief com:
 - enrichedBriefing: briefing visual rico em portugues (4-8 linhas), incluindo composicao, elementos, hierarquia, emocao alvo
 - templateId: EXATAMENTE um dos IDs da lista fornecida
 - templateRationale: por que esse template (1 frase)
 - colorPalette: string descrevendo paleta (ex: "verde-oliva dominante, off-white como fundo, um toque de terracota no destaque")
 - mood: 1-3 palavras (ex: "acolhedor, sereno")
 - textOverlay: texto curto que deve aparecer no visual (se aplicavel)
-- reasoning: 1-2 frases explicando escolhas principais
-
-Retorne APENAS o JSON, sem prefacio, sem markdown fence.`;
+- reasoning: 1-2 frases explicando escolhas principais`;
 
 export async function buildVisualBrief(socialPostId: string): Promise<UmaBrief> {
   const post = await prisma.socialPost.findUnique({
@@ -269,39 +266,30 @@ ${knowledgeBlock || "(knowledge base vazia)"}
 # Templates Blotato disponiveis pra esse slot
 ${templatesForPrompt.map((t) => `- ${t.id}: ${t.description}`).join("\n")}
 
-Responda o JSON.`;
+Chame a ferramenta.`;
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  const brief = await callClaudeWithTool<UmaBrief>({
+    apiKey,
+    model: MODEL,
+    maxTokens: MAX_TOKENS,
+    system: SYSTEM_PROMPT,
+    userPrompt,
+    toolName: "submit_visual_brief",
+    toolDescription: "Submete brief visual + template escolhido pra gerar arte no Blotato",
+    schema: {
+      type: "object",
+      properties: {
+        enrichedBriefing: { type: "string" },
+        templateId: { type: "string" },
+        templateRationale: { type: "string" },
+        colorPalette: { type: "string" },
+        mood: { type: "string" },
+        textOverlay: { type: "string" },
+        reasoning: { type: "string" },
+      },
+      required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],
     },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
   });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Uma Claude ${res.status}: ${text.slice(0, 300)}`);
-  }
-
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
-  };
-  const raw = data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-
-  let brief: UmaBrief;
-  try {
-    brief = parseLlmJson<UmaBrief>(raw);
-  } catch (err) {
-    throw new Error(`Uma retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
-  }
 
   // Validacao minima
   if (!brief.templateId || !brief.enrichedBriefing) {

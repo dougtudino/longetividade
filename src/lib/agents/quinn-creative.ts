@@ -1,14 +1,9 @@
 // Quinn — variante pra Meta Ads Creative.
-// Meta Ad Policy tem regras muito mais restritivas que post organico IG:
-// - Proibido antes/depois
-// - Proibido promessa de resultado quantitativo
-// - Proibido exibir partes do corpo objetificadas
-// - Limite de 20% de texto na imagem (nao conseguimos medir aqui, mas avisa)
-// - Claims de saude precisam de disclaimer
+// Meta Ad Policy tem regras muito mais restritivas que post organico IG.
+// Usa tool_use do Claude pra garantir JSON valido (evita aspas/commas mal escapados).
 
-import { parseLlmJson } from "./llm-json";
+import { callClaudeWithTool } from "./llm-json";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-haiku-4-5-20251001";
 const MAX_TOKENS = 1024;
 
@@ -42,14 +37,12 @@ WARN se:
 
 PASS se nada acima.
 
-Retorne APENAS JSON:
-{
-  "ok": boolean (true se severity!=block),
-  "severity": "pass" | "warn" | "block",
-  "issues": string[],
-  "suggestedFix": string (opcional),
-  "reasoning": string (1-2 frases)
-}`;
+Chame submit_verdict com:
+- ok: true se severity != block
+- severity: pass | warn | block
+- issues: array de strings descrevendo problemas (vazio se pass)
+- suggestedFix: sugestao de correcao (opcional)
+- reasoning: 1-2 frases`;
 
 interface CreativeComplianceInput {
   briefing: string;
@@ -64,7 +57,6 @@ export async function reviewCreativeCompliance(
 ): Promise<QuinnCreativeVerdict> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    // Sem API, assume pass pra nao travar (loga warn).
     return {
       ok: true,
       severity: "warn",
@@ -85,37 +77,35 @@ ${input.briefing}
 
 Avalie segundo Meta Ad Policy + nicho saude.`;
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
+  return await callClaudeWithTool<QuinnCreativeVerdict>({
+    apiKey,
+    model: MODEL,
+    maxTokens: MAX_TOKENS,
+    system: SYSTEM_PROMPT,
+    userPrompt,
+    toolName: "submit_verdict",
+    toolDescription:
+      "Retorna o veredito de compliance Meta Ad Policy pro creative",
+    schema: {
+      type: "object",
+      properties: {
+        ok: { type: "boolean" },
+        severity: { type: "string", enum: ["pass", "warn", "block"] },
+        issues: {
+          type: "array",
+          items: { type: "string" },
+          description: "Lista de problemas detectados. Array vazio se pass.",
+        },
+        suggestedFix: {
+          type: "string",
+          description: "Sugestao de correcao (opcional, so se warn/block).",
+        },
+        reasoning: {
+          type: "string",
+          description: "1-2 frases explicando o veredito.",
+        },
+      },
+      required: ["ok", "severity", "issues", "reasoning"],
     },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: MAX_TOKENS,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
   });
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    throw new Error(`Quinn (creative) Claude ${res.status}: ${t.slice(0, 300)}`);
-  }
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
-  };
-  const raw =
-    data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-
-  let verdict: QuinnCreativeVerdict;
-  try {
-    verdict = parseLlmJson<QuinnCreativeVerdict>(raw);
-  } catch (err) {
-    throw new Error(
-      `Quinn retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`
-    );
-  }
-  return verdict;
 }

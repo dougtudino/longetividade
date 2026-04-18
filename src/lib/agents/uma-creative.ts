@@ -3,9 +3,8 @@
 
 import { prisma } from "../prisma";
 import { getCachedTemplates } from "../blotato-templates-sync";
-import { parseLlmJson } from "./llm-json";
+import { callClaudeWithTool } from "./llm-json";
 
-const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 2048;
 
@@ -124,16 +123,7 @@ Meta Ad Policy (CRITICO — mais restritivo que post organico):
 - Headline curta, CTA claro, visual legivel em mobile small
 - Imagem NAO pode ter texto dominando (Meta penaliza >20% texto)
 
-Retorne APENAS JSON:
-{
-  "enrichedBriefing": string (4-8 linhas),
-  "templateId": string (um dos IDs da lista),
-  "templateRationale": string (1 frase),
-  "colorPalette": string,
-  "mood": string (1-3 palavras),
-  "textOverlay": string (curto, <= 6 palavras — idealmente headline),
-  "reasoning": string (1-2 frases explicando escolha)
-}`;
+Chame submit_visual_brief com template + paleta + mood.`;
 
 export async function buildVisualBriefForBriefing(
   input: CreativeBriefingInput
@@ -166,86 +156,53 @@ ${knowledge || "(knowledge vazia)"}
 ## Templates Blotato elegiveis pra ${input.slot}
 ${templatesForPrompt.map((t) => `- ${t.id}: ${t.description}`).join("\n")}
 
-Responda o JSON.`;
+Chame submit_visual_brief.`;
 
-  const res = await fetch(ANTHROPIC_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
+  const schemaToolCall = async () =>
+    callClaudeWithTool<UmaCreativeBrief>({
+      apiKey,
       model: MODEL,
-      max_tokens: MAX_TOKENS,
+      maxTokens: MAX_TOKENS,
       system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: userPrompt }],
-    }),
-  });
-  if (!res.ok) {
-    const t = await res.text().catch(() => "");
-    // 429 rate limit: espera 30s e tenta uma vez
-    if (res.status === 429) {
-      await new Promise((r) => setTimeout(r, 30_000));
-      const retry = await fetch(ANTHROPIC_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+      userPrompt,
+      toolName: "submit_visual_brief",
+      toolDescription:
+        "Submete brief visual + template Blotato pra gerar creative Meta Ad",
+      schema: {
+        type: "object",
+        properties: {
+          enrichedBriefing: { type: "string" },
+          templateId: { type: "string" },
+          templateRationale: { type: "string" },
+          colorPalette: { type: "string" },
+          mood: { type: "string" },
+          textOverlay: { type: "string" },
+          reasoning: { type: "string" },
         },
-        body: JSON.stringify({
-          model: MODEL,
-          max_tokens: MAX_TOKENS,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: "user", content: userPrompt }],
-        }),
-      });
-      if (!retry.ok) {
-        const rt = await retry.text().catch(() => "");
-        throw new Error(`Uma (creative) Claude ${retry.status} apos retry: ${rt.slice(0, 300)}`);
-      }
-      const retryData = (await retry.json()) as {
-        content?: Array<{ type: string; text?: string }>;
-      };
-      const retryRaw =
-        retryData.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
-      let brief: UmaCreativeBrief;
-      try {
-        brief = parseLlmJson<UmaCreativeBrief>(retryRaw);
-      } catch (err) {
-        throw new Error(`Uma retornou JSON invalido: ${retryRaw.slice(0, 300)} (${(err as Error).message})`);
-      }
-      if (!brief.templateId || !brief.enrichedBriefing) {
-        throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
-      }
-      const templateOk = catalog.some((t) => t.id === brief.templateId);
-      if (!templateOk) {
-        brief.templateId = (eligible[0] ?? catalog[0]).id;
-        brief.templateRationale = `[fallback] ${brief.templateRationale ?? ""}`;
-      }
-      return brief;
-    }
-    throw new Error(`Uma (creative) Claude ${res.status}: ${t.slice(0, 300)}`);
-  }
-  const data = (await res.json()) as {
-    content?: Array<{ type: string; text?: string }>;
-  };
-  const raw =
-    data.content?.filter((c) => c.type === "text").map((c) => c.text ?? "").join("\n").trim() ?? "";
+        required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],
+      },
+    });
 
   let brief: UmaCreativeBrief;
   try {
-    brief = parseLlmJson<UmaCreativeBrief>(raw);
+    brief = await schemaToolCall();
   } catch (err) {
-    throw new Error(`Uma retornou JSON invalido: ${raw.slice(0, 300)} (${(err as Error).message})`);
+    const e = err as Error & { status?: number };
+    // Retry 1x em 429 apos 30s
+    if (e.status === 429) {
+      await new Promise((r) => setTimeout(r, 30_000));
+      brief = await schemaToolCall();
+    } else {
+      throw err;
+    }
   }
+
   if (!brief.templateId || !brief.enrichedBriefing) {
     throw new Error(`Uma retornou brief incompleto: ${JSON.stringify(brief).slice(0, 300)}`);
   }
-  const templateOk = AD_TEMPLATE_FALLBACK.some((t) => t.id === brief.templateId);
+  const templateOk = catalog.some((t) => t.id === brief.templateId);
   if (!templateOk) {
-    brief.templateId = (eligible[0] ?? AD_TEMPLATE_FALLBACK[0]).id;
+    brief.templateId = (eligible[0] ?? catalog[0]).id;
     brief.templateRationale = `[fallback] ${brief.templateRationale ?? ""}`;
   }
   return brief;
