@@ -1053,7 +1053,7 @@ function BlotatoSection() {
               const r = await fetch("/api/admin/blotato/test-carousel", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({}),
+                body: JSON.stringify({ mode: "slideshow" }),
               });
               const d = await r.json();
               setTestResult(d);
@@ -1071,9 +1071,39 @@ function BlotatoSection() {
             border: "0.5px solid var(--border-default)",
             opacity: testing ? 0.6 : 1,
           }}
-          title="Testa carrossel multi-slide via inputs.quotes (5 slides de teste)"
+          title="Slideshow com imagens AI + texto overlay por slide (5 cenas com fundo real)"
         >
-          {testing ? "Testando..." : "📱 Testar carrossel (5 quotes)"}
+          {testing ? "Testando..." : "🎬 Testar slideshow (5 imagens)"}
+        </button>
+        <button
+          onClick={async () => {
+            setTesting(true);
+            setTestResult(null);
+            try {
+              const r = await fetch("/api/admin/blotato/test-carousel", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mode: "quotes" }),
+              });
+              const d = await r.json();
+              setTestResult(d);
+            } catch (e) {
+              setTestResult({ ok: false, error: (e as Error).message });
+            } finally {
+              setTesting(false);
+            }
+          }}
+          disabled={testing}
+          style={{
+            ...saveBtnStyle,
+            background: "var(--bg-secondary)",
+            color: "var(--text-primary)",
+            border: "0.5px solid var(--border-default)",
+            opacity: testing ? 0.6 : 1,
+          }}
+          title="Quote card carousel — so texto, sem imagem (o que testamos antes)"
+        >
+          {testing ? "Testando..." : "💬 Testar quotes (só texto)"}
         </button>
         <button
           onClick={fetchDebugRaw}

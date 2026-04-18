@@ -142,6 +142,61 @@ export interface CreateCarouselInput {
   extraInputs?: Record<string, unknown>; // outros inputs especificos do template
 }
 
+// Slideshow de imagens com texto por slide — cada slide tem imagePrompt
+// (Blotato gera via AI) + textOverlay. Template: Image Slideshow with Text.
+// Output: mp4 animado com N cenas distintas, cada uma com imagem real.
+export interface SlideshowSlide {
+  imagePrompt: string; // prompt pra AI gerar a cena
+  textOverlay: string; // texto sobreposto (< 40 chars ideal)
+}
+
+export interface CreateImageSlideshowInput {
+  templateId: string;
+  slides: SlideshowSlide[];
+  title?: string;
+  textPosition?: "top" | "center" | "bottom";
+  textColor?: string;
+}
+
+export async function createImageSlideshow(
+  input: CreateImageSlideshowInput
+): Promise<BlotatoCreation> {
+  const templateId = input.templateId.trim();
+  console.log(
+    `[blotato] createImageSlideshow templateId="${templateId}" slides=${input.slides.length}`
+  );
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId,
+        inputs: {
+          slides: input.slides.map((s) => ({
+            imageSource: s.imagePrompt,
+            imagePrompt: s.imagePrompt,
+            textOverlay: s.textOverlay,
+            text: s.textOverlay,
+          })),
+          ...(input.textPosition ? { textPosition: input.textPosition } : {}),
+          ...(input.textColor ? { textColor: input.textColor } : {}),
+        },
+        isDraft: false,
+        render: true,
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `Slideshow 404: template "${templateId}" nao encontrado.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
+}
+
 export async function createCarousel(
   input: CreateCarouselInput
 ): Promise<BlotatoCreation> {
