@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSetting } from "@/lib/settings";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/email-sequence";
-import { sendLeadEvent } from "@/lib/meta-capi";
+import { sendLeadEvent, extractVisitorContext } from "@/lib/meta-capi";
 
 const BREVO_CONTACTS = "https://api.brevo.com/v3/contacts";
 const LEADS_LIST_ID = 6; // "Leads Emagreca Sem Dieta"
@@ -58,7 +58,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let body: { email?: string; name?: string; utm_source?: string };
+  let body: {
+    email?: string;
+    name?: string;
+    utm_source?: string;
+    fbp?: string;
+    fbc?: string;
+    fbclid?: string;
+    sourceUrl?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -114,10 +122,27 @@ export async function POST(req: NextRequest) {
 
   // 4. CAPI: enviar evento Lead server-side pro Meta (apenas novos)
   if (isNew) {
+    // Reune visitor context: cookies (_fbp/_fbc) + IP + UA do request,
+    // mais fallback pra fbp/fbc/fbclid no body (pra clients que mandam
+    // explicitos sem rely em cookies). Meta exige fbc no formato
+    // "fb.1.<timestamp>.<fbclid>" — convertemos se so vier fbclid.
+    const ctx = extractVisitorContext(req);
+    const fbpFinal = body.fbp || ctx.fbp;
+    let fbcFinal = body.fbc || ctx.fbc;
+    if (!fbcFinal && body.fbclid) {
+      fbcFinal = `fb.1.${Date.now()}.${body.fbclid}`;
+    }
     sendLeadEvent({
       email,
       name: name || undefined,
       source: utmSource || undefined,
+      sourceUrl: body.sourceUrl,
+      visitor: {
+        fbp: fbpFinal,
+        fbc: fbcFinal,
+        clientIpAddress: ctx.clientIpAddress,
+        clientUserAgent: ctx.clientUserAgent,
+      },
     }).catch((err) => console.error("CAPI Lead error:", err));
   }
 

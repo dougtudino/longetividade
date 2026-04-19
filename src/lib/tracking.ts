@@ -7,10 +7,19 @@ declare global {
   }
 }
 
-export function trackEvent(eventName: string, params?: Record<string, unknown>) {
-  // Meta Pixel
+export function trackEvent(
+  eventName: string,
+  params?: Record<string, unknown>,
+  options?: { eventID?: string }
+) {
+  // Meta Pixel — se eventID fornecido, vai como 4o argumento pro fbq permitir
+  // que o servidor (CAPI) dedup com mesmo eventID.
   if (typeof window !== "undefined" && window.fbq) {
-    window.fbq("track", eventName, params);
+    if (options?.eventID) {
+      window.fbq("track", eventName, params, { eventID: options.eventID });
+    } else {
+      window.fbq("track", eventName, params);
+    }
   }
 
   // GA4
@@ -36,11 +45,15 @@ export function trackInitiateCheckout(contentName: string, value: number) {
   });
 }
 
-export function trackPurchase(contentName: string, value: number) {
-  trackEvent("Purchase", {
-    content_name: contentName,
-    value,
-    currency: "BRL",
-    num_items: 1,
-  });
+export function trackPurchase(contentName: string, value: number, eventID?: string) {
+  trackEvent(
+    "Purchase",
+    {
+      content_name: contentName,
+      value,
+      currency: "BRL",
+      num_items: 1,
+    },
+    eventID ? { eventID } : undefined
+  );
 }

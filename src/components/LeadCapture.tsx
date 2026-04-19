@@ -1,6 +1,13 @@
 "use client";
 import { useState } from "react";
 
+// Le cookie por nome (cliente). _fbp/_fbc sao gravados pelo pixel Meta.
+function getCookie(name: string): string | undefined {
+  if (typeof document === "undefined") return undefined;
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : undefined;
+}
+
 export default function LeadCapture({ source = "homepage" }: { source?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
@@ -10,10 +17,21 @@ export default function LeadCapture({ source = "homepage" }: { source?: string }
     if (!email) return;
     setStatus("loading");
     try {
+      // Anexa contexto Meta pra match quality do CAPI: _fbp, _fbc cookies +
+      // fbclid da URL (caso usuario veio do anuncio antes do pixel gravar).
+      const params = new URLSearchParams(window.location.search);
+      const fbclid = params.get("fbclid") ?? undefined;
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, utm_source: source }),
+        body: JSON.stringify({
+          email,
+          utm_source: source,
+          fbp: getCookie("_fbp"),
+          fbc: getCookie("_fbc"),
+          fbclid,
+          sourceUrl: window.location.href,
+        }),
       });
       if (res.ok) {
         setStatus("success");

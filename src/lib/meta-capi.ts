@@ -126,6 +126,16 @@ async function sendEvents(events: ServerEvent[]): Promise<CAPIResult> {
 // Public API — eventos prontos pra usar
 // ─────────────────────────────────────────────────────────────────────
 
+// Campos de identificacao do visitante — Meta usa pra match quality.
+// fbp/fbc vem de cookies do pixel, IP/UA do request headers.
+// Quanto mais campos, maior qualidade do match (meta 8+/10).
+export type VisitorContext = {
+  fbp?: string;
+  fbc?: string;
+  clientIpAddress?: string;
+  clientUserAgent?: string;
+};
+
 export async function sendPurchaseEvent(opts: {
   email: string;
   phone?: string | null;
@@ -136,6 +146,7 @@ export async function sendPurchaseEvent(opts: {
   contentName?: string;
   eventId?: string;
   sourceUrl?: string;
+  visitor?: VisitorContext;
 }): Promise<CAPIResult> {
   const nameParts = (opts.name ?? "").split(" ");
   const firstName = nameParts[0] || undefined;
@@ -152,6 +163,7 @@ export async function sendPurchaseEvent(opts: {
       phone: opts.phone ?? undefined,
       firstName,
       lastName,
+      ...opts.visitor,
     }),
     custom_data: buildCustomData({
       value: opts.value,
@@ -171,6 +183,7 @@ export async function sendLeadEvent(opts: {
   source?: string;
   eventId?: string;
   sourceUrl?: string;
+  visitor?: VisitorContext;
 }): Promise<CAPIResult> {
   const event: ServerEvent = {
     event_name: "Lead",
@@ -181,6 +194,7 @@ export async function sendLeadEvent(opts: {
     user_data: buildUserData({
       email: opts.email,
       firstName: opts.name?.split(" ")[0],
+      ...opts.visitor,
     }),
     custom_data: opts.source ? { content_name: opts.source } : undefined,
   };
@@ -194,6 +208,7 @@ export async function sendInitiateCheckoutEvent(opts: {
   contentName?: string;
   eventId?: string;
   sourceUrl?: string;
+  visitor?: VisitorContext;
 }): Promise<CAPIResult> {
   const event: ServerEvent = {
     event_name: "InitiateCheckout",
@@ -201,7 +216,7 @@ export async function sendInitiateCheckoutEvent(opts: {
     event_id: opts.eventId ?? `checkout_${Date.now()}`,
     event_source_url: opts.sourceUrl ?? "https://www.longetividade.com.br/emagreca-sem-dieta",
     action_source: "website",
-    user_data: buildUserData({ email: opts.email }),
+    user_data: buildUserData({ email: opts.email, ...opts.visitor }),
     custom_data: buildCustomData({
       value: opts.value,
       currency: "BRL",
@@ -211,4 +226,20 @@ export async function sendInitiateCheckoutEvent(opts: {
   };
 
   return sendEvents([event]);
+}
+
+// Helper: extrai fbp/fbc/IP/UA de um NextRequest. fbp/fbc vem dos cookies
+// que o pixel client-side grava (_fbp, _fbc). fbclid cai nos cookies tambem
+// apos o primeiro click, ou pode ser capturado da URL e convertido em fbc.
+export function extractVisitorContext(req: {
+  headers: Headers;
+  cookies?: { get: (name: string) => { value: string } | undefined };
+}): VisitorContext {
+  const h = req.headers;
+  const xff = h.get("x-forwarded-for") ?? "";
+  const clientIpAddress = xff.split(",")[0]?.trim() || h.get("x-real-ip") || undefined;
+  const clientUserAgent = h.get("user-agent") ?? undefined;
+  const fbp = req.cookies?.get("_fbp")?.value;
+  const fbc = req.cookies?.get("_fbc")?.value;
+  return { fbp, fbc, clientIpAddress, clientUserAgent };
 }

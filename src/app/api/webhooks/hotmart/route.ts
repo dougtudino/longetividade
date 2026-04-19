@@ -100,7 +100,10 @@ export async function POST(request: NextRequest) {
     }
 
     // CAPI: enviar evento Purchase server-side pro Meta
-    // Roda em background (nao bloqueia resposta do webhook)
+    // event_id usa o transaction do Hotmart (que tambem chega na obrigado URL
+    // via ?transaction=) pra Meta deduplicar com o pixel client-side.
+    // Sem dedup, cada compra contava 2x — uma do pixel e outra do CAPI.
+    const txnId = purchase.transaction || `order_${order.id}`;
     sendPurchaseEvent({
       email,
       phone: buyer.phone ?? null,
@@ -108,6 +111,7 @@ export async function POST(request: NextRequest) {
       value: amount / 100,
       orderId: order.id,
       contentName: `Metodo S.E.M - ${plan}`,
+      eventId: `purchase_${txnId}`,
     }).catch((err) => console.error("CAPI Purchase error:", err));
 
     return NextResponse.json({ received: true, plan, orderId: order.id });

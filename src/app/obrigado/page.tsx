@@ -13,11 +13,12 @@ export default function ObrigadoPage() {
   const [plan, setPlan] = useState<PlanId>("basico");
 
   useEffect(() => {
-    // Hotmart pode passar ?plan=basico|completo|vip ou ?transaction=...
-    // Detecta plano pelo query param e dispara Purchase com valor canonical
-    // (fonte unica em src/config/plans.ts).
+    // Hotmart passa ?plan=basico|completo|vip e ?transaction=<id> na URL.
+    // O transaction ID vira event_id pra Meta deduplicar com o CAPI Purchase
+    // disparado pelo webhook Hotmart (mesmo formato: purchase_<txnId>).
     const params = new URLSearchParams(window.location.search);
     const planParam = (params.get("plan") || "").toLowerCase();
+    const txnId = params.get("transaction") || params.get("transactionId");
     const resolved: PlanId =
       planParam === "vip" || planParam === "completo" || planParam === "basico"
         ? planParam
@@ -25,7 +26,8 @@ export default function ObrigadoPage() {
     setPlan(resolved);
     const info = getPlanById(resolved);
     if (info) {
-      trackPurchase(`Metodo S.E.M — ${info.name}`, info.price);
+      const eventID = txnId ? `purchase_${txnId}` : undefined;
+      trackPurchase(`Metodo S.E.M — ${info.name}`, info.price, eventID);
     }
   }, []);
 
