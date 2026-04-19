@@ -705,6 +705,48 @@ export default function SocialMediaPage() {
           }}>
             {fillingGaps ? "Preenchendo..." : "① Preencher gaps (30 dias)"}
           </button>
+          <button
+            onClick={async () => {
+              const url = prompt("URL viral pra adaptar (TikTok/YouTube/Article/PDF):");
+              if (!url) return;
+              const sourceType = prompt(
+                "Tipo:\n• youtube\n• tiktok\n• article\n• pdf\n• twitter\n\nDigite:",
+                url.includes("tiktok.com") ? "tiktok" :
+                url.includes("youtube.com") || url.includes("youtu.be") ? "youtube" :
+                url.includes("twitter.com") || url.includes("x.com") ? "twitter" :
+                url.endsWith(".pdf") ? "pdf" : "article"
+              );
+              if (!sourceType) return;
+              const slot = prompt("Slot: FEED_AM, REEL ou STORY?", "FEED_AM");
+              if (!slot) return;
+              const pillar = prompt("Pilar: s (nutrição), e (emocional), m (movimento), promo?", "s");
+              if (!pillar) return;
+              try {
+                const r = await fetch("/api/admin/social/create-from-url", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ sourceType, url, slot, pillar }),
+                });
+                const d = await r.json();
+                if (d.ok) {
+                  alert(`✅ Post criado em ${Math.round(d.elapsedMs / 1000)}s\n\nFonte: ${d.sourceTitle ?? "(sem título)"}\nID: ${d.postId}\n\nVai aparecer como DRAFT — revisa antes de aprovar.`);
+                  loadPosts();
+                } else {
+                  alert(`Erro: ${d.error}`);
+                }
+              } catch (e) {
+                alert(`Erro: ${(e as Error).message}`);
+              }
+            }}
+            title="Cola URL viral (TikTok/YouTube/Article/PDF) — Blotato extrai conteúdo, Luna adapta pro Longetividade, vira SocialPost(draft)"
+            style={{
+              padding: "10px 18px", borderRadius: 10, background: "rgba(99,153,34,0.1)",
+              color: "#8FBB3F", border: "0.5px solid rgba(99,153,34,0.4)",
+              fontSize: 13, fontWeight: 700, cursor: "pointer",
+            }}
+          >
+            📥 Criar a partir de URL
+          </button>
           <button onClick={seedPlaybook} disabled={seedingPlaybook} title="Popula a 'biblia da Luna': regras do algoritmo Instagram 2026, 5 creators de referencia, templates de Story. Luna consulta antes de gerar." style={{
             padding: "10px 18px", borderRadius: 10, background: "rgba(139,92,246,0.15)", color: "#8B5CF6",
             border: "0.5px solid rgba(139,92,246,0.4)", fontSize: 13, fontWeight: 700, cursor: "pointer",
