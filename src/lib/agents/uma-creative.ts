@@ -24,12 +24,12 @@ const AD_TEMPLATE_FALLBACK = [
   { id: "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1", description: "When X then Y Text Slideshow (reflexivo, before/after de HABITO)", slots: ["AD_STORY"] },
 ];
 
-// Legacy Infographics do Blotato — templates antigos com validacao strict
-// (description max 500, inputs obrigatorios). Tendem a falhar server-side
-// quando a gente manda so prompt livre. Excluidos do default pra evitar 400.
-// Doc oficial categoriza ~20 como "Legacy Infographics".
-const LEGACY_KEYWORDS =
-  /whiteboard|chalkboard|book page|newspaper|billboard infographic|classroom/i;
+// Legacy Infographics REJEITADOS (off-brand pro publico mulher 35-55 BR
+// Longetividade): visuais geek/urbanos/datados que nao convertem. Os Legacy
+// uteis (Newspaper, Breaking News, Billboard, Whiteboard, Chalkboard,
+// Book Page, Trail Marker, Top Secret, Single Centered Quote) ficam.
+const REJECTED_LEGACY_KEYWORDS =
+  /graffiti|cave painting|egyptian|steampunk|manga|futuristic flyer|t-shirt|cyberpunk/i;
 
 // Le catalog cachado (synced do Blotato), classifica por slot AD_*.
 // Exclui Legacy Infographics pra reduzir taxa de falha.
@@ -42,9 +42,9 @@ async function getAdTemplateCatalog(): Promise<
       return cached
         .filter((t) => t.type !== "video")
         .filter((t) => {
-          // Exclui Legacy Infographics
+          // Exclui apenas Legacy off-brand (Graffiti, Egyptian, etc.)
           const text = ((t.name ?? "") + " " + (t.description ?? "")).toLowerCase();
-          return !LEGACY_KEYWORDS.test(text);
+          return !REJECTED_LEGACY_KEYWORDS.test(text);
         })
         .map((t) => {
           const descLower = (t.description ?? "").toLowerCase();
@@ -77,6 +77,9 @@ export interface UmaCreativeBrief {
   quotes?: string[];
   scenes?: Array<{ description: string; narration: string }>;
   characterDescription?: string;
+  // Legacy Infographics (Newspaper/Whiteboard/Billboard/etc.) — shape simples
+  description?: string;
+  footerText?: string;
 }
 
 interface CreativeBriefingInput {
@@ -176,13 +179,33 @@ textOverlay DEVE ser:
 - DIRETO, sem abstracao
 
 TEMPLATES PRIORITARIOS:
-- Image Slideshow (5903b592) → slides:[{imagePrompt, textOverlay}]. Default carrossel.
-- Quote Card Paper (f941e306) → quotes:[] (10-500 chars, em portugues).
-- Tweet Card (ba413be6) → quotes:[] (10-280 chars, em portugues).
-- Tutorial Carousel (2491f97b) → passo-a-passo com CTA.
-- AI Video AI Voice (5903fe43) → reel narrado.
 
-EVITE: Single Centered Text (9f4e66cd), Whiteboard legacy, AI Selfie sem avatar.
+CARROSSEL/SLIDESHOW (slides[]):
+- Image Slideshow (5903b592) → slides:[{imagePrompt, textOverlay}]. Default carrossel narrativo.
+- Image Slideshow Prominent (0ddb8655) → slides[] com TEXTO grande.
+- When X Then Y (c9892c3b) → estrutura causa-efeito.
+- Tutorial Carousel (2491f97b) → passo-a-passo com CTA.
+
+QUOTE CARDS (quotes[]):
+- Quote Card Paper (f941e306) → 10-500 chars, em portugues.
+- Tweet Card Minimal (ba413be6) → 10-280 chars, simula tweet.
+- Tweet Card Photo BG (9714ae5c) → tweet sobre foto, autoridade.
+
+VIDEO:
+- AI Video AI Voice (5903fe43) → reel narrado, scenes:[].
+- Video Images Text (3ed4bb92) → reel sem voice, slides:[].
+
+LEGACY INFOGRAPHICS (single-image, shape: {description (max 480), footerText (opcional, max 120)}):
+- Newspaper (07a5b5c5) → headline jornalistico, AUTORIDADE.
+- Breaking News (8800be71) → alerta TV, URGENCIA.
+- Billboard (76b3b959) → outdoor, IMPACTO.
+- Whiteboard (ae868019) → quadro educativo.
+- Book Page (b88c8273) → vintage/sabedoria.
+- Trail Marker (29ebb2bd) → etapa de jornada.
+- Top Secret (b8707b58) → revelacao exclusiva.
+
+EVITE: Graffiti, Egyptian, Cave Painting, Manga, Steampunk (off-brand).
+EVITE AI Selfie sem avatar URL.
 
 NUNCA "S1:", "Slide 1:" no enrichedBriefing. Descreva UMA cena concreta (<200 chars).
 
@@ -268,8 +291,18 @@ Chame submit_visual_brief.`;
           quotes: {
             type: "array",
             description:
-              "Se escolher Quote Card (77f65d2b/f941e306) ou Tweet Card (ba413be6), retorne 3-5 quotes EM PORTUGUES. Tweet: 10-280 chars. Quote: 10-500.",
+              "Se escolher Quote Card (77f65d2b/f941e306) ou Tweet Card (ba413be6/9714ae5c), retorne 3-5 quotes EM PORTUGUES. Tweet: 10-280 chars. Quote: 10-500.",
             items: { type: "string" },
+          },
+          description: {
+            type: "string",
+            description:
+              "Se escolher Legacy Infographic (Newspaper 07a5b5c5, Breaking News 8800be71, Billboard 76b3b959, Whiteboard ae868019, Book Page b88c8273, Trail Marker 29ebb2bd, Top Secret b8707b58, Single Centered Quote 9f4e66cd), retorne 1 frase principal EM PORTUGUES (max 480 chars). Tom: direto, sem claim quantitativo.",
+          },
+          footerText: {
+            type: "string",
+            description:
+              "Rodape opcional pra Legacy Infographic (autor, fonte, CTA). EM PORTUGUES, max 120 chars. Ex: '@longetividade' ou 'Metodo S.E.M'.",
           },
         },
         required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],

@@ -13,6 +13,8 @@ import {
   createImageSlideshow,
   createCarousel,
   createTalkingHead,
+  createSimpleInfographic,
+  isLegacyInfographicTemplate,
   waitForCreation,
   getOutputUrl,
   BlotatoError,
@@ -46,6 +48,9 @@ export interface CreateAiCreativeInput {
   presetQuotes?: string[];
   presetScenes?: Array<{ description: string; narration: string }>;
   presetCharacterDescription?: string;
+  // Pra Legacy Infographic (Newspaper/Whiteboard/Billboard/etc.)
+  presetDescription?: string;
+  presetFooterText?: string;
 }
 
 export interface CreateAiCreativeResult {
@@ -98,13 +103,14 @@ export async function createAiCreative(
     !!input.presetTemplateId &&
     ((input.presetSlides && input.presetSlides.length > 0) ||
       (input.presetQuotes && input.presetQuotes.length > 0) ||
-      (input.presetScenes && input.presetScenes.length > 0));
+      (input.presetScenes && input.presetScenes.length > 0) ||
+      !!input.presetDescription);
 
   if (hasCompletePreset) {
     console.log(
       `[creative-ai] PRESET DIRECT — bypass Uma. template=${input.presetTemplateId}, ` +
         `slides=${input.presetSlides?.length ?? 0}, quotes=${input.presetQuotes?.length ?? 0}, ` +
-        `scenes=${input.presetScenes?.length ?? 0}`
+        `scenes=${input.presetScenes?.length ?? 0}, description=${input.presetDescription ? "yes" : "no"}`
     );
     brief = {
       enrichedBriefing: input.briefing.slice(0, 200),
@@ -113,11 +119,13 @@ export async function createAiCreative(
       colorPalette: "verde-oliva + off-white + terroso",
       mood: "acolhedor",
       textOverlay: input.headline,
-      reasoning: "preset playbook-aligned: templateId + slides/quotes/scenes pre-definidos",
+      reasoning: "preset playbook-aligned: templateId + inputs pre-definidos",
       slides: input.presetSlides,
       quotes: input.presetQuotes,
       scenes: input.presetScenes,
       characterDescription: input.presetCharacterDescription,
+      description: input.presetDescription,
+      footerText: input.presetFooterText,
     };
   } else {
     // Fluxo normal: Uma decide tudo a partir do briefing livre
@@ -192,6 +200,18 @@ export async function createAiCreative(
   // Decide qual funcao Blotato usar baseado no que Uma retornou
   async function startCreation(tplId: string) {
     const title = `${collection!.name} · ${input.name}`;
+    // Legacy Infographic — Newspaper/Whiteboard/Billboard/etc.
+    // Detecta por templateId (independente do que Uma escolheu retornar).
+    if (isLegacyInfographicTemplate(tplId)) {
+      const desc = brief.description ?? brief.textOverlay ?? prompt.slice(0, 480);
+      console.log(`[creative-ai] createSimpleInfographic Legacy desc=${desc.length}c`);
+      return createSimpleInfographic({
+        templateId: tplId,
+        description: desc,
+        footerText: brief.footerText,
+        title,
+      });
+    }
     // Talking head — scenes + characterDescription
     if (brief.scenes && brief.scenes.length > 0 && brief.characterDescription) {
       console.log(`[creative-ai] createTalkingHead com ${brief.scenes.length} scenes`);

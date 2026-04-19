@@ -423,6 +423,57 @@ export async function createCarousel(
   }
 }
 
+// Infographic Legacy — shape simples {description, footerText}.
+// Templates: Newspaper, Breaking News, Billboard, Whiteboard, Chalkboard,
+// Book Page, Trail Marker, TV Wall, Movie Theater, Graffiti, Bus Ad, etc.
+// description: titulo principal (max 480 chars defensivo)
+// footerText: rodape opcional (autor, fonte, CTA)
+export interface CreateSimpleInfographicInput {
+  templateId: string;
+  description: string;
+  footerText?: string;
+  title?: string;
+  aspectRatio?: "9:16" | "1:1" | "4:5" | "16:9";
+}
+
+export async function createSimpleInfographic(
+  input: CreateSimpleInfographicInput
+): Promise<BlotatoCreation> {
+  const templateId = normalizeTemplateId(input.templateId);
+  // Trunca defensivo — varios Legacy aceitam max 500 chars no description
+  const description = input.description.slice(0, 480);
+  const footerText = input.footerText?.slice(0, 120) ?? "";
+  console.log(
+    `[blotato] createSimpleInfographic raw="${input.templateId}" → "${templateId}" desc=${description.length}c footer=${footerText.length}c`
+  );
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId,
+        inputs: {
+          description,
+          ...(footerText ? { footerText } : {}),
+          ...(input.aspectRatio ? { aspectRatio: input.aspectRatio } : {}),
+        },
+        isDraft: false,
+        render: true,
+        ...(input.title ? { title: input.title } : {}),
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `Infographic 404: template "${templateId}" nao encontrado.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
+}
+
 export interface BlotatoCreation {
   id: string;
   status: "queueing" | "generating-media" | "done" | "failed" | string;
@@ -443,28 +494,81 @@ async function unwrap<T>(res: { item?: T } | T): Promise<T> {
 //
 // Mapeamento UUID → path completo pros templates conhecidos. Se vier UUID
 // e existir mapeamento, converte. Se vier path, deixa passar.
+// Mapeamento UUID → path. 2 namespaces:
+// - Modernos: /base/v2/<category>/<uuid>/v1 (slideshow, video, ai-*)
+// - Legacy infographics: /video-template/<uuid> (Newspaper, Billboard, etc)
 const UUID_TO_PATH: Record<string, string> = {
-  "5903b592-1255-43b4-b9ac-f8ed7cbf6a5f":
-    "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1",
-  "f941e306-76f7-45da-b3d9-7463af630e91":
-    "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1",
-  "ba413be6-a840-4e60-8fd6-0066d3b427df":
-    "/base/v2/tweet-card/ba413be6-a840-4e60-8fd6-0066d3b427df/v1",
-  "5903fe43-514d-40ee-a060-0d6628c5f8fd":
-    "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1",
-  "57f5a565-fd17-458b-be43-4a2d8ccaca75":
-    "/base/v2/ai-selfie-video/57f5a565-fd17-458b-be43-4a2d8ccaca75/v1",
-  "7c26a1cd-d5b3-42da-9c73-2413333873b3":
-    "/base/v2/ai-avatar-broll/7c26a1cd-d5b3-42da-9c73-2413333873b3/v1",
-  "53cfec04-2500-41cf-8cc1-ba670d2c341a":
-    "/base/v2/instagram-carousel/53cfec04-2500-41cf-8cc1-ba670d2c341a/v1",
-  "2491f97b-1b47-4efa-8b96-8c651fa7b3d5":
-    "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1",
-  "e095104b-e6c5-4a81-a89d-b0df3d7c5baf":
-    "/base/v2/tutorial-carousel/e095104b-e6c5-4a81-a89d-b0df3d7c5baf/v1",
-  "77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd":
-    "/base/v2/quote-card/77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd/v1",
+  // ─── MODERNOS ────────────────────────────────────────
+  "5903b592-1255-43b4-b9ac-f8ed7cbf6a5f": "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1",
+  "0ddb8655-c3da-43da-9f7d-be1915ca7818": "/base/v2/images-with-text/0ddb8655-c3da-43da-9f7d-be1915ca7818/v1",
+  "c9892c3b-fa75-4ade-821a-a50ff8456230": "/base/v2/images-with-text/c9892c3b-fa75-4ade-821a-a50ff8456230/v1",
+  "3ed4bb92-dbfe-45e6-9dc8-605b77f70506": "/base/v2/images-with-text/3ed4bb92-dbfe-45e6-9dc8-605b77f70506/v1",
+  "f941e306-76f7-45da-b3d9-7463af630e91": "/base/v2/quote-card/f941e306-76f7-45da-b3d9-7463af630e91/v1",
+  "77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd": "/base/v2/quote-card/77f65d2b-48cc-4adb-bfbb-5bc86f8c01bd/v1",
+  "ba413be6-a840-4e60-8fd6-0066d3b427df": "/base/v2/tweet-card/ba413be6-a840-4e60-8fd6-0066d3b427df/v1",
+  "9714ae5c-7e6b-4878-be4a-4b1ba5d0cd66": "/base/v2/tweet-card/9714ae5c-7e6b-4878-be4a-4b1ba5d0cd66/v1",
+  "53cfec04-2500-41cf-8cc1-ba670d2c341a": "/base/v2/instagram-carousel/53cfec04-2500-41cf-8cc1-ba670d2c341a/v1",
+  "2491f97b-1b47-4efa-8b96-8c651fa7b3d5": "/base/v2/tutorial-carousel/2491f97b-1b47-4efa-8b96-8c651fa7b3d5/v1",
+  "e095104b-e6c5-4a81-a89d-b0df3d7c5baf": "/base/v2/tutorial-carousel/e095104b-e6c5-4a81-a89d-b0df3d7c5baf/v1",
+  "5903fe43-514d-40ee-a060-0d6628c5f8fd": "/base/v2/ai-story-video/5903fe43-514d-40ee-a060-0d6628c5f8fd/v1",
+  "57f5a565-fd17-458b-be43-4a2d8ccaca75": "/base/v2/ai-selfie-video/57f5a565-fd17-458b-be43-4a2d8ccaca75/v1",
+  "7c26a1cd-d5b3-42da-9c73-2413333873b3": "/base/v2/ai-avatar-broll/7c26a1cd-d5b3-42da-9c73-2413333873b3/v1",
+  "c306ae43-1dcc-4f45-ac2b-88e75430ffd8": "/base/v2/combine-clips/c306ae43-1dcc-4f45-ac2b-88e75430ffd8/v1",
+  // ─── LEGACY INFOGRAPHICS — todos shape {description, footerText} ──
+  "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0": "/video-template/9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", // Single Centered Quote
+  "013904bf-6b3b-43f4-bb1f-f1964a38c29b": "/video-template/013904bf-6b3b-43f4-bb1f-f1964a38c29b", // TV Wall
+  "07a5b5c5-387c-49e3-86b1-de822cd2dfc7": "/video-template/07a5b5c5-387c-49e3-86b1-de822cd2dfc7", // Newspaper
+  "8800be71-52df-4ac7-ac94-df9d8a494d0f": "/video-template/8800be71-52df-4ac7-ac94-df9d8a494d0f", // Breaking News
+  "f8f1ebe4-a9f5-4ec8-be63-21214656cd4b": "/video-template/f8f1ebe4-a9f5-4ec8-be63-21214656cd4b", // Movie Theater
+  "3598483b-c148-4276-a800-eede85c1c62f": "/video-template/3598483b-c148-4276-a800-eede85c1c62f", // Graffiti
+  "f9c0e470-9288-4958-8cdd-64772ed93c05": "/video-template/f9c0e470-9288-4958-8cdd-64772ed93c05", // Bus Ad
+  "76b3b959-bdbe-440d-8428-984219353f18": "/video-template/76b3b959-bdbe-440d-8428-984219353f18", // Billboard
+  "d9495026-3945-44f6-8b44-07c28c492e6d": "/video-template/d9495026-3945-44f6-8b44-07c28c492e6d", // Classroom Chalkboard
+  "ae868019-820d-434c-8fe1-74c9da99129a": "/video-template/ae868019-820d-434c-8fe1-74c9da99129a", // Whiteboard
+  "fcd64907-b103-46f8-9f75-51b9d1a522f5": "/video-template/fcd64907-b103-46f8-9f75-51b9d1a522f5", // Chalkboard
+  "29ebb2bd-02b7-4317-8bb8-c30eb938e47c": "/video-template/29ebb2bd-02b7-4317-8bb8-c30eb938e47c", // Trail Marker
+  "5307053e-046b-4c9b-b1ca-38725d2ddcdd": "/video-template/5307053e-046b-4c9b-b1ca-38725d2ddcdd", // Constellation
+  "49c61370-a706-4b82-98f7-62d557d1c66d": "/video-template/49c61370-a706-4b82-98f7-62d557d1c66d", // Manga
+  "476f8920-8749-4ff7-9c91-470d54c3c03e": "/video-template/476f8920-8749-4ff7-9c91-470d54c3c03e", // T-Shirt
+  "8fa8545e-8955-4a89-a868-cf45023d6cc5": "/video-template/8fa8545e-8955-4a89-a868-cf45023d6cc5", // Futuristic Flyer
+  "b88c8273-6406-48c6-85e7-096119aefe30": "/video-template/b88c8273-6406-48c6-85e7-096119aefe30", // Book Page
+  "7b7104f1-d277-4993-ad3a-e5883c4b776d": "/video-template/7b7104f1-d277-4993-ad3a-e5883c4b776d", // Steampunk
+  "b8707b58-a106-44af-bb12-e30507e561af": "/video-template/b8707b58-a106-44af-bb12-e30507e561af", // Top Secret
+  "a7b0d128-8478-4b34-9647-a0778b6517d0": "/video-template/a7b0d128-8478-4b34-9647-a0778b6517d0", // Egyptian
+  "82ee75b6-597b-43a8-86bc-e4395e7c9c44": "/video-template/82ee75b6-597b-43a8-86bc-e4395e7c9c44", // Cave Painting
 };
+
+// Templates Legacy Infographics — todos aceitam shape {description, footerText}
+export const LEGACY_INFOGRAPHIC_UUIDS = new Set([
+  "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0",
+  "013904bf-6b3b-43f4-bb1f-f1964a38c29b",
+  "07a5b5c5-387c-49e3-86b1-de822cd2dfc7",
+  "8800be71-52df-4ac7-ac94-df9d8a494d0f",
+  "f8f1ebe4-a9f5-4ec8-be63-21214656cd4b",
+  "3598483b-c148-4276-a800-eede85c1c62f",
+  "f9c0e470-9288-4958-8cdd-64772ed93c05",
+  "76b3b959-bdbe-440d-8428-984219353f18",
+  "d9495026-3945-44f6-8b44-07c28c492e6d",
+  "ae868019-820d-434c-8fe1-74c9da99129a",
+  "fcd64907-b103-46f8-9f75-51b9d1a522f5",
+  "29ebb2bd-02b7-4317-8bb8-c30eb938e47c",
+  "5307053e-046b-4c9b-b1ca-38725d2ddcdd",
+  "49c61370-a706-4b82-98f7-62d557d1c66d",
+  "476f8920-8749-4ff7-9c91-470d54c3c03e",
+  "8fa8545e-8955-4a89-a868-cf45023d6cc5",
+  "b88c8273-6406-48c6-85e7-096119aefe30",
+  "7b7104f1-d277-4993-ad3a-e5883c4b776d",
+  "b8707b58-a106-44af-bb12-e30507e561af",
+  "a7b0d128-8478-4b34-9647-a0778b6517d0",
+  "82ee75b6-597b-43a8-86bc-e4395e7c9c44",
+]);
+
+export function isLegacyInfographicTemplate(templateId: string): boolean {
+  for (const uuid of LEGACY_INFOGRAPHIC_UUIDS) {
+    if (templateId === uuid || templateId.includes(uuid)) return true;
+  }
+  return false;
+}
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

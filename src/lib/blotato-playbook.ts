@@ -134,15 +134,281 @@ export const BLOTATO_TEMPLATES: BlotatoTemplateSchema[] = [
     bestFor: "Quando voce ja tem video de avatar falando e quer Blotato so adicionar B-roll visual",
     limits: { avatarVideoUrl: "URL publica" },
   },
+  // ─── MODERNOS adicionais ───────────────────────────────
+  {
+    id: "0ddb8655-c3da-43da-9f7d-be1915ca7818",
+    name: "Image Slideshow Prominent Text",
+    category: "images-with-text",
+    output: "slideshow",
+    inputsShape:
+      "{ slides: [{ imageSource: 'URL ou prompt', textOverlay (max 200) }] (1-50), textPosition, textColor, textStyle: 'minimal'|'elegant'|'modern'|'bold', aspectRatio, slideDuration }",
+    creditsEstimate: 3,
+    bestFor: "Variante do Image Slideshow com TEXTO em destaque (fonte grande). Bom pra hooks fortes.",
+    limits: { "slides.length": "1-50", "slides[i].textOverlay": "200" },
+  },
+  {
+    id: "c9892c3b-fa75-4ade-821a-a50ff8456230",
+    name: "When X Then Y (causa-efeito)",
+    category: "images-with-text",
+    output: "slideshow",
+    inputsShape:
+      "{ slides: [{ imageSource, conditionText (max 80), resultText (max 80) }] (1-30), aspectRatio }",
+    creditsEstimate: 3,
+    bestFor:
+      "Estrutura 'Quando X → Entao Y' por slide. Otimo pra educacao (Quando come acucar antes de dormir → Entao desregula leptina).",
+    limits: { "slides[i].conditionText": "80", "slides[i].resultText": "80" },
+  },
+  {
+    id: "3ed4bb92-dbfe-45e6-9dc8-605b77f70506",
+    name: "Video with Images and Text",
+    category: "images-with-text",
+    output: "video",
+    inputsShape:
+      "{ slides: [{ imageSource, textOverlay (max 200) }] (1-30), backgroundMusic, transitionStyle, aspectRatio }",
+    creditsEstimate: 8,
+    bestFor: "VIDEO mp4 (nao slideshow) com imagens AI + texto + musica. Reel narrativo sem voice.",
+    limits: { "slides.length": "1-30", "slides[i].textOverlay": "200" },
+  },
+  {
+    id: "9714ae5c-7e6b-4878-be4a-4b1ba5d0cd66",
+    name: "Tweet Card Photo Background",
+    category: "tweet-card",
+    output: "slideshow",
+    inputsShape:
+      "{ quotes: string[1-100] (10-280), authorName (60), handle (50), profileImage?, backgroundImage: 'URL ou prompt', verified, theme, aspectRatio }",
+    creditsEstimate: 2,
+    bestFor: "Tweet sobreposto a foto de fundo (ex: foto da Barbara) — gera autoridade visual maior.",
+    limits: { "quotes[i]": "10-280", authorName: "60", handle: "50" },
+  },
+  {
+    id: "e095104b-e6c5-4a81-a89d-b0df3d7c5baf",
+    name: "Tutorial Carousel Modern",
+    category: "tutorial-carousel",
+    output: "slideshow",
+    inputsShape:
+      "{ mainTitle (50), authorName (60), ctaButtonText (50), contentItems: string[] (max 300), accentColor, profileImage, aspectRatio }",
+    creditsEstimate: 2,
+    bestFor: "Variante moderna do Tutorial Carousel — visual mais minimalista/limpo.",
+    limits: { mainTitle: "50", "contentItems[i]": "300" },
+  },
+  // ─── LEGACY INFOGRAPHICS (shape simples {description, footerText}) ─
+  // Todos os 21 Legacy aceitam o mesmo shape: 1 frase principal + rodape opcional.
+  // Usar pra single-image post (FEED 1:1 ou STORY 9:16) com visual tematico forte.
   {
     id: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0",
-    name: "Single Centered Quote",
+    name: "Single Centered Quote (Legacy)",
     category: "legacy-infographic",
     output: "slideshow",
-    inputsShape: "{ title, quotes: string[1-100] (10-500), aspectRatio }",
+    inputsShape: "{ description (max 480), footerText? (max 120), aspectRatio }",
     creditsEstimate: 1,
-    bestFor: "Frase isolada fundo neutro. Visual SIMPLES — evite pra creative Meta Ad.",
-    limits: { title: "50", "quotes[i]": "10-500" },
+    bestFor: "Frase isolada fundo neutro tipografico. Simples e direto.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "07a5b5c5-387c-49e3-86b1-de822cd2dfc7",
+    name: "Newspaper (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ Headline estilo jornal — passa AUTORIDADE. Use pra estatistica/descoberta cientifica ('Estudo revela...').",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "8800be71-52df-4ac7-ac94-df9d8a494d0f",
+    name: "Breaking News (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ TV news ticker — passa URGENCIA. Use pra alerta ('Mulheres acima de 35 perdem X% de massa muscular por ano').",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "76b3b959-bdbe-440d-8428-984219353f18",
+    name: "Billboard (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ Outdoor publicitario — passa IMPACTO/grandeza. Use pra promessa central do Metodo S.E.M.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "ae868019-820d-434c-8fe1-74c9da99129a",
+    name: "Whiteboard (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ Quadro branco com letra de marcador — passa EDUCATIVO/aula. Use pra micro-licao do Metodo.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "b88c8273-6406-48c6-85e7-096119aefe30",
+    name: "Book Page (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ Pagina de livro vintage — passa SABEDORIA/profundidade. Use pra reflexao filosofica/citacao.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "29ebb2bd-02b7-4317-8bb8-c30eb938e47c",
+    name: "Trail Marker (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor:
+      "★ Placa de trilha — passa JORNADA/caminho. Use pra etapas do Metodo ('Voce esta aqui →').",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "fcd64907-b103-46f8-9f75-51b9d1a522f5",
+    name: "Chalkboard (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Lousa preta com giz — vintage/escola. Alternativa ao Whiteboard com tom mais nostalgico.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "d9495026-3945-44f6-8b44-07c28c492e6d",
+    name: "Classroom Chalkboard (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Lousa em sala de aula completa — contexto pedagogico explicito.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "013904bf-6b3b-43f4-bb1f-f1964a38c29b",
+    name: "TV Wall (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Parede de TVs estilo loja eletronicos — visual repetitivo amplifica mensagem.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "f8f1ebe4-a9f5-4ec8-be63-21214656cd4b",
+    name: "Movie Theater (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Marquise cinema com letras luminosas — anuncio dramatico/cinematico.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "3598483b-c148-4276-a800-eede85c1c62f",
+    name: "Graffiti (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Grafite urbano — atitude/rebeldia. Evitar pra publico 35-55 conservador.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "f9c0e470-9288-4958-8cdd-64772ed93c05",
+    name: "Bus Ad (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Anuncio em onibus — vibe urbana/transito. Bom pra mensagem cotidiana.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "5307053e-046b-4c9b-b1ca-38725d2ddcdd",
+    name: "Constellation (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Estrelas/constelacao ceu noturno — etereo, espiritual. Bom pra reflexao.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "49c61370-a706-4b82-98f7-62d557d1c66d",
+    name: "Manga (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Estilo manga/quadrinho — geek. Evitar pra publico Longetividade.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "476f8920-8749-4ff7-9c91-470d54c3c03e",
+    name: "T-Shirt (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Frase em camiseta — manifesto/atitude.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "8fa8545e-8955-4a89-a868-cf45023d6cc5",
+    name: "Futuristic Flyer (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Flyer cyberpunk neon — alta tecnologia. Evitar pra Longetividade.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "7b7104f1-d277-4993-ad3a-e5883c4b776d",
+    name: "Steampunk (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Engrenagens vapor estetica vitoriana — nicho. Evitar pra Longetividade.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "b8707b58-a106-44af-bb12-e30507e561af",
+    name: "Top Secret (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Documento confidencial carimbado — passa SEGREDO/exclusividade. Bom pra revelacao Metodo.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "a7b0d128-8478-4b34-9647-a0778b6517d0",
+    name: "Egyptian (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Hieroglifos pirâmides — antigo/misterioso. Evitar pra Longetividade.",
+    limits: { description: "480", footerText: "120" },
+  },
+  {
+    id: "82ee75b6-597b-43a8-86bc-e4395e7c9c44",
+    name: "Cave Painting (Legacy)",
+    category: "legacy-infographic",
+    output: "slideshow",
+    inputsShape: "{ description, footerText?, aspectRatio }",
+    creditsEstimate: 1,
+    bestFor: "Pintura rupestre primitiva — ancestral. Evitar pra Longetividade.",
+    limits: { description: "480", footerText: "120" },
   },
   {
     id: "c306ae43-1dcc-4f45-ac2b-88e75430ffd8",
@@ -176,18 +442,35 @@ export const BLOTATO_RULES = [
 export const BLOTATO_TEMPLATE_DECISION = `
 Escolha de template por intencao:
 
-1. "Quero 1 frase isolada em fundo texturizado" → Quote Card Paper (f941e306)
-2. "Quero N frases em cards (carrossel de insights)" → Quote Card Monocolor (77f65d2b)
-3. "Quero simular depoimento estilo tweet" → Tweet Card (ba413be6)
-4. "Quero carrossel narrativo com imagem POR slide" → Image Slideshow with Text Overlays (5903b592) ★
-5. "Quero carrossel 100% imagem AI (sem overlay de texto)" → Instagram Carousel (53cfec04)
-6. "Quero tutorial com perfil + CTA estruturado" → Tutorial Carousel (2491f97b)
-7. "Quero reel narrado com voz AI + imagens" → AI Video with AI Voice (5903fe43)
-8. "Quero personagem falando (talking head)" → AI Selfie Talking (57f5a565) — PRECISA characterDescription
-9. "Ja tenho avatar video, quero so adicionar b-roll" → AI Avatar with B-roll (7c26a1cd)
-10. "Juntar clips existentes" → Combine Clips (c306ae43)
+CARROSSEL/SLIDESHOW (multi-slide):
+1. "Quote isolada papel texturizado" → Quote Card Paper (f941e306)
+2. "N quotes em cards" → Quote Card Monocolor (77f65d2b)
+3. "Depoimento estilo tweet" → Tweet Card Minimal (ba413be6) | Tweet Photo BG (9714ae5c)
+4. "Carrossel narrativo com imagem POR slide" → Image Slideshow (5903b592) ★ DEFAULT
+5. "Hook com texto BEM grande" → Image Slideshow Prominent (0ddb8655)
+6. "Estrutura Quando X → Entao Y" → When X Then Y (c9892c3b)
+7. "Carrossel 100% imagem AI" → Instagram Carousel (53cfec04)
+8. "Tutorial com perfil + CTA" → Tutorial Carousel (2491f97b) | Modern (e095104b)
 
-★ = mais versatil. Default pra creative Meta Ads.
+VIDEO (mp4 narrativo):
+9. "Reel narrado com voz AI" → AI Video AI Voice (5903fe43)
+10. "Reel com imagens + texto + musica (sem voz)" → Video Images Text (3ed4bb92)
+11. "Talking head consistente" → AI Selfie Talking (57f5a565) — PRECISA characterDescription
+12. "B-roll em video pronto" → AI Avatar B-roll (7c26a1cd) — PRECISA avatarVideoUrl
+13. "Juntar clips" → Combine Clips (c306ae43)
+
+LEGACY INFOGRAPHIC (single-image, shape simples {description, footerText}):
+14. "Headline jornalistico (autoridade)" → Newspaper (07a5b5c5) ★
+15. "Alerta urgente TV news" → Breaking News (8800be71) ★
+16. "Promessa central tipo outdoor" → Billboard (76b3b959) ★
+17. "Micro-licao educativa" → Whiteboard (ae868019) ★ | Chalkboard (fcd64907)
+18. "Sabedoria livro vintage" → Book Page (b88c8273) ★
+19. "Etapa de jornada" → Trail Marker (29ebb2bd) ★
+20. "Revelacao secreta/exclusiva" → Top Secret (b8707b58)
+21. "Frase isolada simples" → Single Centered Quote (9f4e66cd)
+
+★ = mais versatil. Default carrossel = Image Slideshow (5903b592).
+Default Meta Ads imagem unica = Newspaper/Billboard/Whiteboard (Legacy).
 `;
 
 // ─── PRATICA PROIBIDA (evitar) ──────────────────────────

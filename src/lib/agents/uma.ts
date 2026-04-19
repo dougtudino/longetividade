@@ -86,6 +86,9 @@ export interface UmaBrief {
   quotes?: string[];
   scenes?: Array<{ description: string; narration: string }>;
   characterDescription?: string;
+  // Pra Legacy Infographic (Newspaper/Whiteboard/Billboard/etc.) — shape simples
+  description?: string;
+  footerText?: string;
 }
 
 interface KnowledgeBits {
@@ -436,6 +439,16 @@ Chame a ferramenta.`;
             },
             required: ["description", "narration"],
           },
+        },
+        description: {
+          type: "string",
+          description:
+            "Se template=Legacy Infographic (Newspaper 07a5b5c5, Breaking News 8800be71, Billboard 76b3b959, Whiteboard ae868019, Book Page b88c8273, Trail Marker 29ebb2bd, Top Secret b8707b58, Single Centered Quote 9f4e66cd), retorne 1 frase principal EM PORTUGUES (max 480 chars). Direto, sem claim quantitativo.",
+        },
+        footerText: {
+          type: "string",
+          description:
+            "Rodape opcional pra Legacy Infographic (autor, fonte, CTA). EM PORTUGUES, max 120 chars. Ex: '@longetividade'.",
         },
       },
       required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],

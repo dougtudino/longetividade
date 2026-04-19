@@ -10,6 +10,8 @@ import {
   createImageSlideshow,
   createCarousel,
   createTalkingHead,
+  createSimpleInfographic,
+  isLegacyInfographicTemplate,
   waitForCreation,
   getOutputUrl,
   BlotatoError,
@@ -64,6 +66,18 @@ async function startCreationFromBrief(
     }
   }
 
+  // Legacy Infographic — Newspaper/Whiteboard/Billboard/etc.
+  // Detecta por templateId, usa shape simples {description, footerText}.
+  if (isLegacyInfographicTemplate(templateId)) {
+    const desc = brief.description ?? brief.textOverlay ?? fallbackPrompt.slice(0, 480);
+    console.log(`[blotato-media] createSimpleInfographic Legacy desc=${desc.length}c`);
+    return createSimpleInfographic({
+      templateId,
+      description: desc,
+      footerText: brief.footerText,
+      title,
+    });
+  }
   // Talking head — scenes + characterDescription (so se expectVideo)
   if (
     expectVideo &&
