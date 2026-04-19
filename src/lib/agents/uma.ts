@@ -81,6 +81,11 @@ export interface UmaBrief {
   mood: string;
   textOverlay?: string;
   reasoning: string;
+  // Estruturados — pra Image Slideshow / Quote Card / Talking Head
+  slides?: Array<{ imagePrompt: string; textOverlay: string }>;
+  quotes?: string[];
+  scenes?: Array<{ description: string; narration: string }>;
+  characterDescription?: string;
 }
 
 interface KnowledgeBits {
@@ -211,14 +216,27 @@ Marca Longetividade:
 
 Vocabulario seu: empatizar, compreender, facilitar, nutrir, cuidar, acolher, criar.
 
-Sua tarefa: receber um SocialPost + contexto (playbook, persona, virais, aprendizados) e chamar submit_visual_brief com:
-- enrichedBriefing: briefing visual rico em portugues (4-8 linhas), incluindo composicao, elementos, hierarquia, emocao alvo
-- templateId: EXATAMENTE um dos IDs da lista fornecida
-- templateRationale: por que esse template (1 frase)
-- colorPalette: string descrevendo paleta (ex: "verde-oliva dominante, off-white como fundo, um toque de terracota no destaque")
-- mood: 1-3 palavras (ex: "acolhedor, sereno")
-- textOverlay: texto curto que deve aparecer no visual (se aplicavel)
-- reasoning: 1-2 frases explicando escolhas principais`;
+PLAYBOOK BLOTATO (escolha por slot do post):
+- Slot REEL → Image Slideshow with Text (5903b592). Retorne slides[]: 4-5 cenas com imagePrompt EM INGLES (cena BR especifica) + textOverlay EM PORTUGUES (<40 chars).
+- Slot REEL alternativo (narrado) → AI Video with AI Voice (5903fe43). Retorne scenes[] com description + narration.
+- Slot FEED_AM → Image Slideshow (5903b592) com slides OU Quote Card Paper (f941e306) com quotes[].
+- Slot STORY → Image Slideshow (5903b592) com aspect 9:16. Retorne slides[].
+
+EVITE: Single Centered Text (9f4e66cd), Whiteboard/Chalkboard legacy, AI Selfie Talking sem avatar pre-setup.
+
+NUNCA use "S1:", "Slide 1:" no enrichedBriefing — Blotato le literal.
+
+PARA imagePrompt: descreva CENA BRASILEIRA especifica EM INGLES.
+Ex: "Brazilian woman in her 40s in cozy kitchen, holding fresh fruit, warm morning light, olive green and off-white palette".
+
+PARA textOverlay: PORTUGUES sempre, curto (<=40 chars).
+
+Chame submit_visual_brief com:
+- enrichedBriefing: briefing curto (<200 chars)
+- templateId: UUID do playbook (sem path — sistema resolve)
+- templateRationale: 1 frase explicando escolha
+- colorPalette + mood + textOverlay + reasoning
+- slides[] OU quotes[] OU scenes[] dependendo do template`;
 
 export async function buildVisualBrief(socialPostId: string): Promise<UmaBrief> {
   const post = await prisma.socialPost.findUnique({
@@ -279,13 +297,47 @@ Chame a ferramenta.`;
     schema: {
       type: "object",
       properties: {
-        enrichedBriefing: { type: "string" },
+        enrichedBriefing: {
+          type: "string",
+          description: "Briefing visual CURTO (<200 chars). Nao escrever paragrafo longo.",
+        },
         templateId: { type: "string" },
         templateRationale: { type: "string" },
         colorPalette: { type: "string" },
         mood: { type: "string" },
-        textOverlay: { type: "string" },
+        textOverlay: { type: "string", description: "Texto curto no visual, EM PORTUGUES, <=40 chars" },
         reasoning: { type: "string" },
+        slides: {
+          type: "array",
+          description:
+            "Se template=Image Slideshow (5903b592), retorne 4-5 slides. imagePrompt EM INGLES com cena BR especifica. textOverlay EM PORTUGUES <=40 chars.",
+          items: {
+            type: "object",
+            properties: {
+              imagePrompt: { type: "string" },
+              textOverlay: { type: "string" },
+            },
+            required: ["imagePrompt", "textOverlay"],
+          },
+        },
+        quotes: {
+          type: "array",
+          description: "Se template=Quote Card (f941e306) ou Tweet Card (ba413be6), retorne 3-5 quotes EM PORTUGUES.",
+          items: { type: "string" },
+        },
+        scenes: {
+          type: "array",
+          description:
+            "Se template=AI Video (5903fe43), retorne 3-5 scenes com description (visual EN) + narration (PT).",
+          items: {
+            type: "object",
+            properties: {
+              description: { type: "string" },
+              narration: { type: "string" },
+            },
+            required: ["description", "narration"],
+          },
+        },
       },
       required: ["enrichedBriefing", "templateId", "templateRationale", "colorPalette", "mood", "reasoning"],
     },

@@ -7,11 +7,54 @@ import { prisma } from "./prisma";
 import { getSetting } from "./settings";
 import {
   createVisual,
+  createImageSlideshow,
+  createCarousel,
+  createTalkingHead,
   waitForCreation,
   getOutputUrl,
   BlotatoError,
+  type BlotatoCreation,
 } from "./blotato-client";
-import { buildVisualBrief } from "./agents/uma";
+import { buildVisualBrief, type UmaBrief } from "./agents/uma";
+
+// Decide qual funcao Blotato chamar baseado no que Uma retornou.
+// Mesma logica de creative-ai-pipeline (consistencia social + ads).
+async function startCreationFromBrief(
+  brief: UmaBrief,
+  fallbackPrompt: string,
+  title: string
+): Promise<BlotatoCreation> {
+  // Talking head — scenes + characterDescription
+  if (brief.scenes && brief.scenes.length > 0 && brief.characterDescription) {
+    console.log(`[blotato-media] createTalkingHead com ${brief.scenes.length} scenes`);
+    return createTalkingHead({
+      templateId: brief.templateId,
+      scenes: brief.scenes,
+      characterDescription: brief.characterDescription,
+      title,
+    });
+  }
+  // Image Slideshow — slides com imagem + texto
+  if (brief.slides && brief.slides.length > 0) {
+    console.log(`[blotato-media] createImageSlideshow com ${brief.slides.length} slides`);
+    return createImageSlideshow({
+      templateId: brief.templateId,
+      slides: brief.slides,
+      title,
+    });
+  }
+  // Quote Card / Tweet Card — quotes
+  if (brief.quotes && brief.quotes.length > 0) {
+    console.log(`[blotato-media] createCarousel com ${brief.quotes.length} quotes`);
+    return createCarousel({
+      templateId: brief.templateId,
+      quotes: brief.quotes,
+      title,
+    });
+  }
+  // Default: prompt simples
+  return createVisual({ templateId: brief.templateId, prompt: fallbackPrompt, title });
+}
 
 const DEFAULT_TEMPLATES: Record<string, string> = {
   FEED_AM: "9f4e66cd-b784-4c02-b2ce-e6d0765fd4c0", // Single Centered Text Quote
@@ -80,29 +123,31 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
     throw new BlotatoError("REEL precisa de generateVideoForPost — nao imagem", 400);
   }
 
-  // Primeiro pedimos a Uma pra montar brief + escolher template. Se ela falhar
-  // (ex: ANTHROPIC_API_KEY ausente) caimos no fallback de prompt deterministico.
-  let templateId: string;
-  let prompt: string;
+  // Pede Uma pra escolher template + slides/quotes estruturados.
+  // Se Uma falhar (sem ANTHROPIC_API_KEY), fallback pro template default + prompt simples.
+  let brief: UmaBrief | null = null;
   try {
-    const brief = await buildVisualBrief(post.id);
-    templateId = brief.templateId;
-    prompt = [
+    brief = await buildVisualBrief(post.id);
+  } catch (err) {
+    console.warn(`[uma] fallback apos erro:`, (err as Error).message);
+  }
+
+  let started;
+  if (brief) {
+    // Trunca prompt fallback (caso Uma escolha template que aceite so prompt)
+    const fallbackPrompt = [
       brief.enrichedBriefing,
       `Paleta: ${brief.colorPalette}`,
       `Mood: ${brief.mood}`,
-      brief.textOverlay ? `Texto no visual: "${brief.textOverlay}"` : "",
-    ].filter(Boolean).join("\n\n");
-  } catch (err) {
-    console.warn(`[uma] fallback apos erro:`, (err as Error).message);
-    templateId = await getTemplateIdForSlot(post.slot);
-    prompt = fallbackImagePrompt(post);
+      brief.textOverlay ? `Texto: "${brief.textOverlay}"` : "",
+    ].filter(Boolean).join("\n\n").slice(0, 400);
+    started = await startCreationFromBrief(brief, fallbackPrompt, post.title);
+  } else {
+    // Sem Uma — caminho determinista
+    const templateId = await getTemplateIdForSlot(post.slot);
+    const prompt = fallbackImagePrompt(post).slice(0, 400);
+    started = await createVisual({ templateId, prompt, title: post.title });
   }
-
-  // Alguns templates validam description <= 500 chars no Blotato.
-  prompt = prompt.slice(0, 480);
-
-  const started = await createVisual({ templateId, prompt, title: post.title });
   const done = await waitForCreation(started.id, { timeoutMs: 3 * 60_000 });
 
   const url = getOutputUrl(done);
@@ -183,26 +228,30 @@ export async function generateVideoForPost(postId: string): Promise<GenerateVide
     throw new BlotatoError(`slot ${post.slot} nao suporta video — use generateImageForPost`, 400);
   }
 
-  let templateId: string;
-  let prompt: string;
+  // Reel: pede Uma com slot REEL (vai retornar slides[] pra Image Slideshow
+  // ou scenes[] pra AI Video, ou prompt livre).
+  let brief: UmaBrief | null = null;
   try {
-    const brief = await buildVisualBrief(post.id);
-    templateId = brief.templateId;
-    prompt = [
+    brief = await buildVisualBrief(post.id);
+  } catch (err) {
+    console.warn(`[uma/reel] fallback apos erro:`, (err as Error).message);
+  }
+
+  let started;
+  if (brief) {
+    const fallbackPrompt = [
       brief.enrichedBriefing,
       `Paleta: ${brief.colorPalette}`,
       `Mood: ${brief.mood}`,
-      brief.textOverlay ? `Texto no visual: "${brief.textOverlay}"` : "",
-      `Narracao (roteiro completo):\n${post.content}`,
-      "Voz feminina brasileira calorosa, ritmo natural, pausas curtas.",
-    ].filter(Boolean).join("\n\n");
-  } catch (err) {
-    console.warn(`[uma/reel] fallback apos erro:`, (err as Error).message);
-    templateId = await getTemplateIdForSlot("REEL");
-    prompt = fallbackReelPrompt(post);
+      brief.textOverlay ? `Texto: "${brief.textOverlay}"` : "",
+      `Roteiro:\n${post.content.slice(0, 200)}`,
+    ].filter(Boolean).join("\n\n").slice(0, 480);
+    started = await startCreationFromBrief(brief, fallbackPrompt, post.title);
+  } else {
+    const templateId = await getTemplateIdForSlot("REEL");
+    const prompt = fallbackReelPrompt(post).slice(0, 480);
+    started = await createVisual({ templateId, prompt, title: post.title });
   }
-
-  const started = await createVisual({ templateId, prompt, title: post.title });
   // Video costuma demorar 3-15min. Damos 20min de folga. Se o cliente cair
   // antes disso, a creation continua no Blotato e dá pra consultar depois
   // via GET /v2/videos/creations/:id.
