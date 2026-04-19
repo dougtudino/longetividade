@@ -1,7 +1,7 @@
-// Build forçado: 2026-04-19T11:09:14
+// Build forï¿½ado: 2026-04-19T11:09:14
 "use client";
 
-const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
+const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "953736244279938";
 
 export default function FacebookPixel() {
   if (!FB_PIXEL_ID) {
