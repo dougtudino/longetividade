@@ -13,6 +13,34 @@ import { getSetting } from "./settings";
 
 const BASE = "https://backend.blotato.com/v2";
 
+// ─── Source Resolutions (extrair conteudo de URL/texto/perplexity) ──
+// POST /v2/source-resolutions-v3
+// sourceType: text | article | youtube | twitter | tiktok | perplexity-query | audio | pdf
+
+export type BlotatoSourceType =
+  | "text"
+  | "article"
+  | "youtube"
+  | "twitter"
+  | "tiktok"
+  | "perplexity-query"
+  | "audio"
+  | "pdf";
+
+export interface ResolveSourceInput {
+  sourceType: BlotatoSourceType;
+  url?: string; // pra youtube, tiktok, article, pdf, audio, twitter
+  text?: string; // pra text, perplexity-query
+  customInstructions?: string;
+}
+
+export interface SourceResolution {
+  id: string;
+  status?: "queued" | "processing" | "completed" | "failed" | string;
+  content?: string;
+  title?: string;
+}
+
 export class BlotatoError extends Error {
   constructor(
     message: string,
@@ -54,6 +82,48 @@ async function request<T>(
     throw new BlotatoError(`Blotato ${res.status}: ${msg}`, res.status, body);
   }
   return body as T;
+}
+
+export async function resolveSource(
+  input: ResolveSourceInput
+): Promise<SourceResolution> {
+  const body: Record<string, unknown> = {
+    source: {
+      sourceType: input.sourceType,
+      ...(input.url ? { url: input.url } : {}),
+      ...(input.text ? { text: input.text } : {}),
+    },
+    ...(input.customInstructions
+      ? { customInstructions: input.customInstructions }
+      : {}),
+  };
+  return request<SourceResolution>("/source-resolutions-v3", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getSourceResolution(id: string): Promise<SourceResolution> {
+  return request<SourceResolution>(`/source-resolutions-v3/${id}`, { method: "GET" });
+}
+
+// Polling ate completed
+export async function waitForSourceResolution(
+  id: string,
+  opts: { intervalMs?: number; timeoutMs?: number } = {}
+): Promise<SourceResolution> {
+  const interval = opts.intervalMs ?? 3000;
+  const timeout = opts.timeoutMs ?? 2 * 60_000;
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const r = await getSourceResolution(id);
+    if (r.status === "completed") return r;
+    if (r.status === "failed") {
+      throw new BlotatoError(`source ${id} falhou`, 500, r);
+    }
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  throw new BlotatoError(`source ${id} timeout`, 504);
 }
 
 // ─── Accounts ──────────────────────────────────────────

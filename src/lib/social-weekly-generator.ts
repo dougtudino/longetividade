@@ -115,6 +115,43 @@ async function getUnusedTrendsByPillar(): Promise<Map<Pillar, TrendItem[]>> {
     byPillar.set("m", list);
   }
 
+  // Enriquece com Inspiration via Perplexity (Blotato source-resolutions).
+  // Cada query retorna research markdown com hooks/patterns virais por pilar.
+  // Mapeada pra TrendItem por `metadata.pillar`.
+  const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+  const inspirationRefs = await prisma.agentKnowledge.findMany({
+    where: {
+      agentId: "luna",
+      kind: "reference",
+      source: "blotato-inspiration-perplexity",
+      createdAt: { gte: fourteenDaysAgo },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  });
+
+  for (const ref of inspirationRefs) {
+    const meta = ref.metadata as { pillar?: string } | null;
+    const p = (meta?.pillar as Pillar) ?? "s";
+    // Extrai os primeiros 3 paragrafos relevantes como hooks
+    const paragraphs = ref.body
+      .split(/\n\n+/)
+      .filter((par) => par.trim().length > 30)
+      .slice(0, 3);
+    for (const par of paragraphs) {
+      const list = byPillar.get(p) ?? [];
+      list.push({
+        topic: par.slice(0, 60),
+        angle: par.slice(0, 200),
+        suggestedPillar: p,
+        hook: par.slice(0, 120),
+        body: par,
+        sourceUrl: undefined,
+      });
+      byPillar.set(p, list);
+    }
+  }
+
   return byPillar;
 }
 

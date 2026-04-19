@@ -1429,6 +1429,43 @@ function BlotatoSection() {
         </div>
       </div>
 
+      <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+          Inspiration · Perplexity (descoberta de virais)
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <button
+            onClick={async () => {
+              if (!confirm("Vai rodar 3 queries Perplexity (S/E/M) ~3-5min. Custa créditos IA Blotato. Continuar?")) return;
+              try {
+                const r = await fetch("/api/admin/blotato/run-inspiration", { method: "POST" });
+                const d = await r.json();
+                if (d.ok) {
+                  alert(`✅ Inspiration ${d.succeeded}/${d.total}\n\n${d.results.map((x: { pillar: string; ok: boolean; error?: string }) => `${x.ok ? "✓" : "✗"} ${x.pillar.toUpperCase()}${x.error ? ` — ${x.error.slice(0, 60)}` : ""}`).join("\n")}\n\nDados salvos em AgentKnowledge pra Luna consumir.`);
+                } else {
+                  alert(`Erro: ${d.error}`);
+                }
+              } catch (e) {
+                alert(`Erro: ${(e as Error).message}`);
+              }
+            }}
+            style={{
+              ...saveBtnStyle,
+              padding: "8px 16px",
+              fontSize: 13,
+              background: "var(--bg-card)",
+              color: "var(--text-primary)",
+              border: "0.5px solid var(--border-default)",
+            }}
+          >
+            🔍 Rodar Inspiration agora
+          </button>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+            Perplexity dentro do Blotato traz hooks/patterns virais por pilar (S/E/M)
+          </span>
+        </div>
+      </div>
+
       <p style={{ ...hintStyle, marginTop: 16 }}>
         💡 Roda 1x no setup. Depois só quando Blotato adicionar templates novos
         (raro). Uma usa esse cache quando você gera criativo com IA.
