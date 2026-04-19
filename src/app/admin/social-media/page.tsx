@@ -189,6 +189,7 @@ export default function SocialMediaPage() {
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [regenerating, setRegenerating] = useState<string | null>(null);
   const [activity, setActivity] = useState<ActivityData | null>(null);
   const [showActivity, setShowActivity] = useState(false);
   const [lightbox, setLightbox] = useState<{ postId: string; slideIndex: number; pillar: string; format: string; title: string; content: string } | null>(null);
@@ -650,6 +651,7 @@ export default function SocialMediaPage() {
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <style>{`@keyframes adm-spin { to { transform: rotate(360deg); } }`}</style>
       <PageHeader
         title="Luna · Social Media"
         subtitle="Calendário editorial + fila de posts IG/FB. Luna gera e agenda; Uma faz a arte; Quinn aprova; Blotato publica."
@@ -1348,25 +1350,61 @@ export default function SocialMediaPage() {
                         {downloading === p.id ? "Gerando..." : "🖼 Baixar PNG"}
                       </button>
                       <button
+                        disabled={regenerating === p.id || !!regenerating}
                         onClick={async () => {
-                          if (!confirm(`Regenerar arte do post "${p.title}" com nova pipeline (Uma + slides estruturados)?\n\nVai apagar imagem atual + gastar créditos Blotato.\n\nSlot ${p.slot}: ${p.slot === "REEL" ? "~30-50cr (vídeo)" : "~3-8cr (imagem)"}`)) return;
+                          if (regenerating) return; // guard double-click
+                          const isVideo = p.format === "reels";
+                          if (!confirm(`Regenerar arte do post "${p.title}"?\n\nFormato: ${p.format} → ${isVideo ? "VÍDEO mp4 (~30-50cr)" : "IMAGEM (~3-8cr)"}\n\nVai apagar imagem atual + gastar créditos Blotato.`)) return;
+                          setRegenerating(p.id); // bloqueia imediato
                           try {
                             const r = await fetch(`/api/admin/blotato/regenerate-post/${p.id}`, { method: "POST" });
                             const d = await r.json();
                             if (d.ok) {
-                              alert(`✅ Regenerado em ${Math.round(d.elapsedMs / 1000)}s\n\nAntes: ${d.before.imageUrl ? "tinha imagem" : "vazio"}\nAgora: ${d.after.imageUrl ? "✓ nova arte" : "sem imagem"}\n\nURL: ${d.outputUrl ?? "(ver galeria)"}`);
+                              alert(`✅ Regenerado em ${Math.round(d.elapsedMs / 1000)}s\n\nFormato: ${d.before.format} → ${d.outputUrl?.endsWith(".mp4") ? "mp4 video" : "imagem"}\nAntes: ${d.before.imageUrl ? "tinha imagem" : "vazio"}\nAgora: ${d.after.imageUrl ? "✓ nova arte" : "sem imagem"}`);
                               loadPosts();
                             } else {
                               alert(`Erro: ${d.error}`);
                             }
                           } catch (e) {
                             alert(`Erro: ${(e as Error).message}`);
+                          } finally {
+                            setRegenerating(null);
                           }
                         }}
-                        style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(99,153,34,0.1)", color: "#8FBB3F", border: "0.5px solid rgba(99,153,34,0.3)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
-                        title="Apaga imagem atual e regenera com Uma + Image Slideshow + slides reais"
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          background: regenerating === p.id ? "rgba(99,153,34,0.25)" : "rgba(99,153,34,0.1)",
+                          color: "#8FBB3F",
+                          border: "0.5px solid rgba(99,153,34,0.3)",
+                          fontSize: 11,
+                          fontWeight: 600,
+                          cursor: regenerating ? "not-allowed" : "pointer",
+                          opacity: regenerating && regenerating !== p.id ? 0.4 : 1,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                        title={p.format === "reels"
+                          ? "Apaga vídeo atual e regenera com Uma + AI Video + scenes"
+                          : "Apaga imagem atual e regenera com Uma + Image Slideshow + slides reais"}
                       >
-                        🔄 Regenerar arte
+                        {regenerating === p.id ? (
+                          <>
+                            <span style={{
+                              width: 10,
+                              height: 10,
+                              border: "2px solid #8FBB3F",
+                              borderTopColor: "transparent",
+                              borderRadius: "50%",
+                              animation: "adm-spin 0.7s linear infinite",
+                              display: "inline-block",
+                            }} />
+                            Gerando... (até 2min)
+                          </>
+                        ) : (
+                          "🔄 Regenerar arte"
+                        )}
                       </button>
                       {p.status === "posted" && (
                         <button onClick={() => updateStatus(p.id, "approved")} disabled={updating === p.id}

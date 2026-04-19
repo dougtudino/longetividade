@@ -14,7 +14,7 @@ export async function POST(_req: NextRequest, ctx: { params: Promise<{ id: strin
 
     const post = await prisma.socialPost.findUnique({
       where: { id },
-      select: { id: true, title: true, slot: true, imageUrl: true },
+      select: { id: true, title: true, slot: true, format: true, imageUrl: true },
     });
     if (!post) {
       return NextResponse.json({ ok: false, error: "Post nao encontrado" }, { status: 404 });
@@ -23,6 +23,7 @@ export async function POST(_req: NextRequest, ctx: { params: Promise<{ id: strin
     const before = {
       imageUrl: post.imageUrl,
       slot: post.slot,
+      format: post.format,
     };
 
     // Limpa imageUrl atual + qualquer imagem renderizada antiga
@@ -34,13 +35,16 @@ export async function POST(_req: NextRequest, ctx: { params: Promise<{ id: strin
       where: { postId: post.id },
     });
 
-    // Decide qual generator usar baseado no slot
+    // Decide qual generator usar baseado no FORMAT (carrossel/imagem/reels/stories)
+    // NAO baseado no slot — slot eh hora do dia, format eh o tipo de midia.
+    // - reels → video (mp4)
+    // - carrossel | imagem | stories | texto → imagem (Image Slideshow ou Quote Card)
     let result;
     const startedAt = Date.now();
-    if (post.slot === "REEL") {
+    const isVideoFormat = post.format === "reels";
+    if (isVideoFormat) {
       result = await generateVideoForPost(post.id);
     } else {
-      // FEED_AM ou STORY
       result = await generateImageForPost(post.id);
     }
     const elapsedMs = Date.now() - startedAt;

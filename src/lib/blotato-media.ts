@@ -17,18 +17,61 @@ import {
 } from "./blotato-client";
 import { buildVisualBrief, type UmaBrief } from "./agents/uma";
 
+// UUIDs de templates de VIDEO — se Uma escolher um deles pra um post nao-REEL,
+// fazemos override defensivo pra Image Slideshow (mp4 nao serve em FEED/STORY estatico).
+const VIDEO_TEMPLATE_IDS = new Set([
+  "5903fe43-514d-40ee-a060-0d6628c5f8fd", // AI Video with AI Voice
+  "57f5a565-fd17-458b-be43-4a2d8ccaca75", // AI Selfie Talking
+  "7c26a1cd-d5b3-42da-9c73-2413333873b3", // AI Avatar B-roll
+  "c306ae43-1dcc-4f45-ac2b-88e75430ffd8", // Combine Clips
+]);
+const IMAGE_SLIDESHOW_TEMPLATE = "/base/v2/image-slideshow/5903b592-1255-43b4-b9ac-f8ed7cbf6a5f/v1";
+
+function isVideoTemplate(tplId: string): boolean {
+  // Match UUID puro OU UUID dentro de path
+  for (const uuid of VIDEO_TEMPLATE_IDS) {
+    if (tplId === uuid || tplId.includes(uuid)) return true;
+  }
+  return false;
+}
+
 // Decide qual funcao Blotato chamar baseado no que Uma retornou.
-// Mesma logica de creative-ai-pipeline (consistencia social + ads).
+// `expectVideo` = true se o post e REEL (mp4 OK). False se FEED/STORY/carrossel
+// (so imagem) — nesse caso forcamos Image Slideshow se Uma errar.
 async function startCreationFromBrief(
   brief: UmaBrief,
   fallbackPrompt: string,
-  title: string
+  title: string,
+  expectVideo: boolean
 ): Promise<BlotatoCreation> {
-  // Talking head — scenes + characterDescription
-  if (brief.scenes && brief.scenes.length > 0 && brief.characterDescription) {
+  let templateId = brief.templateId;
+
+  // OVERRIDE defensivo: se Uma escolheu video pra post nao-REEL,
+  // troca pra Image Slideshow + descarta scenes (que eram pra video).
+  if (!expectVideo && isVideoTemplate(templateId)) {
+    console.warn(
+      `[blotato-media] Uma escolheu video template ${templateId} mas post nao eh REEL. Override pra Image Slideshow.`
+    );
+    templateId = IMAGE_SLIDESHOW_TEMPLATE;
+    // Se Uma so retornou scenes (video), converte pra slides (imagem)
+    if (brief.scenes && brief.scenes.length > 0 && (!brief.slides || brief.slides.length === 0)) {
+      brief.slides = brief.scenes.map((s) => ({
+        imagePrompt: s.description,
+        textOverlay: s.narration.slice(0, 40),
+      }));
+      brief.scenes = undefined;
+      brief.characterDescription = undefined;
+    }
+  }
+
+  // Talking head — scenes + characterDescription (so se expectVideo)
+  if (
+    expectVideo &&
+    brief.scenes && brief.scenes.length > 0 && brief.characterDescription
+  ) {
     console.log(`[blotato-media] createTalkingHead com ${brief.scenes.length} scenes`);
     return createTalkingHead({
-      templateId: brief.templateId,
+      templateId,
       scenes: brief.scenes,
       characterDescription: brief.characterDescription,
       title,
@@ -38,7 +81,7 @@ async function startCreationFromBrief(
   if (brief.slides && brief.slides.length > 0) {
     console.log(`[blotato-media] createImageSlideshow com ${brief.slides.length} slides`);
     return createImageSlideshow({
-      templateId: brief.templateId,
+      templateId,
       slides: brief.slides,
       title,
     });
@@ -47,13 +90,13 @@ async function startCreationFromBrief(
   if (brief.quotes && brief.quotes.length > 0) {
     console.log(`[blotato-media] createCarousel com ${brief.quotes.length} quotes`);
     return createCarousel({
-      templateId: brief.templateId,
+      templateId,
       quotes: brief.quotes,
       title,
     });
   }
   // Default: prompt simples
-  return createVisual({ templateId: brief.templateId, prompt: fallbackPrompt, title });
+  return createVisual({ templateId, prompt: fallbackPrompt, title });
 }
 
 const DEFAULT_TEMPLATES: Record<string, string> = {
@@ -141,7 +184,8 @@ export async function generateImageForPost(postId: string): Promise<GenerateImag
       `Mood: ${brief.mood}`,
       brief.textOverlay ? `Texto: "${brief.textOverlay}"` : "",
     ].filter(Boolean).join("\n\n").slice(0, 400);
-    started = await startCreationFromBrief(brief, fallbackPrompt, post.title);
+    // generateImageForPost = NUNCA video (nem REEL chega aqui)
+    started = await startCreationFromBrief(brief, fallbackPrompt, post.title, false);
   } else {
     // Sem Uma — caminho determinista
     const templateId = await getTemplateIdForSlot(post.slot);
@@ -246,7 +290,8 @@ export async function generateVideoForPost(postId: string): Promise<GenerateVide
       brief.textOverlay ? `Texto: "${brief.textOverlay}"` : "",
       `Roteiro:\n${post.content.slice(0, 200)}`,
     ].filter(Boolean).join("\n\n").slice(0, 480);
-    started = await startCreationFromBrief(brief, fallbackPrompt, post.title);
+    // generateVideoForPost = sempre REEL (mp4 OK)
+    started = await startCreationFromBrief(brief, fallbackPrompt, post.title, true);
   } else {
     const templateId = await getTemplateIdForSlot("REEL");
     const prompt = fallbackReelPrompt(post).slice(0, 480);
