@@ -45,3 +45,17 @@ next-env.d.ts
 /private/
 
 /src/generated/prisma
+
+# AIOX Framework e auxiliares — referência, não deploy
+aiox-core-main/
+aiox-core-main.zip
+social-media-main/
+social-media-main.zip
+outputs/
+generate_ebook_pdf.py
+estrutura.txt
+AIOX-STATUS.md
+SPRINT-*.md
+.claude/launch.json.bak
+*.bak
+tmp-*.mjs
