@@ -26,6 +26,7 @@ type Post = {
   platform: string;
   format: string;
   pillar: string;
+  slot?: string;
   hashtags: string | null;
   imageBriefing: string | null;
   imageUrl: string | null;
@@ -1345,6 +1346,27 @@ export default function SocialMediaPage() {
                         disabled={downloading === p.id}
                         style={{ padding: "6px 14px", borderRadius: 8, background: "var(--bg-secondary)", color: "var(--text-primary)", border: "0.5px solid var(--border-default)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                         {downloading === p.id ? "Gerando..." : "🖼 Baixar PNG"}
+                      </button>
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`Regenerar arte do post "${p.title}" com nova pipeline (Uma + slides estruturados)?\n\nVai apagar imagem atual + gastar créditos Blotato.\n\nSlot ${p.slot}: ${p.slot === "REEL" ? "~30-50cr (vídeo)" : "~3-8cr (imagem)"}`)) return;
+                          try {
+                            const r = await fetch(`/api/admin/blotato/regenerate-post/${p.id}`, { method: "POST" });
+                            const d = await r.json();
+                            if (d.ok) {
+                              alert(`✅ Regenerado em ${Math.round(d.elapsedMs / 1000)}s\n\nAntes: ${d.before.imageUrl ? "tinha imagem" : "vazio"}\nAgora: ${d.after.imageUrl ? "✓ nova arte" : "sem imagem"}\n\nURL: ${d.outputUrl ?? "(ver galeria)"}`);
+                              loadPosts();
+                            } else {
+                              alert(`Erro: ${d.error}`);
+                            }
+                          } catch (e) {
+                            alert(`Erro: ${(e as Error).message}`);
+                          }
+                        }}
+                        style={{ padding: "6px 14px", borderRadius: 8, background: "rgba(99,153,34,0.1)", color: "#8FBB3F", border: "0.5px solid rgba(99,153,34,0.3)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+                        title="Apaga imagem atual e regenera com Uma + Image Slideshow + slides reais"
+                      >
+                        🔄 Regenerar arte
                       </button>
                       {p.status === "posted" && (
                         <button onClick={() => updateStatus(p.id, "approved")} disabled={updating === p.id}
