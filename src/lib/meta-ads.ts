@@ -41,11 +41,20 @@ type RawInsights = {
   cpc?: string;
   cpm?: string;
   reach?: string;
+  frequency?: string;
+  // Rankings vem como string enum: "above_average" | "average" |
+  // "below_average_offers" | "below_average_35" | "below_average_20" | "unknown"
+  // Disponivel apenas em ad-level insights apos o ad ter ~500 impressions.
+  quality_ranking?: string;
+  engagement_rate_ranking?: string;
+  conversion_rate_ranking?: string;
   actions?: GraphAction[];
   action_values?: GraphAction[];
   date_start?: string;
   date_stop?: string;
 };
+
+export type RankingValue = "above_average" | "average" | "below_average_offers" | "below_average_35" | "below_average_20" | "unknown" | null;
 
 export type AggregatedInsights = {
   impressions: number;
@@ -55,6 +64,14 @@ export type AggregatedInsights = {
   cpc: number;
   cpm: number;
   reach: number;
+  // frequency = impressions / reach. Indica saturacao da audiencia.
+  // > 3.0 com volume >10k = audiencia cansou, FIX_AUDIENCE.
+  frequency: number;
+  // Rankings vem direto do Meta (ad-level). Aggregam com "pior nivel
+  // observado" pra ser conservador. Null se nenhum ad teve ranking ainda.
+  qualityRanking: RankingValue;
+  engagementRanking: RankingValue;
+  conversionRanking: RankingValue;
   purchases: number;
   purchaseValue: number;
   initiatedCheckouts: number;
@@ -63,6 +80,24 @@ export type AggregatedInsights = {
   dateStart: string | null;
   dateStop: string | null;
 };
+
+// Pior ranking entre N valores. "below_average_*" > "average" > "above_average".
+// "unknown" e null sao ignorados (nao temos dado).
+const RANKING_SEVERITY: Record<string, number> = {
+  above_average: 0,
+  average: 1,
+  below_average_35: 2,
+  below_average_20: 3,
+  below_average_offers: 4,
+};
+function worstRanking(a: RankingValue, b: string | undefined): RankingValue {
+  if (!b || b === "unknown") return a;
+  const sevB = RANKING_SEVERITY[b] ?? -1;
+  if (sevB < 0) return a;
+  if (a === null || a === "unknown") return b as RankingValue;
+  const sevA = RANKING_SEVERITY[a] ?? -1;
+  return sevB > sevA ? (b as RankingValue) : a;
+}
 
 function sumActionValue(arr: GraphAction[] | undefined, types: string[]): number {
   if (!arr) return 0;
@@ -101,6 +136,10 @@ function aggregate(rows: RawInsights[]): AggregatedInsights {
     cpc: 0,
     cpm: 0,
     reach: 0,
+    frequency: 0,
+    qualityRanking: null,
+    engagementRanking: null,
+    conversionRanking: null,
     purchases: 0,
     purchaseValue: 0,
     initiatedCheckouts: 0,
@@ -119,6 +158,9 @@ function aggregate(rows: RawInsights[]): AggregatedInsights {
     totals.purchaseValue += sumActionValue(r.action_values, PURCHASE_TYPES);
     totals.initiatedCheckouts += sumActionValue(r.actions, CHECKOUT_TYPES);
     totals.leads += sumActionValue(r.actions, LEAD_TYPES);
+    totals.qualityRanking = worstRanking(totals.qualityRanking, r.quality_ranking);
+    totals.engagementRanking = worstRanking(totals.engagementRanking, r.engagement_rate_ranking);
+    totals.conversionRanking = worstRanking(totals.conversionRanking, r.conversion_rate_ranking);
     if (!totals.dateStart && r.date_start) totals.dateStart = r.date_start;
     if (r.date_stop) totals.dateStop = r.date_stop;
   }
@@ -127,6 +169,7 @@ function aggregate(rows: RawInsights[]): AggregatedInsights {
   totals.cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
   totals.cpm = totals.impressions > 0 ? (totals.spend / totals.impressions) * 1000 : 0;
   totals.roas = totals.spend > 0 ? totals.purchaseValue / totals.spend : 0;
+  totals.frequency = totals.reach > 0 ? totals.impressions / totals.reach : 0;
   return totals;
 }
 
@@ -140,8 +183,11 @@ const PRESET_MAP: Record<InsightsPreset, string> = {
   lifetime: "maximum",
 };
 
+// Rankings sao ad-level (nao agregam em campaign-level), mas se pedir
+// ate campaign-level a Meta ignora silenciosamente — graceful degradation.
+// frequency vem de qualquer level, valida se reach > 0.
 const INSIGHT_FIELDS =
-  "impressions,clicks,spend,ctr,cpc,cpm,reach,actions,action_values,date_start,date_stop";
+  "impressions,clicks,spend,ctr,cpc,cpm,reach,frequency,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,actions,action_values,date_start,date_stop";
 
 export type MetaAdsError = {
   ok: false;

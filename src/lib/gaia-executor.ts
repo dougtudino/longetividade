@@ -83,6 +83,50 @@ export async function executeUpdateBudget(
   return postGraph(adSetId, creds.token, { daily_budget: newBudgetCents });
 }
 
+// ─── Growth Operator handlers (Sprint 1) ─────────────────────
+
+// Atualiza targeting de um ad set (FIX_AUDIENCE).
+// Aceita o objeto `targeting` no formato Meta — caller monta com
+// flexible_spec, geo_locations, age_min/max, advantage_audience etc.
+// Importante: PATCH em ad_set sem PAUSE primeiro pode resetar learning
+// phase. Aviso: Meta best practice eh trocar audiencia em ad set NOVO,
+// nao no existente — esse handler eh pra ajustes pequenos (ligar
+// Advantage+, expandir geo).
+export async function executeUpdateTargeting(
+  adSetId: string,
+  targeting: Record<string, unknown>
+): Promise<ExecutionResult> {
+  const creds = await getLauncherCreds();
+  if (!creds) return { ok: false, error: "Credenciais Meta ausentes" };
+  return postGraph(adSetId, creds.token, { targeting });
+}
+
+// Atualiza creative de um ad (FIX_COPY ou FIX_CREATIVE).
+// Workflow Meta: criar novo AdCreative → atualizar Ad.creative apontando
+// pro novo creative_id. Nao deleta o antigo (audit trail).
+//
+// Por hora aceitamos creativeSpec (objeto) que o caller monta. Em fases
+// futuras, integrar com Uma pra gerar imagem/copy automaticamente.
+export async function executeUpdateAdCreative(
+  adId: string,
+  newCreativeSpec: Record<string, unknown>
+): Promise<ExecutionResult> {
+  const creds = await getLauncherCreds();
+  if (!creds) return { ok: false, error: "Credenciais Meta ausentes" };
+
+  // 1. Cria novo AdCreative
+  // Path: act_<accountId>/adcreatives — mas precisa do accountId, nao do adId.
+  // Por enquanto, exigimos que o caller forneca account context completo via
+  // params do decision. Aqui retornamos guidance ao inves de executar errado.
+  return {
+    ok: false,
+    error:
+      "FIX_COPY/FIX_CREATIVE requer fluxo Uma+Meta integrado (criar AdCreative novo + apontar Ad). " +
+      "Por hora, decisao executa como noop — admin deve trocar manual no Ads Manager ou via /admin/criativos. " +
+      `adId=${adId}, spec=${JSON.stringify(newCreativeSpec).slice(0, 80)}`,
+  };
+}
+
 export type DecisionPayload = {
   action: string;
   targetId: string;
@@ -109,12 +153,59 @@ export async function executeDecision(decision: DecisionPayload): Promise<Execut
     }
 
     case "INCREASE_BUDGET":
-    case "DECREASE_BUDGET": {
-      const newBudgetCents = params.newBudgetCents as number | undefined;
+    case "DECREASE_BUDGET":
+    case "FIX_BUDGET": {
+      // FIX_BUDGET usa o mesmo handler — campo `proposedBudgetCents` ou
+      // `newBudgetCents` (compat com regras antigas).
+      const newBudgetCents =
+        (params.newBudgetCents as number | undefined) ??
+        (params.proposedBudgetCents as number | undefined);
       if (typeof newBudgetCents !== "number") {
-        return { ok: false, error: "params.newBudgetCents ausente ou invalido" };
+        return { ok: false, error: "params.newBudgetCents/proposedBudgetCents ausente ou invalido" };
       }
       return executeUpdateBudget(targetId, newBudgetCents);
+    }
+
+    case "FIX_AUDIENCE": {
+      const proposed = params.proposedTargeting as Record<string, unknown> | undefined;
+      if (!proposed || typeof proposed !== "object") {
+        return { ok: false, error: "params.proposedTargeting ausente ou invalido" };
+      }
+      return executeUpdateTargeting(targetId, proposed);
+    }
+
+    case "FIX_COPY":
+    case "FIX_CREATIVE": {
+      // Por enquanto noop com guidance — pipeline Uma+Meta nao integrada
+      // automaticamente nesta sprint. Decisao fica como executed=true com
+      // mensagem direcionando admin pra ajuste manual.
+      const briefing =
+        (params.proposedCreativeBriefing as string | undefined) ??
+        (params.proposedCopyDirection as string | undefined) ??
+        "(sem briefing)";
+      return {
+        ok: true,
+        result: {
+          status: "guidance_only",
+          message:
+            "FIX_COPY/FIX_CREATIVE registrada. Crie novo creative em /admin/criativos (Uma) e ative no Ads Manager.",
+          briefing: briefing.slice(0, 300),
+        },
+      };
+    }
+
+    case "DIAGNOSE_FUNNEL":
+    case "PROPOSE_ITERATION": {
+      // noExecution=true — decisao eh report, nao acao. Marca executed
+      // com snapshot dos params pra audit.
+      return {
+        ok: true,
+        result: {
+          status: "report_only",
+          type: action,
+          recorded_at: new Date().toISOString(),
+        },
+      };
     }
 
     default:

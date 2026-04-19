@@ -37,7 +37,18 @@ type KnowledgeEntry = {
 type Verdict = {
   adSetId: string;
   adSetName: string;
-  verdict: "KILL" | "KEEP" | "SCALE_HORIZONTAL" | "SCALE_VERTICAL" | "INSUFFICIENT_DATA";
+  verdict:
+    | "KILL"
+    | "KEEP"
+    | "SCALE_HORIZONTAL"
+    | "SCALE_VERTICAL"
+    | "INSUFFICIENT_DATA"
+    | "FIX_AUDIENCE"
+    | "FIX_COPY"
+    | "FIX_CREATIVE"
+    | "FIX_BUDGET"
+    | "DIAGNOSE_FUNNEL"
+    | "PROPOSE_ITERATION";
   reasoning: string[];
   metrics: {
     spend: number;
@@ -89,7 +100,150 @@ const VERDICT_COLOR: Record<string, string> = {
   SCALE_HORIZONTAL: "#6B9E6B",
   SCALE_VERTICAL: "#7A9E7E",
   INSUFFICIENT_DATA: "#888",
+  // Growth Operator
+  FIX_AUDIENCE: "#9B72CF",
+  FIX_COPY: "#D4A94B",
+  FIX_CREATIVE: "#D4A94B",
+  FIX_BUDGET: "#4A90D9",
+  DIAGNOSE_FUNNEL: "#C4787A",
+  PROPOSE_ITERATION: "#9B72CF",
 };
+
+// Acoes que NAO executam (DIAGNOSE_FUNNEL, PROPOSE_ITERATION) — exibem
+// botoes diferentes (Marcar como lido / Levar pro council).
+const NO_EXECUTION_ACTIONS = new Set(["DIAGNOSE_FUNNEL", "PROPOSE_ITERATION"]);
+
+// Render do bloco especifico de cada tipo de decisao.
+function renderDecisionBody(d: Decision): React.ReactNode {
+  const params = d.params ?? {};
+  const action = d.action;
+
+  if (action === "DIAGNOSE_FUNNEL") {
+    const funnel = params.funnelBreakdown as Record<string, number> | undefined;
+    const bottleneck = params.bottleneck as string | undefined;
+    const recommendation = params.recommendationText as string | undefined;
+    return (
+      <div style={{ marginTop: 8, padding: 12, background: "var(--bg-card)", borderRadius: 8 }}>
+        {funnel && (
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+            {[
+              ["Impr", funnel.impressions],
+              ["Cliques", funnel.clicks],
+              ["PageViews", funnel.pageViews],
+              ["Leads", funnel.leads],
+              ["IniCheck", funnel.initiateCheckouts],
+              ["Compras", funnel.purchases],
+            ].map(([k, v]) => (
+              <span
+                key={k as string}
+                style={{
+                  fontSize: 11,
+                  padding: "3px 8px",
+                  borderRadius: 6,
+                  background: "var(--bg-secondary)",
+                  color: v === 0 ? "#C4787A" : "var(--text-primary)",
+                  fontWeight: 600,
+                }}
+              >
+                {k}: {(v as number).toLocaleString("pt-BR")}
+              </span>
+            ))}
+          </div>
+        )}
+        {bottleneck && (
+          <div style={{ fontSize: 12, marginBottom: 6 }}>
+            <strong>Bottleneck:</strong>{" "}
+            <span style={{ color: "#C4787A", fontWeight: 700, textTransform: "uppercase" }}>{bottleneck}</span>
+          </div>
+        )}
+        {recommendation && (
+          <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+            <strong>Recomendacao:</strong> {recommendation}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (action === "PROPOSE_ITERATION") {
+    const learnings = (params.learnings as string[] | undefined) ?? [];
+    const next = params.suggestedNextStep as Record<string, string> | undefined;
+    return (
+      <div style={{ marginTop: 8, padding: 12, background: "var(--bg-card)", borderRadius: 8 }}>
+        {learnings.length > 0 && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>
+              Learnings
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+              {learnings.map((l, i) => <li key={i}>{l}</li>)}
+            </ul>
+          </div>
+        )}
+        {next && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>
+              Sugestao proxima iteracao
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+              {next.personaShift && <div><strong>Persona:</strong> {next.personaShift}</div>}
+              {next.angleShift && <div><strong>Angulo:</strong> {next.angleShift}</div>}
+              {next.offerShift && <div><strong>Oferta:</strong> {next.offerShift}</div>}
+              {next.notes && <div style={{ fontStyle: "italic", marginTop: 4 }}>{next.notes}</div>}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (action === "FIX_AUDIENCE") {
+    const proposed = params.proposedTargeting as Record<string, unknown> | undefined;
+    const expected = params.expectedImpact as string | undefined;
+    return (
+      <div style={{ marginTop: 8, padding: 12, background: "var(--bg-card)", borderRadius: 8 }}>
+        {expected && (
+          <div style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 8 }}>
+            <strong>Impacto esperado:</strong> {expected}
+          </div>
+        )}
+        {proposed && (
+          <pre style={{ fontSize: 11, fontFamily: "ui-monospace, monospace", background: "var(--bg-secondary)", padding: 10, borderRadius: 6, margin: 0, overflowX: "auto" }}>
+{JSON.stringify(proposed, null, 2)}
+          </pre>
+        )}
+      </div>
+    );
+  }
+
+  if (action === "FIX_COPY" || action === "FIX_CREATIVE") {
+    const briefing =
+      (params.proposedCreativeBriefing as string | undefined) ??
+      (params.proposedCopyDirection as string | undefined);
+    return briefing ? (
+      <div style={{ marginTop: 8, padding: 12, background: "var(--bg-card)", borderRadius: 8 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>
+          Briefing pra Uma
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>{briefing}</div>
+      </div>
+    ) : null;
+  }
+
+  if (action === "FIX_BUDGET" || action === "INCREASE_BUDGET" || action === "DECREASE_BUDGET") {
+    const current = (params.currentBudgetCents as number | undefined) ?? 0;
+    const proposed = (params.proposedBudgetCents as number | undefined) ?? (params.newBudgetCents as number | undefined) ?? 0;
+    if (proposed > 0) {
+      return (
+        <div style={{ marginTop: 8, padding: 12, background: "var(--bg-card)", borderRadius: 8, fontSize: 12 }}>
+          Budget: {fmtBRL(current / 100)} → <strong style={{ color: proposed > current ? "#6B9E6B" : "#D4A94B" }}>{fmtBRL(proposed / 100)}</strong>
+        </div>
+      );
+    }
+  }
+
+  return null;
+}
 
 function fmtBRL(v: number) {
   return `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -420,8 +574,64 @@ export default function GaiaControlPage() {
                 <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, marginBottom: 10 }}>
                   {d.reasoning}
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {d.status === "proposed" && (
+                {renderDecisionBody(d)}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                  {d.status === "proposed" && NO_EXECUTION_ACTIONS.has(d.action) && (
+                    <>
+                      {/* DIAGNOSE_FUNNEL / PROPOSE_ITERATION — sao reports, nao acoes */}
+                      <button
+                        onClick={() => actOnDecision(d.id, "approve_execute")}
+                        disabled={running?.startsWith("approve") ?? false}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          background: "#6B9E6B",
+                          color: "#fff",
+                          border: "none",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: "pointer",
+                        }}
+                      >
+                        ✓ Marcar como lido
+                      </button>
+                      {d.action === "PROPOSE_ITERATION" && (
+                        <Link
+                          href={`/admin/campanhas?fromGaia=${d.id}`}
+                          style={{
+                            padding: "6px 14px",
+                            borderRadius: 8,
+                            background: "#9B72CF",
+                            color: "#fff",
+                            border: "none",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                            display: "inline-block",
+                          }}
+                        >
+                          → Levar pro council
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => actOnDecision(d.id, "reject")}
+                        disabled={running?.startsWith("reject") ?? false}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          background: "var(--bg-card)",
+                          color: "var(--text-muted)",
+                          border: "0.5px solid var(--border-default)",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Arquivar
+                      </button>
+                    </>
+                  )}
+                  {d.status === "proposed" && !NO_EXECUTION_ACTIONS.has(d.action) && (
                     <>
                       <button
                         onClick={() => actOnDecision(d.id, "approve_execute")}

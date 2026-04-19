@@ -254,4 +254,117 @@ Acoes:
 Delegar para @dev fixar a landing antes de mexer em creative.`,
     source: "gaia-persona",
   },
+
+  // ═══════════════════════════════════════════════════════════
+  // GROWTH OPERATOR (Sprint 1) — 5 regras novas
+  // ═══════════════════════════════════════════════════════════
+  {
+    kind: "rule",
+    title: "Broad + Advantage+ targeting > interest stacking",
+    body: `Quando CTR cai com interest stacking (ex: ad set tem 3-5 interesses
+empilhados), Meta best practice 2024+ diz: testar BROAD com Advantage+
+Audience ANTES de matar.
+
+Aplicacao Gaia:
+- Se ad set com flexible_spec[interests] tem CTR < 1% mas frequency > 3
+  → propor FIX_AUDIENCE removendo interests + ligando advantage_audience=1
+- Manter geo, idade, genero como restricao base
+- Aguardar 48-72h pra avaliar (learning phase reset)
+
+Razao: o algoritmo Meta hoje encontra converters via Pixel data sozinho,
+sem precisar de hints de interesse. Interest stacking restringe alcance
+sem ganho de qualidade na maioria dos casos.`,
+    source: "meta-best-practices-2024",
+    metadata: { trigger_verdict: "FIX_AUDIENCE", priority: "high" },
+  },
+  {
+    kind: "rule",
+    title: "Creative rotation — quando trocar a arte",
+    body: `Sinais que indicam fadiga de criativo (precisa FIX_CREATIVE):
+
+1. Frequency > 2.5 em 7 dias E CTR caindo > 20% semana sobre semana
+2. Quality_ranking = below_average_offers/35/20 com CTR ainda OK
+3. Engagement_rate_ranking caiu de average pra below
+4. Mesmo criativo rodando ha > 14 dias sem variacao
+
+Regra: trocar criativo NAO pausa o ad — apenas substitui o creative_id.
+Aprendizado da audiencia continua intacto.
+
+Anti-pattern: trocar criativo + audiencia + budget juntos. Muda 1 coisa
+por vez pra saber o que recuperou performance.`,
+    source: "meta-best-practices-2024",
+    metadata: { trigger_verdict: "FIX_CREATIVE", priority: "high" },
+  },
+  {
+    kind: "learning",
+    title: "Funnel leak detection — quando o problema esta fora do Meta",
+    body: `Padrao classico:
+- CTR > 1% (anuncio funciona)
+- Spend > 3x ticket
+- Conversoes = 0
+
+Conclusao: o anuncio NAO e o problema. Investigar funil downstream.
+
+Bottlenecks comuns por ordem de probabilidade:
+1. **landing**: pixel nao dispara, headline nao bate, mobile quebrado
+2. **offer**: preco/garantia/bonus nao convencem (PageView alto, IC zero)
+3. **checkout**: friction Hotmart (parcelamento, taxa, etapa extra)
+4. **top_of_funnel**: audiencia nao se qualifica (pouco InitiateCheckout)
+
+Acao Gaia: criar DIAGNOSE_FUNNEL com bottleneck identificado e
+recommendationText. NAO matar o ad set — o ad funciona. Delegar fix
+pro Doug (@dev) ou Barbara (@offer).
+
+Aprendizado historico (LAUNCH-001 abr/2026): R$597 gastos, 0 vendas,
+CTR 1.77%. Bottleneck era top_of_funnel + landing — anuncio atraia
+trafego mas oferta R$37 nao filtrava intencao real de compra.`,
+    source: "gaia-launch-001-postmortem-2026-04",
+    metadata: { trigger_verdict: "DIAGNOSE_FUNNEL", priority: "critical" },
+  },
+  {
+    kind: "rule",
+    title: "Audience expansion antes de KILL",
+    body: `Antes de matar um ad set por CTR baixo, considerar:
+
+- frequency >= 3.0 com impressions >= 10k = audiencia saturou (mesmo
+  publico vendo o ad N vezes). Soluction: FIX_AUDIENCE (ampliar) NAO KILL.
+
+- audience_saturation_score > 0.7 (quando Meta expoe esse campo) tambem
+  indica saturacao.
+
+Ordem de avaliacao da Gaia:
+1. PROPOSE_ITERATION (campanha toda morreu)
+2. DIAGNOSE_FUNNEL (anuncio bom, problema fora)
+3. FIX_AUDIENCE (audiencia saturou)
+4. FIX_CREATIVE (quality ranking ruim)
+5. KILL (nada disso aplicou)
+
+Razao: KILL eh terminal — perde aprendizado da audiencia, do creative,
+do horario otimo. Correcao cirurgica preserva 80% do que funcionou.`,
+    source: "gaia-persona",
+    metadata: { trigger_verdict: "FIX_AUDIENCE", priority: "high" },
+  },
+  {
+    kind: "reference",
+    title: "Copy A/B — quando considerar FIX_COPY",
+    body: `Sinal claro de que COPY (e nao audiencia/creative) eh o problema:
+
+Se 2 ad sets compartilham:
+- Mesma audiencia base
+- Imagens diferentes
+- Copies diferentes
+
+E divergem em CTR > 50% (ex: ad set A 1.2% vs ad set B 0.6%), o fator
+mais provavel eh COPY (porque audiencia + criativo sao testaveis
+isoladamente em outras dimensions).
+
+Acao: FIX_COPY no pior, mantendo imagem original. Briefing pra Uma:
+adaptar tom/headline do vencedor. Nao trocar imagem (varia 2 coisas =
+nao aprende nada).
+
+Anti-pattern: julgar COPY isoladamente. Copy so importa se tudo mais
+foi controlado.`,
+    source: "gaia-persona",
+    metadata: { trigger_verdict: "FIX_COPY", priority: "normal" },
+  },
 ];

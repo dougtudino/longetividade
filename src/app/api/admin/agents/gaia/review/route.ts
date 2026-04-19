@@ -28,16 +28,7 @@ type ReviewRequestBody = {
 };
 
 function actionToString(action: ProposedAction): string {
-  switch (action.type) {
-    case "PAUSE_ADSET":
-      return "PAUSE_ADSET";
-    case "DUPLICATE_ADSET":
-      return "DUPLICATE_ADSET";
-    case "INCREASE_BUDGET":
-      return "INCREASE_BUDGET";
-    case "DECREASE_BUDGET":
-      return "DECREASE_BUDGET";
-  }
+  return action.type;
 }
 
 function priorityFromVerdict(verdict: ReviewVerdict): string {
