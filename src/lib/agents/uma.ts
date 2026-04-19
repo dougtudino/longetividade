@@ -95,6 +95,36 @@ interface KnowledgeBits {
   viralRefs: Array<{ hook: string; concept: string; views: number; username: string }>;
   recentLearnings: Array<{ title: string; body: string }>;
   umaRefs: Array<{ title: string; body: string }>;
+  recentGridPatterns: Array<{ slot: string; mood: string; palette: string; templateId: string }>;
+}
+
+// Olha as ultimas N decisoes visuais da Uma pra evitar repeticao na grade IG.
+// Retorna mood/palette/template usado pra que Uma alterne (mantendo coerencia).
+async function fetchRecentVisualPatterns(
+  limit = 9,
+): Promise<KnowledgeBits["recentGridPatterns"]> {
+  const decisions = await prisma.agentDecision.findMany({
+    where: { agentId: "uma", action: "VISUAL_BRIEF" },
+    orderBy: { createdAt: "desc" },
+    take: limit,
+    select: { params: true },
+  });
+  return decisions
+    .map((d) => {
+      const p = (d.params ?? {}) as {
+        slot?: string;
+        mood?: string;
+        templateId?: string;
+        palette?: string;
+      };
+      return {
+        slot: p.slot ?? "",
+        mood: p.mood ?? "",
+        palette: p.palette ?? "",
+        templateId: p.templateId ?? "",
+      };
+    })
+    .filter((p) => p.mood || p.templateId);
 }
 
 async function fetchKnowledgeBits(pillar: string): Promise<KnowledgeBits> {
@@ -162,6 +192,7 @@ async function fetchKnowledgeBits(pillar: string): Promise<KnowledgeBits> {
     viralRefs: viralMapped,
     recentLearnings: learnings,
     umaRefs,
+    recentGridPatterns: [],
   };
 }
 
@@ -193,6 +224,14 @@ function renderKnowledge(kb: KnowledgeBits): string {
     parts.push(
       `## Minhas referencias (Uma)\n` +
         kb.umaRefs.map((r) => `- ${r.title}\n${r.body.slice(0, 400)}`).join("\n\n"),
+    );
+  }
+  if (kb.recentGridPatterns.length) {
+    parts.push(
+      `## Ultimos ${kb.recentGridPatterns.length} posts da grade (alterne pra evitar repeticao)\n` +
+        kb.recentGridPatterns
+          .map((p, i) => `${i + 1}. [${p.slot}] mood=${p.mood || "?"} · template=${p.templateId.slice(0, 50) || "?"}`)
+          .join("\n"),
     );
   }
   return parts.join("\n\n");
@@ -260,6 +299,35 @@ photography, olive green palette, soft morning light".
 
 PARA textOverlay: PORTUGUES sempre, curto (<=40 chars), DIRETO ao ponto.
 
+⚠️ DNA VISUAL POR SLOT (estetica obrigatoria):
+
+**FEED_AM** (1080x1080, grade IG)
+- Fotografia editorial estilo revista de bem-estar
+- Paleta dominante: verde-oliva (#5C6B4D) + off-white (#F4EFE4)
+- Cena: mesa de madeira, comida real, mulher 35-55 em ambiente caseiro
+- Iluminacao: natural soft (manha/tarde)
+- Mood: sereno, acolhedor, aspiracional sem ser inalcancavel
+
+**REEL** (1080x1920, vertical)
+- Mais dinamico, contraste forte na 1a cena pra hook visual
+- Paleta: verde-oliva + acento (terracota OU dourado OU rosa-terra)
+- Cena: movimento ou momento, mulher em acao do dia-a-dia
+- Iluminacao: luz quente direcional
+- Mood: convidativo, ritmico
+
+**STORY** (1080x1920, vertical)
+- Visual impactante, 1 elemento central + tipografia grande
+- Paleta: simplificada (2 cores max + branco)
+- Cena: close ou objeto isolado dramatico
+- Mood: direto, urgente sem ser predatorio
+
+⚠️ GRADE HARMONICA (evitar repeticao):
+Sera fornecido contexto dos ULTIMOS 9 posts da grade. Voce DEVE:
+1. Variar o templateId (nao usar mesmo template seguido 3+ vezes)
+2. Alternar mood (se ultimos foram "sereno", proximo pode ser "convidativo")
+3. Variar paleta acento (terracota → dourado → rosa-terra → repete)
+4. Manter coerencia: paleta base verde-oliva + off-white SEMPRE
+
 Chame submit_visual_brief com:
 - enrichedBriefing: briefing curto (<200 chars)
 - templateId: UUID do playbook (sem path — sistema resolve)
@@ -287,6 +355,8 @@ export async function buildVisualBrief(socialPostId: string): Promise<UmaBrief> 
   if (!apiKey) throw new Error("ANTHROPIC_API_KEY nao configurada");
 
   const kb = await fetchKnowledgeBits(post.pillar);
+  // Pega ultimas 9 decisoes visuais pra alternar paleta/template
+  kb.recentGridPatterns = await fetchRecentVisualPatterns(9);
   const knowledgeBlock = renderKnowledge(kb);
 
   const catalog = await getTemplateCatalog();
@@ -396,6 +466,7 @@ Chame a ferramenta.`;
         pillar: post.pillar,
         templateId: brief.templateId,
         mood: brief.mood,
+        palette: brief.colorPalette,
       },
       reasoning: brief.reasoning ?? brief.templateRationale ?? "(sem reasoning)",
       status: "executed",

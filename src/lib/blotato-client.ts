@@ -212,6 +212,65 @@ export interface CreateCarouselInput {
   extraInputs?: Record<string, unknown>; // outros inputs especificos do template
 }
 
+// Voice padrao pro AI Video with AI Voice template.
+// Catalog completo de vozes em help.blotato.com/api/voice-ids
+// Pra Longetividade (mulher 35-55 acolhedora):
+//   - Matilda (American friendly narration, middle-aged)
+//   - Lily (British warm narration, middle-aged)
+//   - Sarah (American soft news, young)
+// Default = Matilda (mais alinhada ao tom).
+export const DEFAULT_VOICE_NAME = "Matilda";
+
+// AI Video with AI Voice — narracao + cenas multiplas.
+// Diferente do AI Selfie Talking (que precisa avatar pre-setup), esse
+// gera voiceover + imagens AI por cena. Funciona com texto puro.
+export interface AiVideoScene {
+  mediaSource: string; // prompt visual da cena (em ingles)
+  script: string; // narracao (PT funciona)
+}
+
+export interface CreateAiVideoInput {
+  templateId: string; // tipicamente AI Video AI Voice 5903fe43
+  scenes: AiVideoScene[];
+  voiceName?: string; // default Matilda
+  aspectRatio?: "9:16" | "1:1" | "4:5";
+  title?: string;
+}
+
+export async function createAiVideo(
+  input: CreateAiVideoInput
+): Promise<BlotatoCreation> {
+  const templateId = normalizeTemplateId(input.templateId);
+  console.log(`[blotato] createAiVideo raw="${input.templateId}" → "${templateId}" scenes=${input.scenes.length}`);
+  try {
+    const res = await request<{ item: BlotatoCreation }>("/videos/from-templates", {
+      method: "POST",
+      body: JSON.stringify({
+        templateId,
+        inputs: {
+          scenes: input.scenes,
+          voiceName: input.voiceName ?? DEFAULT_VOICE_NAME,
+          aspectRatio: input.aspectRatio ?? "9:16",
+          trimToVoiceover: true,
+        },
+        isDraft: false,
+        render: true,
+        ...(input.title ? { title: input.title } : {}),
+      }),
+    });
+    return unwrap(res);
+  } catch (err) {
+    if (err instanceof BlotatoError && err.status === 404) {
+      throw new BlotatoError(
+        `AiVideo 404: template "${templateId}" nao encontrado.`,
+        404,
+        err.body
+      );
+    }
+    throw err;
+  }
+}
+
 // Talking head — AI Selfie Talking (consistent character).
 // Aceita scenes[] (description visual + narration verbal) + characterDescription
 // (texto OU URL de imagem referencia). Se passar so texto, Blotato gera
@@ -280,6 +339,10 @@ export interface CreateImageSlideshowInput {
   title?: string;
   textPosition?: "top" | "center" | "bottom";
   textColor?: string;
+  aspectRatio?: "16:9" | "1:1" | "4:5" | "9:16"; // FEED=1:1, STORY/REEL=9:16
+  useBrandKit?: boolean;
+  textStyle?: "minimal" | "elegant" | "modern";
+  slideDuration?: number; // 1-10s
 }
 
 export async function createImageSlideshow(
@@ -303,9 +366,14 @@ export async function createImageSlideshow(
           })),
           ...(input.textPosition ? { textPosition: input.textPosition } : {}),
           ...(input.textColor ? { textColor: input.textColor } : {}),
+          ...(input.textStyle ? { textStyle: input.textStyle } : {}),
+          ...(input.slideDuration ? { slideDuration: input.slideDuration } : {}),
+          aspectRatio: input.aspectRatio ?? "9:16",
         },
         isDraft: false,
         render: true,
+        ...(input.useBrandKit ? { useBrandKit: true } : {}),
+        ...(input.title ? { title: input.title } : {}),
       }),
     });
     return unwrap(res);
@@ -449,6 +517,11 @@ export async function getCreation(id: string): Promise<BlotatoCreation> {
   return unwrap(res);
 }
 
+// DELETE /videos/:id — limpa videos órfãos no dashboard Blotato
+export async function deleteVideo(id: string): Promise<void> {
+  await request<unknown>(`/videos/${id}`, { method: "DELETE" });
+}
+
 // Poll ate ficar `done` (ou falhar). Intervalo 5s, timeout 5min — imagens
 // ficam prontas em ~10s, videos podem demorar 1-3min.
 //
@@ -496,6 +569,20 @@ export interface PublishInput {
   mediaUrls: string[];
   pageId?: string; // obrigatorio no Facebook
   scheduledTime?: string; // ISO 8601 UTC; se omitir, publica imediato
+
+  // Instagram-specific (todos opcionais)
+  igMediaType?: "reel" | "story";
+  igAltText?: string;
+  igCollaborators?: string[]; // sem @, max 3
+  igCoverImageUrl?: string;
+  igShareToFeed?: boolean;
+  // Trial Reel: mostra primeiro a NAO-followers (growth/discovery feature).
+  // graduationStrategy: MANUAL = voce promove manual / SS_PERFORMANCE = IG
+  // promove auto se performar bem.
+  igTrial?: { graduationStrategy: "MANUAL" | "SS_PERFORMANCE" };
+
+  // Facebook-specific
+  fbMediaType?: "reel" | "story";
 }
 
 export interface PublishResponse {
@@ -504,10 +591,20 @@ export interface PublishResponse {
 
 export async function publishPost(input: PublishInput): Promise<PublishResponse> {
   const target: Record<string, unknown> = { targetType: input.platform };
+
   if (input.platform === "facebook") {
     if (!input.pageId) throw new BlotatoError("facebook requer pageId", 400);
     target.pageId = input.pageId;
+    if (input.fbMediaType) target.mediaType = input.fbMediaType;
+  } else if (input.platform === "instagram") {
+    if (input.igMediaType) target.mediaType = input.igMediaType;
+    if (input.igAltText) target.altText = input.igAltText;
+    if (input.igCollaborators?.length) target.collaborators = input.igCollaborators;
+    if (input.igCoverImageUrl) target.coverImageUrl = input.igCoverImageUrl;
+    if (input.igShareToFeed !== undefined) target.shareToFeed = input.igShareToFeed;
+    if (input.igTrial) target.trial = input.igTrial;
   }
+
   const body: Record<string, unknown> = {
     post: {
       accountId: input.accountId,
@@ -524,4 +621,41 @@ export async function publishPost(input: PublishInput): Promise<PublishResponse>
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+// Get Post Status — poll publish progress
+// status: in-progress | published | failed
+// Quando published: { publicUrl }
+// Quando failed: { errorMessage }
+export interface PostStatus {
+  postSubmissionId: string;
+  status: "in-progress" | "published" | "failed" | string;
+  publicUrl?: string;
+  errorMessage?: string;
+}
+
+export async function getPostStatus(postSubmissionId: string): Promise<PostStatus> {
+  return request<PostStatus>(`/posts/${postSubmissionId}`, { method: "GET" });
+}
+
+export async function waitForPostPublish(
+  postSubmissionId: string,
+  opts: { intervalMs?: number; timeoutMs?: number } = {}
+): Promise<PostStatus> {
+  const interval = opts.intervalMs ?? 2000;
+  const timeout = opts.timeoutMs ?? 5 * 60_000;
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const r = await getPostStatus(postSubmissionId);
+    if (r.status === "published") return r;
+    if (r.status === "failed") {
+      throw new BlotatoError(
+        `Post ${postSubmissionId} falhou: ${r.errorMessage ?? "sem mensagem"}`,
+        500,
+        r
+      );
+    }
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  throw new BlotatoError(`Post ${postSubmissionId} timeout`, 504);
 }
