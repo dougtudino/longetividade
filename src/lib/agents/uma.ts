@@ -217,19 +217,48 @@ Marca Longetividade:
 Vocabulario seu: empatizar, compreender, facilitar, nutrir, cuidar, acolher, criar.
 
 PLAYBOOK BLOTATO (escolha por slot do post):
-- Slot REEL → Image Slideshow with Text (5903b592). Retorne slides[]: 4-5 cenas com imagePrompt EM INGLES (cena BR especifica) + textOverlay EM PORTUGUES (<40 chars).
-- Slot REEL alternativo (narrado) → AI Video with AI Voice (5903fe43). Retorne scenes[] com description + narration.
-- Slot FEED_AM → Image Slideshow (5903b592) com slides OU Quote Card Paper (f941e306) com quotes[].
-- Slot STORY → Image Slideshow (5903b592) com aspect 9:16. Retorne slides[].
+- Slot REEL → Image Slideshow (5903b592). Retorne slides[]: 4-5 cenas.
+- Slot REEL alternativo (narrado) → AI Video (5903fe43). Retorne scenes[].
+- Slot FEED_AM → Image Slideshow (5903b592) OU Quote Card Paper (f941e306) com quotes[].
+- Slot STORY → Image Slideshow (5903b592) aspect 9:16. Retorne slides[].
 
-EVITE: Single Centered Text (9f4e66cd), Whiteboard/Chalkboard legacy, AI Selfie Talking sem avatar pre-setup.
+EVITE: Single Centered Text (9f4e66cd), legacy infographics, AI Selfie sem avatar.
+
+⚠️ NARRATIVA POR SLIDE (CRITICO PRA CONVERSAO):
+Cada slide TEM FUNCAO especifica. Frases NAO podem ser independentes — devem
+contar UMA HISTORIA conectada. Use ESTA estrutura:
+
+  Slide 1 = HOOK
+    Pergunta provocadora OU numero impactante OU negacao especifica
+    Para o scroll em 3 segundos. Ex: "Quantas vezes voce comecou na segunda?"
+
+  Slide 2 = DOR ou CONTEXTO
+    Aprofunda a identificacao OU revela um fato
+    NAO repete o slide 1. Adiciona camada. Ex: "Toda dieta tem prazo"
+
+  Slide 3 = SOLUCAO/METODO
+    Apresenta o diferencial concreto (nao abstrato)
+    Ex: "Metodo S.E.M: comer real, equilibrar emocional, mover diario"
+
+  Slide 4 = PROVA ou BENEFICIO
+    Numero, depoimento, resultado tangivel (sem claim quantitativo)
+    Ex: "Mulheres descobriram outro caminho"
+
+  Slide 5 = CTA ESPECIFICO (OBRIGATORIO no ultimo slide)
+    Acao tangivel + beneficio. NUNCA "Saiba mais" generico.
+    Ex: "Baixe o ebook + 30 receitas" / "Conheca o Metodo no link"
+
+Pra 4 slides, junta DOR+SOLUCAO em 1.
 
 NUNCA use "S1:", "Slide 1:" no enrichedBriefing — Blotato le literal.
 
-PARA imagePrompt: descreva CENA BRASILEIRA especifica EM INGLES.
-Ex: "Brazilian woman in her 40s in cozy kitchen, holding fresh fruit, warm morning light, olive green and off-white palette".
+PARA imagePrompt: descreva CENA BRASILEIRA especifica EM INGLES com pessoa
++ ambiente + objeto + iluminacao + paleta. Cada slide tem cena coerente
+com o conceito da narrativa (nao animais aleatorios).
+Ex: "Brazilian woman 40s in warm kitchen holding fresh fruit, editorial
+photography, olive green palette, soft morning light".
 
-PARA textOverlay: PORTUGUES sempre, curto (<=40 chars).
+PARA textOverlay: PORTUGUES sempre, curto (<=40 chars), DIRETO ao ponto.
 
 Chame submit_visual_brief com:
 - enrichedBriefing: briefing curto (<200 chars)
