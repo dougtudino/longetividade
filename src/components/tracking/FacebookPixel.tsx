@@ -1,3 +1,4 @@
+// Build forçado: 2026-04-19T11:09:14
 "use client";
 
 const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
@@ -44,3 +45,4 @@ export default function FacebookPixel() {
     </>
   );
 }
+
