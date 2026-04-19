@@ -7,8 +7,8 @@ export default function FacebookPixel() {
   if (!FB_PIXEL_ID) {
     if (typeof window !== "undefined") {
       console.error(
-        "[FacebookPixel] NEXT_PUBLIC_META_PIXEL_ID missing. " +
-        "Pixel tracking DISABLED. Check Railway env vars."
+        "[FacebookPixel] NEXT_PUBLIC_META_PIXEL_ID ausente. " +
+        "Pixel tracking DESABILITADO. Conferir variáveis no Railway."
       );
     }
     return null;
