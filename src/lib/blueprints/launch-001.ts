@@ -1,16 +1,22 @@
 // Blueprint LAUNCH-001 — Campanha Meta Pioneira
 // Desenhada por @growth Gaia (council 2026-04-11)
 // Filosofia: start small, test aggressive, scale what works
+// ═══════════════════════════════════════════════════════════════
+// REVISADO 2026-04-19 — pós-mortem LONG-AQ-01
+// Correções: landing /emagreca-sem-dieta, 2 ad sets (sem overlap),
+// R$50/dia total, 3 criativos por ad set em rotação dinâmica.
+// Copies A/B/C mantidas (validadas Meta Policy 2026-04-11).
+// ═══════════════════════════════════════════════════════════════
 
 import type { AdSetSpec, CreativeSpec, Targeting } from "../meta-launcher";
 
 const SITE = "https://www.longetividade.com.br";
-const BASE_LINK = `${SITE}/c/instagram?utm_source=meta&utm_medium=cpc&utm_campaign=long-aq-01`;
+const BASE_LINK = `${SITE}/emagreca-sem-dieta?utm_source=meta&utm_medium=cpc&utm_campaign=long-aq-02`;
 
 export const LAUNCH_001 = {
   id: "LAUNCH-001",
   campaign: {
-    name: "LONG-AQ-01-Conversao-Pioneer-Mar2026",
+    name: "LONG-AQ-02-Landing-Validada-Abr2026",
     objective: "OUTCOME_SALES" as const,
     status: "PAUSED" as const,
   },
@@ -39,10 +45,10 @@ export const LAUNCH_001 = {
     {
       key: "aset_01",
       name: "ASET-01-Interesse-Emagrecimento-Amplo",
-      daily_budget_cents: 3000, // R$ 30/dia
+      daily_budget_cents: 2500, // R$ 25/dia
       utmContent: "interesse-amplo",
       copyKeys: ["copy_a", "copy_b", "copy_c"],
-      creativeKeys: ["feed_dor", "feed_objecao"],
+      creativeKeys: ["feed_dor", "feed_prova", "feed_objecao"],
       targeting: {
         age_min: 30,
         age_max: 50,
@@ -53,27 +59,12 @@ export const LAUNCH_001 = {
       excludeAudienceKey: "ca_compradores",
     },
     {
-      key: "aset_02",
-      name: "ASET-02-Interesse-Reeducacao",
-      daily_budget_cents: 3000,
-      utmContent: "reeducacao",
-      copyKeys: ["copy_a", "copy_c"],
-      creativeKeys: ["feed_dor", "feed_prova"],
-      targeting: {
-        age_min: 30,
-        age_max: 50,
-        genders: [2],
-        geo_locations: { countries: ["BR"] },
-      } as Targeting,
-      excludeAudienceKey: "ca_compradores",
-    },
-    {
       key: "aset_03",
       name: "ASET-03-Maes-Pos-parto",
-      daily_budget_cents: 3000,
+      daily_budget_cents: 2500,
       utmContent: "maes-pos-parto",
       copyKeys: ["copy_a", "copy_b"],
-      creativeKeys: ["feed_dor", "feed_objecao"],
+      creativeKeys: ["feed_dor", "feed_prova", "story_stat"],
       targeting: {
         age_min: 28,
         age_max: 42,
