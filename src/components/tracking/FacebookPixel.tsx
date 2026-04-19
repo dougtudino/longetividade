@@ -4,7 +4,15 @@ import Script from "next/script";
 const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 export default function FacebookPixel() {
-  if (!FB_PIXEL_ID) return null;
+  if (!FB_PIXEL_ID) {
+    if (typeof window !== "undefined") {
+      console.error(
+        "[FacebookPixel] NEXT_PUBLIC_META_PIXEL_ID missing. " +
+        "Pixel tracking DISABLED. Check Railway env vars."
+      );
+    }
+    return null;
+  }
 
   return (
     <>

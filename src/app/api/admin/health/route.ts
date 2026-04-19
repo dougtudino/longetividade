@@ -28,6 +28,8 @@ export async function GET() {
   };
 
   const metaPixel = await getSetting("NEXT_PUBLIC_META_PIXEL_ID");
+  const EXPECTED_PIXEL = "953736244279938";
+  const pixelOk = metaPixel === EXPECTED_PIXEL;
   checks.metaPixel = {
     ok: !!metaPixel,
     detail: metaPixel || "Nao configurado",
@@ -100,5 +102,11 @@ export async function GET() {
     ok: allOk,
     score: `${okCount}/${Object.keys(checks).length}`,
     checks,
+    tracking_health: {
+      pixel_present: !!metaPixel,
+      pixel_matches_expected: pixelOk,
+      pixel_id_masked: metaPixel ? `${metaPixel.substring(0, 4)}...${metaPixel.substring(metaPixel.length - 4)}` : null,
+      warning: metaPixel && !pixelOk ? "Pixel ID difere do esperado 953736244279938 — verificar Railway" : null,
+    },
   });
 }
