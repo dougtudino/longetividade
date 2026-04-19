@@ -27,7 +27,11 @@ export async function GET() {
 
       return {
         ...campaignData,
-        totals,
+        totalImpressions: totals.impressions,
+        totalClicks: totals.clicks,
+        totalSpend: totals.spend,
+        totalConversions: totals.conversions,
+        totalRevenue: totals.revenue,
         roas,
         cpv,
       };
