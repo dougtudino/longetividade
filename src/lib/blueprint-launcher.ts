@@ -244,6 +244,40 @@ export async function runBlueprintLaunch(
     log.push({ step: `campaign(${blueprint.campaignName})`, status: "skip", detail: "ja criada", id: metaCampaignId });
   }
 
+  // Espelha campanha no model Campaign local com source=blueprint, pra
+  // /admin/campanhas listar e calcular metricas (filtrando legacy).
+  // Idempotente via upsert por metaCampaignId. Se ja existe (criado pelo
+  // sync-meta-ads antes desse fluxo), promove a source=blueprint e
+  // popula launchId.
+  if (metaCampaignId) {
+    try {
+      await prisma.campaign.upsert({
+        where: { metaCampaignId },
+        update: {
+          source: "blueprint",
+          launchId: blueprint.launchId,
+          name: blueprint.campaignName,
+          objective: "conversao",
+          status: "paused", // launcher cria PAUSED
+        },
+        create: {
+          name: blueprint.campaignName,
+          platform: "meta",
+          objective: "conversao",
+          status: "paused",
+          budget: blueprint.budgetTotalBrl,
+          startDate: new Date(),
+          metaCampaignId,
+          source: "blueprint",
+          launchId: blueprint.launchId,
+        },
+      });
+    } catch (e) {
+      // Nao bloqueia launch se o espelhamento local falhar
+      log.push({ step: `mirror(Campaign local)`, status: "error", detail: (e as Error).message });
+    }
+  }
+
   // ─── 4. Ad sets ──
   let adSetsCreated = 0;
   for (const aset of blueprint.adSets) {
