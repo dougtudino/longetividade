@@ -23,7 +23,25 @@ export async function GET(
         { status: 404 }
       );
     }
-    return NextResponse.json({ ok: true, blueprint });
+
+    // Puxa CreativeCollections referenciadas + seus creatives + copies
+    // pra UI mostrar o mapa completo campaign → ad sets → ads previstos.
+    const collectionSlugs = Array.from(
+      new Set(blueprint.adSets.map((a) => a.creativesCollectionId).filter((s): s is string => !!s))
+    );
+    const collections = collectionSlugs.length > 0
+      ? await prisma.creativeCollection.findMany({
+          where: { slug: { in: collectionSlugs } },
+          include: {
+            creatives: {
+              where: { archived: false },
+              include: { copies: { where: { active: true } } },
+            },
+          },
+        })
+      : [];
+
+    return NextResponse.json({ ok: true, blueprint, collections });
   } catch (e) {
     return NextResponse.json(
       { ok: false, error: (e as Error).message },

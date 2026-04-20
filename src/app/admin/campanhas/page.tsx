@@ -33,7 +33,27 @@ const inputStyle:React.CSSProperties={width:"100%",padding:"10px 12px",borderRad
 type MetaInsightsResponse={ok:boolean;preset:string;account?:AggregatedInsights;error?:string};
 type Preset="today"|"yesterday"|"last_7d"|"last_30d";
 const PRESET_LABEL:Record<Preset,string>={today:"Hoje",yesterday:"Ontem",last_7d:"7 dias",last_30d:"30 dias"};
-type PageTab = "campanhas"|"mapa"|"setup-bm"|"launch-plan";
+type PageTab = "campanhas"|"mapa";
+
+type BlueprintSummary = {
+  id: string;
+  launchId: string;
+  name: string;
+  status: string;
+  budgetTotalBrl: number;
+  metaCampaignId: string | null;
+  launchedAt: string | null;
+  createdAt: string;
+  _count?: { audiences: number; adSets: number };
+};
+
+const BLUEPRINT_STATUS_COLOR: Record<string, string> = {
+  draft: "#888",
+  ready: "#4A90D9",
+  launched: "#6B9E6B",
+  paused: "#D4A94B",
+  archived: "#888",
+};
 
 export default function CampanhasPage() {
   const [pageTab, setPageTab] = useState<PageTab>("campanhas");
@@ -49,6 +69,17 @@ export default function CampanhasPage() {
   const [insightsError, setInsightsError] = useState<string|null>(null);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string|null>(null);
+  const [blueprints, setBlueprints] = useState<BlueprintSummary[]>([]);
+
+  const fetchBlueprints = useCallback(async () => {
+    try {
+      const r = await fetch("/api/admin/campaigns/blueprint/list");
+      if (r.ok) {
+        const d = await r.json();
+        setBlueprints(d.blueprints ?? []);
+      }
+    } catch {}
+  }, []);
 
   const fetchCampaigns = useCallback(async () => {
     try { const r=await fetch("/api/admin/campaigns"); if(r.ok){const d=await r.json();setCampaigns(d);} } catch{} finally{setLoading(false);}
@@ -75,7 +106,7 @@ export default function CampanhasPage() {
     finally{setSyncing(false);}
   }
 
-  useEffect(()=>{fetchCampaigns();},[fetchCampaigns]);
+  useEffect(()=>{fetchCampaigns();fetchBlueprints();},[fetchCampaigns,fetchBlueprints]);
   useEffect(()=>{fetchInsights(preset);},[preset,fetchInsights]);
 
   function openNew(){setEditingId(null);setForm(emptyForm);setModalOpen(true);}
@@ -117,11 +148,11 @@ export default function CampanhasPage() {
       />
 
       {/* Tab nav */}
-      <div style={{display:"flex",gap:0,marginBottom:24,borderBottom:"0.5px solid var(--border-default)"}}>
+      <div style={{display:"flex",gap:0,marginBottom:24,borderBottom:"0.5px solid var(--border-default)",flexWrap:"wrap"}}>
         <button style={tabStyle(pageTab==="campanhas")} onClick={()=>setPageTab("campanhas")}>Campanhas</button>
         <button style={tabStyle(pageTab==="mapa")} onClick={()=>setPageTab("mapa")}>Mapa 🗺</button>
+        <Link href="/admin/campanhas/launch-blueprint" style={{...tabStyle(false),textDecoration:"none",display:"flex",alignItems:"center"}}>Blueprint 📋</Link>
         <Link href="/admin/campanhas/setup-bm" style={{...tabStyle(false),textDecoration:"none",display:"flex",alignItems:"center"}}>Setup BM</Link>
-        <Link href="/admin/campanhas/launch-plan" style={{...tabStyle(false),textDecoration:"none",display:"flex",alignItems:"center"}}>Launch Plan 🌱</Link>
       </div>
 
       {/* ABA: MAPA */}
@@ -130,6 +161,73 @@ export default function CampanhasPage() {
       {/* ABA: CAMPANHAS */}
       {pageTab === "campanhas" && (
         <>
+
+          {/* Blueprints ativos — fonte de verdade do plano de launch */}
+          <div style={{...cardStyle,marginBottom:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:8}}>
+              <div>
+                <div style={{fontSize:11,fontWeight:700,color:"var(--text-muted)",textTransform:"uppercase",letterSpacing:"0.05em"}}>🗺 Blueprints de Launch</div>
+                <div style={{fontSize:13,color:"var(--text-secondary)",marginTop:2}}>Documento mestre editável de cada LAUNCH. Fonte de verdade do plano.</div>
+              </div>
+              <Link href="/admin/campanhas/launch-blueprint" style={{padding:"7px 14px",borderRadius:8,background:"var(--accent)",color:"#fff",fontSize:12,fontWeight:700,textDecoration:"none"}}>
+                Abrir editor →
+              </Link>
+            </div>
+            {blueprints.length === 0 ? (
+              <div style={{padding:16,textAlign:"center",color:"var(--text-muted)",fontSize:13,background:"var(--bg-secondary)",borderRadius:8}}>
+                Nenhum blueprint ainda. Abre o editor e clica &quot;+ Seed LAUNCH-001&quot;.
+              </div>
+            ) : (
+              <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:10}}>
+                {blueprints.map(bp => (
+                  <Link key={bp.launchId} href="/admin/campanhas/launch-blueprint" style={{padding:12,background:"var(--bg-secondary)",border:"0.5px solid var(--border-subtle)",borderRadius:8,textDecoration:"none",display:"flex",flexDirection:"column",gap:6}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                      <span style={{fontSize:13,fontWeight:700,color:"var(--text-primary)"}}>{bp.name}</span>
+                      <span style={{fontSize:10,padding:"2px 8px",borderRadius:999,background:`${BLUEPRINT_STATUS_COLOR[bp.status] ?? "#888"}22`,color:BLUEPRINT_STATUS_COLOR[bp.status] ?? "#888",fontWeight:700,textTransform:"uppercase"}}>{bp.status}</span>
+                    </div>
+                    <div style={{fontSize:11,color:"var(--text-muted)"}}>
+                      R${bp.budgetTotalBrl}/d · {bp._count?.adSets ?? 0} ad sets · {bp._count?.audiences ?? 0} audiences
+                    </div>
+                    {bp.metaCampaignId && (
+                      <div style={{fontSize:10,color:"var(--text-muted)",fontFamily:"monospace"}}>
+                        Meta ID: {bp.metaCampaignId.slice(0,18)}...
+                      </div>
+                    )}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Passo a passo — guia completo pra lancar uma LAUNCH */}
+          <div style={{...cardStyle,marginBottom:16}}>
+            <div style={{fontSize:14,fontWeight:700,color:"var(--text-primary)",marginBottom:4}}>🚀 Como lançar uma nova campanha</div>
+            <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:14}}>Fluxo completo em 6 passos — do blueprint ao Meta Ads rodando</div>
+            <ol style={{margin:0,padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:10}}>
+              {[
+                {n:"1",title:"Criar o blueprint",desc:"Abre /admin/campanhas/launch-blueprint e clica + Seed LAUNCH-001. Ou duplica um existente pra criar LAUNCH-002 (Sono, Jejum, etc)",href:"/admin/campanhas/launch-blueprint"},
+                {n:"2",title:"Editar o plano",desc:"Define budget, idade, interesses (autocomplete Meta), activateOn (day_1/day_5), numAds. Tudo salva automático."},
+                {n:"3",title:"Garantir criativos em /admin/criativos",desc:"Collection com 6 PNGs (feed/story/banner). Clica 📤 Upload pra Meta pra popular o Meta hash de cada um.",href:"/admin/criativos"},
+                {n:"4",title:"🔧 Preparar pra lançamento",desc:"Na página do blueprint, clica Preparar. Checa + seeda automaticamente copies, hashes, page ID. Mostra o que falta."},
+                {n:"5",title:"🚀 Lançar no Meta (tudo PAUSED)",desc:"1 clique cria no Meta: 5 CAs + 1 lookalike + campanha + 5 ad sets + 16 ads. Idempotente."},
+                {n:"6",title:"Ativar no Ads Manager + Day 4 review",desc:"No Meta Ads Manager, ativa os cold Day 1. Aguarda 72h learning phase. Day 4 roda *review da Gaia.",href:"/admin/agents/gaia"},
+              ].map(step => (
+                <li key={step.n} style={{display:"flex",gap:12,padding:"10px 12px",background:"var(--bg-secondary)",borderRadius:8,alignItems:"flex-start"}}>
+                  <div style={{flexShrink:0,width:28,height:28,borderRadius:"50%",background:"var(--accent)",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:700}}>{step.n}</div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:600,color:"var(--text-primary)",marginBottom:2}}>{step.title}</div>
+                    <div style={{fontSize:12,color:"var(--text-secondary)",lineHeight:1.5}}>{step.desc}</div>
+                  </div>
+                  {step.href && (
+                    <Link href={step.href} style={{padding:"4px 10px",background:"var(--accent)",color:"#fff",borderRadius:6,fontSize:11,fontWeight:600,textDecoration:"none",whiteSpace:"nowrap"}}>Abrir →</Link>
+                  )}
+                </li>
+              ))}
+            </ol>
+            <div style={{marginTop:14,padding:"10px 12px",background:"rgba(74,144,217,0.08)",border:"0.5px solid rgba(74,144,217,0.3)",borderRadius:8,fontSize:12,color:"var(--text-secondary)"}}>
+              💡 <strong>Template virgem pra novas LAUNCHes:</strong> <code style={{fontSize:11,padding:"2px 6px",background:"var(--bg-secondary)",borderRadius:4}}>docs/blueprints/launch-template.md</code> — estrutura padrão com 8 seções (produto, persona, arquitetura, budget, criativos, audiences, kill triggers, cronograma). Copia e preenche pra cada produto novo.
+            </div>
+          </div>
 
           {/* Meta Ads insights */}
           <div style={{...cardStyle,marginBottom:16}}>
@@ -157,12 +255,6 @@ export default function CampanhasPage() {
                 ))}
               </div>
             )}
-          </div>
-
-          {/* Sugestao + botao mapa */}
-          <div style={{marginBottom:16,padding:"12px 16px",background:"var(--bg-secondary)",border:"0.5px solid var(--border-default)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,flexWrap:"wrap"}}>
-            <div style={{fontSize:13,color:"var(--text-secondary)"}}>LONG-AQ-01 · 3 publicos · 6 anuncios · R$90/dia — <span style={{color:"var(--text-primary)",fontWeight:600}}>ver todos os detalhes da campanha</span></div>
-            <button onClick={()=>setPageTab("mapa")} style={{padding:"7px 16px",borderRadius:8,background:"var(--accent)",color:"#fff",border:"none",fontSize:13,fontWeight:600,cursor:"pointer",flexShrink:0}}>Ver mapa 🗺</button>
           </div>
 
           <div style={{marginBottom:24}}><SugestaoDoDia account={insights} loading={insightsLoading&&!insights} error={insightsError} /></div>

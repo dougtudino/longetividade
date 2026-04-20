@@ -71,6 +71,32 @@ type Blueprint = {
   adSets: AdSet[];
 };
 
+type CopyData = {
+  id: string;
+  label: string;
+  headline: string;
+  description: string | null;
+  cta: string | null;
+  primaryText: string | null;
+};
+
+type CreativeData = {
+  id: string;
+  slug: string;
+  name: string;
+  format: string;
+  metaImageHash: string | null;
+  tags: string[];
+  copies: CopyData[];
+};
+
+type Collection = {
+  id: string;
+  slug: string;
+  name: string;
+  creatives: CreativeData[];
+};
+
 type BlueprintSummary = {
   id: string;
   launchId: string;
@@ -106,6 +132,8 @@ export default function LaunchBlueprintPage() {
   const [list, setList] = useState<BlueprintSummary[]>([]);
   const [selectedLaunchId, setSelectedLaunchId] = useState<string | null>(null);
   const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [duplicating, setDuplicating] = useState(false);
   const [expandedAdSetId, setExpandedAdSetId] = useState<string | null>(null);
   const [audiencesOpen, setAudiencesOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -147,8 +175,12 @@ export default function LaunchBlueprintPage() {
     try {
       const res = await fetch(`/api/admin/campaigns/blueprint/${launchId}`);
       const data = await res.json();
-      if (data.ok) setBlueprint(data.blueprint);
-      else setError(data.error ?? "Falha");
+      if (data.ok) {
+        setBlueprint(data.blueprint);
+        setCollections(data.collections ?? []);
+      } else {
+        setError(data.error ?? "Falha");
+      }
     } catch (e) {
       setError((e as Error).message);
     }
@@ -255,6 +287,46 @@ export default function LaunchBlueprintPage() {
       setError((e as Error).message);
     } finally {
       setLaunching(false);
+    }
+  }
+
+  async function duplicateBlueprint() {
+    if (!blueprint) return;
+    const newId = prompt(
+      `Duplicar "${blueprint.name}" como base pra nova LAUNCH.\n\nNovo launchId (ex: LAUNCH-002):`,
+      "LAUNCH-002"
+    );
+    if (!newId) return;
+    const newName = prompt(`Nome da nova LAUNCH (ex: LAUNCH-002-Sono):`, `${newId}-Pioneer`);
+    const newProductName = prompt(
+      `Nome do produto novo (deixa vazio pra copiar do atual "${blueprint.productName}"):`,
+      ""
+    );
+    setDuplicating(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/campaigns/blueprint/${blueprint.launchId}/duplicate`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            newLaunchId: newId,
+            newName: newName || undefined,
+            newProductName: newProductName || undefined,
+          }),
+        }
+      );
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      else {
+        await loadList();
+        setSelectedLaunchId(newId);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setDuplicating(false);
     }
   }
 
@@ -534,6 +606,17 @@ export default function LaunchBlueprintPage() {
             )}
           </div>
 
+          {/* Mapa hierarquico da campanha */}
+          <div style={cardStyle}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+              🗺 Mapa da campanha
+            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14 }}>
+              Visão hierárquica do que vai pro Meta: campanha → ad sets → ads (creative + copy)
+            </div>
+            <CampaignMap blueprint={blueprint} collections={collections} />
+          </div>
+
           {/* Ad sets */}
           <div style={cardStyle}>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
@@ -544,6 +627,7 @@ export default function LaunchBlueprintPage() {
                 <AdSetCard
                   key={aset.id}
                   aset={aset}
+                  collection={collections.find((c) => c.slug === aset.creativesCollectionId) ?? null}
                   expanded={expandedAdSetId === aset.id}
                   onToggle={() => setExpandedAdSetId((cur) => (cur === aset.id ? null : aset.id))}
                   busy={busyId === aset.id}
@@ -711,6 +795,24 @@ export default function LaunchBlueprintPage() {
             >
               Ver dry-run
             </button>
+            <button
+              onClick={duplicateBlueprint}
+              disabled={duplicating || launching || preparing}
+              style={{
+                padding: "10px 18px",
+                background: "transparent",
+                color: "var(--text-muted)",
+                border: "0.5px solid var(--border-default)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+                marginLeft: "auto",
+              }}
+              title="Duplica esse blueprint como base pra nova LAUNCH (Sono, Jejum, etc)"
+            >
+              {duplicating ? "..." : "📋 Duplicar pra nova LAUNCH"}
+            </button>
           </div>
 
           {launchResult != null && (
@@ -729,6 +831,7 @@ export default function LaunchBlueprintPage() {
 
 function AdSetCard({
   aset,
+  collection,
   expanded,
   onToggle,
   busy,
@@ -736,6 +839,7 @@ function AdSetCard({
   onSave,
 }: {
   aset: AdSet;
+  collection: Collection | null;
   expanded: boolean;
   onToggle: () => void;
   busy: boolean;
@@ -1061,6 +1165,60 @@ function AdSetCard({
             </div>
           </div>
 
+          {/* Ads previstos — creatives + copies que o launcher vai parear */}
+          {collection && collection.creatives.length > 0 && (
+            <div>
+              <div style={labelStyle}>Ads previstos ({collection.creatives.length} creative{collection.creatives.length === 1 ? "" : "s"} na collection)</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
+                {collection.creatives.slice(0, aset.numAds).map((cr) => {
+                  const copy = cr.copies[0];
+                  return (
+                    <div key={cr.id} style={{ padding: 10, background: "var(--bg-card)", borderRadius: 8, fontSize: 12 }}>
+                      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
+                        <strong style={{ color: "var(--text-primary)" }}>{cr.name}</strong>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{cr.format}</span>
+                        {cr.metaImageHash ? (
+                          <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(107,158,107,0.15)", color: "#6B9E6B", borderRadius: 999, fontWeight: 700 }}>
+                            ✓ Meta hash
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 10, padding: "2px 6px", background: "rgba(196,120,122,0.15)", color: "#C4787A", borderRadius: 999, fontWeight: 700 }}>
+                            ✗ sem hash
+                          </span>
+                        )}
+                      </div>
+                      {copy ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                            Copy <strong style={{ color: "var(--text-secondary)" }}>{copy.label}</strong>
+                            {copy.cta && ` · CTA: ${copy.cta}`}
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 600 }}>
+                            {copy.headline}
+                          </div>
+                          {copy.primaryText && (
+                            <div style={{ fontSize: 11, color: "var(--text-secondary)", whiteSpace: "pre-wrap", lineHeight: 1.5, maxHeight: 120, overflow: "auto", padding: 6, background: "var(--bg-secondary)", borderRadius: 4 }}>
+                              {copy.primaryText}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ fontSize: 11, color: "#C4787A", fontStyle: "italic" }}>
+                          Sem copy active — clica &quot;🔧 Preparar&quot; pra seedar
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {collection.creatives.length > aset.numAds && (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", padding: 4 }}>
+                    + {collection.creatives.length - aset.numAds} outros creatives na collection (não usados — aset.numAds = {aset.numAds})
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Exclusões (read-only) */}
           {(aset.customAudienceKeys.length > 0 || aset.excludedAudienceKeys.length > 0) && (
             <div>
@@ -1085,6 +1243,137 @@ function AdSetCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CampaignMap({
+  blueprint,
+  collections,
+}: {
+  blueprint: Blueprint;
+  collections: Collection[];
+}) {
+  const totalAds = blueprint.adSets.reduce((s, a) => s + a.numAds, 0);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {/* Root: campanha */}
+      <div style={{ padding: 14, background: "linear-gradient(135deg, rgba(74,144,217,0.15), rgba(107,158,107,0.15))", border: "0.5px solid var(--border-default)", borderRadius: 10 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+          📣 Campanha
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>
+          {blueprint.campaignName}
+        </div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <span>{blueprint.campaignObjective}</span>
+          <span>·</span>
+          <span>R${blueprint.budgetTotalBrl}/d</span>
+          <span>·</span>
+          <span>{blueprint.adSets.length} ad sets</span>
+          <span>·</span>
+          <span>{totalAds} ads previstos</span>
+          {blueprint.metaCampaignId && (
+            <>
+              <span>·</span>
+              <span>Meta ID {blueprint.metaCampaignId.slice(0, 12)}...</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* Audiences ligadas */}
+      <div style={{ marginLeft: 20, paddingLeft: 14, borderLeft: "2px solid var(--border-subtle)" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 6 }}>
+          🎯 Audiences ({blueprint.audiences.length})
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+          {blueprint.audiences.map((a) => (
+            <span
+              key={a.id}
+              style={{
+                fontSize: 11,
+                padding: "3px 8px",
+                borderRadius: 999,
+                background: "var(--bg-secondary)",
+                color: "var(--text-secondary)",
+                border: "0.5px solid var(--border-subtle)",
+              }}
+              title={`${a.audienceType} · ${a.status}`}
+            >
+              {a.audienceKey}{" "}
+              <span style={{ fontSize: 9, color: STATUS_COLOR[a.status] ?? "#888" }}>
+                ●
+              </span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Ad sets + ads (creative + copy) */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {blueprint.adSets.map((aset) => {
+          const collection = collections.find((c) => c.slug === aset.creativesCollectionId);
+          const creatives = collection?.creatives.slice(0, aset.numAds) ?? [];
+          return (
+            <div key={aset.id} style={{ marginLeft: 20, paddingLeft: 14, borderLeft: `2px solid ${LAYER_COLOR[aset.layer] ?? "#888"}` }}>
+              <div style={{ padding: 10, background: "var(--bg-secondary)", borderRadius: 8 }}>
+                <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 4 }}>
+                  <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 999, background: `${LAYER_COLOR[aset.layer] ?? "#888"}22`, color: LAYER_COLOR[aset.layer] ?? "#888", fontWeight: 700, textTransform: "uppercase" }}>
+                    {aset.layer}
+                  </span>
+                  <strong style={{ fontSize: 12, color: "var(--text-primary)" }}>{aset.adSetKey}</strong>
+                  <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                    · R${aset.budgetDailyBrl}/d · {aset.ageMin}-{aset.ageMax} · {aset.activateOn}
+                  </span>
+                </div>
+                {creatives.length > 0 ? (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4, marginTop: 8 }}>
+                    {creatives.map((cr) => {
+                      const copy = cr.copies[0];
+                      return (
+                        <div
+                          key={cr.id}
+                          style={{
+                            fontSize: 11,
+                            padding: "6px 10px",
+                            background: "var(--bg-card)",
+                            borderRadius: 6,
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "center",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>📐</span>
+                          <strong style={{ color: "var(--text-primary)" }}>{cr.name}</strong>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                            {cr.metaImageHash ? "✓" : "✗"} hash
+                          </span>
+                          {copy && (
+                            <>
+                              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>+</span>
+                              <span style={{ fontSize: 10, padding: "1px 6px", background: "rgba(107,158,107,0.15)", color: "#6B9E6B", borderRadius: 999, fontWeight: 700 }}>
+                                copy {copy.label}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 10, color: "#C4787A", marginTop: 4, fontStyle: "italic" }}>
+                    {aset.creativesCollectionId
+                      ? `Collection "${aset.creativesCollectionId}" vazia ou sem creatives com hash`
+                      : "Sem creativesCollectionId configurado"}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
