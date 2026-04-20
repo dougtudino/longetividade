@@ -493,16 +493,66 @@ export default function ManualPage() {
           <li>Se tem decisoes pendentes em <Link href="/admin/agents/gaia" style={{ color: "var(--accent)" }}>Gaia</Link>, aprova/rejeita</li>
         </ol>
 
-        <h3 style={h3}>2. Lancar nova campanha (Gaia, ~30 min)</h3>
+        <h3 style={h3}>2. Lancar nova campanha Meta (Blueprint, ~10-20 min)</h3>
+        <p style={p}>
+          Fluxo end-to-end do Blueprint (Sprint 3-6, 2026-04-20). Substitui o antigo
+          launch-plan manual. <Link href="/admin/campanhas/launch-blueprint" style={{ color: "var(--accent)" }}>Abrir editor</Link>.
+        </p>
         <ol style={p as React.CSSProperties}>
-          <li>PM define estrategia: publico, objetivo, budget esperado</li>
-          <li>Uma cria briefing de criativos (headlines, copies safe, formatos)</li>
-          <li>Dev adiciona o blueprint em <code>src/lib/blueprints/</code></li>
-          <li>Gaia executa <code>*launch-campaign BLUEPRINT-X</code> via /admin/campanhas/launch-plan</li>
-          <li>Doug/Barbara revisam no Meta Ads Manager e ativam</li>
-          <li>72h de learning phase sem mexer</li>
-          <li>Day 4: Gaia roda <code>*review</code> (auto via cron ou manual)</li>
+          <li>
+            <strong>Criar/duplicar blueprint</strong> — <Link href="/admin/campanhas/launch-blueprint" style={{ color: "var(--accent)" }}>/admin/campanhas/launch-blueprint</Link>:
+            primeira LAUNCH usa &ldquo;+ Seed LAUNCH-001&rdquo;. Pras seguintes (Sono, Jejum, Detox),
+            abre uma existente e clica &ldquo;📋 Duplicar pra nova LAUNCH&rdquo; (prompt
+            pede launchId, nome e produto). Reseta metaIds, vem em status=draft.
+          </li>
+          <li>
+            <strong>Editar o plano no banco</strong> — direto na UI: budget total,
+            por ad set, idade, genero, interesses (autocomplete Meta Targeting Search),
+            activateOn (day_1/day_5/manual), numAds por camada (cold/warm/hot).
+            Tudo salva automatico (PATCH em blur). Mapa hierarquico no topo mostra
+            campanha → audiences → ad sets → ads previstos em tempo real.
+          </li>
+          <li>
+            <strong>Garantir criativos</strong> — <Link href="/admin/criativos" style={{ color: "var(--accent)" }}>/admin/criativos</Link>:
+            collection com slug casando <code>aset.creativesCollectionId</code> do blueprint
+            (ex: <code>launch-001-pioneer</code>). 6 PNGs mininum (3 feed + 2 story + 1 banner).
+            Clica &ldquo;📤 Upload pra Meta&rdquo; bulk no header — renderiza PNG via
+            html-to-image + uploada em /adimages + salva metaImageHash.
+          </li>
+          <li>
+            <strong>🔧 Preparar pra lançamento</strong> — botao na pagina do blueprint.
+            Verifica collection + hashes + copies + META_PAGE_ID. Faz auto-fix do que
+            da no server: seedCopies (textos padrao), upload de AI-generated via imageUrl
+            CDN. Retorna checklist estruturado com acao clicavel por item faltando.
+            Tudo verde = pronto pra lancar.
+          </li>
+          <li>
+            <strong>🚀 Lancar no Meta (tudo PAUSED)</strong> — botao verde. Idempotente:
+            pra cada entidade, pula se <code>metaXxxId</code> ja existe. Cria em sequencia:
+            5 Custom Audiences (pixel events) + 1 Lookalike (nao-bloqueante, fica
+            &ldquo;processing&rdquo; horas) + campanha + 5 ad sets + <strong>16 ads</strong>
+            (AdCreative + Ad por creative pareado com copy active matching angle).
+          </li>
+          <li>
+            <strong>Ativar no Meta Ads Manager</strong> — Doug/Barbara abrem manualmente
+            os 3 cold (ASET-01/02/03) no Day 1. Warm+Hot (ASET-04/05) ficam pausados
+            ate Day 5 (aguardar pixel acumular volume + Lookalike sair de processing).
+          </li>
+          <li>
+            <strong>72h sem mexer</strong> — learning phase Meta. Evitar edits de budget,
+            targeting, copy. Metricas so sao confiaveis a partir do Day 4.
+          </li>
+          <li>
+            <strong>Day 4 review Gaia</strong> — <Link href="/admin/agents/gaia" style={{ color: "var(--accent)" }}>/admin/agents/gaia</Link>
+            → clica <code>*review</code>. Gaia analisa CTR/CPA/ROAS dos 7 dias, propoe
+            KILL/KEEP/SCALE/FIX/DIAGNOSE_FUNNEL/PROPOSE_ITERATION. Doug aprova via UI.
+          </li>
         </ol>
+        <p style={{ ...p, fontSize: 12, fontStyle: "italic", color: "var(--text-muted)" }}>
+          Template virgem pra LAUNCH nova: <code>docs/blueprints/launch-template.md</code>
+          (8 secoes: produto, persona, arquitetura, budget, criativos, audiences, kill
+          triggers, cronograma). Exemplo preenchido: <code>docs/blueprints/launch-001.md</code>.
+        </p>
 
         <h3 style={h3}>3. Review de performance (Gaia, 5 min)</h3>
         <ol style={p as React.CSSProperties}>
