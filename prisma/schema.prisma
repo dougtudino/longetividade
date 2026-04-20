@@ -204,6 +204,11 @@ model AgentDecision {
   reasoning   String   @db.Text
   priority    String   @default("normal") // "low" | "normal" | "high" | "critical"
   status      String   @default("proposed") // "proposed" | "approved" | "executed" | "rejected" | "failed"
+  // progressStatus eh ortogonal a status: controla a posicao do card nas
+  // tabs do painel Gaia (proposed | in_progress | completed | archived).
+  // Usado principalmente por DIAGNOSE_FUNNEL/PROPOSE_ITERATION pra fluxo
+  // de checklist acionavel. Default proposed pra rows existentes.
+  progressStatus String @default("proposed")
   approvedBy  String?  // admin email who approved
   approvedAt  DateTime?
   executedAt  DateTime?
@@ -212,9 +217,36 @@ model AgentDecision {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  checklistItems DecisionChecklistItem[]
+
   @@index([agentId])
   @@index([status])
+  @@index([progressStatus])
   @@index([createdAt])
+}
+
+// Itens de checklist gerados a partir de uma AgentDecision (DIAGNOSE_FUNNEL,
+// PROPOSE_ITERATION). Cada item tem agentes AIOX atribuidos e pode ser
+// aprovado/pulado individualmente. Em Sprint 2, approve dispara o agente
+// real; em Sprint 1, gera apenas um doc placeholder em docs/checklist-items/.
+model DecisionChecklistItem {
+  id             String   @id @default(cuid())
+  decisionId     String
+  decision       AgentDecision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  orderIndex     Int
+  title          String
+  description    String   @db.Text
+  assignedAgents String[] // ['morgan', 'uma-creative', 'dex']
+  status         String   @default("pending") // pending | approved | in_progress | done | skipped
+  approvedAt     DateTime?
+  completedAt    DateTime?
+  artifactPath   String?  // caminho do doc gerado ou URL do PR
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([decisionId])
+  @@index([status])
 }
 
 model Campaign {

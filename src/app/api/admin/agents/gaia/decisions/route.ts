@@ -18,6 +18,9 @@ export async function GET(req: NextRequest) {
       },
       orderBy: { createdAt: "desc" },
       take: limit,
+      include: {
+        checklistItems: { orderBy: { orderIndex: "asc" } },
+      },
     });
 
     // Agrega contagem por status (sempre retorna, independente do filtro)

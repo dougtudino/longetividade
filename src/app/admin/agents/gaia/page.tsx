@@ -5,6 +5,21 @@ import Link from "next/link";
 import PageHelp from "@/components/admin/PageHelp";
 import { PageHeader } from "@/components/admin/ui";
 
+type ChecklistItem = {
+  id: string;
+  decisionId: string;
+  orderIndex: number;
+  title: string;
+  description: string;
+  assignedAgents: string[];
+  status: "pending" | "approved" | "in_progress" | "done" | "skipped";
+  approvedAt: string | null;
+  completedAt: string | null;
+  artifactPath: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type Decision = {
   id: string;
   agentId: string;
@@ -16,12 +31,36 @@ type Decision = {
   reasoning: string;
   priority: "low" | "normal" | "high" | "critical";
   status: "proposed" | "approved" | "executed" | "rejected" | "failed";
+  progressStatus: "proposed" | "in_progress" | "completed" | "archived";
   approvedBy: string | null;
   approvedAt: string | null;
   executedAt: string | null;
   executionResult: Record<string, unknown> | null;
   rejectedReason: string | null;
   createdAt: string;
+  checklistItems?: ChecklistItem[];
+};
+
+const AGENT_COLOR: Record<string, string> = {
+  atlas: "#4A90D9",
+  morgan: "#D4A94B",
+  pax: "#9B72CF",
+  aria: "#6B9E6B",
+  dara: "#7A9E7E",
+  dex: "#4A90D9",
+  quinn: "#C4787A",
+  gage: "#6B9E6B",
+  river: "#4AB8C4",
+  uma: "#D4A94B",
+  "uma-creative": "#D4A94B",
+  "quinn-creative": "#C4787A",
+};
+
+const CHECKLIST_TAB_LABEL: Record<string, string> = {
+  proposed: "Pendentes",
+  in_progress: "Em progresso",
+  completed: "Concluídas",
+  archived: "Arquivadas",
 };
 
 type KnowledgeEntry = {
@@ -360,8 +399,101 @@ export default function GaiaControlPage() {
     }
   }
 
-  const pendingDecisions = decisions.filter((d) => d.status === "proposed" || d.status === "approved");
-  const recentDecisions = decisions.filter((d) => d.status === "executed" || d.status === "failed" || d.status === "rejected").slice(0, 10);
+  async function generateChecklist(decisionId: string) {
+    setRunning(`gen-checklist-${decisionId}`);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/agents/gaia/decisions/${decisionId}/generate-checklist`,
+        { method: "POST" }
+      );
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha ao gerar checklist");
+      await loadDecisions();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  async function setProgressStatus(
+    decisionId: string,
+    progressStatus: "proposed" | "in_progress" | "completed" | "archived"
+  ) {
+    setRunning(`progress-${decisionId}`);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/agents/gaia/decisions/${decisionId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ progressStatus }),
+      });
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      await loadDecisions();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  async function approveChecklistItem(itemId: string) {
+    setRunning(`approve-item-${itemId}`);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/agents/gaia/checklist/${itemId}/approve`,
+        { method: "POST" }
+      );
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      await loadDecisions();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  async function patchChecklistItem(itemId: string, status: "skipped" | "done") {
+    setRunning(`patch-item-${itemId}`);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/agents/gaia/checklist/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      await loadDecisions();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRunning(null);
+    }
+  }
+
+  const [activeTab, setActiveTab] = useState<
+    "proposed" | "in_progress" | "completed" | "archived"
+  >("proposed");
+
+  const visibleDecisions = decisions.filter(
+    (d) => (d.progressStatus ?? "proposed") === activeTab
+  );
+
+  const tabCounts: Record<string, number> = {
+    proposed: 0,
+    in_progress: 0,
+    completed: 0,
+    archived: 0,
+  };
+  for (const d of decisions) {
+    const ps = d.progressStatus ?? "proposed";
+    tabCounts[ps] = (tabCounts[ps] ?? 0) + 1;
+  }
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -514,18 +646,63 @@ export default function GaiaControlPage() {
         )}
       </div>
 
-      {/* Decisoes pendentes */}
+      {/* Decisoes — com tabs */}
       <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
-          ⚖️ Decisoes pendentes de aprovacao ({pendingDecisions.length})
+        <div style={{ display: "flex", gap: 4, marginBottom: 14, borderBottom: "0.5px solid var(--border-subtle)", flexWrap: "wrap" }}>
+          {(["proposed", "in_progress", "completed", "archived"] as const).map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  padding: "8px 14px",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+                  color: isActive ? "var(--text-primary)" : "var(--text-muted)",
+                  fontSize: 13,
+                  fontWeight: isActive ? 700 : 500,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                {CHECKLIST_TAB_LABEL[tab]}
+                <span
+                  style={{
+                    fontSize: 11,
+                    padding: "1px 7px",
+                    borderRadius: 999,
+                    background: isActive ? "var(--accent)" : "var(--bg-secondary)",
+                    color: isActive ? "#fff" : "var(--text-muted)",
+                    fontWeight: 700,
+                  }}
+                >
+                  {tabCounts[tab] ?? 0}
+                </span>
+              </button>
+            );
+          })}
         </div>
-        {pendingDecisions.length === 0 ? (
-          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            Nenhuma decisao pendente. Rode <code>*review</code> para a Gaia analisar as campanhas.
+
+        {visibleDecisions.length === 0 ? (
+          <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "20px 0" }}>
+            {activeTab === "proposed" ? (
+              <>Nenhuma decisao nesta tab. Rode <code>*review</code> para a Gaia analisar as campanhas.</>
+            ) : (
+              <>Nenhuma decisao em &quot;{CHECKLIST_TAB_LABEL[activeTab]}&quot;.</>
+            )}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {pendingDecisions.map((d) => (
+            {visibleDecisions.map((d) => {
+              const isCheckable = NO_EXECUTION_ACTIONS.has(d.action);
+              const items = d.checklistItems ?? [];
+              const hasChecklist = items.length > 0;
+              const doneCount = items.filter((i) => i.status === "done" || i.status === "in_progress").length;
+              return (
               <div
                 key={d.id}
                 style={{
@@ -575,13 +752,186 @@ export default function GaiaControlPage() {
                   {d.reasoning}
                 </div>
                 {renderDecisionBody(d)}
+
+                {/* Checklist (apenas DIAGNOSE_FUNNEL / PROPOSE_ITERATION com items gerados) */}
+                {isCheckable && hasChecklist && (
+                  <div style={{ marginTop: 14, padding: 12, background: "var(--bg-card)", borderRadius: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 6 }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Checklist de ajustes
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        {doneCount} de {items.length} aprovados
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {items.map((it, idx) => {
+                        const isDone = it.status === "done" || it.status === "in_progress" || it.status === "approved";
+                        const isSkipped = it.status === "skipped";
+                        const isPending = it.status === "pending";
+                        return (
+                          <div
+                            key={it.id}
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                              padding: 10,
+                              background: "var(--bg-secondary)",
+                              borderRadius: 8,
+                              opacity: isSkipped ? 0.5 : 1,
+                            }}
+                          >
+                            <div
+                              style={{
+                                flexShrink: 0,
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                background: isDone ? "#6B9E6B" : isSkipped ? "#888" : "var(--bg-card)",
+                                color: isDone || isSkipped ? "#fff" : "var(--text-muted)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 12,
+                                fontWeight: 700,
+                                border: isPending ? "0.5px solid var(--border-default)" : "none",
+                              }}
+                            >
+                              {isDone ? "✓" : isSkipped ? "—" : idx + 1}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
+                                <strong
+                                  style={{
+                                    fontSize: 13,
+                                    color: "var(--text-primary)",
+                                    textDecoration: isSkipped ? "line-through" : "none",
+                                  }}
+                                >
+                                  {it.title}
+                                </strong>
+                                {it.assignedAgents.map((a) => (
+                                  <span
+                                    key={a}
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      padding: "2px 7px",
+                                      borderRadius: 999,
+                                      background: `${AGENT_COLOR[a] ?? "#888"}22`,
+                                      color: AGENT_COLOR[a] ?? "#888",
+                                      textTransform: "uppercase",
+                                    }}
+                                  >
+                                    {a}
+                                  </span>
+                                ))}
+                              </div>
+                              <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                                {it.description}
+                              </div>
+                              {it.artifactPath && (
+                                <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)" }}>
+                                  Artefato: <code>{it.artifactPath}</code>
+                                </div>
+                              )}
+                              <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                                {isPending && (
+                                  <>
+                                    <button
+                                      onClick={() => approveChecklistItem(it.id)}
+                                      disabled={running?.startsWith("approve-item") ?? false}
+                                      style={{
+                                        padding: "5px 12px",
+                                        borderRadius: 6,
+                                        background: "#6B9E6B",
+                                        color: "#fff",
+                                        border: "none",
+                                        fontSize: 11,
+                                        fontWeight: 700,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      ✓ Aprovar e atribuir
+                                    </button>
+                                    <button
+                                      onClick={() => patchChecklistItem(it.id, "done")}
+                                      disabled={running?.startsWith("patch-item") ?? false}
+                                      style={{
+                                        padding: "5px 12px",
+                                        borderRadius: 6,
+                                        background: "var(--bg-card)",
+                                        color: "var(--text-primary)",
+                                        border: "0.5px solid var(--border-default)",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Marcar concluído
+                                    </button>
+                                    <button
+                                      onClick={() => patchChecklistItem(it.id, "skipped")}
+                                      disabled={running?.startsWith("patch-item") ?? false}
+                                      style={{
+                                        padding: "5px 12px",
+                                        borderRadius: 6,
+                                        background: "transparent",
+                                        color: "var(--text-muted)",
+                                        border: "0.5px solid var(--border-default)",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      Pular este
+                                    </button>
+                                  </>
+                                )}
+                                {isSkipped && (
+                                  <span style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>
+                                    pulado
+                                  </span>
+                                )}
+                                {isDone && it.status !== "done" && (
+                                  <span style={{ fontSize: 11, color: "#6B9E6B", fontWeight: 700 }}>
+                                    aguardando execução do agente
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {doneCount > 0 && d.action === "PROPOSE_ITERATION" && (
+                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "0.5px solid var(--border-subtle)" }}>
+                        <Link
+                          href={`/admin/campanhas?fromGaia=${d.id}`}
+                          style={{
+                            display: "inline-block",
+                            padding: "8px 16px",
+                            borderRadius: 8,
+                            background: "#9B72CF",
+                            color: "#fff",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            textDecoration: "none",
+                          }}
+                        >
+                          → Criar LAUNCH com ajustes aprovados
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                  {d.status === "proposed" && NO_EXECUTION_ACTIONS.has(d.action) && (
+                  {d.status === "proposed" && isCheckable && !hasChecklist && (
                     <>
-                      {/* DIAGNOSE_FUNNEL / PROPOSE_ITERATION — sao reports, nao acoes */}
                       <button
-                        onClick={() => actOnDecision(d.id, "approve_execute")}
-                        disabled={running?.startsWith("approve") ?? false}
+                        onClick={() => generateChecklist(d.id)}
+                        disabled={running === `gen-checklist-${d.id}`}
                         style={{
                           padding: "6px 14px",
                           borderRadius: 8,
@@ -593,29 +943,28 @@ export default function GaiaControlPage() {
                           cursor: "pointer",
                         }}
                       >
-                        ✓ Marcar como lido
+                        {running === `gen-checklist-${d.id}` ? "Gerando..." : "✨ Transformar em checklist de ajustes"}
                       </button>
-                      {d.action === "PROPOSE_ITERATION" && (
-                        <Link
-                          href={`/admin/campanhas?fromGaia=${d.id}`}
-                          style={{
-                            padding: "6px 14px",
-                            borderRadius: 8,
-                            background: "#9B72CF",
-                            color: "#fff",
-                            border: "none",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            textDecoration: "none",
-                            display: "inline-block",
-                          }}
-                        >
-                          → Levar pro council
-                        </Link>
-                      )}
                       <button
-                        onClick={() => actOnDecision(d.id, "reject")}
-                        disabled={running?.startsWith("reject") ?? false}
+                        onClick={() => setProgressStatus(d.id, "archived")}
+                        disabled={running?.startsWith("progress") ?? false}
+                        style={{
+                          padding: "6px 14px",
+                          borderRadius: 8,
+                          background: "var(--bg-card)",
+                          color: "var(--text-muted)",
+                          border: "0.5px solid var(--border-default)",
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        title="Sprint 1: arquiva sem timer auto-volta. Sprint 2 vira snooze de 7 dias."
+                      >
+                        Adiar 7 dias
+                      </button>
+                      <button
+                        onClick={() => setProgressStatus(d.id, "archived")}
+                        disabled={running?.startsWith("progress") ?? false}
                         style={{
                           padding: "6px 14px",
                           borderRadius: 8,
@@ -631,7 +980,7 @@ export default function GaiaControlPage() {
                       </button>
                     </>
                   )}
-                  {d.status === "proposed" && !NO_EXECUTION_ACTIONS.has(d.action) && (
+                  {d.status === "proposed" && !isCheckable && (
                     <>
                       <button
                         onClick={() => actOnDecision(d.id, "approve_execute")}
@@ -701,60 +1050,54 @@ export default function GaiaControlPage() {
                       ▶ Executar agora
                     </button>
                   )}
+                  {/* Move pra arquivado disponível em qualquer estado nao-arquivado */}
+                  {d.progressStatus !== "archived" && (
+                    <button
+                      onClick={() => setProgressStatus(d.id, "archived")}
+                      disabled={running?.startsWith("progress") ?? false}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        background: "transparent",
+                        color: "var(--text-muted)",
+                        border: "0.5px solid var(--border-subtle)",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        marginLeft: "auto",
+                      }}
+                      title="Move este card pra tab Arquivadas"
+                    >
+                      📦 Arquivar
+                    </button>
+                  )}
+                  {d.progressStatus === "archived" && (
+                    <button
+                      onClick={() => setProgressStatus(d.id, hasChecklist ? "in_progress" : "proposed")}
+                      disabled={running?.startsWith("progress") ?? false}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        background: "transparent",
+                        color: "var(--text-muted)",
+                        border: "0.5px solid var(--border-subtle)",
+                        fontSize: 11,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        marginLeft: "auto",
+                      }}
+                    >
+                      ↩ Desarquivar
+                    </button>
+                  )}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
 
-      {/* Histórico recente */}
-      <div style={{ ...card, marginBottom: 20 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
-          📜 Histórico recente (10 últimas)
-        </div>
-        {recentDecisions.length === 0 ? (
-          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Nenhum historico ainda.</div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {recentDecisions.map((d) => (
-              <div
-                key={d.id}
-                style={{
-                  padding: "10px 12px",
-                  background: "var(--bg-secondary)",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: 8,
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ display: "flex", gap: 8, alignItems: "center", flex: 1, minWidth: 200 }}>
-                  <span
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      color: STATUS_COLOR[d.status],
-                      background: `${STATUS_COLOR[d.status]}22`,
-                      padding: "2px 8px",
-                      borderRadius: 999,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    {d.status}
-                  </span>
-                  <code>{d.action}</code>
-                  <span style={{ color: "var(--text-muted)" }}>· {d.targetName}</span>
-                </div>
-                <span style={{ color: "var(--text-muted)", fontSize: 11 }}>{fmtDate(d.createdAt)}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* Knowledge base */}
       <div style={card}>
