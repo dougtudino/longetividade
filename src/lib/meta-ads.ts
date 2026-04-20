@@ -217,6 +217,44 @@ async function graphGet<T>(path: string, token: string): Promise<T | MetaAdsErro
   }
 }
 
+// Agrega insights APENAS das campanhas Meta com IDs especificos. Util pra
+// /admin/campanhas filtrar so as do sistema novo (Blueprint), excluindo
+// campanhas legadas/sincronizadas que poluem agregado da conta inteira.
+export async function fetchInsightsForCampaigns(
+  preset: InsightsPreset,
+  campaignIds: string[]
+): Promise<AccountInsightsResult> {
+  if (campaignIds.length === 0) {
+    // Sem campanhas-alvo: retorna zero-state explicito.
+    return {
+      ok: true,
+      ...aggregate([]),
+    };
+  }
+  const cacheKey = `campaigns:${preset}:${campaignIds.sort().join(",")}`;
+  const cached = getCached<AccountInsightsResult>(cacheKey);
+  if (cached) return cached;
+
+  const creds = await getCreds();
+  if (!creds) {
+    return { ok: false, error: "Credenciais Meta nao configuradas em /admin/configuracoes" };
+  }
+
+  // Meta filtering operator IN aceita lista de campaign IDs
+  const filtering = encodeURIComponent(
+    JSON.stringify([{ field: "campaign.id", operator: "IN", value: campaignIds }])
+  );
+  const path = `act_${creds.accountId}/insights?fields=${INSIGHT_FIELDS}&date_preset=${PRESET_MAP[preset]}&filtering=${filtering}`;
+  const data = await graphGet<{ data: RawInsights[] }>(path, creds.token);
+  if ("ok" in data && data.ok === false) {
+    return data;
+  }
+  const rows = (data as { data: RawInsights[] }).data ?? [];
+  const result: AccountInsightsResult = { ok: true, ...aggregate(rows) };
+  setCached(cacheKey, result);
+  return result;
+}
+
 export async function fetchAccountInsights(
   preset: InsightsPreset
 ): Promise<AccountInsightsResult> {
