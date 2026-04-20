@@ -82,13 +82,13 @@ export default function CampanhasPage() {
   }, []);
 
   const fetchCampaigns = useCallback(async () => {
-    try { const r=await fetch("/api/admin/campaigns"); if(r.ok){const d=await r.json();setCampaigns(d);} } catch{} finally{setLoading(false);}
+    try { const r=await fetch("/api/admin/campaigns?scope=blueprint"); if(r.ok){const d=await r.json();setCampaigns(d);} } catch{} finally{setLoading(false);}
   },[]);
 
   const fetchInsights = useCallback(async (p:Preset) => {
     setInsightsLoading(true); setInsightsError(null);
     try {
-      const r=await fetch(`/api/admin/meta-insights?preset=${p}`,{cache:"no-store"});
+      const r=await fetch(`/api/admin/meta-insights?preset=${p}&scope=blueprint`,{cache:"no-store"});
       const d=(await r.json()) as MetaInsightsResponse;
       if(d.ok&&d.account){setInsights(d.account);}else{setInsights(null);setInsightsError(d.error??"Falha ao carregar metricas");}
     } catch(e){setInsightsError((e as Error).message);}
@@ -109,7 +109,9 @@ export default function CampanhasPage() {
   useEffect(()=>{fetchCampaigns();fetchBlueprints();},[fetchCampaigns,fetchBlueprints]);
   useEffect(()=>{fetchInsights(preset);},[preset,fetchInsights]);
 
-  function openNew(){setEditingId(null);setForm(emptyForm);setModalOpen(true);}
+  // openNew removido (Sprint 8): botao "+ Nova campanha" foi substituido
+  // por link "+ Novo Launch" → /admin/campanhas/launch-blueprint. Toda
+  // campanha nova agora nasce de um LaunchBlueprint.
   function openEdit(c:Campaign){setEditingId(c.id);setForm({name:c.name,platform:c.platform,objective:c.objective,budget:String(c.budget),startDate:c.startDate?.slice(0,10)??"",endDate:c.endDate?.slice(0,10)??"",notes:c.notes??""});setModalOpen(true);}
 
   async function handleSave() {
@@ -142,7 +144,21 @@ export default function CampanhasPage() {
         icon="📣"
         actions={
           pageTab === "campanhas" ? (
-            <Button onClick={openNew}>+ Nova campanha</Button>
+            <Link
+              href="/admin/campanhas/launch-blueprint"
+              style={{
+                padding: "8px 16px",
+                background: "var(--accent)",
+                color: "#fff",
+                borderRadius: 8,
+                fontSize: 13,
+                fontWeight: 700,
+                textDecoration: "none",
+              }}
+              title="Toda campanha nasce de um Launch (LaunchBlueprint). Editor de blueprint pra criar/duplicar."
+            >
+              + Novo Launch
+            </Link>
           ) : undefined
         }
       />
@@ -314,7 +330,7 @@ export default function CampanhasPage() {
           <div onClick={()=>setModalOpen(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:100}} />
           <div style={{position:"fixed",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:"min(480px,92vw)",maxHeight:"90vh",overflowY:"auto",zIndex:101,...cardStyle,padding:28}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-              <h2 style={{fontSize:18,fontWeight:700,color:"var(--text-primary)",margin:0}}>{editingId?"Editar Campanha":"Nova Campanha"}</h2>
+              <h2 style={{fontSize:18,fontWeight:700,color:"var(--text-primary)",margin:0}}>Editar Campanha</h2>
               <button onClick={()=>setModalOpen(false)} style={{background:"none",border:"none",color:"var(--text-muted)",fontSize:22,cursor:"pointer",lineHeight:1}}>&times;</button>
             </div>
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
