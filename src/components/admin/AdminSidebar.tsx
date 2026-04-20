@@ -176,6 +176,18 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
+      {
+        label: "4. Blueprint 📋",
+        href: "/admin/campanhas/launch-blueprint",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="4" y="3" width="16" height="18" rx="2" />
+            <path d="M8 7h8" />
+            <path d="M8 11h8" />
+            <path d="M8 15h5" />
+          </svg>
+        ),
+      },
     ],
   },
   {
