@@ -353,6 +353,58 @@ export default function CriativosPage() {
     }
   }
 
+  async function uploadToMeta(creative: CreativeItem) {
+    if (creative.metaImageHash) return;
+    setRowBusyId(creative.id);
+    setError(null);
+    try {
+      let imageBase64: string | null = null;
+
+      // React-based: render via html-to-image pra gerar base64
+      if (!creative.aiGenerated) {
+        const node = refs.current[creative.slug];
+        if (!node) {
+          setError(`Nao encontrei node do criativo ${creative.slug} — precisa estar visivel na tela`);
+          return;
+        }
+        const { toPng } = await import("html-to-image");
+        imageBase64 = await toPng(node, {
+          cacheBust: true,
+          pixelRatio: 1,
+          width: creative.width,
+          height: creative.height,
+        });
+      }
+
+      const res = await fetch(`/api/admin/creatives/${creative.id}/upload-meta`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(imageBase64 ? { imageBase64 } : {}),
+      });
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha no upload");
+      else if (selectedSlug) await loadCollectionDetail(selectedSlug);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRowBusyId(null);
+    }
+  }
+
+  async function uploadAllToMeta() {
+    if (!selectedCollection) return;
+    const pending = selectedCollection.creatives.filter((c) => !c.metaImageHash);
+    if (pending.length === 0) {
+      setError("Todos os criativos ja tem Meta hash populado");
+      return;
+    }
+    if (!confirm(`Upload ${pending.length} criativo(s) pra Meta Ad Images?`)) return;
+    for (const c of pending) {
+      await uploadToMeta(c);
+      await new Promise((r) => setTimeout(r, 600));
+    }
+  }
+
   function toggleSelect(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -581,6 +633,16 @@ export default function CriativosPage() {
                     loading={!!downloadingId}
                   >
                     ↓ Baixar todos
+                  </Button>
+                )}
+                {selectedCollection.creatives.some((c) => !c.metaImageHash) && (
+                  <Button
+                    variant="primary"
+                    onClick={uploadAllToMeta}
+                    loading={!!rowBusyId || bulkLoading}
+                    title="Uploada todos PNGs pra Meta /adimages, popula metaImageHash"
+                  >
+                    📤 Upload pra Meta
                   </Button>
                 )}
               </>
@@ -1118,6 +1180,17 @@ export default function CriativosPage() {
                         >
                           ↓ Baixar
                         </Button>
+                        {!c.metaImageHash && (
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={() => uploadToMeta(c)}
+                            loading={isBusy}
+                            title="Upload PNG pra Meta /adimages — gera metaImageHash usado na criacao de ads"
+                          >
+                            📤 Upload pra Meta
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="secondary"

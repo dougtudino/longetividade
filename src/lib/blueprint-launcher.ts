@@ -8,10 +8,13 @@ import { prisma } from "./prisma";
 import {
   createCampaign,
   createAdSet,
+  createAdCreative,
+  createAd,
   createEventCustomAudience,
   createLookalikeAudience,
   type LauncherCreds,
   type Targeting,
+  type CreativeSpec,
 } from "./meta-launcher";
 
 type LaunchAudience = Awaited<
@@ -37,6 +40,7 @@ export type LaunchSummary = {
   audiencesCreated: number;
   lookalikeStatus: "operational" | "processing" | "skipped" | "failed";
   adSetsCreated: number;
+  adsCreated: number;
   warnings: string[];
   log: LaunchStepLog[];
 };
@@ -84,6 +88,7 @@ export async function runBlueprintLaunch(
       audiencesCreated: 0,
       lookalikeStatus: "skipped",
       adSetsCreated: 0,
+      adsCreated: 0,
       warnings: [`Blueprint ${launchId} nao encontrado`],
       log,
     };
@@ -224,6 +229,7 @@ export async function runBlueprintLaunch(
         audiencesCreated: audienceIdMap.size,
         lookalikeStatus,
         adSetsCreated: 0,
+        adsCreated: 0,
         warnings,
         log,
       };
@@ -281,6 +287,111 @@ export async function runBlueprintLaunch(
     adSetsCreated += 1;
   }
 
+  // ─── 5. Ads (AdCreative + Ad) ──────────────────────────────────
+  // Pra cada ad set criado, ler CreativeCollection + creatives + copies,
+  // parear por angle/tag, criar ad creatives + ads na Meta. Idempotente:
+  // checa LaunchAdSet.metaAdSetId e evita recriar ads em ad sets ja com
+  // ads (consulta Meta /ads endpoint seria mais robusto, por ora usa
+  // flag status e re-executa confiando que Meta ira deduplicate por nome).
+  let adsCreated = 0;
+  if (!dryRun) {
+    if (!creds.pageId) {
+      warnings.push("META_PAGE_ID nao configurado — ads nao podem ser criados. Campanha+ad sets ficam prontos; associe page e rode novamente.");
+    } else {
+      const refreshedAdSets = await prisma.launchAdSet.findMany({
+        where: { blueprintId: blueprint.id },
+        orderBy: { orderIndex: "asc" },
+      });
+      for (const aset of refreshedAdSets) {
+        if (!aset.metaAdSetId) {
+          log.push({ step: `ads(${aset.adSetKey})`, status: "skip", detail: "ad set nao criado na Meta" });
+          continue;
+        }
+        if (!aset.creativesCollectionId) {
+          log.push({ step: `ads(${aset.adSetKey})`, status: "skip", detail: "creativesCollectionId vazio no blueprint" });
+          continue;
+        }
+
+        const collection = await prisma.creativeCollection.findUnique({
+          where: { slug: aset.creativesCollectionId },
+          include: {
+            creatives: {
+              where: { archived: false, metaImageHash: { not: null } },
+              include: { copies: { where: { active: true }, orderBy: { createdAt: "asc" } } },
+            },
+          },
+        });
+        if (!collection || collection.creatives.length === 0) {
+          log.push({
+            step: `ads(${aset.adSetKey})`,
+            status: "error",
+            detail: `Collection "${aset.creativesCollectionId}" nao tem creatives com metaImageHash populado. Rode Upload pra Meta em /admin/criativos.`,
+          });
+          continue;
+        }
+
+        // Pareia creative por angle — slug/tag matching. Fallback: primeiros N.
+        const picked = new Map<string, (typeof collection.creatives)[number]>();
+        for (const angle of aset.creativesAngles) {
+          const match = collection.creatives.find(
+            (c) =>
+              !picked.has(c.id) &&
+              (c.slug.toLowerCase().includes(angle.toLowerCase()) ||
+                c.tags.some((t) => t.toLowerCase().includes(angle.toLowerCase())))
+          );
+          if (match) picked.set(match.id, match);
+        }
+        // Fill ate numAds se nao conseguiu matching suficiente
+        for (const c of collection.creatives) {
+          if (picked.size >= aset.numAds) break;
+          if (!picked.has(c.id)) picked.set(c.id, c);
+        }
+        const creativesToUse = Array.from(picked.values()).slice(0, aset.numAds);
+
+        const link = `${blueprint.landingUrl}?utm_source=meta&utm_medium=cpc&utm_campaign=${blueprint.launchId.toLowerCase()}&utm_content=${aset.adSetKey.toLowerCase()}`;
+
+        for (const creative of creativesToUse) {
+          const copy = creative.copies[0];
+          if (!copy) {
+            log.push({
+              step: `ad(${aset.adSetKey}/${creative.slug})`,
+              status: "error",
+              detail: "creative sem CreativeCopy active — rode seed-copies",
+            });
+            continue;
+          }
+          if (!creative.metaImageHash) continue; // ja filtrado, seguranca
+
+          const adCreativeName = `${aset.adSetKey}__${creative.slug}__${copy.label}`.slice(0, 255);
+          const spec: CreativeSpec = {
+            name: adCreativeName,
+            imageHash: creative.metaImageHash,
+            message: copy.primaryText ?? "",
+            headline: copy.headline,
+            description: copy.description ?? "",
+            link,
+            cta: (copy.cta as CreativeSpec["cta"]) ?? "LEARN_MORE",
+          };
+
+          const cr = await createAdCreative(creds, spec);
+          if (!cr.ok) {
+            log.push({ step: `adcreative(${adCreativeName})`, status: "error", detail: cr.error });
+            continue;
+          }
+
+          const adName = `AD__${aset.adSetKey}__${creative.slug}`.slice(0, 255);
+          const adRes = await createAd(creds, aset.metaAdSetId, adName, cr.id, "PAUSED");
+          if (!adRes.ok) {
+            log.push({ step: `ad(${adName})`, status: "error", detail: adRes.error });
+            continue;
+          }
+          log.push({ step: `ad(${adName})`, status: "ok", id: adRes.id });
+          adsCreated += 1;
+        }
+      }
+    }
+  }
+
   return {
     success: true,
     launchedAt: new Date().toISOString(),
@@ -288,6 +399,7 @@ export async function runBlueprintLaunch(
     audiencesCreated: audienceIdMap.size,
     lookalikeStatus,
     adSetsCreated,
+    adsCreated,
     warnings,
     log,
   };
