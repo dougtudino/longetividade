@@ -119,13 +119,24 @@ Rationale dos agentes: [LACUNA — agentes nao documentaram por que uniforme. Po
 
 Rationale: **proposta em discussao 20/04/2026** (Claude Code durante seed da Sprint 3). A distribuicao desigual privilegia cold interesse-especifico (R$25) sobre cold broad (R$15), e reduz warm/hot porque dependem de volume de pixel que ainda nao foi construido. **Nao validado por agentes AIOX.**
 
-### Decisao recomendada
+### Decisao tomada — 2026-04-20
 
-[PENDENTE — Doug precisa decidir qual adotar.]
+**ADOTADA: Opcao B (seed atual, R$95/dia)**
 
-- **Opcao A** se for seguir plano AIOX documentado e tiver budget pra R$90-150/dia.
-- **Opcao B** se ja validou R$95/dia como teto pragmatico.
-- **Nao existe Opcao C validada por agentes** (ex: budget centralizado por camada, distribuicao ponderada por ROAS historico, CBO ligado, etc).
+Doug decidiu 2026-04-20: "vamos entao criar com esse de 95 pra comecar a
+funcionar depois escalamos conforme as analises dos agentes".
+
+Rationale (alinhado com [feedback Doug: budget minimo pra testar ferramenta]):
+- Fase 1 (validacao): R$95/d roda ferramenta end-to-end, valida tracking
+  Pixel/CAPI, infra Meta, fluxo Gaia review. Aceita-se que ad sets
+  fiquem em learning phase — objetivo nao e ROAS confiavel ainda.
+- Fase 2 (Day 4): primeiro `*review` da Gaia identifica winners/losers
+  com dados reais (mesmo com ruido estatistico).
+- Fase 3 (pos-Day 4): escalar os 1-2 vencedores pra R$150-300/dia por ad
+  set, a partir do AGENTES ciclo AIOX que vai analisar os resultados.
+
+**Nao confundir:** budget de validacao (R$95/d) nao e budget de operacao.
+Decisoes de ROAS/escala definitivas vem da Fase 3, nao da Fase 1.
 
 ### Numero de ads por ad set
 
