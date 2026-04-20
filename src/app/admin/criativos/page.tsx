@@ -43,6 +43,7 @@ type CreativeItem = {
   metaImageHash: string | null;
   imageUrl?: string | null;
   aiGenerated?: boolean;
+  archived?: boolean;
   createdAt: string;
 };
 
@@ -69,6 +70,10 @@ export default function CriativosPage() {
 
   const refs = useRef<Record<string, HTMLDivElement | null>>({});
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showArchived, setShowArchived] = useState(false);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [rowBusyId, setRowBusyId] = useState<string | null>(null);
 
   // Modals
   const [creatingCollection, setCreatingCollection] = useState(false);
@@ -229,6 +234,7 @@ export default function CriativosPage() {
   }, [loadCollections]);
 
   useEffect(() => {
+    setSelectedIds(new Set());
     if (selectedSlug) {
       loadCollectionDetail(selectedSlug);
     } else {
@@ -344,6 +350,88 @@ export default function CriativosPage() {
     for (const c of selectedCollection.creatives) {
       await downloadCreative(c);
       await new Promise((r) => setTimeout(r, 400));
+    }
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds(new Set());
+  }
+
+  async function bulkAction(action: "delete" | "archive" | "unarchive") {
+    if (selectedIds.size === 0) return;
+    if (
+      action === "delete" &&
+      !confirm(
+        `Excluir ${selectedIds.size} criativo(s)? Esta acao eh irreversivel.`
+      )
+    ) {
+      return;
+    }
+    setBulkLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/creatives/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        setError(data.error ?? "Falha");
+      } else {
+        clearSelection();
+        if (selectedSlug) await loadCollectionDetail(selectedSlug);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBulkLoading(false);
+    }
+  }
+
+  async function archiveOne(creative: CreativeItem) {
+    setRowBusyId(creative.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/creatives/${creative.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: !creative.archived }),
+      });
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      else if (selectedSlug) await loadCollectionDetail(selectedSlug);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRowBusyId(null);
+    }
+  }
+
+  async function deleteOne(creative: CreativeItem) {
+    if (!confirm(`Excluir "${creative.name}"? Acao irreversivel.`)) return;
+    setRowBusyId(creative.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/creatives/${creative.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!data.ok) setError(data.error ?? "Falha");
+      else if (selectedSlug) await loadCollectionDetail(selectedSlug);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setRowBusyId(null);
     }
   }
 
@@ -789,111 +877,285 @@ export default function CriativosPage() {
         />
       )}
 
-      {selectedCollection && selectedCollection.creatives.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {selectedCollection.creatives.map((c) => {
-            const isAi = c.aiGenerated || c.componentKey.startsWith("ai:");
-            return (
-              <Card key={c.id} padding={20}>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 20,
-                    flexWrap: "wrap",
-                    alignItems: "flex-start",
-                  }}
-                >
-                  {/* Preview */}
-                  <div style={{ flexShrink: 0 }}>
-                    {isAi && c.imageUrl ? (
-                      <AiPreview creative={c} />
-                    ) : (
-                      <ReactPreview creative={c} refs={refs} />
-                    )}
-                  </div>
-                  {/* Meta + ações */}
-                  <div
+      {selectedCollection && selectedCollection.creatives.length > 0 && (() => {
+        const allCreatives = selectedCollection.creatives;
+        const archivedCount = allCreatives.filter((c) => c.archived).length;
+        const visibleCreatives = showArchived
+          ? allCreatives
+          : allCreatives.filter((c) => !c.archived);
+        const visibleIds = visibleCreatives.map((c) => c.id);
+        const allVisibleSelected =
+          visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Toolbar: filtro + acoes em batch */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                flexWrap: "wrap",
+                padding: "10px 14px",
+                background: "var(--bg-secondary)",
+                border: "0.5px solid var(--border-subtle)",
+                borderRadius: 10,
+                fontSize: 12,
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  cursor: "pointer",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={showArchived}
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                />
+                Mostrar arquivados
+                {archivedCount > 0 && (
+                  <span style={{ color: "var(--text-muted)" }}>
+                    ({archivedCount})
+                  </span>
+                )}
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  if (allVisibleSelected) {
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      visibleIds.forEach((id) => next.delete(id));
+                      return next;
+                    });
+                  } else {
+                    setSelectedIds((prev) => {
+                      const next = new Set(prev);
+                      visibleIds.forEach((id) => next.add(id));
+                      return next;
+                    });
+                  }
+                }}
+                style={{
+                  background: "transparent",
+                  border: "0.5px solid var(--border-default)",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  fontSize: 11,
+                }}
+              >
+                {allVisibleSelected ? "Limpar seleção" : "Selecionar todos"}
+              </button>
+              {selectedIds.size > 0 && (
+                <>
+                  <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                    {selectedIds.size} selecionado
+                    {selectedIds.size === 1 ? "" : "s"}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => bulkAction("archive")}
+                    loading={bulkLoading}
+                  >
+                    📦 Arquivar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => bulkAction("unarchive")}
+                    loading={bulkLoading}
+                  >
+                    ↩ Desarquivar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => bulkAction("delete")}
+                    loading={bulkLoading}
+                  >
+                    🗑 Excluir
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={clearSelection}
                     style={{
-                      flex: 1,
-                      minWidth: 240,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 10,
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-muted)",
+                      cursor: "pointer",
+                      fontSize: 11,
                     }}
                   >
-                    <div
-                      style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
-                    >
-                      <Badge tone="accent" size="sm">
-                        {c.format} · {c.width}×{c.height}
-                      </Badge>
-                      {isAi && <Badge tone="info" size="sm">✨ IA</Badge>}
-                      {c.metaImageHash && (
-                        <Badge tone="success" size="sm" dot>
-                          Meta pronto
-                        </Badge>
-                      )}
-                    </div>
+                    Cancelar
+                  </button>
+                </>
+              )}
+            </div>
+
+            {visibleCreatives.length === 0 && (
+              <div
+                style={{
+                  padding: 20,
+                  textAlign: "center",
+                  color: "var(--text-muted)",
+                  fontSize: 13,
+                }}
+              >
+                Todos os {archivedCount} criativos estão arquivados. Marque
+                &quot;Mostrar arquivados&quot; pra ver.
+              </div>
+            )}
+
+            {visibleCreatives.map((c) => {
+              const isAi = c.aiGenerated || c.componentKey.startsWith("ai:");
+              const isSelected = selectedIds.has(c.id);
+              const isBusy = rowBusyId === c.id;
+              return (
+                <Card key={c.id} padding={20}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 20,
+                      flexWrap: "wrap",
+                      alignItems: "flex-start",
+                      opacity: c.archived ? 0.55 : 1,
+                    }}
+                  >
+                    {/* Checkbox seleção */}
                     <div
                       style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: "var(--text-primary)",
-                        lineHeight: 1.2,
+                        flexShrink: 0,
+                        paddingTop: 6,
+                        opacity: c.archived ? 1 : undefined,
                       }}
                     >
-                      {c.name}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(c.id)}
+                        style={{ cursor: "pointer", width: 16, height: 16 }}
+                      />
                     </div>
-                    {c.description && (
-                      <p
-                        style={{
-                          fontSize: 12,
-                          color: "var(--text-secondary)",
-                          margin: 0,
-                          lineHeight: 1.5,
-                        }}
+                    {/* Preview */}
+                    <div style={{ flexShrink: 0 }}>
+                      {isAi && c.imageUrl ? (
+                        <AiPreview creative={c} />
+                      ) : (
+                        <ReactPreview creative={c} refs={refs} />
+                      )}
+                    </div>
+                    {/* Meta + ações */}
+                    <div
+                      style={{
+                        flex: 1,
+                        minWidth: 240,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 10,
+                      }}
+                    >
+                      <div
+                        style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                       >
-                        {c.description}
-                      </p>
-                    )}
-                    {c.tags.length > 0 && (
-                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-                        {c.tags.map((t) => (
-                          <Badge key={t} size="sm">
-                            {t}
+                        <Badge tone="accent" size="sm">
+                          {c.format} · {c.width}×{c.height}
+                        </Badge>
+                        {isAi && <Badge tone="info" size="sm">✨ IA</Badge>}
+                        {c.metaImageHash && (
+                          <Badge tone="success" size="sm" dot>
+                            Meta pronto
                           </Badge>
-                        ))}
+                        )}
+                        {c.archived && (
+                          <Badge tone="warn" size="sm">
+                            📦 Arquivado
+                          </Badge>
+                        )}
                       </div>
-                    )}
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                      <Button
-                        size="sm"
-                        onClick={() => downloadCreative(c)}
-                        loading={downloadingId === c.slug}
-                      >
-                        ↓ Baixar
-                      </Button>
-                    </div>
-                    {c.metaImageHash && (
                       <div
                         style={{
-                          fontSize: 10,
-                          color: "var(--text-muted)",
-                          fontFamily: "monospace",
-                          marginTop: 4,
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "var(--text-primary)",
+                          lineHeight: 1.2,
                         }}
                       >
-                        Meta hash:{" "}
-                        <code>{c.metaImageHash.slice(0, 20)}...</code>
+                        {c.name}
                       </div>
-                    )}
+                      {c.description && (
+                        <p
+                          style={{
+                            fontSize: 12,
+                            color: "var(--text-secondary)",
+                            margin: 0,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {c.description}
+                        </p>
+                      )}
+                      {c.tags.length > 0 && (
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          {c.tags.map((t) => (
+                            <Badge key={t} size="sm">
+                              {t}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+                        <Button
+                          size="sm"
+                          onClick={() => downloadCreative(c)}
+                          loading={downloadingId === c.slug}
+                        >
+                          ↓ Baixar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => archiveOne(c)}
+                          loading={isBusy}
+                        >
+                          {c.archived ? "↩ Desarquivar" : "📦 Arquivar"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          onClick={() => deleteOne(c)}
+                          loading={isBusy}
+                        >
+                          🗑 Excluir
+                        </Button>
+                      </div>
+                      {c.metaImageHash && (
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "var(--text-muted)",
+                            fontFamily: "monospace",
+                            marginTop: 4,
+                          }}
+                        >
+                          Meta hash:{" "}
+                          <code>{c.metaImageHash.slice(0, 20)}...</code>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                </Card>
+              );
+            })}
+          </div>
+        );
+      })()}
 
       {/* Panel: geração IA */}
       {aiPanelOpen && (

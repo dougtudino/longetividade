@@ -86,6 +86,7 @@ model Creative {
   metaImageHash String?  // hash da imagem na Meta /adimages (se uploaded)
   imageUrl     String?   // URL publica (CDN Blotato) pra creatives AI
   aiGenerated  Boolean   @default(false) // true se gerado via Uma+Blotato
+  archived     Boolean   @default(false) // soft-archive: nao usar em novos ads, mas preserva historico
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -95,6 +96,7 @@ model Creative {
   @@unique([collectionId, slug])
   @@index([collectionId])
   @@index([format])
+  @@index([archived])
 }
 
 // Variacoes de texto para A/B testing — cada Creative (visual) pode ter
