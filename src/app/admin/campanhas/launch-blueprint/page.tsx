@@ -597,19 +597,60 @@ function AdSetCard({
   saved: boolean;
   onSave: (patch: Record<string, unknown>) => void;
 }) {
-  const [newInterestId, setNewInterestId] = useState("");
-  const [newInterestName, setNewInterestName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    Array<{ id: string; name: string; audienceSize: number | null; path: string | null; topic: string | null }>
+  >([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const interests = aset.interests ?? [];
 
-  function addInterest() {
-    if (!newInterestId.trim() || !newInterestName.trim()) return;
-    const next = [...interests, { id: newInterestId.trim(), name: newInterestName.trim() }];
+  // Debounced search — chama Meta Targeting Search API 300ms apos ultimo keystroke
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      setSearching(true);
+      setSearchError(null);
+      try {
+        const res = await fetch(
+          `/api/admin/campaigns/meta-interests/search?q=${encodeURIComponent(searchQuery)}`
+        );
+        const data = await res.json();
+        if (!data.ok) setSearchError(data.error ?? "Falha");
+        else setSearchResults(data.results ?? []);
+      } catch (e) {
+        setSearchError((e as Error).message);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [searchQuery]);
+
+  function addFromSearch(hit: { id: string; name: string }) {
+    if (interests.some((i) => i.id === hit.id)) {
+      setSearchQuery("");
+      setSearchResults([]);
+      return;
+    }
+    const next = [...interests, { id: hit.id, name: hit.name }];
     onSave({ interests: next });
-    setNewInterestId("");
-    setNewInterestName("");
+    setSearchQuery("");
+    setSearchResults([]);
   }
+
   function removeInterest(id: string) {
     onSave({ interests: interests.filter((i) => i.id !== id) });
+  }
+
+  function fmtAudienceSize(n: number | null): string {
+    if (!n) return "";
+    if (n >= 1_000_000) return `~${(n / 1_000_000).toFixed(1)}M`;
+    if (n >= 1_000) return `~${Math.round(n / 1_000)}k`;
+    return `~${n}`;
   }
 
   return (
@@ -750,37 +791,86 @@ function AdSetCard({
                 </span>
               ))}
             </div>
-            <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+            <div style={{ position: "relative", marginTop: 8 }}>
               <input
                 type="text"
-                placeholder="Interest ID (ex: 6003107902433)"
-                value={newInterestId}
-                onChange={(e) => setNewInterestId(e.currentTarget.value)}
-                style={{ ...inputStyle, width: 220 }}
+                placeholder="🔍 Buscar interesse no Meta (ex: emagrecimento, dieta, maternidade)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.currentTarget.value)}
+                style={{ ...inputStyle, width: "100%" }}
               />
-              <input
-                type="text"
-                placeholder="Nome (ex: Emagrecimento)"
-                value={newInterestName}
-                onChange={(e) => setNewInterestName(e.currentTarget.value)}
-                style={{ ...inputStyle, width: 180 }}
-              />
-              <button
-                onClick={addInterest}
-                disabled={busy || !newInterestId.trim() || !newInterestName.trim()}
-                style={{
-                  padding: "6px 12px",
-                  background: "var(--accent)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                + adicionar
-              </button>
+              {searching && (
+                <span
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: 10,
+                    fontSize: 11,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  buscando...
+                </span>
+              )}
+              {searchError && (
+                <div style={{ fontSize: 11, color: "#C4787A", marginTop: 4 }}>
+                  {searchError}
+                </div>
+              )}
+              {searchResults.length > 0 && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 4px)",
+                    left: 0,
+                    right: 0,
+                    background: "var(--bg-primary)",
+                    border: "0.5px solid var(--border-default)",
+                    borderRadius: 8,
+                    boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
+                    zIndex: 10,
+                    maxHeight: 320,
+                    overflowY: "auto",
+                  }}
+                >
+                  {searchResults.map((hit) => (
+                    <button
+                      key={hit.id}
+                      type="button"
+                      onClick={() => addFromSearch(hit)}
+                      disabled={busy}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        background: "transparent",
+                        border: "none",
+                        borderBottom: "0.5px solid var(--border-subtle)",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "center" }}>
+                        <strong style={{ fontSize: 13, color: "var(--text-primary)" }}>
+                          {hit.name}
+                        </strong>
+                        {hit.audienceSize && (
+                          <span style={{ fontSize: 10, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+                            {fmtAudienceSize(hit.audienceSize)} pessoas
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        <code>{hit.id}</code>
+                        {hit.topic && <span>· {hit.topic}</span>}
+                        {hit.path && <span>· {hit.path}</span>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
