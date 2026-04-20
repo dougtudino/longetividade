@@ -288,12 +288,13 @@ export async function createEventCustomAudience(
     },
   };
 
+  // Graph API v21: subtype inferido por `rule` (pixel-based). Mandar
+  // subtype=WEBSITE explicito retorna "O parametro subtype nao e aceito".
   const data = await postGraph<{ id: string }>(
     `act_${creds.accountId}/customaudiences`,
     creds.token,
     {
       name,
-      subtype: "WEBSITE",
       description,
       rule,
       pixel_id: creds.pixelId,
@@ -324,6 +325,7 @@ export async function createLookalikeAudience(
   const existing = await findCustomAudienceByName(creds, name);
   if (existing) return { ok: true, id: existing, existed: true };
 
+  // Lookalike ainda usa subtype explicito (nao e pixel-rule).
   const data = await postGraph<{ id: string }>(
     `act_${creds.accountId}/customaudiences`,
     creds.token,
@@ -378,7 +380,6 @@ export async function createWebsiteCustomAudience(
     creds.token,
     {
       name,
-      subtype: "WEBSITE",
       description,
       rule,
       pixel_id: creds.pixelId,
