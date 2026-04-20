@@ -175,6 +175,90 @@ function CopyBox({
   );
 }
 
+function DocDownloadRow({
+  icon,
+  title,
+  description,
+  viewHref,
+  downloadHref,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+  viewHref: string;
+  downloadHref: string;
+}) {
+  return (
+    <div
+      style={{
+        padding: 14,
+        background: "var(--bg-secondary)",
+        border: "0.5px solid var(--border-default)",
+        borderRadius: 10,
+      }}
+    >
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <div style={{ fontSize: 22, lineHeight: 1.2, flexShrink: 0 }}>{icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: 4,
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              lineHeight: 1.6,
+              marginBottom: 10,
+            }}
+          >
+            {description}
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <a
+              href={viewHref}
+              target="_blank"
+              rel="noopener"
+              style={{
+                fontSize: 11,
+                padding: "5px 12px",
+                borderRadius: 6,
+                background: "var(--bg-card)",
+                color: "var(--text-primary)",
+                border: "0.5px solid var(--border-default)",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              👁 Visualizar
+            </a>
+            <a
+              href={downloadHref}
+              style={{
+                fontSize: 11,
+                padding: "5px 12px",
+                borderRadius: 6,
+                background: "var(--accent)",
+                color: "#fff",
+                textDecoration: "none",
+                fontWeight: 600,
+              }}
+            >
+              📥 Baixar .md
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CapabilityItem({
   icon,
   title,
@@ -1325,6 +1409,41 @@ Se for P2022 (coluna não existe), a solução sempre foi ir em /admin/criativos
       <Section active={active === "arquivos"}>
         <h2 style={h2}>📁 Arquivos-chave</h2>
         <p style={p}>Referencia rapida de onde ta cada coisa no codigo.</p>
+
+        <h3 style={h3}>📋 Templates e snapshots de LAUNCH (baixar)</h3>
+        <p style={p}>
+          Documentos markdown com todo o plano de campanha. Serve pra auditar, versionar,
+          ou colar em chat/email. 3 origens distintas:
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+          <DocDownloadRow
+            icon="📄"
+            title="Template virgem (launch-template.md)"
+            description="Estrutura padrão com 8 seções (produto, persona, arquitetura, budget, criativos, audiences, kill triggers, cronograma). Use como base pra LAUNCHes futuras (Sono, Jejum, Detox). Placeholders [MAIUSCULAS] pra preencher."
+            viewHref="/api/admin/docs/blueprints/launch-template.md"
+            downloadHref="/api/admin/docs/blueprints/launch-template.md?download=1"
+          />
+          <DocDownloadRow
+            icon="📚"
+            title="Exemplo preenchido (launch-001.md)"
+            description="LAUNCH-001 Longetividade Emagreca Sem Dieta documentada com tags [AGENTES CONFIRMARAM] / [INFERIDO DO CODIGO] / [LACUNA]. Compilado de 5 fontes (blueprint .ts DEPRECATED, launch-plan antigo, seed do banco, gaia-knowledge, landing /emagreca-sem-dieta). Snapshot estatico do dia 2026-04-20."
+            viewHref="/api/admin/docs/blueprints/launch-001.md"
+            downloadHref="/api/admin/docs/blueprints/launch-001.md?download=1"
+          />
+          <DocDownloadRow
+            icon="🔄"
+            title="Snapshot dinamico do blueprint atual (gerado on-demand)"
+            description="Markdown gerado em tempo real do estado atual do banco. Inclui metaIds pos-launch, ajustes feitos depois, status real das audiences/ad sets. Sempre refletido em relacao a /admin/campanhas/launch-blueprint. Use pra tirar 'foto' antes de mudar algo critico."
+            viewHref="/api/admin/campaigns/blueprint/LAUNCH-001/export"
+            downloadHref="/api/admin/campaigns/blueprint/LAUNCH-001/export?download=1"
+          />
+        </div>
+        <p style={{ ...p, fontSize: 12, fontStyle: "italic" }}>
+          💡 Dica: pra baixar snapshot de outra LAUNCH, troca <code>LAUNCH-001</code> na URL pro launchId desejado.
+          O botão &ldquo;📥 Exportar .md&rdquo; no <Link href="/admin/campanhas/launch-blueprint" style={{ color: "var(--accent)" }}>blueprint editor</Link> também serve pra baixar do blueprint selecionado.
+        </p>
+
+        <h3 style={h3}>📁 Onde ta cada coisa no codigo</h3>
 
         {[
           { section: "Agentes (personas)", files: [

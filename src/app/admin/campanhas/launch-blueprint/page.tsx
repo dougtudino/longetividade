@@ -795,6 +795,23 @@ export default function LaunchBlueprintPage() {
             >
               Ver dry-run
             </button>
+            <a
+              href={`/api/admin/campaigns/blueprint/${blueprint.launchId}/export?download=1`}
+              style={{
+                padding: "10px 18px",
+                background: "transparent",
+                color: "var(--text-muted)",
+                border: "0.5px solid var(--border-default)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                textDecoration: "none",
+                marginLeft: "auto",
+              }}
+              title="Baixa snapshot .md com todos os dados atuais do blueprint (inclui metaIds pós-launch)"
+            >
+              📥 Exportar .md
+            </a>
             <button
               onClick={duplicateBlueprint}
               disabled={duplicating || launching || preparing}
@@ -807,7 +824,6 @@ export default function LaunchBlueprintPage() {
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: "pointer",
-                marginLeft: "auto",
               }}
               title="Duplica esse blueprint como base pra nova LAUNCH (Sono, Jejum, etc)"
             >
