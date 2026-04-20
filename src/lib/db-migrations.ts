@@ -336,6 +336,73 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "SocialPost.slot index",
     sql: `CREATE INDEX IF NOT EXISTS "SocialPost_slot_idx" ON "SocialPost"("slot")`,
   },
+
+  // ─── Creative.archived (commit c04f479 — soft archive) ──
+  {
+    label: "Creative.archived column",
+    sql: `ALTER TABLE "Creative" ADD COLUMN IF NOT EXISTS "archived" BOOLEAN NOT NULL DEFAULT false`,
+  },
+  {
+    label: "Creative.archived index",
+    sql: `CREATE INDEX IF NOT EXISTS "Creative_archived_idx" ON "Creative"("archived")`,
+  },
+
+  // ─── AgentDecision.progressStatus (commit 7485242 — checklist tabs) ──
+  {
+    label: "AgentDecision.progressStatus column",
+    sql: `ALTER TABLE "AgentDecision" ADD COLUMN IF NOT EXISTS "progressStatus" TEXT NOT NULL DEFAULT 'proposed'`,
+  },
+  {
+    label: "AgentDecision.progressStatus index",
+    sql: `CREATE INDEX IF NOT EXISTS "AgentDecision_progressStatus_idx" ON "AgentDecision"("progressStatus")`,
+  },
+
+  // ─── DecisionChecklistItem (commit 7485242 — checklist DIAGNOSE_FUNNEL) ──
+  {
+    label: "DecisionChecklistItem table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "DecisionChecklistItem" (
+        "id" TEXT NOT NULL,
+        "decisionId" TEXT NOT NULL,
+        "orderIndex" INTEGER NOT NULL,
+        "title" TEXT NOT NULL,
+        "description" TEXT NOT NULL,
+        "assignedAgents" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "status" TEXT NOT NULL DEFAULT 'pending',
+        "approvedAt" TIMESTAMP(3),
+        "completedAt" TIMESTAMP(3),
+        "artifactPath" TEXT,
+        "metadata" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "DecisionChecklistItem_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "DecisionChecklistItem decisionId FK",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'DecisionChecklistItem_decisionId_fkey'
+        ) THEN
+          ALTER TABLE "DecisionChecklistItem"
+          ADD CONSTRAINT "DecisionChecklistItem_decisionId_fkey"
+          FOREIGN KEY ("decisionId") REFERENCES "AgentDecision"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "DecisionChecklistItem.decisionId index",
+    sql: `CREATE INDEX IF NOT EXISTS "DecisionChecklistItem_decisionId_idx" ON "DecisionChecklistItem"("decisionId")`,
+  },
+  {
+    label: "DecisionChecklistItem.status index",
+    sql: `CREATE INDEX IF NOT EXISTS "DecisionChecklistItem_status_idx" ON "DecisionChecklistItem"("status")`,
+  },
 ];
 
 export type MigrationResult = {
