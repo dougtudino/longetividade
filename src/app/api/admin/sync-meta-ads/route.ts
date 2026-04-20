@@ -40,7 +40,22 @@ export async function POST() {
   let upsertedCampaigns = 0;
   let upsertedMetrics = 0;
 
+  // Resolve mapping metaCampaignId → launchId pra promover sources
+  // corretamente. Se a campanha vinda do Meta tem LaunchBlueprint
+  // correspondente, marca source='blueprint' (nao 'synced'). Senao,
+  // 'synced' (campanha criada manualmente no Ads Manager fora do sistema).
+  const blueprints = await prisma.launchBlueprint.findMany({
+    where: { metaCampaignId: { in: result.campaigns.map((c) => c.id) } },
+    select: { metaCampaignId: true, launchId: true },
+  });
+  const blueprintByMetaId = new Map(
+    blueprints.map((b) => [b.metaCampaignId!, b.launchId])
+  );
+
   for (const c of result.campaigns) {
+    const launchId = blueprintByMetaId.get(c.id) ?? null;
+    const source = launchId ? "blueprint" : "synced";
+
     const local = await prisma.campaign.upsert({
       where: { metaCampaignId: c.id },
       update: {
@@ -49,6 +64,10 @@ export async function POST() {
         objective: mapObjective(c.objective),
         platform: "meta",
         lastSyncedAt: new Date(),
+        // Se tem launch correspondente, promove pra blueprint. Se nao,
+        // NAO sobrescreve source (preserva 'legacy' caso ja tenha sido
+        // criada via "+ Nova campanha" antiga e tambem aparece no Meta).
+        ...(launchId ? { source: "blueprint", launchId } : {}),
       },
       create: {
         name: c.name,
@@ -59,6 +78,8 @@ export async function POST() {
         startDate: new Date(),
         metaCampaignId: c.id,
         lastSyncedAt: new Date(),
+        source,
+        launchId,
       },
     });
     upsertedCampaigns += 1;
