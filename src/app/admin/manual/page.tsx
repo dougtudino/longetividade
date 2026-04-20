@@ -3,14 +3,26 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 
-type SectionId = "agentes" | "paginas" | "workflows" | "rotinas" | "glossario" | "arquivos";
+type SectionId =
+  | "quickstart"
+  | "capacidades"
+  | "planejar-aiox"
+  | "agentes"
+  | "paginas"
+  | "workflows"
+  | "rotinas"
+  | "glossario"
+  | "arquivos";
 
 const SECTIONS: Array<{ id: SectionId; label: string; icon: string }> = [
+  { id: "quickstart", label: "Quick Start", icon: "🚀" },
+  { id: "capacidades", label: "O que o sistema faz", icon: "💡" },
+  { id: "planejar-aiox", label: "Planejar via AIOX", icon: "🧠" },
   { id: "agentes", label: "Agentes AIOX", icon: "🤖" },
-  { id: "paginas", label: "Paginas do Admin", icon: "🗂" },
+  { id: "paginas", label: "Páginas do Admin", icon: "🗂" },
   { id: "workflows", label: "Workflows", icon: "🔀" },
   { id: "rotinas", label: "Rotinas & Cron", icon: "⏰" },
-  { id: "glossario", label: "Glossario", icon: "📖" },
+  { id: "glossario", label: "Glossário", icon: "📖" },
   { id: "arquivos", label: "Arquivos-chave", icon: "📁" },
 ];
 
@@ -46,6 +58,191 @@ const p: React.CSSProperties = {
 function Section({ active, children }: { active: boolean; children: ReactNode }) {
   if (!active) return null;
   return <div style={{ ...card, marginBottom: 20 }}>{children}</div>;
+}
+
+function CopyBox({
+  title,
+  text,
+  hint,
+  language,
+}: {
+  title?: string;
+  text: string;
+  hint?: string;
+  language?: "bash" | "prompt" | "markdown" | "text";
+}) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopied(false);
+    }
+  }
+  const accentColor =
+    language === "bash"
+      ? "#6B9E6B"
+      : language === "prompt"
+      ? "#9B72CF"
+      : language === "markdown"
+      ? "#4A90D9"
+      : "var(--text-muted)";
+  return (
+    <div style={{ marginBottom: 14 }}>
+      {title && (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
+          {language && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: `${accentColor}22`,
+                color: accentColor,
+                textTransform: "uppercase",
+                letterSpacing: "0.04em",
+              }}
+            >
+              {language}
+            </span>
+          )}
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+            }}
+          >
+            {title}
+          </div>
+        </div>
+      )}
+      <div
+        style={{
+          position: "relative",
+          padding: "12px 76px 12px 14px",
+          background: "var(--bg-secondary)",
+          border: "0.5px solid var(--border-default)",
+          borderRadius: 8,
+          fontSize: 12,
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          lineHeight: 1.6,
+          color: "var(--text-primary)",
+          whiteSpace: "pre-wrap",
+          overflowX: "auto",
+          wordBreak: "break-word",
+        }}
+      >
+        {text}
+        <button
+          onClick={copy}
+          style={{
+            position: "absolute",
+            top: 8,
+            right: 8,
+            padding: "5px 10px",
+            background: copied ? "#6B9E6B" : "var(--bg-card)",
+            color: copied ? "#fff" : "var(--text-secondary)",
+            border: "0.5px solid var(--border-default)",
+            borderRadius: 6,
+            fontSize: 10,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "system-ui, sans-serif",
+            whiteSpace: "nowrap",
+          }}
+          title="Copiar pro clipboard"
+        >
+          {copied ? "✓ copiado" : "📋 copiar"}
+        </button>
+      </div>
+      {hint && (
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--text-muted)",
+            marginTop: 6,
+            fontStyle: "italic",
+          }}
+        >
+          💡 {hint}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CapabilityItem({
+  icon,
+  title,
+  description,
+  pages,
+}: {
+  icon: string;
+  title: string;
+  description: string;
+  pages?: Array<{ href: string; label: string }>;
+}) {
+  return (
+    <div
+      style={{
+        padding: 14,
+        background: "var(--bg-secondary)",
+        borderRadius: 10,
+        marginBottom: 10,
+      }}
+    >
+      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+        <div style={{ fontSize: 22, lineHeight: 1.2, flexShrink: 0 }}>{icon}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "var(--text-primary)",
+              marginBottom: 4,
+            }}
+          >
+            {title}
+          </div>
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              lineHeight: 1.6,
+              marginBottom: pages && pages.length > 0 ? 8 : 0,
+            }}
+          >
+            {description}
+          </div>
+          {pages && pages.length > 0 && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {pages.map((pg) => (
+                <Link
+                  key={pg.href}
+                  href={pg.href}
+                  style={{
+                    fontSize: 11,
+                    padding: "3px 10px",
+                    borderRadius: 6,
+                    background: "var(--accent)",
+                    color: "#fff",
+                    textDecoration: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  {pg.label} →
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Agent({
@@ -170,7 +367,7 @@ function PageEntry({
 }
 
 export default function ManualPage() {
-  const [active, setActive] = useState<SectionId>("agentes");
+  const [active, setActive] = useState<SectionId>("quickstart");
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto" }}>
@@ -183,8 +380,8 @@ export default function ManualPage() {
           Manual do Sistema
         </h1>
         <p style={{ fontSize: 14, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>
-          Guia completo de agentes AIOX, paginas do admin, workflows, rotinas e glossario.
-          Atualizado em 2026-04-11.
+          Manual completo: quick start, capacidades, prompts pra invocar a equipe
+          AIOX, agentes, páginas, workflows, rotinas. Atualizado em 2026-04-20.
         </p>
       </div>
 
@@ -202,6 +399,7 @@ export default function ManualPage() {
         {SECTIONS.map((s) => (
           <button
             key={s.id}
+            id={`manual-nav-${s.id}`}
             onClick={() => setActive(s.id)}
             style={{
               padding: "8px 14px",
@@ -218,6 +416,397 @@ export default function ManualPage() {
           </button>
         ))}
       </div>
+
+      {/* ─── QUICK START ─────────────────────────────── */}
+      <Section active={active === "quickstart"}>
+        <h2 style={h2}>🚀 Quick Start</h2>
+        <p style={p}>
+          Bem-vindo ao Longetividade Admin. O sistema é controlado por uma equipe de
+          <strong> 12 agentes AIOX</strong> (cada um com responsabilidade exclusiva) + UIs
+          pra Doug e Barbara operarem. Escolhe por onde começar conforme seu objetivo:
+        </p>
+
+        <h3 style={h3}>🧭 &ldquo;É a primeira vez que entro — por onde começo?&rdquo;</h3>
+        <ol style={p as React.CSSProperties}>
+          <li>
+            Lê a seção <button onClick={() => { document.getElementById("manual-nav-capacidades")?.click(); }} style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", fontWeight: 600, padding: 0, textDecoration: "underline" }}>💡 O que o sistema faz</button> — overview em 1 página das 10 capacidades principais
+          </li>
+          <li>
+            Depois 🤖 Agentes — quem faz o que
+          </li>
+          <li>
+            Depois 🗂 Páginas — onde cada coisa acontece
+          </li>
+          <li>
+            Quando for operar: abre <Link href="/admin/dashboard" style={{ color: "var(--accent)" }}>Dashboard</Link> pra visão macro, <Link href="/admin/campanhas" style={{ color: "var(--accent)" }}>Campanhas</Link> pra Meta Ads, <Link href="/admin/social-media" style={{ color: "var(--accent)" }}>Social Media</Link> pra Luna
+          </li>
+        </ol>
+
+        <h3 style={h3}>🚀 &ldquo;Quero lançar uma campanha Meta agora&rdquo;</h3>
+        <p style={p}>
+          Vai direto no fluxo Blueprint. 10-20min se os criativos existem, 1-2h se precisa
+          gerar criativos do zero. Fluxo completo documentado em 🔀 Workflows → item 2.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          <Link href="/admin/campanhas/launch-blueprint" style={{ padding: "8px 14px", background: "#6B9E6B", color: "#fff", borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none" }}>
+            🗺 Abrir Blueprint Editor →
+          </Link>
+          <Link href="/admin/campanhas" style={{ padding: "8px 14px", background: "var(--bg-card)", color: "var(--text-primary)", borderRadius: 8, fontSize: 12, fontWeight: 700, textDecoration: "none", border: "0.5px solid var(--border-default)" }}>
+            📣 Ver painel Campanhas →
+          </Link>
+        </div>
+
+        <h3 style={h3}>🧠 &ldquo;Quero pedir pra equipe AIOX planejar uma LAUNCH nova&rdquo;</h3>
+        <p style={p}>
+          A equipe AIOX (Atlas, Morgan, Pax, Aria, Alex, Uma, Gaia, Dara, Dex, Quinn,
+          Gage, River) pode escrever o documento completo de uma LAUNCH antes do blueprint
+          — pesquisa de mercado, PRD, persona, stories, spec de criativos. Você invoca via
+          Claude Code ou aqui no próprio chat colando os prompts prontos.
+        </p>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
+          <button
+            onClick={() => { document.getElementById("manual-nav-planejar-aiox")?.click(); }}
+            style={{ padding: "8px 14px", background: "#9B72CF", color: "#fff", borderRadius: 8, fontSize: 12, fontWeight: 700, border: "none", cursor: "pointer" }}
+          >
+            🧠 Ver prompts da equipe AIOX →
+          </button>
+        </div>
+
+        <h3 style={h3}>📋 &ldquo;Quero consultar/editar templates markdown&rdquo;</h3>
+        <p style={p}>Templates vivem em <code>docs/blueprints/</code>:</p>
+        <ul style={p as React.CSSProperties}>
+          <li><code>launch-template.md</code> — estrutura padrão 8 seções pra qualquer produto novo</li>
+          <li><code>launch-001.md</code> — exemplo preenchido (Longetividade Emagreça Sem Dieta)</li>
+        </ul>
+        <p style={{ ...p, fontSize: 12 }}>
+          Copia o template, preenche, usa como input pra Morgan/Pax criarem PRD oficial,
+          depois seeda no banco via botão <em>Duplicar pra nova LAUNCH</em>.
+        </p>
+
+        <h3 style={h3}>🆘 &ldquo;Algo quebrou — o que fazer?&rdquo;</h3>
+        <ul style={p as React.CSSProperties}>
+          <li><strong>Erro P2022 (coluna não existe):</strong> schema divergiu. Vai em <Link href="/admin/criativos" style={{ color: "var(--accent)" }}>/admin/criativos</Link> e clica <em>⚡ Migrar schema</em></li>
+          <li><strong>Token Meta inválido:</strong> <Link href="/admin/configuracoes" style={{ color: "var(--accent)" }}>/admin/configuracoes#meta</Link> — regerar System User token (nunca expira)</li>
+          <li><strong>Página travou sem erro visível:</strong> geralmente localStorage cheio — Clear Site Data no DevTools</li>
+          <li><strong>Commits que fui fazer não subiram:</strong> Railway pode estar buildando, confere em railway.app</li>
+          <li><strong>Outros:</strong> aciona @qa Quinn pra diagnosticar (prompt na seção 🧠 Planejar via AIOX)</li>
+        </ul>
+      </Section>
+
+      {/* ─── CAPACIDADES ────────────────────────────── */}
+      <Section active={active === "capacidades"}>
+        <h2 style={h2}>💡 O que o sistema faz</h2>
+        <p style={p}>
+          Inventário das <strong>capacidades principais</strong> do Longetividade Admin. Cada item tem
+          o agente responsável e o link pra página onde acontece.
+        </p>
+
+        <CapabilityItem
+          icon="🗺"
+          title="Planejar e lançar campanhas Meta Ads end-to-end"
+          description="Blueprint editável no banco → preparar (check + fix automático) → lançar 1 clique. Cria Custom Audiences + Lookalike + Campanha + 5 Ad Sets + 16 Ads direto na Meta Marketing API, tudo PAUSED. Suporta múltiplas LAUNCHes (LAUNCH-001/002/003...). Gaia é a dona."
+          pages={[
+            { href: "/admin/campanhas/launch-blueprint", label: "Blueprint" },
+            { href: "/admin/campanhas", label: "Painel" },
+          ]}
+        />
+        <CapabilityItem
+          icon="🎨"
+          title="Gerar criativos de ad via IA (Uma + Quinn + Blotato)"
+          description="Uma consulta knowledge base (persona, playbook, learnings) → escolhe template Blotato + paleta + hook. Quinn valida Meta Ad Policy antes + depois. PNG gerado é uploadado automaticamente pra /adimages, metaImageHash já sai populado. Batch packs de 5 (carousel) ou 18 (campanha completa: 3 angles × 6 templates)."
+          pages={[{ href: "/admin/criativos", label: "Criativos" }]}
+        />
+        <CapabilityItem
+          icon="🌱"
+          title="Review automático de performance com decisões propostas"
+          description="Gaia analisa 7d de insights Meta → aplica regras (CTR < 0.8% = kill, ROAS >= 2 = scale, etc) → cria AgentDecision em status=proposed. Doug aprova via UI. Execução real via Meta API (pause/duplicate/budget change). Expande DIAGNOSE_FUNNEL em checklist acionável com agentes AIOX atribuídos."
+          pages={[{ href: "/admin/agents/gaia", label: "Gaia" }]}
+        />
+        <CapabilityItem
+          icon="📱"
+          title="Social media multi-slot (Luna)"
+          description="Luna gera 12 posts/semana (Seg-Sáb × 3 slots: FEED_AM + REEL + STORY). Hierarquia: commemorative > trend > bank. Consome trends via websearch + video-intelligence de competidores. Auto-posting via Blotato API (createVisual/Carousel/Slideshow). Grade harmônica, trial reels."
+          pages={[{ href: "/admin/social-media", label: "Social Media" }]}
+        />
+        <CapabilityItem
+          icon="🎬"
+          title="Video Intelligence — espionagem de competidores"
+          description="Cron sáb 20h BRT: Apify scrapa Instagram de competidores → Gemini 2.0 Flash analisa vídeos → Claude gera 3 conceitos Luna. Salva em VideoAnalysis + espelha em AgentKnowledge pra Luna usar nos posts da semana seguinte."
+          pages={[{ href: "/admin/video-intelligence", label: "Video Intel" }]}
+        />
+        <CapabilityItem
+          icon="💌"
+          title="Email + SMS via Brevo + WhatsApp"
+          description="Integração Brevo completa (templates, campanhas, listas, automações). Maya dispara relatório diário 8h BRT via cron externo. MCP Brevo disponível pra agentes interagirem com o CRM."
+          pages={[{ href: "/admin/email-marketing", label: "Email Marketing" }]}
+        />
+        <CapabilityItem
+          icon="📊"
+          title="Tracking qualidade 8+ via Pixel + CAPI"
+          description="Pixel standard events (PageView, ViewContent, Lead, InitiateCheckout, Purchase) + Conversions API com fbp/fbc/IP/UA/email hasheado. Lead quality score foi de 3.2 pra 8+. Dedup de Purchase via transaction_id."
+          pages={[{ href: "/admin/configuracoes", label: "Configurações" }]}
+        />
+        <CapabilityItem
+          icon="🛒"
+          title="Integração Hotmart completa"
+          description="Webhook de purchase atualiza Order + User + trigger de VIP access. Src param em todas URLs pra rastrear origem. Dashboard de vendas com filtros por plano/status/período."
+          pages={[
+            { href: "/admin/vendas", label: "Vendas" },
+            { href: "/admin/abandonos", label: "Abandonos" },
+          ]}
+        />
+        <CapabilityItem
+          icon="👥"
+          title="App VIP + onboarding + hábitos"
+          description="App completo pra mulheres VIP que compraram: onboarding, hábitos diários (água, movimento), progresso, escassez sales page embutida. DB local acompanha aderência."
+          pages={[{ href: "/admin/app-users", label: "App Users" }]}
+        />
+        <CapabilityItem
+          icon="🧠"
+          title="Chat Maya contextual no dashboard"
+          description="Maya lê contexto real do negócio (receita, vendas, VIP, pendências, últimas campanhas) e responde perguntas naturalmente. Claude Sonnet 4.6 via API. Pode disparar ações (envio de email, criar tarefa, etc)."
+          pages={[{ href: "/admin/dashboard", label: "Dashboard" }]}
+        />
+
+        <h3 style={h3}>Em Roadmap (ainda não entregue)</h3>
+        <ul style={p as React.CSSProperties}>
+          <li>Criar ads automaticamente pra collections novas (hoje só launch-001-pioneer tem mapeamento de copies)</li>
+          <li>Autopilot Gaia: execução de decisões sem aprovação manual</li>
+          <li>Dropdown de CreativeCollection no blueprint ad set (hoje é digitado manual)</li>
+          <li>Multi-produto: dashboard unificado Longetividade + Sono + Jejum</li>
+          <li>Advantage+ Shopping Campaigns</li>
+        </ul>
+      </Section>
+
+      {/* ─── PLANEJAR VIA AIOX ─────────────────────── */}
+      <Section active={active === "planejar-aiox"}>
+        <h2 style={h2}>🧠 Planejar via AIOX — Prompts copiáveis</h2>
+        <p style={p}>
+          Antes de clicar &ldquo;+ Seed LAUNCH&rdquo; no blueprint, a equipe AIOX pode produzir
+          o documento completo — pesquisa de mercado, PRD, persona, stories, spec de
+          criativos, blueprint de budget. Copia o prompt, cola numa sessão nova do Claude
+          Code (ou direto aqui) e roda. Cada agente tem seu comando específico.
+        </p>
+
+        <h3 style={h3}>📦 Pacote completo — planejar LAUNCH nova do zero</h3>
+        <p style={p}>
+          Prompt orquestrador que roda a equipe inteira em sequência: Alex pesquisa →
+          Morgan PRD → Pax valida → Uma cria spec de criativos → Gaia propõe budget/audiences.
+        </p>
+        <CopyBox
+          language="prompt"
+          title="Planejar LAUNCH completa via equipe AIOX"
+          text={`Sou Doug, fundador do Longetividade. Quero planejar uma nova LAUNCH com a equipe AIOX.
+
+PRODUTO: [nome do produto, ex: "Sono Profundo"]
+VERTICAL: [área, ex: "sono/saúde feminina 30-50"]
+PRECO_ALVO: R$ [valor, ex: "37"]
+HIPOTESE_PERSONA: [1 frase, ex: "mulheres que sofrem de insônia ou sono ruim há 6+ meses"]
+
+Rode a equipe AIOX em sequência, cada um entregando antes de passar pro próximo:
+
+1. @analyst Alex *research — pesquisa concorrência BR neste vertical, CPA benchmarks, risk de Meta Ad Policy, top 3 angles que performam. Salva em docs/research/[produto].md
+2. @pm Morgan *create-prd — PRD com problema, proposta, métricas de sucesso, escopo MVP. Salva em docs/prd/[produto].md
+3. @po Pax *validate-story-draft — valida PRD, aponta gaps
+4. @ux-design-expert Uma — spec de 6 criativos (3 feed + 2 story + 1 banner) matching os 3 angles (dor/prova/objecao/promessa/cta), validado pra Meta Ad Policy (sem números de peso, sem timeframes)
+5. @growth Gaia *blueprint — proposta de budget, 3 cold + 1 warm + 1 hot ad sets, audiences (5 pixel events + 1 lookalike), kill/scale rules
+6. Resumo final: um doc docs/blueprints/[produto].md seguindo o template launch-template.md, completo com as 8 seções
+
+Quero ver a entrega de cada agente antes de passar pro próximo. Se houver [LACUNA], me pergunta antes de preencher com assumption.`}
+          hint="Cola num chat Claude Code na raiz do projeto. Leva 15-30min pra rodar toda equipe."
+        />
+
+        <h3 style={h3}>🔬 Alex (analyst) — *research isolado</h3>
+        <CopyBox
+          language="prompt"
+          title="Pesquisa de mercado + concorrência"
+          text={`@analyst Alex *research
+
+TOPICO: [área a pesquisar, ex: "apps de sono feminino BR"]
+
+Entrega:
+1. Top 5 concorrentes (nome, proposta, preço, diferencial)
+2. CPA benchmark pra aquisição digital no BR (faixa esperada + excellent/good/warning/kill)
+3. CTR benchmark Feed IG/FB nessa vertical
+4. Top 3 angles que performam em ads (dor/prova/objecao/etc)
+5. Riscos Meta Ad Policy específicos desse vertical (sensitive content, health claims, etc)
+6. Learnings de LAUNCHes passadas do Longetividade que se aplicam
+
+Salva em docs/research/[topico].md. Cita fontes (URLs de quando possível).`}
+        />
+
+        <h3 style={h3}>📋 Morgan (PM) — *create-prd</h3>
+        <CopyBox
+          language="prompt"
+          title="Criar PRD para produto/feature nova"
+          text={`@pm Morgan *create-prd
+
+FEATURE_OU_PRODUTO: [nome]
+RESEARCH_INPUT: [link pro docs/research/X.md ou "rodar Alex antes"]
+
+Entrega PRD em docs/prd/[feature].md com:
+- Problema validado (data-driven, cite research)
+- Proposta (1 frase)
+- Success metrics (ex: CPA alvo, ROAS alvo, nº conversões/semana)
+- Escopo MVP (o que ENTRA — máximo 5 items) + O que fica FORA
+- Timeline estimado
+- Riscos principais + mitigações
+- Decisões estratégicas (não táticas) tomadas
+
+Quando terminar, passa pro @po Pax pra *validate-story-draft.`}
+        />
+
+        <h3 style={h3}>🎨 Uma (UX) — briefing de criativos</h3>
+        <CopyBox
+          language="prompt"
+          title="Spec de 6 criativos Meta-compliant"
+          text={`@ux-design-expert Uma
+
+PRD: [link docs/prd/X.md]
+PERSONA: [1 frase, ex: "mulher 30-45, insônia crônica, rotina intensa"]
+PRECO: R$ [valor]
+LANDING: [URL]
+
+Entrega briefing de 6 criativos seguindo convenção Meta:
+
+1. feed-dor (1080x1080) — identificação/dor, angle COPY-A
+2. feed-prova (1080x1080) — testemunho real, angle COPY-B
+3. feed-objecao (1080x1080) — quebra de "já tentei tudo", COPY-C
+4. story-stat (1080x1920) — prova social curta, COPY-B adaptada
+5. story-cta (1080x1920) — CTA direto com preço, COPY-D
+6. banner-display (1200x628) — Google Display
+
+Pra cada:
+- Copy A/B/C/D completa (headline, description, cta, primaryText)
+- Visual description (paleta, hierarquia, elementos)
+- Angles cobertos
+- Tags pra matching no launcher
+- Validação Meta Ad Policy (checklist sem números de peso, timeframes, before/after, etc)
+
+Salva em docs/criativos/[produto].md.`}
+        />
+
+        <h3 style={h3}>🌱 Gaia (growth) — *blueprint</h3>
+        <CopyBox
+          language="prompt"
+          title="Proposta de blueprint Meta Ads"
+          text={`@growth Gaia *blueprint
+
+PRODUTO: [nome]
+PRECO: R$ [valor]
+BUDGET_ALVO: R$ [/dia]
+PERSONA_PRIMARIA: [1 frase]
+PERSONA_SECUNDARIA: [opcional]
+
+Entrega blueprint completo seguindo docs/blueprints/launch-template.md com:
+
+1. Arquitetura cold/warm/hot (quantos ad sets por camada)
+2. Distribuição de budget por ad set com rationale
+3. Audiences: 5 website events (Purchase 180d, PageView 7d/30d, InitiateCheckout 30d, Lead 30d) + 1 lookalike 1% BR
+4. Targeting de cada ad set (idade, gênero, interesses Meta reais — não inventar IDs, marcar "buscar via Interest Search API")
+5. Exclusões (compradores + já em checkout)
+6. Cronograma day_1 vs day_5
+7. Kill triggers + scale rules aplicados (ROAS>=2 scale, CTR<0.8% kill, etc)
+8. Gate de volume pra ativar warm/hot
+
+Salva em docs/blueprints/[produto].md seguindo o template. Marca [LACUNA] se não souber.`}
+        />
+
+        <h3 style={h3}>💻 Dex (dev) — *develop</h3>
+        <CopyBox
+          language="prompt"
+          title="Implementar story técnica"
+          text={`@dev Dex *develop
+
+STORY: [link pra docs/stories/STORY-XXX.md]
+
+Protocolo:
+1. Read story + related files
+2. Atomic commits por subtask
+3. npx tsc --noEmit antes de commit
+4. Seguir padrões do CLAUDE.md do projeto
+5. Quando terminar, passa pro @qa Quinn *qa-gate`}
+        />
+
+        <h3 style={h3}>🛡 Quinn (QA) — *qa-gate</h3>
+        <CopyBox
+          language="prompt"
+          title="Validar quality gates pré-merge"
+          text={`@qa Quinn *qa-gate
+
+STORY: [link]
+
+Roda:
+- npx tsc --noEmit (typecheck)
+- npm run lint
+- npm run test (se aplicável)
+- npm run build (smoke)
+- Lê código modificado, aponta CONCERNS se tiver
+- Verdict: PASS | CONCERNS | FAIL
+
+Se FAIL, volta pra Dex. Se PASS, passa pro @devops Gage.`}
+        />
+
+        <h3 style={h3}>🚀 Gage (devops) — *push</h3>
+        <CopyBox
+          language="prompt"
+          title="Git push + PR (único agente autorizado)"
+          text={`@devops Gage *push
+
+Por constituição AIOX, você é o ÚNICO agente autorizado a fazer git push.
+
+- git add (arquivos específicos, NUNCA -A)
+- git commit -m "tipo(escopo): mensagem"
+  - Inclui Co-Authored-By do agente dev
+  - Nunca --no-verify
+- git push origin main (nunca force push em main)
+- Se branch diferente, *create-pr com título + body`}
+        />
+
+        <h3 style={h3}>🎯 Meta-prompt — abrir sessão focada</h3>
+        <p style={p}>
+          Pra iniciar uma sessão de trabalho no Claude Code focada em um objetivo específico:
+        </p>
+        <CopyBox
+          language="prompt"
+          title="Início de sessão focada"
+          text={`Projeto Longetividade, trabalhando no [OBJETIVO, ex: "lançar LAUNCH-002 Sono"].
+
+Estado atual relevante:
+- [1-3 bullets do que já existe, ex: "LAUNCH-001 Emagreça já em Meta com 16 ads em review"]
+- [branch/commit atual se importa]
+
+Quero:
+- [tarefa específica, ex: "criar blueprint LAUNCH-002 duplicando LAUNCH-001, substituir produto/landing/persona"]
+
+Restrições:
+- [ex: "budget mínimo pra validar ferramenta, escalo depois"]
+- [ex: "não mexer em Gaia/checklist nem no sistema de email"]
+
+Começar lendo memory/ + docs/blueprints/ pra contexto.`}
+          hint="Cola isso no primeiro prompt de uma sessão nova pra Claude pegar contexto. Substitui texto entre [colchetes]."
+        />
+
+        <h3 style={h3}>🆘 Diagnóstico — &ldquo;algo quebrou, o que fazer?&rdquo;</h3>
+        <CopyBox
+          language="prompt"
+          title="Diagnosticar erro em produção"
+          text={`@qa Quinn — diagnóstico urgente.
+
+ERRO VISTO: [cole o erro/screenshot exato]
+ONDE: [página ou endpoint, ex: "/admin/campanhas/launch-blueprint → botão Lançar"]
+QUANDO: [agora / depois de deploy XXX / recorrente]
+LOGS RAILWAY: [cola output dos logs]
+
+Protocolo:
+1. Identifica causa raiz (não sintoma)
+2. Propõe 2-3 caminhos de fix com tradeoffs
+3. Prioriza o menos destrutivo
+4. NÃO executa fix sem minha aprovação
+
+Se for P2022 (coluna não existe), a solução sempre foi ir em /admin/criativos e clicar "Migrar schema".`}
+        />
+      </Section>
 
       {/* ─── AGENTES ─────────────────────────────────── */}
       <Section active={active === "agentes"}>
@@ -426,9 +1015,15 @@ export default function ManualPage() {
         />
         <PageEntry
           href="/admin/campanhas"
-          title="Campanhas (abas: Campanhas, Mapa, Setup BM, Launch Plan)"
+          title="Campanhas (painel)"
           owner="Gaia (performance) + Doug/Barbara (CRUD)"
-          description="Dashboard Meta Ads em tempo real (filtros hoje/ontem/7d/30d), sugestao do dia, grid de campanhas do banco local, mapa visual, setup BM checklist, launch plan blueprint."
+          description="Painel principal de Meta Ads. Cards de Blueprints ativos no topo, guia 'Como lançar nova campanha' com 6 passos, dashboard Meta em tempo real (hoje/ontem/7d/30d), sugestão do dia da Maya, grid de campanhas locais. Tabs: Campanhas, Mapa 🗺, Blueprint 📋, Setup BM."
+        />
+        <PageEntry
+          href="/admin/campanhas/launch-blueprint"
+          title="🗺 Launch Blueprint (editor)"
+          owner="Gaia (engine) + Doug (editor)"
+          description="Documento mestre editável de cada LAUNCH (LAUNCH-001/002/003...). Schema no banco: LaunchBlueprint + LaunchAudience + LaunchAdSet. Mapa hierárquico visual da campanha (campaign → audiences → ad sets → ads previstos com creative + copy). Botões: 🔧 Preparar (auto-fix), 🚀 Lançar (idempotente, cria CAs+lookalike+campanha+5 ad sets+16 ads), Dry-run, Duplicar pra nova LAUNCH. Substitui o launcher antigo (launch-001.ts DEPRECATED)."
         />
         <PageEntry
           href="/admin/campanhas/setup-bm"
@@ -438,9 +1033,9 @@ export default function ManualPage() {
         />
         <PageEntry
           href="/admin/campanhas/launch-plan"
-          title="Launch Plan — Primeira Campanha"
-          owner="Gaia (blueprint + launcher)"
-          description="Blueprint LAUNCH-001 completo. Upload de 6 criativos via Marketing API + launch autonomo de campanha/ad sets/ads. Checklist 8 passos auto-marcado conforme o launcher tem sucesso."
+          title="Launch Plan (DEPRECATED — redirect)"
+          owner="(obsoleta)"
+          description="Página antiga com 8 passos manuais + launcher hardcoded. Substituída em 2026-04-20 pelo blueprint. Mantida como redirect (auto-redireciona em 3s) pra preservar bookmarks. Não use."
         />
         <PageEntry
           href="/admin/configuracoes"
@@ -468,15 +1063,57 @@ export default function ManualPage() {
         />
         <PageEntry
           href="/admin/agents/gaia"
-          title="Gaia Control"
+          title="🌱 Gaia Control"
           owner="Gaia"
-          description="Painel de controle da Gaia: stats (decisoes por status + knowledge), comandos (*review, *seed-knowledge), fila de decisoes aguardando aprovacao (approve+execute em 1-click), historico, knowledge base collapsible."
+          description="Painel de controle da Gaia: 4 tabs (Pendentes/Em progresso/Concluídas/Arquivadas), stats por status, comandos (*review, *seed-knowledge), fila de decisões aguardando aprovação (approve+execute em 1-click), histórico, knowledge base. DIAGNOSE_FUNNEL pode virar checklist acionável com agentes AIOX atribuídos (Sprint 2)."
+        />
+        <PageEntry
+          href="/admin/social-media"
+          title="🌙 Social Media (Luna)"
+          owner="Luna"
+          description="Geração e agendamento de 12 posts/semana (Seg-Sáb × 3 slots: FEED_AM + REEL + STORY). Hierarquia commemorative > trend > bank. Auto-posting via Blotato API. Suporta 'Criar a partir de URL' (TikTok/YouTube/Article/PDF → SocialPost)."
+        />
+        <PageEntry
+          href="/admin/video-intelligence"
+          title="🎬 Video Intelligence"
+          owner="(pipeline automático)"
+          description="Espionagem de competidores. Cron sáb 20h BRT: Apify scrapa Instagram → Gemini 2.0 Flash analisa vídeos → Claude gera 3 conceitos pra Luna usar. Resultados salvos em VideoAnalysis + AgentKnowledge."
+        />
+        <PageEntry
+          href="/admin/email-marketing"
+          title="💌 Email Marketing"
+          owner="Maya + Brevo"
+          description="Templates Brevo, campanhas, segmentos, automações. Maya envia relatório diário 8h BRT. MCP Brevo permite agentes interagirem com CRM."
+        />
+        <PageEntry
+          href="/admin/abandonos"
+          title="🛒 Abandonos de checkout"
+          owner="Doug"
+          description="Lista de InitiateCheckout sem Purchase. Permite re-engajar via email/WhatsApp/anúncio retargeting."
+        />
+        <PageEntry
+          href="/admin/app-users"
+          title="👥 App Users (VIP)"
+          owner="Doug + Maya"
+          description="Mulheres VIP (compraram). Acompanha onboarding, hábitos diários (água, movimento), aderência. Liberado pós-compra Hotmart."
+        />
+        <PageEntry
+          href="/admin/admins"
+          title="🔐 Admins"
+          owner="Doug"
+          description="Gestão de usuários admin (Doug, Barbara). Convite por email, controle de acesso."
         />
         <PageEntry
           href="/admin/ecossistema"
-          title="Ecossistema"
+          title="🌐 Ecossistema"
           owner="Doug"
-          description="Visao macro do ecossistema de produtos Longetividade e roadmap."
+          description="Visão macro do ecossistema de produtos Longetividade (Emagreça, Sono, Jejum, Detox, Movimento) e roadmap."
+        />
+        <PageEntry
+          href="/admin/manual"
+          title="📖 Manual (esta página)"
+          owner="Doug + Claude"
+          description="Manual completo do sistema. Atualizar conforme novas features são entregues. Quick start, capacidades, prompts AIOX, agentes, páginas, workflows, rotinas, glossário, arquivos-chave."
         />
       </Section>
 
