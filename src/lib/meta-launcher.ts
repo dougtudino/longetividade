@@ -260,6 +260,97 @@ export async function uploadAdImage(
 // Custom Audience
 // ─────────────────────────────────────────────────────────────────────
 
+// Cria Custom Audience filtrada por evento do pixel (PageView, Purchase,
+// InitiateCheckout, Lead, etc). retentionDays = janela em dias.
+export async function createEventCustomAudience(
+  creds: LauncherCreds,
+  name: string,
+  eventName: string,
+  retentionDays: number,
+  description: string
+): Promise<{ ok: true; id: string; existed: boolean } | LauncherError> {
+  const existing = await findCustomAudienceByName(creds, name);
+  if (existing) return { ok: true, id: existing, existed: true };
+
+  const rule = {
+    inclusions: {
+      operator: "or",
+      rules: [
+        {
+          event_sources: [{ id: creds.pixelId, type: "pixel" }],
+          retention_seconds: retentionDays * 24 * 60 * 60,
+          filter: {
+            operator: "and",
+            filters: [{ field: "event", operator: "eq", value: eventName }],
+          },
+        },
+      ],
+    },
+  };
+
+  const data = await postGraph<{ id: string }>(
+    `act_${creds.accountId}/customaudiences`,
+    creds.token,
+    {
+      name,
+      subtype: "WEBSITE",
+      description,
+      rule,
+      pixel_id: creds.pixelId,
+    }
+  );
+
+  if (isError(data) || !("id" in data)) {
+    return {
+      ok: false,
+      step: "createEventCustomAudience",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
+      raw: data,
+    };
+  }
+  return { ok: true, id: data.id, existed: false };
+}
+
+// Cria Lookalike. sourceAudienceId precisa existir E estar OPERATIONAL
+// (Meta retorna erro se source ainda esta "processing"). ratio 0.01 = 1%.
+export async function createLookalikeAudience(
+  creds: LauncherCreds,
+  name: string,
+  sourceAudienceId: string,
+  country: string,
+  ratio: number,
+  description: string
+): Promise<{ ok: true; id: string; existed: boolean } | LauncherError> {
+  const existing = await findCustomAudienceByName(creds, name);
+  if (existing) return { ok: true, id: existing, existed: true };
+
+  const data = await postGraph<{ id: string }>(
+    `act_${creds.accountId}/customaudiences`,
+    creds.token,
+    {
+      name,
+      subtype: "LOOKALIKE",
+      description,
+      origin_audience_id: sourceAudienceId,
+      lookalike_spec: JSON.stringify({
+        type: "similarity",
+        ratio,
+        country,
+      }),
+    }
+  );
+
+  if (isError(data) || !("id" in data)) {
+    return {
+      ok: false,
+      step: "createLookalikeAudience",
+      error: isError(data) ? extractErrorMessage(data.error) : "Sem ID retornado",
+      raw: data,
+    };
+  }
+  return { ok: true, id: data.id, existed: false };
+}
+
 export async function createWebsiteCustomAudience(
   creds: LauncherCreds,
   name: string,

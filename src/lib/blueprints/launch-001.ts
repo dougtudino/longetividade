@@ -1,3 +1,11 @@
+// @DEPRECATED (Sprint 3 — 2026-04-20)
+// Fonte de verdade migrada para o banco: model LaunchBlueprint
+// (prisma/schema.prisma) editavel em /admin/campanhas/launch-blueprint.
+// Novo launcher: src/lib/blueprint-launcher.ts.
+// Esse arquivo permanece apenas pra retrocompatibilidade com rotas antigas
+// /api/admin/campaigns/launch, /recreate-ads, /fix-ad. Nao adicionar
+// features novas aqui — editar via UI blueprint.
+//
 // Blueprint LAUNCH-001 — Campanha Meta Pioneira
 // Desenhada por @growth Gaia (council 2026-04-11)
 // Filosofia: start small, test aggressive, scale what works

@@ -403,6 +403,168 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "DecisionChecklistItem.status index",
     sql: `CREATE INDEX IF NOT EXISTS "DecisionChecklistItem_status_idx" ON "DecisionChecklistItem"("status")`,
   },
+
+  // ─── LaunchBlueprint (Sprint 3 — tela editavel) ──
+  {
+    label: "LaunchBlueprint table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "LaunchBlueprint" (
+        "id" TEXT NOT NULL,
+        "launchId" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'draft',
+        "productName" TEXT NOT NULL,
+        "productPriceBrl" INTEGER NOT NULL,
+        "productHotmartId" TEXT,
+        "landingUrl" TEXT NOT NULL,
+        "pixelId" TEXT NOT NULL,
+        "datasetName" TEXT NOT NULL,
+        "adAccountId" TEXT NOT NULL,
+        "businessManagerId" TEXT NOT NULL,
+        "campaignName" TEXT NOT NULL,
+        "campaignObjective" TEXT NOT NULL DEFAULT 'OUTCOME_SALES',
+        "budgetTotalBrl" INTEGER NOT NULL,
+        "advantageBudget" BOOLEAN NOT NULL DEFAULT false,
+        "metaCampaignId" TEXT,
+        "launchedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LaunchBlueprint_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "LaunchBlueprint launchId unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "LaunchBlueprint_launchId_key" ON "LaunchBlueprint"("launchId")`,
+  },
+  {
+    label: "LaunchBlueprint status index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchBlueprint_status_idx" ON "LaunchBlueprint"("status")`,
+  },
+  {
+    label: "LaunchBlueprint createdAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchBlueprint_createdAt_idx" ON "LaunchBlueprint"("createdAt")`,
+  },
+
+  // ─── LaunchAudience ──
+  {
+    label: "LaunchAudience table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "LaunchAudience" (
+        "id" TEXT NOT NULL,
+        "blueprintId" TEXT NOT NULL,
+        "orderIndex" INTEGER NOT NULL,
+        "audienceKey" TEXT NOT NULL,
+        "audienceType" TEXT NOT NULL,
+        "eventName" TEXT,
+        "retentionDays" INTEGER,
+        "lookalikeSourceKey" TEXT,
+        "lookalikeCountry" TEXT,
+        "lookalikeRatio" DOUBLE PRECISION,
+        "metaAudienceId" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'pending',
+        "statusMessage" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LaunchAudience_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "LaunchAudience FK blueprintId",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'LaunchAudience_blueprintId_fkey'
+        ) THEN
+          ALTER TABLE "LaunchAudience"
+          ADD CONSTRAINT "LaunchAudience_blueprintId_fkey"
+          FOREIGN KEY ("blueprintId") REFERENCES "LaunchBlueprint"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "LaunchAudience blueprintId+audienceKey unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "LaunchAudience_blueprintId_audienceKey_key" ON "LaunchAudience"("blueprintId", "audienceKey")`,
+  },
+  {
+    label: "LaunchAudience blueprintId index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchAudience_blueprintId_idx" ON "LaunchAudience"("blueprintId")`,
+  },
+  {
+    label: "LaunchAudience status index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchAudience_status_idx" ON "LaunchAudience"("status")`,
+  },
+
+  // ─── LaunchAdSet ──
+  {
+    label: "LaunchAdSet table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "LaunchAdSet" (
+        "id" TEXT NOT NULL,
+        "blueprintId" TEXT NOT NULL,
+        "orderIndex" INTEGER NOT NULL,
+        "adSetKey" TEXT NOT NULL,
+        "layer" TEXT NOT NULL,
+        "activateOn" TEXT NOT NULL,
+        "budgetDailyBrl" INTEGER NOT NULL,
+        "ageMin" INTEGER NOT NULL,
+        "ageMax" INTEGER NOT NULL,
+        "genders" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "countries" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "interests" JSONB,
+        "behaviors" JSONB,
+        "customAudienceKeys" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "excludedAudienceKeys" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "optimizationGoal" TEXT NOT NULL DEFAULT 'OFFSITE_CONVERSIONS',
+        "promotedObjectEvent" TEXT NOT NULL DEFAULT 'PURCHASE',
+        "creativesCollectionId" TEXT,
+        "creativesAngles" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "numAds" INTEGER NOT NULL,
+        "metaAdSetId" TEXT,
+        "status" TEXT NOT NULL DEFAULT 'pending',
+        "statusMessage" TEXT,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LaunchAdSet_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "LaunchAdSet FK blueprintId",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'LaunchAdSet_blueprintId_fkey'
+        ) THEN
+          ALTER TABLE "LaunchAdSet"
+          ADD CONSTRAINT "LaunchAdSet_blueprintId_fkey"
+          FOREIGN KEY ("blueprintId") REFERENCES "LaunchBlueprint"("id")
+          ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "LaunchAdSet blueprintId+adSetKey unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "LaunchAdSet_blueprintId_adSetKey_key" ON "LaunchAdSet"("blueprintId", "adSetKey")`,
+  },
+  {
+    label: "LaunchAdSet blueprintId index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchAdSet_blueprintId_idx" ON "LaunchAdSet"("blueprintId")`,
+  },
+  {
+    label: "LaunchAdSet layer index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchAdSet_layer_idx" ON "LaunchAdSet"("layer")`,
+  },
+  {
+    label: "LaunchAdSet status index",
+    sql: `CREATE INDEX IF NOT EXISTS "LaunchAdSet_status_idx" ON "LaunchAdSet"("status")`,
+  },
 ];
 
 export type MigrationResult = {
