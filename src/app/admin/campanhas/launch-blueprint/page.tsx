@@ -115,6 +115,19 @@ export default function LaunchBlueprintPage() {
   const [launching, setLaunching] = useState(false);
   const [launchResult, setLaunchResult] = useState<unknown>(null);
   const [dryRunResult, setDryRunResult] = useState<unknown>(null);
+  const [preparing, setPreparing] = useState(false);
+  const [prepareResult, setPrepareResult] = useState<{
+    ok: boolean;
+    ready: boolean;
+    checklist: Array<{
+      key: string;
+      label: string;
+      status: "ok" | "fixed" | "warning" | "error";
+      detail?: string;
+      actionUrl?: string;
+      actionLabel?: string;
+    }>;
+  } | null>(null);
 
   const loadList = useCallback(async () => {
     try {
@@ -242,6 +255,27 @@ export default function LaunchBlueprintPage() {
       setError((e as Error).message);
     } finally {
       setLaunching(false);
+    }
+  }
+
+  async function prepareForLaunch() {
+    if (!blueprint) return;
+    setPreparing(true);
+    setPrepareResult(null);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/campaigns/blueprint/${blueprint.launchId}/prepare`,
+        { method: "POST" }
+      );
+      const data = await res.json();
+      setPrepareResult(data);
+      if (!data.ok) setError(null); // warnings/errors ja aparecem no checklist
+      await loadBlueprint(blueprint.launchId);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setPreparing(false);
     }
   }
 
@@ -532,11 +566,122 @@ export default function LaunchBlueprintPage() {
             </div>
           )}
 
+          {/* Checklist de preparacao */}
+          {prepareResult && (
+            <div
+              style={{
+                ...cardStyle,
+                border: `0.5px solid ${
+                  prepareResult.ready
+                    ? "#6B9E6B"
+                    : prepareResult.ok
+                    ? "#D4A94B"
+                    : "#C4787A"
+                }`,
+                marginTop: 20,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                  marginBottom: 10,
+                }}
+              >
+                {prepareResult.ready
+                  ? "✅ Pronto pra lançar"
+                  : prepareResult.ok
+                  ? "⚠️ Pronto com warnings"
+                  : "❌ Precisa corrigir antes de lançar"}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {prepareResult.checklist.map((item) => {
+                  const icon =
+                    item.status === "ok"
+                      ? "✓"
+                      : item.status === "fixed"
+                      ? "🔧"
+                      : item.status === "warning"
+                      ? "⚠"
+                      : "✗";
+                  const color =
+                    item.status === "ok" || item.status === "fixed"
+                      ? "#6B9E6B"
+                      : item.status === "warning"
+                      ? "#D4A94B"
+                      : "#C4787A";
+                  return (
+                    <div
+                      key={item.key}
+                      style={{
+                        display: "flex",
+                        gap: 10,
+                        alignItems: "flex-start",
+                        padding: 10,
+                        background: "var(--bg-secondary)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    >
+                      <span style={{ color, fontSize: 14, fontWeight: 700, minWidth: 20 }}>
+                        {icon}
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                          {item.label}
+                        </div>
+                        {item.detail && (
+                          <div style={{ color: "var(--text-secondary)", marginTop: 2 }}>
+                            {item.detail}
+                          </div>
+                        )}
+                      </div>
+                      {item.actionUrl && item.actionLabel && (
+                        <a
+                          href={item.actionUrl}
+                          style={{
+                            padding: "4px 10px",
+                            background: color,
+                            color: "#fff",
+                            borderRadius: 6,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            textDecoration: "none",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.actionLabel} →
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Acoes finais */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}>
             <button
+              onClick={prepareForLaunch}
+              disabled={preparing || launching}
+              style={{
+                padding: "10px 18px",
+                background: "#4A90D9",
+                color: "#fff",
+                border: "none",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              {preparing ? "Verificando..." : "🔧 Preparar pra lançamento"}
+            </button>
+            <button
               onClick={launchNow}
-              disabled={launching}
+              disabled={launching || preparing}
               style={{
                 padding: "10px 18px",
                 background: "#6B9E6B",
@@ -552,7 +697,7 @@ export default function LaunchBlueprintPage() {
             </button>
             <button
               onClick={dryRun}
-              disabled={launching}
+              disabled={launching || preparing}
               style={{
                 padding: "10px 18px",
                 background: "var(--bg-card)",
