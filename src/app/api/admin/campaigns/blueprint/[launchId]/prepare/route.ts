@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
 import { getLauncherCreds, uploadAdImage } from "@/lib/meta-launcher";
+import { seedCopiesForCollection } from "@/lib/creative-copies-seed";
 
 // POST /api/admin/campaigns/blueprint/[launchId]/prepare
 //
@@ -185,35 +186,16 @@ export async function POST(
         detail: `Todos criativos tem pelo menos 1 copy`,
       });
     } else {
-      // Chama seed-copies interno
-      try {
-        const seedRes = await fetch(
-          new URL(
-            `/api/admin/creatives/collections/${slug}/seed-copies`,
-            req.url
-          ),
-          {
-            method: "POST",
-            headers: { cookie: req.headers.get("cookie") ?? "" },
-          }
-        );
-        const seedData = await seedRes.json();
-        checklist.push({
-          key: `copies:${slug}`,
-          label: `Copies (${slug})`,
-          status: seedData.ok ? "fixed" : "error",
-          detail: seedData.ok
-            ? `${seedData.count} copy(ies) seedadas`
-            : `Falha no seed: ${seedData.error}`,
-        });
-      } catch (e) {
-        checklist.push({
-          key: `copies:${slug}`,
-          label: `Copies (${slug})`,
-          status: "error",
-          detail: (e as Error).message,
-        });
-      }
+      // Chama logica direto (sem fetch loopback — nao funciona em serverless)
+      const seedResult = await seedCopiesForCollection(slug);
+      checklist.push({
+        key: `copies:${slug}`,
+        label: `Copies (${slug})`,
+        status: seedResult.ok ? "fixed" : "error",
+        detail: seedResult.ok
+          ? `${seedResult.count} copy(ies) seedadas`
+          : `Falha: ${seedResult.error}`,
+      });
     }
   }
 
