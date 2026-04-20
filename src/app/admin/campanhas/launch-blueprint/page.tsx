@@ -758,7 +758,32 @@ function AdSetCard({
 
           {/* Interesses */}
           <div>
-            <div style={labelStyle}>Interesses (chips removíveis)</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4, flexWrap: "wrap", gap: 6 }}>
+              <div style={labelStyle}>Interesses (chips removíveis)</div>
+              {interests.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (confirm(`Remover todos os ${interests.length} interesses do ${aset.adSetKey}?`)) {
+                      onSave({ interests: [] });
+                    }
+                  }}
+                  disabled={busy}
+                  style={{
+                    background: "transparent",
+                    border: "0.5px solid #C4787A",
+                    color: "#C4787A",
+                    cursor: "pointer",
+                    padding: "3px 10px",
+                    borderRadius: 6,
+                    fontSize: 11,
+                    fontWeight: 600,
+                  }}
+                >
+                  🗑 Limpar todos
+                </button>
+              )}
+            </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
               {interests.length === 0 && (
                 <span style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>
@@ -784,7 +809,24 @@ function AdSetCard({
                   <code style={{ fontSize: 10, color: "var(--text-muted)" }}>{i.id}</code>
                   <button
                     onClick={() => removeInterest(i.id)}
-                    style={{ background: "transparent", border: "none", color: "#C4787A", cursor: "pointer", fontSize: 12, padding: 0 }}
+                    disabled={busy}
+                    title={`Remover ${i.name}`}
+                    style={{
+                      background: "rgba(196,120,122,0.15)",
+                      border: "0.5px solid #C4787A",
+                      color: "#C4787A",
+                      cursor: "pointer",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      width: 22,
+                      height: 22,
+                      borderRadius: "50%",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: 0,
+                      lineHeight: 1,
+                    }}
                   >
                     ✕
                   </button>
