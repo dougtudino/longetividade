@@ -259,7 +259,7 @@ export default function EmagrecaSemDietaPage() {
     if (typeof window !== "undefined") {
       captureUTMs(new URLSearchParams(window.location.search));
     }
-    trackViewContent("Emagreca Sem Dieta", 37);
+    trackViewContent("Emagreca Sem Dieta V2", 37);
   }, []);
 
   return (
@@ -313,8 +313,8 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden px-6 pb-16 pt-32">
+      {/* HERO — V2: CTA acima da dobra, headline direto com número (21 dias), badge pill emerald */}
+      <section className="relative overflow-hidden px-6 pb-10 pt-20 md:pt-24 md:pb-14">
         <div className="pointer-events-none absolute inset-0" aria-hidden="true">
           <div
             className="absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
@@ -322,37 +322,30 @@ export default function EmagrecaSemDietaPage() {
           />
         </div>
         <div className="relative mx-auto max-w-5xl flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Texto — 60% */}
-          <div className="flex-1 text-center md:text-left">
-            <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
-              Para mulheres que já tentaram de tudo pra emagrecer e estão cansadas de se sentir culpadas
-            </p>
+          {/* Texto — 55% */}
+          <div className="flex-1 text-center md:text-left md:basis-[55%]">
             <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
+              className="mb-5 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+              style={{
+                backgroundColor: "var(--color-emerald-50)",
+                color: "var(--color-emerald-800)",
+              }}
             >
-              <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
-              <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
-                Mais de 12.400 mulheres já transformaram sua relação com a comida
-              </span>
+              12.400+ alunas · 4.9 ★ · 97% satisfação
             </div>
             <h1
-              className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
+              className="mb-5 text-3xl font-semibold leading-tight tracking-tight md:text-5xl"
               style={{ color: "var(--text-primary)" }}
             >
-              Você Não Precisa de Mais Uma Dieta.
-              <br />
-              <span style={{ color: "var(--accent)" }}>
-                Precisa de um Método que Funcione na Sua Vida Real.
-              </span>
+              Os 3 pilares que fazem mulheres 30+ emagrecerem em{" "}
+              <span style={{ color: "var(--accent)" }}>21 dias</span>.
             </h1>
             <p
-              className="mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
+              className="mb-7 max-w-xl text-base leading-relaxed md:text-lg"
               style={{ color: "var(--text-secondary)" }}
             >
-              Descubra o Método S.E.M — 3 pilares simples que estão ajudando mulheres ocupadas a
-              emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
-              plano prático de 7 dias com cardápio, lista de compras e checklist diário.
+              Sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Conheça o Método S.E.M
+              — o passo a passo que inclui plano de 7 dias, cardápio, lista de compras e checklist diário.
             </p>
             <div
               className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
@@ -370,8 +363,8 @@ export default function EmagrecaSemDietaPage() {
               <CTA ctaKey="hero-primary" mode="scroll" label="Quero começar agora" />
             </div>
           </div>
-          {/* Hero visual — mulher real + mockup celular */}
-          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px] relative">
+          {/* Hero visual — mulher real + mockup celular (45%) */}
+          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px] md:basis-[45%] relative">
             {/* Foto mulher — protagonista */}
             <Image
               src={resolveAsset("hero.woman", "/images/hero-woman2.png")}

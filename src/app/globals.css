@@ -15,6 +15,14 @@
   --color-gold: #D4A94B;
   --color-success: #6B9E6B;
 
+  /* Emerald palette — disponível via var(--color-emerald-*) quando o design system do prompt pedir */
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-500: #10b981;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+
   --font-heading: var(--font-playfair);
   --font-body: var(--font-nunito);
 }
@@ -115,4 +123,23 @@ html.neon .neon-text {
 }
 html.neon .neon-border {
   box-shadow: 0 0 12px rgba(255, 31, 143, 0.35), inset 0 0 12px rgba(255, 31, 143, 0.04);
+}
+
+/* ===== SOCIAL PROOF GALLERY — rotação CSS-only ===== */
+@keyframes sp-scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes sp-scroll-right {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+.sp-row:hover .sp-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-track {
+    animation: none !important;
+    transform: none !important;
+  }
 }
