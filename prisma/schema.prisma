@@ -369,10 +369,22 @@ model Campaign {
   notes           String?
   metaCampaignId  String?   @unique // ID da campanha no Meta (act_xxx/campaigns)
   lastSyncedAt    DateTime?
+  // source distingue origem da campanha pro admin filtrar:
+  // - blueprint: criada via launcher do LaunchBlueprint (sistema novo, oficial)
+  // - legacy: criada via UI antiga "+ Nova campanha" (DEPRECATED 2026-04-20)
+  // - synced: vinda do sync-meta-ads sem LaunchBlueprint correspondente
+  //   (campanha criada manualmente no Meta Ads Manager, fora do sistema)
+  source          String    @default("legacy")
+  // Liga campanha local ao LaunchBlueprint que a originou (apenas
+  // pra source=blueprint). Permite navegar Campaign -> Blueprint na UI.
+  launchId        String?   // ref LaunchBlueprint.launchId (string, nao FK)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   metrics         CampaignMetric[]
+
+  @@index([source])
+  @@index([launchId])
 }
 
 model CampaignMetric {

@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+// GET /api/admin/campaigns?scope=blueprint|all|legacy|synced
+// scope default = "blueprint" — admin oficial mostra apenas campanhas
+// criadas pelo sistema novo (LaunchBlueprint). Use scope=legacy pra
+// pagina /admin/campanhas/legacy oculta. scope=all pra debug.
+export async function GET(req: NextRequest) {
   try {
+    const scope = req.nextUrl.searchParams.get("scope") ?? "blueprint";
+    const where =
+      scope === "all"
+        ? {}
+        : scope === "legacy"
+        ? { source: "legacy" }
+        : scope === "synced"
+        ? { source: "synced" }
+        : { OR: [{ source: "blueprint" }, { launchId: { not: null } }] };
+
     const campaigns = await prisma.campaign.findMany({
+      where,
       include: { metrics: true },
       orderBy: { createdAt: "desc" },
     });
@@ -44,6 +59,12 @@ export async function GET() {
   }
 }
 
+/**
+ * @deprecated Sprint 8 (2026-04-20) — fluxo legado de criar campanha avulsa.
+ * Use POST /api/admin/campaigns/blueprint/seed (ou duplicate) + lancar via UI.
+ * Mantido pra retrocompat de eventuais consumidores externos. Campanhas
+ * criadas por aqui ficam source='legacy' e NAO aparecem em /admin/campanhas.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -63,6 +84,7 @@ export async function POST(request: NextRequest) {
         startDate: new Date(startDate),
         endDate: endDate ? new Date(endDate) : null,
         notes: notes || null,
+        source: "legacy",
       },
     });
 

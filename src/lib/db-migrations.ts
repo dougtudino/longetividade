@@ -565,6 +565,39 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "LaunchAdSet status index",
     sql: `CREATE INDEX IF NOT EXISTS "LaunchAdSet_status_idx" ON "LaunchAdSet"("status")`,
   },
+
+  // ─── Campaign.source + launchId (Sprint 8 — isolar admin do sistema novo) ──
+  {
+    label: "Campaign.source column",
+    sql: `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "source" TEXT NOT NULL DEFAULT 'legacy'`,
+  },
+  {
+    label: "Campaign.launchId column",
+    sql: `ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "launchId" TEXT`,
+  },
+  {
+    label: "Campaign.source index",
+    sql: `CREATE INDEX IF NOT EXISTS "Campaign_source_idx" ON "Campaign"("source")`,
+  },
+  {
+    label: "Campaign.launchId index",
+    sql: `CREATE INDEX IF NOT EXISTS "Campaign_launchId_idx" ON "Campaign"("launchId")`,
+  },
+  // Backfill: marca como 'blueprint' campanhas que tem metaCampaignId
+  // batendo com algum LaunchBlueprint.metaCampaignId. Roda 1x — depois
+  // o launcher novo ja popula direto.
+  {
+    label: "Campaign backfill source=blueprint via metaCampaignId match",
+    sql: `
+      UPDATE "Campaign" c
+      SET "source" = 'blueprint',
+          "launchId" = lb."launchId"
+      FROM "LaunchBlueprint" lb
+      WHERE c."metaCampaignId" IS NOT NULL
+        AND c."metaCampaignId" = lb."metaCampaignId"
+        AND c."source" = 'legacy'
+    `,
+  },
 ];
 
 export type MigrationResult = {
