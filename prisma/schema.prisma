@@ -683,3 +683,40 @@ model VideoAnalysis {
   @@index([views])
   @@index([createdAt])
 }
+
+// ─── LP Assets & Social Proof Gallery ───────────────────
+// LpAsset: slots fixos de imagem (1 imagem por chave) por LP.
+// Permite swap de foto sem redeploy. Fallback pro arquivo em /public/
+// se nenhum registro existir pra aquela (lpSlug, key).
+model LpAsset {
+  id        String   @id @default(uuid())
+  lpSlug    String   // "emagreca-sem-dieta" | "instagram" | etc.
+  key       String   // "hero.woman" | "hero.phone" | "avatar.ana" | "mockup.spread"
+  imageUrl  String   // URL pública no R2
+  alt       String   @default("")
+  width     Int?
+  height    Int?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@unique([lpSlug, key])
+  @@index([lpSlug])
+}
+
+// Galeria rotativa da LP: 3 linhas, múltiplos itens por linha.
+// kind: photo | whatsapp | testimonial
+model SocialProofItem {
+  id         String   @id @default(uuid())
+  lpSlug     String   // "emagreca-sem-dieta"
+  row        Int      // 1 | 2 | 3
+  imageUrl   String   // URL pública no R2
+  alt        String   @default("")
+  caption    String?
+  kind       String   @default("photo")
+  orderIndex Int      @default(0)
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([lpSlug, active, row, orderIndex])
+}

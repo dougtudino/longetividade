@@ -11,7 +11,11 @@ const ANCHOR_ITEMS = [
 
 export function PricingSection() {
   return (
-    <section id="pricing" className="py-12 md:py-20 scroll-mt-16" style={{backgroundColor: 'var(--bg-card)'}}>
+    <section
+      id="pricing"
+      className="pt-16 pb-12 md:pt-20 md:pb-20"
+      style={{ backgroundColor: "var(--bg-card)" }}
+    >
       <div className="mx-auto max-w-5xl px-4">
         <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-8" style={{color: 'var(--text-primary)'}}>
           Quanto vale transformar sua relacao com comida?

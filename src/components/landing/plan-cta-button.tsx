@@ -1,6 +1,6 @@
 "use client";
 
-import { trackInitiateCheckout } from "@/lib/tracking";
+import { fireCheckoutAndGo } from "@/lib/tracking";
 import { appendUTMs } from "@/lib/utm";
 
 interface PlanCTAButtonProps {
@@ -12,24 +12,32 @@ interface PlanCTAButtonProps {
   highlighted: boolean;
 }
 
+const CTA_KEY_MAP: Record<string, string> = {
+  basico: "pricing-basic",
+  completo: "pricing-complete",
+  vip: "pricing-vip",
+};
+
 export function PlanCTAButton({
-  planName,
+  planId,
   price,
   checkoutUrl,
   ctaLabel,
   highlighted,
 }: PlanCTAButtonProps) {
-  function handleClick() {
-    trackInitiateCheckout(`Metodo S.E.M — ${planName}`, price);
-  }
+  const ctaKey = CTA_KEY_MAP[planId] ?? `pricing-${planId}`;
 
-  // Anexa UTMs do localStorage ao link do Hotmart no momento do clique
-  const href = typeof window !== "undefined" ? appendUTMs(checkoutUrl) : checkoutUrl;
+  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    const href = appendUTMs(checkoutUrl);
+    fireCheckoutAndGo(href, { targetBlank: true, value: price });
+  }
 
   return (
     <a
-      href={href}
+      href={checkoutUrl}
       onClick={handleClick}
+      data-cta={ctaKey}
       target="_blank"
       rel="noopener noreferrer"
       className={`block w-full text-center font-body font-bold text-base py-3.5 rounded-xl transition-colors ${
