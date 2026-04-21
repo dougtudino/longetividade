@@ -1,6 +1,9 @@
 // src/scripts/migrate-lp-assets-to-r2.ts
 // Migra as imagens atuais de /public/images/ pro R2 e popula a tabela LpAsset.
-// Rodar: npx tsx src/scripts/migrate-lp-assets-to-r2.ts
+//
+// USAGE (importante: tsx NÃO carrega .env.local por default):
+//   npx tsx --env-file=.env.local src/scripts/migrate-lp-assets-to-r2.ts
+//   npx tsx --env-file=.env.local src/scripts/migrate-lp-assets-to-r2.ts --force  (força re-upload)
 //
 // Idempotente: se LpAsset já existe pra aquela (lpSlug, key), pula (a menos que --force).
 import { readFile } from "node:fs/promises";
