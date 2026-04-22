@@ -12,12 +12,20 @@ export type ProcessedImage = {
   bytes: number;
 };
 
+// Position aceita pela sharp pra cover crop:
+// - "attention" / "entropy" (auto detect)
+// - 9 posições fixas: centre + 4 edges + 4 corners
+export type CropPosition =
+  | "attention" | "entropy" | "centre"
+  | "top" | "bottom" | "left" | "right"
+  | "left top" | "right top" | "left bottom" | "right bottom";
+
 export type ProcessOptions = {
   // Se ambos informados, faz resize + crop cover pro aspecto exato.
   targetWidth?: number;
   targetHeight?: number;
   // Estratégia de posicionamento do crop (padrão: attention — detecta áreas de interesse).
-  position?: "attention" | "entropy" | "centre" | "top" | "bottom";
+  position?: CropPosition;
 };
 
 const DEFAULT_MAX_WIDTH = 1600;

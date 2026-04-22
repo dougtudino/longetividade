@@ -25,6 +25,18 @@ export async function POST(req: Request) {
   const targetWidth = targetWidthRaw > 0 ? targetWidthRaw : undefined;
   const targetHeight = targetHeightRaw > 0 ? targetHeightRaw : undefined;
 
+  // Posição do crop (foco). Aceita: attention (default — detecta rosto/interesse),
+  // entropy, centre, top, bottom, left, right, "left top", "right top", etc.
+  const positionRaw = (form.get("position") ?? "attention") as string;
+  const ALLOWED_POSITIONS = new Set([
+    "attention", "entropy", "centre",
+    "top", "bottom", "left", "right",
+    "left top", "right top", "left bottom", "right bottom",
+  ]);
+  const position = ALLOWED_POSITIONS.has(positionRaw)
+    ? (positionRaw as "attention" | "entropy" | "centre" | "top" | "bottom" | "left" | "right")
+    : "attention";
+
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "campo 'file' ausente" }, { status: 400 });
   }
@@ -43,7 +55,7 @@ export async function POST(req: Request) {
 
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const processed = await processImage(arrayBuffer, { targetWidth, targetHeight });
+    const processed = await processImage(arrayBuffer, { targetWidth, targetHeight, position });
     const key = makeAssetKey(folder, slug);
     const url = await uploadToR2({
       key,
