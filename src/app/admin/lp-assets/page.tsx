@@ -444,8 +444,7 @@ function SlotCard({
         </div>
       </div>
 
-      {/* Position selector — só faz sentido pra imagens que NÃO sejam avatares quadrados
-          (avatar 1:1 crop no centro quase sempre funciona). Deixo visível em todos pra UX consistente. */}
+      {/* Position selector — mostra preview da imagem atual com overlay 3x3 clicável */}
       <CropPositionSelector
         value={position}
         onChange={setPosition}
@@ -456,6 +455,7 @@ function SlotCard({
             ? "3/2"
             : "3/4"
         }
+        imageUrl={url}
       />
 
       <div style={{ display: "flex", gap: 6 }}>
@@ -518,12 +518,30 @@ function CropPositionSelector({
   value,
   onChange,
   aspectRatio,
+  imageUrl,
 }: {
   value: string;
   onChange: (v: string) => void;
   aspectRatio: string;
+  imageUrl: string;
 }) {
   const isAuto = value === "attention";
+
+  // Mapeia a posição pro objectPosition CSS (simula o crop cover no preview)
+  const cssObjectPosition: Record<string, string> = {
+    "left top": "0% 0%",
+    "top": "50% 0%",
+    "right top": "100% 0%",
+    "left": "0% 50%",
+    "centre": "50% 50%",
+    "right": "100% 50%",
+    "left bottom": "0% 100%",
+    "bottom": "50% 100%",
+    "right bottom": "100% 100%",
+    "attention": "50% 50%", // approx — sharp faz detection, aqui fica centro
+    "entropy": "50% 50%",
+  };
+
   return (
     <div>
       <div
@@ -567,27 +585,54 @@ function CropPositionSelector({
         </button>
       </div>
 
-      {/* Grid 3×3 visual — mantém aspect ratio do slot pra dar ideia real do corte */}
+      {/* Mini-mapa com imagem real + grid 3x3 sobreposto */}
       <div
         style={{
           position: "relative",
           width: "100%",
           aspectRatio,
-          maxHeight: 72,
+          maxHeight: 110,
           borderRadius: 6,
-          border: "1px dashed var(--border-default)",
-          background: "var(--shimmer)",
           overflow: "hidden",
+          border: "1px solid var(--border-default)",
+          background: "var(--shimmer)",
         }}
       >
+        {/* Imagem real do slot como background */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt="Preview do crop"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: cssObjectPosition[value] ?? "50% 50%",
+            transition: "object-position 0.25s ease",
+          }}
+        />
+
+        {/* Overlay escurecedor leve pra destacar os pontos */}
         <div
           style={{
             position: "absolute",
-            inset: 4,
+            inset: 0,
+            background: "rgba(0,0,0,0.15)",
+            pointerEvents: "none",
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Grid 3×3 sobreposto */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gridTemplateRows: "repeat(3, 1fr)",
-            gap: 2,
           }}
         >
           {CROP_POSITIONS.map((p) => {
@@ -599,35 +644,40 @@ function CropPositionSelector({
                 onClick={() => onChange(p.value)}
                 title={p.label}
                 style={{
-                  borderRadius: 3,
                   border: "none",
-                  background: selected
-                    ? "var(--accent)"
-                    : isAuto
-                    ? "transparent"
-                    : "rgba(255,255,255,0.03)",
+                  background: "transparent",
                   cursor: "pointer",
                   padding: 0,
-                  transition: "background 0.12s, transform 0.12s",
-                  transform: selected ? "scale(1)" : "scale(0.85)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  position: "relative",
+                  transition: "background 0.15s",
                 }}
                 onMouseEnter={(e) => {
-                  if (!selected) {
-                    e.currentTarget.style.background = "var(--accent-soft)";
-                    e.currentTarget.style.transform = "scale(1)";
-                  }
+                  e.currentTarget.style.background = "rgba(16, 185, 129, 0.25)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!selected) {
-                    e.currentTarget.style.background = isAuto ? "transparent" : "rgba(255,255,255,0.03)";
-                    e.currentTarget.style.transform = "scale(0.85)";
-                  }
+                  e.currentTarget.style.background = "transparent";
                 }}
               >
-                {selected && <span style={{ color: "white", fontSize: 10, fontWeight: 900 }}>●</span>}
+                {/* Círculo indicador */}
+                <span
+                  style={{
+                    display: "block",
+                    width: selected ? 18 : 10,
+                    height: selected ? 18 : 10,
+                    borderRadius: "50%",
+                    background: selected ? "var(--accent)" : "rgba(255,255,255,0.55)",
+                    border: selected
+                      ? "2px solid white"
+                      : "1.5px solid rgba(255,255,255,0.9)",
+                    boxShadow: selected
+                      ? "0 0 0 3px rgba(16,185,129,0.35), 0 2px 6px rgba(0,0,0,0.4)"
+                      : "0 1px 3px rgba(0,0,0,0.3)",
+                    transition: "all 0.15s",
+                  }}
+                />
               </button>
             );
           })}
@@ -641,7 +691,9 @@ function CropPositionSelector({
           fontStyle: "italic",
         }}
       >
-        {isAuto ? "Auto: detecta rosto/área interessante" : `Foco: ${CROP_POSITIONS.find((p) => p.value === value)?.label ?? "centro"}`}
+        {isAuto
+          ? "✨ Auto: detecta rosto/área interessante"
+          : `Foco: ${CROP_POSITIONS.find((p) => p.value === value)?.label ?? "centro"}`}
       </div>
     </div>
   );
