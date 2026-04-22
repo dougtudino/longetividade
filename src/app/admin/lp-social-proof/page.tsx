@@ -365,17 +365,17 @@ export default function SocialProofAdminPage() {
 /* ------------------------------------------------------------------ */
 /*  ContentGuide — sugestões de conteúdo pra galeria                   */
 /* ------------------------------------------------------------------ */
-// 3 blocos independentes na LP (em posições diferentes da página).
-// Use o kind correto no upload pra cada item cair no bloco certo.
+// A LP renderiza os 3 blocos baseado na LINHA (row 1/2/3) — você controla 100%.
+// O kind é metadata (não muda renderização). O que importa é em qual linha você cadastra.
 const GUIDE_ROWS = [
   {
     num: 1,
-    title: 'Bloco 1 — "Sem dieta. Na vida real."',
+    title: 'Linha 1 → Bloco "Sem dieta. Na vida real."',
     subtitle: "Lifestyle — logo abaixo do hero",
     emoji: "🌿",
     color: "rgba(212,169,75,0.12)",
     tone: "#d4a94b",
-    kindLabel: "lifestyle",
+    kindLabel: "use linha 1 no form → vira Bloco Lifestyle",
     ideas: [
       "5-6 imagens da MESMA personagem (idealmente a Barbara) em cenas lifestyle",
       "Sem pressa, sem pressão — tomando café olhando pela janela",
@@ -384,34 +384,16 @@ const GUIDE_ROWS = [
       "Rotina que cabe na vida — trabalhando/cuidando da casa",
       "Recomeçar sem começar do zero — caminhada leve",
     ],
-    tip: "Ideal: fotos consistentes da Barbara (mesma pessoa, várias cenas do dia). Captions curtas tipo 'Sem culpa no fim do dia.'",
+    tip: "Tudo que você cadastrar na Linha 1 aparece nesse bloco. Captions curtas tipo 'Sem culpa no fim do dia.'",
   },
   {
     num: 2,
-    title: 'Bloco 2 — "O que outras mulheres estão vivendo"',
-    subtitle: "Prova social — prints WhatsApp e depoimentos",
-    emoji: "💬",
-    color: "rgba(16,185,129,0.12)",
-    tone: "#34d399",
-    kindLabel: "whatsapp / testimonial",
-    ideas: [
-      "Print de conversa WhatsApp (aluna agradecendo)",
-      "Screenshot de story do Instagram marcando você",
-      "Print de DM com depoimento",
-      "Print de avaliação 5★ do Hotmart",
-      "Comentário em post no Instagram/Facebook",
-      "Print de depoimento em grupo (com consentimento)",
-    ],
-    tip: "Sempre peça permissão. Em conversa privada, censure nome/número com preto. Use kind=whatsapp pra chats e kind=testimonial pra reviews/posts.",
-  },
-  {
-    num: 3,
-    title: 'Bloco 3 — "Mudanças reais. Sem extremos."',
+    title: 'Linha 2 → Bloco "Mudanças reais. Sem extremos."',
     subtitle: "Transformação — lifestyle, não academia pesada",
     emoji: "✨",
     color: "rgba(99,153,34,0.14)",
     tone: "#639922",
-    kindLabel: "transformation",
+    kindLabel: "use linha 2 no form → vira Bloco Transformação",
     ideas: [
       "Aluna antes × agora (sutil, postura + expressão, não só corpo)",
       "Roupa que caiu melhor — foto com espelho",
@@ -421,6 +403,24 @@ const GUIDE_ROWS = [
       "Números sutis (medidas, manequim) em overlay discreto",
     ],
     tip: "⚠️ Evitar estética fitness/academia pesada. Foco em LEVEZA, não performance. Captions tipo '3 meses de método. Sem extremos.'",
+  },
+  {
+    num: 3,
+    title: 'Linha 3 → Bloco "O que outras mulheres estão vivendo"',
+    subtitle: "Prova social — prints WhatsApp e depoimentos",
+    emoji: "💬",
+    color: "rgba(16,185,129,0.12)",
+    tone: "#34d399",
+    kindLabel: "use linha 3 no form → vira Bloco Prova Social",
+    ideas: [
+      "Print de conversa WhatsApp (aluna agradecendo)",
+      "Screenshot de story do Instagram marcando você",
+      "Print de DM com depoimento",
+      "Print de avaliação 5★ do Hotmart",
+      "Comentário em post no Instagram/Facebook",
+      "Print de depoimento em grupo (com consentimento)",
+    ],
+    tip: "Sempre peça permissão. Em conversa privada, censure nome/número com preto. Use kind=whatsapp/testimonial só como metadata — o que define o bloco é a LINHA.",
   },
 ];
 

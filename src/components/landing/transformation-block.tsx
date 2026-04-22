@@ -1,7 +1,7 @@
 // Bloco "Mudanças reais. Sem extremos." — transformações (lifestyle, não academia).
 // Grid de imagens antes/depois sutis, postura + expressão.
-// Fetch /api/social-proof → filtra kind=transformation.
-// Se < 3 items, não renderiza.
+// Fetch /api/social-proof → filtra row === 2 (Doug organiza manualmente no admin).
+// Se < 3 items na linha 2, não renderiza.
 "use client";
 
 import Image from "next/image";
@@ -31,7 +31,7 @@ export function TransformationBlock() {
         if (!res.ok) return;
         const data = (await res.json()) as { items: ApiItem[] };
         if (!alive) return;
-        const filtered = data.items.filter((i) => i.kind === "transformation");
+        const filtered = data.items.filter((i) => i.row === 2);
         setItems(filtered.slice(0, MAX_ITEMS));
       } catch {
         /* ignora */

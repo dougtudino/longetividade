@@ -1,7 +1,7 @@
 // Bloco "O que outras mulheres estão vivendo" — prova social (WhatsApp + depoimentos).
 // Grid de prints WhatsApp e screenshots de depoimentos.
-// Fetch /api/social-proof → filtra kind IN (whatsapp, testimonial).
-// Se < 3 items, não renderiza.
+// Fetch /api/social-proof → filtra row === 3 (Doug organiza manualmente no admin).
+// Se < 3 items na linha 3, não renderiza.
 "use client";
 
 import Image from "next/image";
@@ -31,7 +31,7 @@ export function SocialProofBlock() {
         if (!res.ok) return;
         const data = (await res.json()) as { items: ApiItem[] };
         if (!alive) return;
-        const filtered = data.items.filter((i) => i.kind === "whatsapp" || i.kind === "testimonial");
+        const filtered = data.items.filter((i) => i.row === 3);
         setItems(filtered.slice(0, MAX_ITEMS));
       } catch {
         /* ignora */

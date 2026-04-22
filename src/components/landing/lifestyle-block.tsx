@@ -1,7 +1,7 @@
 // Bloco "Sem dieta. Na vida real." — posicionado logo abaixo do hero.
 // Grid estático de 6 imagens lifestyle (idealmente mesma personagem).
-// Fetch /api/social-proof → filtra kind IN (lifestyle, photo) — aceita legado `photo`.
-// Se < 3 items, não renderiza.
+// Fetch /api/social-proof → filtra row === 1 (Doug organiza manualmente no admin).
+// Se < 3 items na linha 1, não renderiza.
 "use client";
 
 import Image from "next/image";
@@ -41,7 +41,7 @@ export function LifestyleBlock() {
         if (!res.ok) return;
         const data = (await res.json()) as { items: ApiItem[] };
         if (!alive) return;
-        const filtered = data.items.filter((i) => i.kind === "lifestyle" || i.kind === "photo");
+        const filtered = data.items.filter((i) => i.row === 1);
         setItems(filtered.slice(0, MAX_ITEMS));
       } catch {
         /* fallback vai mostrar nada */
