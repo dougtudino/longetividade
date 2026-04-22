@@ -38,7 +38,11 @@ async function main() {
       const rawBuffer = await readFile(publicPath);
       console.log(`  ⇧ ${slot.key.padEnd(20)} — lendo ${publicPath} (${(rawBuffer.length / 1024).toFixed(0)}KB)`);
 
-      const processed = await processImage(rawBuffer);
+      // Passa targetWidth/targetHeight do slot pra pipeline aplicar crop cover consistente.
+      const processed = await processImage(rawBuffer, {
+        targetWidth: slot.targetWidth,
+        targetHeight: slot.targetHeight,
+      });
       const r2Key = makeAssetKey("lp-assets", `${LP_SLUG}-${slot.key.replace(/\./g, "-")}`);
       const url = await uploadToR2({
         key: r2Key,

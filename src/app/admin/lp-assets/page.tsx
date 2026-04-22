@@ -85,13 +85,18 @@ export default function LpAssetsPage() {
     void fetchAssets();
   }, [fetchAssets]);
 
-  async function handleUpload(slot: LpAssetSlot, file: File) {
+  async function handleUpload(slot: LpAssetSlot, file: File, position: string = "attention") {
     setBusyKey(slot.key);
     try {
       const form = new FormData();
       form.append("file", file);
       form.append("folder", "lp-assets");
       form.append("slug", `${lpSlug}-${slot.key.replace(/\./g, "-")}`);
+      // Dimensões do slot → pipeline sharp aplica resize + crop cover pro aspect exato.
+      form.append("targetWidth", String(slot.targetWidth));
+      form.append("targetHeight", String(slot.targetHeight));
+      // Posição do foco do crop (auto-attention ou uma das 9 posições fixas).
+      form.append("position", position);
       const upRes = await fetch("/api/admin/upload", { method: "POST", body: form });
       const upData = await upRes.json();
       if (!upRes.ok) throw new Error(upData.error ?? "upload falhou");
@@ -332,6 +337,20 @@ function Stat({
 /* ------------------------------------------------------------------ */
 /*  SlotCard                                                           */
 /* ------------------------------------------------------------------ */
+// As 9 posições de crop + Auto (attention). Cada ponto representa onde o foco
+// do crop vai cair quando a imagem for redimensionada pro aspect target.
+const CROP_POSITIONS: Array<{ value: string; label: string; coord: [number, number] }> = [
+  { value: "left top", label: "Topo esquerda", coord: [0, 0] },
+  { value: "top", label: "Topo centro", coord: [1, 0] },
+  { value: "right top", label: "Topo direita", coord: [2, 0] },
+  { value: "left", label: "Meio esquerda", coord: [0, 1] },
+  { value: "centre", label: "Centro", coord: [1, 1] },
+  { value: "right", label: "Meio direita", coord: [2, 1] },
+  { value: "left bottom", label: "Base esquerda", coord: [0, 2] },
+  { value: "bottom", label: "Base centro", coord: [1, 2] },
+  { value: "right bottom", label: "Base direita", coord: [2, 2] },
+];
+
 function SlotCard({
   slot,
   row,
@@ -342,11 +361,12 @@ function SlotCard({
   slot: LpAssetSlot;
   row: LpAssetRow | undefined;
   busy: boolean;
-  onUpload: (file: File) => void;
+  onUpload: (file: File, position?: string) => void;
   onReset: () => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [position, setPosition] = useState<string>("attention");
   const url = row?.imageUrl ?? slot.fallback;
   const isCustom = Boolean(row);
 
@@ -362,7 +382,7 @@ function SlotCard({
           e.preventDefault();
           setDragOver(false);
           const f = e.dataTransfer.files?.[0];
-          if (f) onUpload(f);
+          if (f) onUpload(f, position);
         }}
         style={{
           aspectRatio: slot.group === "avatar" ? "1/1" : slot.aspectHint?.startsWith("horizontal") ? "3/2" : "3/4",
@@ -419,10 +439,92 @@ function SlotCard({
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>
           {slot.label}
         </div>
-        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
-          {slot.aspectHint} · {slot.recommendedSize}
+
+        {/* Badge de tamanho ideal — destaque visual */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              padding: "3px 8px",
+              borderRadius: 5,
+              background: "var(--accent-soft)",
+              color: "var(--accent-text)",
+              fontFamily: "monospace",
+              letterSpacing: "0.02em",
+            }}
+            title="Tamanho ideal — suba nesse tamanho (ou maior) pra evitar qualquer crop"
+          >
+            📐 {slot.recommendedSize}
+          </span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+            {slot.aspectHint}
+          </span>
         </div>
+
+        {/* Dica expansível — só aparece se tiver uploadGuide */}
+        {slot.uploadGuide && (
+          <details style={{ marginTop: 6 }}>
+            <summary
+              style={{
+                cursor: "pointer",
+                listStyle: "none",
+                fontSize: 10,
+                color: "var(--accent)",
+                fontWeight: 600,
+                userSelect: "none",
+              }}
+            >
+              💡 Como deve ser a foto ideal
+            </summary>
+            <div
+              style={{
+                marginTop: 6,
+                padding: "8px 10px",
+                borderRadius: 6,
+                background: "var(--shimmer)",
+                border: "0.5px solid var(--border-subtle)",
+                fontSize: 11,
+                lineHeight: 1.55,
+                color: "var(--text-secondary)",
+              }}
+            >
+              {slot.uploadGuide}
+              {slot.minSize && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    paddingTop: 6,
+                    borderTop: "0.5px solid var(--border-subtle)",
+                    fontSize: 10,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <strong>Mínimo aceitável:</strong> {slot.minSize} · abaixo disso pode pixelar.
+                </div>
+              )}
+            </div>
+          </details>
+        )}
       </div>
+
+      {/* Position selector — mostra preview da imagem atual com overlay 3x3 clicável */}
+      <CropPositionSelector
+        value={position}
+        onChange={setPosition}
+        aspectRatio={
+          slot.group === "avatar"
+            ? "1/1"
+            : slot.aspectHint?.startsWith("horizontal")
+            ? "3/2"
+            : "3/4"
+        }
+        imageUrl={url}
+      />
+
       <div style={{ display: "flex", gap: 6 }}>
         <button
           onClick={() => ref.current?.click()}
@@ -440,7 +542,7 @@ function SlotCard({
             opacity: busy ? 0.6 : 1,
           }}
         >
-          {busy ? "Enviando…" : isCustom ? "Trocar" : "Upload"}
+          {busy ? "Enviando…" : isCustom ? "Trocar foto" : "Escolher foto"}
         </button>
         {isCustom && (
           <button
@@ -468,10 +570,198 @@ function SlotCard({
         style={{ display: "none" }}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onUpload(f);
+          if (f) onUpload(f, position);
           e.target.value = "";
         }}
       />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  CropPositionSelector — 3×3 grid de foco + botão Auto               */
+/* ------------------------------------------------------------------ */
+function CropPositionSelector({
+  value,
+  onChange,
+  aspectRatio,
+  imageUrl,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  aspectRatio: string;
+  imageUrl: string;
+}) {
+  const isAuto = value === "attention";
+
+  // Mapeia a posição pro objectPosition CSS (simula o crop cover no preview)
+  const cssObjectPosition: Record<string, string> = {
+    "left top": "0% 0%",
+    "top": "50% 0%",
+    "right top": "100% 0%",
+    "left": "0% 50%",
+    "centre": "50% 50%",
+    "right": "100% 50%",
+    "left bottom": "0% 100%",
+    "bottom": "50% 100%",
+    "right bottom": "100% 100%",
+    "attention": "50% 50%", // approx — sharp faz detection, aqui fica centro
+    "entropy": "50% 50%",
+  };
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 6,
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 10,
+            textTransform: "uppercase",
+            letterSpacing: "0.08em",
+            color: "var(--text-muted)",
+            fontWeight: 600,
+          }}
+        >
+          Foco do corte
+        </span>
+        <button
+          type="button"
+          onClick={() => onChange("attention")}
+          title="Detecta rosto / área de interesse automaticamente"
+          style={{
+            fontSize: 10,
+            padding: "3px 8px",
+            borderRadius: 4,
+            border: `1px solid ${isAuto ? "var(--accent)" : "var(--border-default)"}`,
+            background: isAuto ? "var(--accent)" : "transparent",
+            color: isAuto ? "white" : "var(--text-secondary)",
+            fontWeight: 700,
+            cursor: "pointer",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+          }}
+        >
+          ✨ Auto
+        </button>
+      </div>
+
+      {/* Mini-mapa com imagem real + grid 3x3 sobreposto */}
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio,
+          maxHeight: 110,
+          borderRadius: 6,
+          overflow: "hidden",
+          border: "1px solid var(--border-default)",
+          background: "var(--shimmer)",
+        }}
+      >
+        {/* Imagem real do slot como background */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={imageUrl}
+          alt="Preview do crop"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: cssObjectPosition[value] ?? "50% 50%",
+            transition: "object-position 0.25s ease",
+          }}
+        />
+
+        {/* Overlay escurecedor leve pra destacar os pontos */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.15)",
+            pointerEvents: "none",
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Grid 3×3 sobreposto */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateRows: "repeat(3, 1fr)",
+          }}
+        >
+          {CROP_POSITIONS.map((p) => {
+            const selected = value === p.value;
+            return (
+              <button
+                key={p.value}
+                type="button"
+                onClick={() => onChange(p.value)}
+                title={p.label}
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  cursor: "pointer",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  position: "relative",
+                  transition: "background 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(16, 185, 129, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                {/* Círculo indicador */}
+                <span
+                  style={{
+                    display: "block",
+                    width: selected ? 18 : 10,
+                    height: selected ? 18 : 10,
+                    borderRadius: "50%",
+                    background: selected ? "var(--accent)" : "rgba(255,255,255,0.55)",
+                    border: selected
+                      ? "2px solid white"
+                      : "1.5px solid rgba(255,255,255,0.9)",
+                    boxShadow: selected
+                      ? "0 0 0 3px rgba(16,185,129,0.35), 0 2px 6px rgba(0,0,0,0.4)"
+                      : "0 1px 3px rgba(0,0,0,0.3)",
+                    transition: "all 0.15s",
+                  }}
+                />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div
+        style={{
+          fontSize: 10,
+          color: "var(--text-muted)",
+          marginTop: 4,
+          fontStyle: "italic",
+        }}
+      >
+        {isAuto
+          ? "✨ Auto: detecta rosto/área interessante"
+          : `Foco: ${CROP_POSITIONS.find((p) => p.value === value)?.label ?? "centro"}`}
+      </div>
     </div>
   );
 }

@@ -20,10 +20,16 @@ interface SpItem {
   updatedAt: string;
 }
 
+// Kinds drivam em qual bloco da LP o item aparece:
+// - lifestyle/photo → bloco "Sem dieta. Na vida real." (após hero)
+// - whatsapp/testimonial → bloco "O que outras mulheres estão vivendo"
+// - transformation → bloco "Mudanças reais. Sem extremos."
 const KINDS: Array<{ value: SpItem["kind"]; label: string; emoji: string }> = [
-  { value: "photo", label: "Foto", emoji: "📷" },
-  { value: "whatsapp", label: "WhatsApp", emoji: "💬" },
-  { value: "testimonial", label: "Depoimento", emoji: "⭐" },
+  { value: "lifestyle", label: "Lifestyle (bloco 1)", emoji: "🌿" },
+  { value: "whatsapp", label: "WhatsApp (bloco 2)", emoji: "💬" },
+  { value: "testimonial", label: "Depoimento (bloco 2)", emoji: "⭐" },
+  { value: "transformation", label: "Transformação (bloco 3)", emoji: "✨" },
+  { value: "photo", label: "Foto genérica (legado → bloco 1)", emoji: "📷" },
 ];
 
 const LP_DEFAULT = "emagreca-sem-dieta";
@@ -196,8 +202,10 @@ export default function SocialProofAdminPage() {
           <span style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace" }}>/{lpSlug}</span>
         </div>
         <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: "6px 0 0 0", maxWidth: 700, lineHeight: 1.55 }}>
-          3 linhas rotativas exibidas logo abaixo do hero. A galeria só aparece pra quem acessa a LP
-          quando as 3 linhas tiverem <strong>{MIN_PER_ROW}+ itens ativos</strong> cada. Imagens são otimizadas (WebP + resize) e servidas via Cloudflare R2.
+          3 blocos independentes na LP pública, cada um consumindo uma linha específica do cadastro abaixo:
+          <strong> Linha 1 = Lifestyle</strong>, <strong>Linha 2 = Transformação</strong>,
+          <strong> Linha 3 = Prova social (WhatsApp)</strong>. Cada bloco aparece individualmente
+          quando tiver <strong>{MIN_PER_ROW}+ itens ativos</strong> na sua linha. Imagens otimizadas em WebP e servidas via Cloudflare R2.
         </p>
       </header>
 
@@ -212,9 +220,9 @@ export default function SocialProofAdminPage() {
       >
         <Stat label="Status" value={galleryVisible ? "✓ Visível na LP" : "⏸ Oculta"} hint={galleryVisible ? "3 linhas OK" : "alguma linha < 4 itens"} tone={galleryVisible ? "success" : "warn"} />
         <Stat label="Total de itens" value={items.length} hint={`${totalActive} ativos`} />
-        <Stat label="Linha 1" value={activeByRow[1]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[1] >= MIN_PER_ROW ? "success" : "warn"} />
-        <Stat label="Linha 2" value={activeByRow[2]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[2] >= MIN_PER_ROW ? "success" : "warn"} />
-        <Stat label="Linha 3" value={activeByRow[3]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[3] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L1 · Lifestyle 🌿" value={activeByRow[1]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[1] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L2 · Transformação ✨" value={activeByRow[2]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[2] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L3 · Prova social 💬" value={activeByRow[3]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[3] >= MIN_PER_ROW ? "success" : "warn"} />
       </div>
 
       {/* ─── Guia de conteúdo ─────────────────────────────── */}
@@ -256,7 +264,7 @@ export default function SocialProofAdminPage() {
                   margin: 0,
                 }}
               >
-                Linha {r}
+                {r === 1 ? "Linha 1 · 🌿 Lifestyle" : r === 2 ? "Linha 2 · ✨ Transformação" : "Linha 3 · 💬 Prova social"}
               </h2>
               <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                 {grouped[r].length} {grouped[r].length === 1 ? "item" : "itens"} ·{" "}
@@ -359,56 +367,62 @@ export default function SocialProofAdminPage() {
 /* ------------------------------------------------------------------ */
 /*  ContentGuide — sugestões de conteúdo pra galeria                   */
 /* ------------------------------------------------------------------ */
+// A LP renderiza os 3 blocos baseado na LINHA (row 1/2/3) — você controla 100%.
+// O kind é metadata (não muda renderização). O que importa é em qual linha você cadastra.
 const GUIDE_ROWS = [
   {
     num: 1,
-    title: "Linha 1 — Transformações",
-    subtitle: "Antes/depois + resultado",
-    emoji: "📷",
-    color: "rgba(16,185,129,0.12)",
-    tone: "#34d399",
+    title: 'Linha 1 → Bloco "Sem dieta. Na vida real."',
+    subtitle: "Lifestyle — logo abaixo do hero",
+    emoji: "🌿",
+    color: "rgba(212,169,75,0.12)",
+    tone: "#d4a94b",
+    kindLabel: "use linha 1 no form → vira Bloco Lifestyle",
     ideas: [
-      "Foto antes e depois lado a lado (mesmo ângulo, mesma roupa)",
-      "Silhueta / roupa que não cabia mais, agora cabe",
-      "Aluna sorrindo segurando foto antiga",
-      "Barriga antes × agora (perfil)",
-      "Número do manequim / medidas",
+      "5-6 imagens da MESMA personagem (idealmente a Barbara) em cenas lifestyle",
+      "Sem pressa, sem pressão — tomando café olhando pela janela",
+      "Comer bem sem culpa — montando o prato",
+      "Se olhar com leveza no espelho",
+      "Rotina que cabe na vida — trabalhando/cuidando da casa",
+      "Recomeçar sem começar do zero — caminhada leve",
     ],
-    tip: "Melhor formato: 4:5 vertical. Use caption curta tipo '-7kg em 21 dias'.",
+    tip: "Tudo que você cadastrar na Linha 1 aparece nesse bloco. Captions curtas tipo 'Sem culpa no fim do dia.'",
   },
   {
     num: 2,
-    title: "Linha 2 — Lifestyle & rotina",
-    subtitle: "A vida real aplicando o método",
-    emoji: "🥗",
-    color: "rgba(212,169,75,0.12)",
-    tone: "#d4a94b",
+    title: 'Linha 2 → Bloco "Mudanças reais. Sem extremos."',
+    subtitle: "Transformação — lifestyle, não academia pesada",
+    emoji: "✨",
+    color: "rgba(99,153,34,0.14)",
+    tone: "#639922",
+    kindLabel: "use linha 2 no form → vira Bloco Transformação",
     ideas: [
-      "Prato montado da aluna (almoço S.E.M)",
-      "Café da manhã prático",
-      "15 min de movimento em casa / caminhada",
-      "Selfie natural segurando o ebook ou o app",
-      "Lista de compras da semana impressa",
-      "Geladeira organizada pós-método",
+      "Aluna antes × agora (sutil, postura + expressão, não só corpo)",
+      "Roupa que caiu melhor — foto com espelho",
+      "Recomeço gradual — 3 momentos em sequência (semana 1/3/6)",
+      "Rotina nova — antes comia na rua, agora prepara em casa",
+      "Confiança recuperada — selfie expressão vs silhueta antiga",
+      "Números sutis (medidas, manequim) em overlay discreto",
     ],
-    tip: "Fotos autênticas de celular convertem mais que estúdio. Luz natural > filtro.",
+    tip: "⚠️ Evitar estética fitness/academia pesada. Foco em LEVEZA, não performance. Captions tipo '3 meses de método. Sem extremos.'",
   },
   {
     num: 3,
-    title: "Linha 3 — WhatsApp & Depoimentos",
-    subtitle: "Provas em forma de conversa",
+    title: 'Linha 3 → Bloco "O que outras mulheres estão vivendo"',
+    subtitle: "Prova social — prints WhatsApp e depoimentos",
     emoji: "💬",
     color: "rgba(16,185,129,0.12)",
     tone: "#34d399",
+    kindLabel: "use linha 3 no form → vira Bloco Prova Social",
     ideas: [
-      "Print de conversa de WhatsApp (aluna agradecendo)",
+      "Print de conversa WhatsApp (aluna agradecendo)",
       "Screenshot de story do Instagram marcando você",
       "Print de DM com depoimento",
       "Print de avaliação 5★ do Hotmart",
       "Comentário em post no Instagram/Facebook",
       "Print de depoimento em grupo (com consentimento)",
     ],
-    tip: "Sempre peça permissão antes. Se for conversa privada, censure nome/número com preto.",
+    tip: "Sempre peça permissão. Em conversa privada, censure nome/número com preto. Use kind=whatsapp/testimonial só como metadata — o que define o bloco é a LINHA.",
   },
 ];
 
@@ -721,9 +735,9 @@ function NewItemForm({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <Field label="Linha">
               <select value={row} onChange={(e) => setRow(Number(e.target.value) as 1 | 2 | 3)} style={selectStyle}>
-                <option value={1}>Linha 1 (topo — 40s, esquerda)</option>
-                <option value={2}>Linha 2 (meio — 55s, direita)</option>
-                <option value={3}>Linha 3 (base — 50s, esquerda)</option>
+                <option value={1}>Linha 1 — 🌿 Lifestyle (Bloco &quot;Sem dieta. Na vida real.&quot;)</option>
+                <option value={2}>Linha 2 — ✨ Transformação (Bloco &quot;Mudanças reais. Sem extremos.&quot;)</option>
+                <option value={3}>Linha 3 — 💬 Prova social (Bloco &quot;O que outras mulheres estão vivendo&quot;)</option>
               </select>
             </Field>
             <Field label="Tipo de conteúdo">

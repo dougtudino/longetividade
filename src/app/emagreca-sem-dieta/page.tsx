@@ -10,7 +10,10 @@ import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
 import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
 import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
 import { PricingSection } from "@/components/landing/pricing-section";
-import { SocialProofGallery } from "@/components/landing/social-proof-gallery";
+import { LifestyleBlock } from "@/components/landing/lifestyle-block";
+import { SocialProofBlock } from "@/components/landing/social-proof-block";
+import { TransformationBlock } from "@/components/landing/transformation-block";
+import { InlineCTA } from "@/components/landing/inline-cta";
 import { AutoraSection } from "@/components/landing/autora-section";
 import { MetodoComparativo } from "@/components/landing/metodo-comparativo";
 import { StickyBottomCTA } from "@/components/landing/sticky-bottom-cta";
@@ -313,109 +316,216 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden px-6 pb-16 pt-32">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div
-            className="absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-            style={{ backgroundColor: "var(--accent-soft)" }}
-          />
-        </div>
-        <div className="relative mx-auto max-w-5xl flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Texto — 60% */}
-          <div className="flex-1 text-center md:text-left">
-            <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
-              Para mulheres que já tentaram de tudo pra emagrecer e estão cansadas de se sentir culpadas
-            </p>
-            <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
-            >
-              <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
-              <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
-                Mais de 12.400 mulheres já transformaram sua relação com a comida
-              </span>
-            </div>
-            <h1
-              className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Você Não Precisa de Mais Uma Dieta.
-              <br />
-              <span style={{ color: "var(--accent)" }}>
-                Precisa de um Método que Funcione na Sua Vida Real.
-              </span>
-            </h1>
-            <p
-              className="mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Descubra o Método S.E.M — 3 pilares simples que estão ajudando mulheres ocupadas a
-              emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
-              plano prático de 7 dias com cardápio, lista de compras e checklist diário.
-            </p>
-            <div
-              className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
-            >
-              <p className="mb-2 text-center text-xs md:text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                Uma consulta com nutricionista custa R$ 200 a R$ 400. O método sai por:
-              </p>
-              <div className="mb-4 flex items-baseline justify-center gap-3 flex-wrap">
-                <span className="text-5xl font-black leading-none" style={{ color: "var(--text-primary)" }}>R$37</span>
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  ou 3x de R$ 12,33 sem juros
+      {/* HERO — full-width, 90vh, high-conversion */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--accent-soft) 100%)",
+        }}
+      >
+        {/* Glow decorativo bottom-left */}
+        <div
+          className="pointer-events-none absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full blur-3xl opacity-60"
+          style={{ background: "radial-gradient(circle, var(--accent-soft), transparent 70%)" }}
+          aria-hidden="true"
+        />
+
+        <div className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] lg:grid-cols-[1fr_1.2fr] md:min-h-[90vh]">
+          {/* ═══ LEFT — texto + CTA (desktop first, mobile second) ═══ */}
+          <div className="order-2 md:order-1 flex flex-col justify-center px-5 sm:px-8 md:px-10 lg:px-16 pt-8 pb-12 md:py-16">
+            <div className="max-w-[560px] mx-auto md:mx-0 w-full">
+              {/* Urgency pill — warm tone, premium */}
+              <div
+                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 mb-4 text-xs font-bold"
+                style={{
+                  background: "rgba(196, 120, 122, 0.12)",
+                  border: "1px solid rgba(196, 120, 122, 0.3)",
+                  color: "#C4787A",
+                }}
+              >
+                🔥 Oferta por tempo limitado — R$37
+              </div>
+
+              {/* Social proof pill — soft green */}
+              <div
+                className="block mb-6 text-xs font-semibold"
+              >
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1"
+                  style={{
+                    background: "var(--accent-soft)",
+                    color: "var(--accent-text)",
+                    boxShadow: "0 2px 8px -2px var(--accent-soft)",
+                  }}
+                >
+                  ✨ +12.400 mulheres transformadas
                 </span>
               </div>
-              <CTA ctaKey="hero-primary" mode="scroll" label="Quero começar agora" />
+
+              {/* Headline */}
+              <h1
+                className="mb-4 text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold leading-[1.04] tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Você não precisa de mais uma dieta.
+              </h1>
+
+              {/* Subheadline forte */}
+              <p
+                className="mb-5 text-lg md:text-xl leading-snug"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Você precisa de um <strong style={{ color: "var(--text-primary)" }}>método simples</strong> que funcione na sua vida real —{" "}
+                <span style={{ color: "var(--accent)", fontWeight: 600 }}>sem culpa, sem restrição e sem recomeçar toda segunda.</span>
+              </p>
+
+              {/* Subheadline curto (deliverables) */}
+              <p
+                className="mb-7 text-sm md:text-base font-semibold"
+                style={{ color: "var(--accent-text)" }}
+              >
+                Plano prático de 7 dias · lista de compras · rotina fácil de seguir
+              </p>
+
+              {/* Price block */}
+              <div className="mb-6">
+                <p className="text-sm mb-1" style={{ color: "var(--text-muted)" }}>
+                  De <span className="line-through">R$97</span> por apenas
+                </p>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span
+                    className="text-6xl md:text-7xl font-black leading-none tracking-tight"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    R$37
+                  </span>
+                  <span className="text-sm md:text-base" style={{ color: "var(--text-muted)" }}>
+                    ou 3x de R$ 12,33
+                  </span>
+                </div>
+              </div>
+
+              {/* CTA grande — direto scroll #pricing */}
+              <a
+                href="#pricing"
+                data-cta="hero-primary"
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl py-5 px-8 text-lg md:text-xl font-bold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
+                style={{
+                  background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
+                  boxShadow:
+                    "0 12px 40px -8px var(--accent-soft), 0 6px 16px -4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)",
+                }}
+              >
+                Quero começar sem dieta
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </a>
+
+              {/* Secondary proof */}
+              <div className="mt-5 flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-amber-400 text-base" aria-hidden="true">★★★★★</span>
+                  <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>4.9</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>avaliação real</span>
+                </div>
+                <div className="h-4 w-px" style={{ background: "var(--border-default)" }} />
+                <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>+12.400 alunas</span>
+                <div className="h-4 w-px" style={{ background: "var(--border-default)" }} />
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>🛡️ Garantia 7 dias</span>
+              </div>
             </div>
           </div>
-          {/* Hero visual — mulher real + mockup celular */}
-          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px] relative">
-            {/* Foto mulher — protagonista */}
+
+          {/* ═══ RIGHT — imagem dominante (desktop second, mobile first) ═══ */}
+          <div className="order-1 md:order-2 relative h-[60vh] min-h-[460px] md:h-auto md:min-h-[90vh]">
             <Image
               src={resolveAsset("hero.woman", "/images/hero-woman2.png")}
               alt="Mulher sorridente e saudável com suco verde — resultado do Método S.E.M"
-              width={420}
-              height={560}
-              className="w-full h-auto rounded-3xl object-cover"
-              style={{ boxShadow: "0 20px 60px rgba(122,158,126,0.3)" }}
+              fill
+              sizes="(min-width: 768px) 60vw, 100vw"
+              className="object-cover"
               priority
               unoptimized
+              style={{ objectPosition: "center 20%" }}
             />
-            {/* Mockup celular flutuante — canto inferior direito */}
-            <div className="absolute -bottom-6 -right-4 md:-right-8 w-[130px] md:w-[160px]">
-              <Image
-                src={resolveAsset("hero.phone", "/images/ebook-phone.jpg")}
-                alt="Ebook no celular"
-                width={160}
-                height={213}
-                className="w-full h-auto drop-shadow-2xl rounded-2xl"
-                unoptimized
-              />
-            </div>
-            {/* Social proof badge */}
+
+            {/* Overlay gradient leve na imagem pra legibilidade no mobile */}
             <div
-              className="absolute -bottom-3 left-4 flex items-center gap-3 rounded-2xl border px-4 py-2.5"
+              className="pointer-events-none absolute inset-0 md:hidden"
               style={{
-                backgroundColor: "var(--bg-card)",
-                borderColor: "var(--border-default)",
-                boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.15) 100%)",
+              }}
+              aria-hidden="true"
+            />
+
+            {/* Floating badge topo-direito: "-4kg em 21 dias" */}
+            <div
+              className="absolute top-20 md:top-24 right-4 md:right-8 rounded-full px-4 py-2 backdrop-blur-md z-10"
+              style={{
+                background: "rgba(255,255,255,0.92)",
+                boxShadow: "0 8px 28px -6px rgba(0,0,0,0.2), 0 3px 10px -2px rgba(0,0,0,0.08)",
               }}
             >
-              <div className="flex items-center gap-1">
-                <span className="text-amber-400 text-sm">★★★★★</span>
-                <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>4.9</span>
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+                -4kg em 21 dias
+              </span>
+            </div>
+
+            {/* Badge secundária bottom-left imagem: "Sem dieta. Sem culpa." */}
+            <div
+              className="absolute bottom-6 left-4 md:bottom-10 md:left-8 rounded-full px-4 py-2 backdrop-blur-md z-10"
+              style={{
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 8px 28px -6px rgba(0,0,0,0.2)",
+              }}
+            >
+              <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                ✨ Sem dieta. Sem culpa.
+              </span>
+            </div>
+
+            {/* Phone mockup overlap — bottom-right, premium */}
+            <div
+              className="absolute bottom-6 right-4 md:bottom-10 md:right-8 w-[120px] md:w-[150px] z-20"
+              style={{ transform: "rotate(-4deg)" }}
+            >
+              <div
+                className="relative rounded-[24px] p-[4px]"
+                style={{
+                  background: "linear-gradient(160deg, #1a1a1a, #2d2d2d 40%, #0f0f0f)",
+                  boxShadow:
+                    "0 24px 48px -10px rgba(0,0,0,0.5), 0 8px 18px -4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.12)",
+                }}
+              >
+                <div
+                  className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[38%] h-[3px] rounded-full z-10"
+                  style={{ background: "#0a0a0a" }}
+                  aria-hidden="true"
+                />
+                <Image
+                  src={resolveAsset("hero.phone", "/images/ebook-phone.jpg")}
+                  alt="Ebook Método S.E.M no celular"
+                  width={150}
+                  height={200}
+                  className="w-full h-auto rounded-[20px] object-cover block"
+                  unoptimized
+                />
+                <div
+                  className="pointer-events-none absolute inset-[4px] rounded-[20px]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 100%)",
+                  }}
+                  aria-hidden="true"
+                />
               </div>
-              <div className="h-4 w-px" style={{ backgroundColor: "var(--border-subtle)" }} />
-              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>12.400+ alunas</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* GALERIA ROTATIVA DE PROVA SOCIAL */}
-      <SocialProofGallery />
+      {/* BLOCO 1 — LIFESTYLE ("Sem dieta. Na vida real.") */}
+      <LifestyleBlock />
 
       {/* STATS */}
       <div className="border-y py-8" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--shimmer)" }}>
@@ -465,6 +575,7 @@ export default function EmagrecaSemDietaPage() {
               o método. Ou melhor — a falta de um método que funcione pra quem vive na vida real.
             </p>
           </div>
+          <InlineCTA ctaKey="emotional-primary" label="Quero sair desse ciclo" size="md" />
         </div>
       </section>
 
@@ -527,32 +638,82 @@ export default function EmagrecaSemDietaPage() {
               {
                 letra: "S",
                 nome: "Simplicidade",
-                desc: "Você vai aprender a montar refeições que ajudam a emagrecer sem pesar comida, sem contar caloria e sem eliminar nada do prato. Sem lista de proibido. Sem culpa. Comer de verdade, emagrecer de verdade.",
+                emoji: "🥗",
+                subtitle: "Na nutrição",
+                desc: "Refeições que ajudam a emagrecer sem pesar comida, sem contar caloria e sem eliminar nada do prato.",
+                bullets: [
+                  "Montar prato sem pesar",
+                  "Sem alimento proibido",
+                  "Cardápio 7 dias pronto",
+                ],
               },
               {
                 letra: "E",
                 nome: "Equilíbrio",
-                desc: "Este é o pilar que ninguém fala. Você vai entender por que come quando não tem fome, por que a ansiedade dispara a noite, e o que fazer de verdade quando isso acontece.",
+                emoji: "💛",
+                subtitle: "No emocional",
+                desc: "O pilar que ninguém fala. Por que come sem fome, por que a ansiedade dispara à noite — e o que fazer.",
+                bullets: [
+                  "Fome real × emocional",
+                  "Técnica de 3 minutos",
+                  "Sem força de vontade",
+                ],
               },
               {
                 letra: "M",
                 nome: "Movimento",
-                desc: "Esqueça academia. Aqui você vai aprender a integrar movimento no seu dia em 15 minutos, sem trocar de roupa, sem sair de casa. Movimento que queima gordura e melhora seu humor.",
+                emoji: "🌿",
+                subtitle: "Na rotina",
+                desc: "Movimento integrado ao dia em 15 minutos. Sem academia, sem sair de casa, sem trocar de roupa.",
+                bullets: [
+                  "15 min/dia em casa",
+                  "Queima mais que esteira",
+                  "Melhora o humor no ato",
+                ],
               },
             ].map((p) => (
               <div
                 key={p.letra}
-                className="flex flex-col gap-4 rounded-2xl border p-7"
-                style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
+                className="group flex flex-col gap-3 rounded-2xl border p-6 transition-all hover:-translate-y-1"
+                style={{
+                  borderColor: "var(--border-default)",
+                  background: "linear-gradient(155deg, var(--bg-card), var(--shimmer))",
+                  boxShadow: "0 4px 14px -4px rgba(0,0,0,0.08)",
+                }}
               >
-                <div
-                  className="flex h-16 w-16 items-center justify-center rounded-2xl text-4xl font-black text-white"
-                  style={{ backgroundColor: "var(--accent)" }}
-                >
-                  {p.letra}
+                <div className="flex items-start justify-between gap-3">
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl font-black text-white shadow-md transition-transform group-hover:scale-105"
+                    style={{
+                      background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
+                      boxShadow: "0 6px 16px -4px var(--accent-soft)",
+                    }}
+                  >
+                    {p.letra}
+                  </div>
+                  <div className="text-3xl opacity-80" aria-hidden="true">{p.emoji}</div>
                 </div>
-                <h3 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{p.nome}</h3>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
+                    {p.subtitle}
+                  </p>
+                  <h3 className="mt-0.5 text-xl font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                    {p.nome}
+                  </h3>
+                </div>
                 <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{p.desc}</p>
+                <ul className="mt-1 space-y-1.5 border-t pt-3" style={{ borderColor: "var(--border-subtle)" }}>
+                  {p.bullets.map((b) => (
+                    <li
+                      key={b}
+                      className="flex items-start gap-2 text-xs font-medium"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      <span className="flex-shrink-0 mt-0.5" style={{ color: "var(--accent)" }}>✓</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             ))}
           </div>
@@ -569,30 +730,67 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* O QUE VOCÊ VAI APRENDER */}
+      {/* O QUE VOCÊ VAI APRENDER — highlights + accordion */}
       <section className="py-20 px-6">
         <div className="mx-auto max-w-4xl">
           <div className="mb-10 text-center">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+              Conteúdo do ebook
+            </p>
             <h2 className="text-3xl font-bold" style={{ color: "var(--text-primary)" }}>
               Dentro do ebook, você vai descobrir:
             </h2>
           </div>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {bullets.map((section) => (
-              <div
-                key={section.cat}
-                className="rounded-2xl border p-6"
-                style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
-              >
-                <h3 className="mb-4 font-bold" style={{ color: "var(--accent-text)" }}>{section.cat}</h3>
-                <ul className="space-y-3">
-                  {section.items.map((item) => (
-                    <CheckItem key={item} text={item} />
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {bullets.map((section) => {
+              const highlights = section.items.slice(0, 2);
+              const rest = section.items.slice(2);
+              return (
+                <div
+                  key={section.cat}
+                  className="group rounded-2xl border p-6 transition-all hover:border-[var(--border-hover)]"
+                  style={{
+                    borderColor: "var(--border-default)",
+                    background: "linear-gradient(160deg, var(--bg-card), var(--shimmer))",
+                  }}
+                >
+                  <h3
+                    className="mb-4 flex items-center gap-2 text-base font-bold uppercase tracking-wider"
+                    style={{ color: "var(--accent-text)" }}
+                  >
+                    <span
+                      className="h-1 w-8 rounded-full"
+                      style={{ background: "var(--accent)" }}
+                      aria-hidden="true"
+                    />
+                    {section.cat}
+                  </h3>
+                  <ul className="space-y-3 mb-3">
+                    {highlights.map((item) => (
+                      <CheckItem key={item} text={item} />
+                    ))}
+                  </ul>
+                  {rest.length > 0 && (
+                    <details className="group/d">
+                      <summary
+                        className="cursor-pointer select-none text-xs font-semibold inline-flex items-center gap-1 transition-colors"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        <span>Ver mais {rest.length} {rest.length === 1 ? "tópico" : "tópicos"}</span>
+                        <span className="transition-transform group-open/d:rotate-180" aria-hidden="true">▾</span>
+                      </summary>
+                      <ul className="mt-3 space-y-3 pt-3 border-t" style={{ borderColor: "var(--border-subtle)" }}>
+                        {rest.map((item) => (
+                          <CheckItem key={item} text={item} />
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+                </div>
+              );
+            })}
           </div>
+          <InlineCTA ctaKey="pillars-primary" label="Quero aplicar o S.E.M" size="md" />
         </div>
       </section>
 
@@ -621,24 +819,73 @@ export default function EmagrecaSemDietaPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {bonuses.map((b) => (
+            {bonuses.map((b, idx) => (
               <div
                 key={b.titulo}
-                className="flex gap-4 rounded-2xl border p-5"
-                style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
+                className="group relative flex gap-4 rounded-2xl border p-5 transition-all hover:-translate-y-0.5"
+                style={{
+                  borderColor: "var(--border-default)",
+                  background: "linear-gradient(160deg, var(--bg-card), var(--shimmer))",
+                  boxShadow: "0 4px 14px -6px rgba(0,0,0,0.08)",
+                }}
               >
-                <div className="text-3xl">{b.icon}</div>
-                <div>
-                  <div className="mb-1 flex items-center gap-2">
-                    <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>{b.titulo}</h3>
-                    <span className="text-xs line-through" style={{ color: "var(--text-hint)" }}>{b.valor}</span>
-                    <span className="rounded-full px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-text)" }}>GRÁTIS</span>
+                {/* Badge "GRÁTIS" flutuante no canto */}
+                <div
+                  className="absolute -top-2 -right-2 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shadow-md"
+                  style={{
+                    background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
+                    color: "white",
+                  }}
+                >
+                  Grátis
+                </div>
+                {/* Ícone num círculo colorido */}
+                <div
+                  className="flex-shrink-0 flex h-14 w-14 items-center justify-center rounded-2xl text-3xl transition-transform group-hover:scale-105"
+                  style={{
+                    background: "var(--accent-soft)",
+                    border: "1px solid var(--border-subtle)",
+                  }}
+                >
+                  {b.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div>
+                      <p
+                        className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
+                        style={{ color: "var(--text-muted)" }}
+                      >
+                        Bônus {String(idx + 1).padStart(2, "0")}
+                      </p>
+                      <h3 className="font-bold leading-tight" style={{ color: "var(--text-primary)" }}>
+                        {b.titulo}
+                      </h3>
+                    </div>
                   </div>
-                  <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{b.desc}</p>
+                  <p className="text-sm leading-relaxed mb-2" style={{ color: "var(--text-secondary)" }}>
+                    {b.desc}
+                  </p>
+                  <div className="flex items-center gap-2 pt-2 border-t" style={{ borderColor: "var(--border-subtle)" }}>
+                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>Valor avulso:</span>
+                    <span
+                      className="text-sm font-bold line-through"
+                      style={{ color: "var(--text-hint)" }}
+                    >
+                      {b.valor}
+                    </span>
+                    <span
+                      className="ml-auto text-xs font-bold"
+                      style={{ color: "var(--accent)" }}
+                    >
+                      Você paga R$ 0
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+          <InlineCTA ctaKey="bonus-primary" label="Quero o método com todos os bônus" size="md" />
         </div>
       </section>
 
@@ -698,6 +945,9 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
+      {/* BLOCO 2 — PROVA SOCIAL ("O que outras mulheres estão vivendo") */}
+      <SocialProofBlock />
+
       {/* PARA QUEM É */}
       <section className="py-20 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
         <div className="mx-auto max-w-4xl">
@@ -741,10 +991,13 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* PRICING — 3 planos com checkout Hotmart */}
       {/* COMPARATIVO — Tradicional vs Método S.E.M */}
       <MetodoComparativo />
 
+      {/* BLOCO 3 — TRANSFORMAÇÃO ("Mudanças reais. Sem extremos.") */}
+      <TransformationBlock />
+
+      {/* PRICING — 3 planos com checkout Hotmart */}
       <PricingSection />
 
       {/* GARANTIA */}
