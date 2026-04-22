@@ -316,154 +316,209 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </nav>
 
-      {/* HERO */}
-      <section className="relative overflow-hidden px-6 pb-16 pt-32">
-        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-          <div
-            className="absolute left-1/2 top-1/4 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-            style={{ backgroundColor: "var(--accent-soft)" }}
-          />
-        </div>
-        <div className="relative mx-auto max-w-5xl flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Texto — 60% */}
-          <div className="flex-1 text-center md:text-left">
-            <p className="mb-4 text-sm italic" style={{ color: "var(--text-muted)" }}>
-              Para mulheres que já tentaram de tudo pra emagrecer e estão cansadas de se sentir culpadas
-            </p>
-            <div
-              className="mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}
-            >
-              <span className="inline-block h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: "var(--accent)" }} />
-              <span className="text-xs font-semibold" style={{ color: "var(--accent-text)" }}>
-                Mais de 12.400 mulheres já transformaram sua relação com a comida
-              </span>
-            </div>
-            <h1
-              className="mb-4 text-4xl font-bold leading-[1.08] tracking-tight md:text-5xl"
-              style={{ color: "var(--text-primary)" }}
-            >
-              Você não precisa de mais uma dieta.
-              <br />
-              <span style={{ color: "var(--accent)" }}>
-                Precisa de um método simples, em ebook, que funcione na sua vida real.
-              </span>
-            </h1>
-            <p
-              className="mb-4 text-sm md:text-base font-semibold"
-              style={{ color: "var(--accent-text)" }}
-            >
-              Plano prático de 7 dias · lista de compras · checklist diário
-            </p>
-            <p
-              className="mb-8 max-w-2xl text-base leading-relaxed md:text-lg"
-              style={{ color: "var(--text-secondary)" }}
-            >
-              Um ebook objetivo com o <strong style={{ color: "var(--text-primary)" }}>Método S.E.M</strong> —
-              3 pilares simples pra mulheres ocupadas emagrecerem sem cortar alimentos, sem academia e
-              sem culpa. Você lê em 1 hora e aplica no dia seguinte. Cabe na sua rotina, não ao contrário.
-            </p>
-            <div
-              className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
-              style={{ borderColor: "var(--border-default)", backgroundColor: "var(--bg-card)" }}
-            >
-              <p className="mb-2 text-center text-xs md:text-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                Uma consulta com nutricionista custa R$ 200 a R$ 400. O método sai por:
-              </p>
-              <div className="mb-4 flex items-baseline justify-center gap-3 flex-wrap">
-                <span className="text-5xl font-black leading-none" style={{ color: "var(--text-primary)" }}>R$37</span>
-                <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  ou 3x de R$ 12,33 sem juros
+      {/* HERO — full-width, 90vh, high-conversion */}
+      <section
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(135deg, var(--bg-primary) 0%, var(--accent-soft) 100%)",
+        }}
+      >
+        {/* Glow decorativo bottom-left */}
+        <div
+          className="pointer-events-none absolute -bottom-40 -left-40 h-[500px] w-[500px] rounded-full blur-3xl opacity-60"
+          style={{ background: "radial-gradient(circle, var(--accent-soft), transparent 70%)" }}
+          aria-hidden="true"
+        />
+
+        <div className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] lg:grid-cols-[1fr_1.2fr] md:min-h-[90vh]">
+          {/* ═══ LEFT — texto + CTA (desktop first, mobile second) ═══ */}
+          <div className="order-2 md:order-1 flex flex-col justify-center px-5 sm:px-8 md:px-10 lg:px-16 pt-8 pb-12 md:py-16">
+            <div className="max-w-[560px] mx-auto md:mx-0 w-full">
+              {/* Urgency pill — warm tone, premium */}
+              <div
+                className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 mb-4 text-xs font-bold"
+                style={{
+                  background: "rgba(196, 120, 122, 0.12)",
+                  border: "1px solid rgba(196, 120, 122, 0.3)",
+                  color: "#C4787A",
+                }}
+              >
+                🔥 Oferta por tempo limitado — R$37
+              </div>
+
+              {/* Social proof pill — soft green */}
+              <div
+                className="block mb-6 text-xs font-semibold"
+              >
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1"
+                  style={{
+                    background: "var(--accent-soft)",
+                    color: "var(--accent-text)",
+                    boxShadow: "0 2px 8px -2px var(--accent-soft)",
+                  }}
+                >
+                  ✨ +12.400 mulheres transformadas
                 </span>
               </div>
-              <CTA ctaKey="hero-primary" mode="scroll" label="Quero começar agora" />
+
+              {/* Headline */}
+              <h1
+                className="mb-4 text-4xl sm:text-5xl md:text-5xl lg:text-6xl font-bold leading-[1.04] tracking-tight"
+                style={{ color: "var(--text-primary)" }}
+              >
+                Você não precisa de mais uma dieta.
+              </h1>
+
+              {/* Subheadline forte */}
+              <p
+                className="mb-5 text-lg md:text-xl leading-snug"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Você precisa de um <strong style={{ color: "var(--text-primary)" }}>método simples</strong> que funcione na sua vida real —{" "}
+                <span style={{ color: "var(--accent)", fontWeight: 600 }}>sem culpa, sem restrição e sem recomeçar toda segunda.</span>
+              </p>
+
+              {/* Subheadline curto (deliverables) */}
+              <p
+                className="mb-7 text-sm md:text-base font-semibold"
+                style={{ color: "var(--accent-text)" }}
+              >
+                Plano prático de 7 dias · lista de compras · rotina fácil de seguir
+              </p>
+
+              {/* Price block */}
+              <div className="mb-6">
+                <p className="text-sm mb-1" style={{ color: "var(--text-muted)" }}>
+                  De <span className="line-through">R$97</span> por apenas
+                </p>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span
+                    className="text-6xl md:text-7xl font-black leading-none tracking-tight"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    R$37
+                  </span>
+                  <span className="text-sm md:text-base" style={{ color: "var(--text-muted)" }}>
+                    ou 3x de R$ 12,33
+                  </span>
+                </div>
+              </div>
+
+              {/* CTA grande — direto scroll #pricing */}
+              <a
+                href="#pricing"
+                data-cta="hero-primary"
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl py-5 px-8 text-lg md:text-xl font-bold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
+                style={{
+                  background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
+                  boxShadow:
+                    "0 12px 40px -8px var(--accent-soft), 0 6px 16px -4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)",
+                }}
+              >
+                Quero começar sem dieta
+                <span className="transition-transform group-hover:translate-x-1">→</span>
+              </a>
+
+              {/* Secondary proof */}
+              <div className="mt-5 flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-amber-400 text-base" aria-hidden="true">★★★★★</span>
+                  <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>4.9</span>
+                  <span className="text-xs" style={{ color: "var(--text-muted)" }}>avaliação real</span>
+                </div>
+                <div className="h-4 w-px" style={{ background: "var(--border-default)" }} />
+                <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>+12.400 alunas</span>
+                <div className="h-4 w-px" style={{ background: "var(--border-default)" }} />
+                <span className="text-xs" style={{ color: "var(--text-muted)" }}>🛡️ Garantia 7 dias</span>
+              </div>
             </div>
           </div>
-          {/* Hero visual — mulher real + mockup celular premium */}
-          <div className="flex-shrink-0 w-full max-w-[340px] md:max-w-[420px] relative md:basis-[45%]">
-            {/* Glow decorativo atrás da foto */}
+
+          {/* ═══ RIGHT — imagem dominante (desktop second, mobile first) ═══ */}
+          <div className="order-1 md:order-2 relative h-[60vh] min-h-[460px] md:h-auto md:min-h-[90vh]">
+            <Image
+              src={resolveAsset("hero.woman", "/images/hero-woman2.png")}
+              alt="Mulher sorridente e saudável com suco verde — resultado do Método S.E.M"
+              fill
+              sizes="(min-width: 768px) 60vw, 100vw"
+              className="object-cover"
+              priority
+              unoptimized
+              style={{ objectPosition: "center 20%" }}
+            />
+
+            {/* Overlay gradient leve na imagem pra legibilidade no mobile */}
             <div
-              className="pointer-events-none absolute -inset-4 rounded-[2rem] blur-2xl opacity-40"
-              style={{ background: "radial-gradient(circle, var(--accent-soft), transparent 70%)" }}
+              className="pointer-events-none absolute inset-0 md:hidden"
+              style={{
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.15) 100%)",
+              }}
               aria-hidden="true"
             />
 
-            {/* Foto mulher — protagonista, com framing sutil */}
+            {/* Floating badge topo-direito: "-4kg em 21 dias" */}
             <div
-              className="relative rounded-3xl overflow-hidden"
+              className="absolute top-20 md:top-24 right-4 md:right-8 rounded-full px-4 py-2 backdrop-blur-md z-10"
               style={{
-                padding: 4,
-                background: "linear-gradient(145deg, rgba(255,255,255,0.12), rgba(122,158,126,0.18))",
-                boxShadow: "0 25px 70px -10px rgba(122,158,126,0.45), 0 10px 30px -5px rgba(0,0,0,0.15)",
+                background: "rgba(255,255,255,0.92)",
+                boxShadow: "0 8px 28px -6px rgba(0,0,0,0.2), 0 3px 10px -2px rgba(0,0,0,0.08)",
               }}
             >
-              <Image
-                src={resolveAsset("hero.woman", "/images/hero-woman2.png")}
-                alt="Mulher sorridente e saudável com suco verde — resultado do Método S.E.M"
-                width={420}
-                height={560}
-                className="w-full h-auto rounded-[22px] object-cover block"
-                priority
-                unoptimized
-              />
+              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--accent)" }}>
+                -4kg em 21 dias
+              </span>
             </div>
 
-            {/* Mockup celular — simulado com bezel premium + reflexo sutil */}
+            {/* Badge secundária bottom-left imagem: "Sem dieta. Sem culpa." */}
             <div
-              className="absolute -bottom-8 -right-4 md:-right-10 w-[135px] md:w-[170px]"
+              className="absolute bottom-6 left-4 md:bottom-10 md:left-8 rounded-full px-4 py-2 backdrop-blur-md z-10"
               style={{
-                transform: "rotate(-3deg)",
+                background: "rgba(255,255,255,0.85)",
+                boxShadow: "0 8px 28px -6px rgba(0,0,0,0.2)",
               }}
             >
+              <span className="text-xs font-semibold" style={{ color: "var(--text-primary)" }}>
+                ✨ Sem dieta. Sem culpa.
+              </span>
+            </div>
+
+            {/* Phone mockup overlap — bottom-right, premium */}
+            <div
+              className="absolute bottom-6 right-4 md:bottom-10 md:right-8 w-[120px] md:w-[150px] z-20"
+              style={{ transform: "rotate(-4deg)" }}
+            >
               <div
-                className="relative rounded-[28px] p-[5px]"
+                className="relative rounded-[24px] p-[4px]"
                 style={{
                   background: "linear-gradient(160deg, #1a1a1a, #2d2d2d 40%, #0f0f0f)",
                   boxShadow:
-                    "0 20px 40px -8px rgba(0,0,0,0.45), 0 6px 14px -3px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12)",
+                    "0 24px 48px -10px rgba(0,0,0,0.5), 0 8px 18px -4px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.12)",
                 }}
               >
-                {/* Notch sutil no topo do celular */}
                 <div
-                  className="absolute top-[8px] left-1/2 -translate-x-1/2 w-[38%] h-[4px] rounded-full z-10"
+                  className="absolute top-[6px] left-1/2 -translate-x-1/2 w-[38%] h-[3px] rounded-full z-10"
                   style={{ background: "#0a0a0a" }}
                   aria-hidden="true"
                 />
                 <Image
                   src={resolveAsset("hero.phone", "/images/ebook-phone.jpg")}
                   alt="Ebook Método S.E.M no celular"
-                  width={160}
-                  height={213}
-                  className="w-full h-auto rounded-[22px] object-cover block"
+                  width={150}
+                  height={200}
+                  className="w-full h-auto rounded-[20px] object-cover block"
                   unoptimized
                 />
-                {/* Reflexo diagonal sutil sobre a tela */}
                 <div
-                  className="pointer-events-none absolute inset-[5px] rounded-[22px]"
+                  className="pointer-events-none absolute inset-[4px] rounded-[20px]"
                   style={{
                     background:
-                      "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 35%, rgba(255,255,255,0) 100%)",
+                      "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 40%, rgba(255,255,255,0) 100%)",
                   }}
                   aria-hidden="true"
                 />
               </div>
-            </div>
-
-            {/* Social proof badge — com depth extra */}
-            <div
-              className="absolute -bottom-4 left-4 flex items-center gap-3 rounded-2xl border px-4 py-2.5 backdrop-blur-sm"
-              style={{
-                backgroundColor: "var(--bg-card)",
-                borderColor: "var(--border-default)",
-                boxShadow: "0 12px 30px -6px rgba(0,0,0,0.18), 0 4px 10px -2px rgba(0,0,0,0.08)",
-              }}
-            >
-              <div className="flex items-center gap-1">
-                <span className="text-amber-400 text-sm" aria-hidden="true">★★★★★</span>
-                <span className="text-xs font-bold" style={{ color: "var(--text-primary)" }}>4.9</span>
-              </div>
-              <div className="h-4 w-px" style={{ backgroundColor: "var(--border-subtle)" }} />
-              <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>12.400+ alunas</span>
             </div>
           </div>
         </div>
