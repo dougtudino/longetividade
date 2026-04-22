@@ -439,9 +439,76 @@ function SlotCard({
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>
           {slot.label}
         </div>
-        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
-          {slot.aspectHint} · {slot.recommendedSize}
+
+        {/* Badge de tamanho ideal — destaque visual */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11,
+              fontWeight: 700,
+              padding: "3px 8px",
+              borderRadius: 5,
+              background: "var(--accent-soft)",
+              color: "var(--accent-text)",
+              fontFamily: "monospace",
+              letterSpacing: "0.02em",
+            }}
+            title="Tamanho ideal — suba nesse tamanho (ou maior) pra evitar qualquer crop"
+          >
+            📐 {slot.recommendedSize}
+          </span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
+            {slot.aspectHint}
+          </span>
         </div>
+
+        {/* Dica expansível — só aparece se tiver uploadGuide */}
+        {slot.uploadGuide && (
+          <details style={{ marginTop: 6 }}>
+            <summary
+              style={{
+                cursor: "pointer",
+                listStyle: "none",
+                fontSize: 10,
+                color: "var(--accent)",
+                fontWeight: 600,
+                userSelect: "none",
+              }}
+            >
+              💡 Como deve ser a foto ideal
+            </summary>
+            <div
+              style={{
+                marginTop: 6,
+                padding: "8px 10px",
+                borderRadius: 6,
+                background: "var(--shimmer)",
+                border: "0.5px solid var(--border-subtle)",
+                fontSize: 11,
+                lineHeight: 1.55,
+                color: "var(--text-secondary)",
+              }}
+            >
+              {slot.uploadGuide}
+              {slot.minSize && (
+                <div
+                  style={{
+                    marginTop: 6,
+                    paddingTop: 6,
+                    borderTop: "0.5px solid var(--border-subtle)",
+                    fontSize: 10,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  <strong>Mínimo aceitável:</strong> {slot.minSize} · abaixo disso pode pixelar.
+                </div>
+              )}
+            </div>
+          </details>
+        )}
       </div>
 
       {/* Position selector — mostra preview da imagem atual com overlay 3x3 clicável */}
