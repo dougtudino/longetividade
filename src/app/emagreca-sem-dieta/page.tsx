@@ -330,7 +330,7 @@ export default function EmagrecaSemDietaPage() {
           aria-hidden="true"
         />
 
-        <div className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] lg:grid-cols-[1fr_1.2fr] md:min-h-[90vh]">
+        <div className="relative grid grid-cols-1 md:grid-cols-[1fr_1.15fr] lg:grid-cols-[1fr_1.2fr] items-stretch">
           {/* ═══ LEFT — texto + CTA (desktop first, mobile second) ═══ */}
           <div className="order-2 md:order-1 flex flex-col justify-center px-5 sm:px-8 md:px-10 lg:px-16 pt-8 pb-12 md:py-16">
             <div className="max-w-[560px] mx-auto md:mx-0 w-full">
@@ -435,17 +435,20 @@ export default function EmagrecaSemDietaPage() {
             </div>
           </div>
 
-          {/* ═══ RIGHT — imagem dominante (desktop second, mobile first) ═══ */}
-          <div className="order-1 md:order-2 relative h-[60vh] min-h-[460px] md:h-auto md:min-h-[90vh]">
+          {/* ═══ RIGHT — imagem dominante (desktop second, mobile first) ═══
+              Container respeita o aspect 3:4 do slot hero.woman (1200×1600).
+              Sem forcar min-h-[90vh]: a imagem preenche o retangulo sem crop
+              porque container aspect = imagem aspect. */}
+          <div className="order-1 md:order-2 relative aspect-[3/4] w-full">
             <Image
               src={resolveAsset("hero.woman", "/images/hero-woman2.png")}
               alt="Mulher sorridente e saudável com suco verde — resultado do Método S.E.M"
               fill
-              sizes="(min-width: 768px) 60vw, 100vw"
+              sizes="(min-width: 768px) 55vw, 100vw"
               className="object-cover"
               priority
               unoptimized
-              style={{ objectPosition: "center 20%" }}
+              style={{ objectPosition: "center top" }}
             />
 
             {/* Overlay gradient leve na imagem pra legibilidade no mobile */}
