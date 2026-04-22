@@ -202,8 +202,10 @@ export default function SocialProofAdminPage() {
           <span style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "monospace" }}>/{lpSlug}</span>
         </div>
         <p style={{ color: "var(--text-secondary)", fontSize: 14, margin: "6px 0 0 0", maxWidth: 700, lineHeight: 1.55 }}>
-          3 linhas rotativas exibidas logo abaixo do hero. A galeria só aparece pra quem acessa a LP
-          quando as 3 linhas tiverem <strong>{MIN_PER_ROW}+ itens ativos</strong> cada. Imagens são otimizadas (WebP + resize) e servidas via Cloudflare R2.
+          3 blocos independentes na LP pública, cada um consumindo uma linha específica do cadastro abaixo:
+          <strong> Linha 1 = Lifestyle</strong>, <strong>Linha 2 = Transformação</strong>,
+          <strong> Linha 3 = Prova social (WhatsApp)</strong>. Cada bloco aparece individualmente
+          quando tiver <strong>{MIN_PER_ROW}+ itens ativos</strong> na sua linha. Imagens otimizadas em WebP e servidas via Cloudflare R2.
         </p>
       </header>
 
@@ -218,9 +220,9 @@ export default function SocialProofAdminPage() {
       >
         <Stat label="Status" value={galleryVisible ? "✓ Visível na LP" : "⏸ Oculta"} hint={galleryVisible ? "3 linhas OK" : "alguma linha < 4 itens"} tone={galleryVisible ? "success" : "warn"} />
         <Stat label="Total de itens" value={items.length} hint={`${totalActive} ativos`} />
-        <Stat label="Linha 1" value={activeByRow[1]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[1] >= MIN_PER_ROW ? "success" : "warn"} />
-        <Stat label="Linha 2" value={activeByRow[2]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[2] >= MIN_PER_ROW ? "success" : "warn"} />
-        <Stat label="Linha 3" value={activeByRow[3]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[3] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L1 · Lifestyle 🌿" value={activeByRow[1]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[1] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L2 · Transformação ✨" value={activeByRow[2]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[2] >= MIN_PER_ROW ? "success" : "warn"} />
+        <Stat label="L3 · Prova social 💬" value={activeByRow[3]} hint={`${MIN_PER_ROW}+ ideal`} tone={activeByRow[3] >= MIN_PER_ROW ? "success" : "warn"} />
       </div>
 
       {/* ─── Guia de conteúdo ─────────────────────────────── */}
@@ -262,7 +264,7 @@ export default function SocialProofAdminPage() {
                   margin: 0,
                 }}
               >
-                Linha {r}
+                {r === 1 ? "Linha 1 · 🌿 Lifestyle" : r === 2 ? "Linha 2 · ✨ Transformação" : "Linha 3 · 💬 Prova social"}
               </h2>
               <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                 {grouped[r].length} {grouped[r].length === 1 ? "item" : "itens"} ·{" "}
@@ -733,9 +735,9 @@ function NewItemForm({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <Field label="Linha">
               <select value={row} onChange={(e) => setRow(Number(e.target.value) as 1 | 2 | 3)} style={selectStyle}>
-                <option value={1}>Linha 1 (topo — 40s, esquerda)</option>
-                <option value={2}>Linha 2 (meio — 55s, direita)</option>
-                <option value={3}>Linha 3 (base — 50s, esquerda)</option>
+                <option value={1}>Linha 1 — 🌿 Lifestyle (Bloco &quot;Sem dieta. Na vida real.&quot;)</option>
+                <option value={2}>Linha 2 — ✨ Transformação (Bloco &quot;Mudanças reais. Sem extremos.&quot;)</option>
+                <option value={3}>Linha 3 — 💬 Prova social (Bloco &quot;O que outras mulheres estão vivendo&quot;)</option>
               </select>
             </Field>
             <Field label="Tipo de conteúdo">
