@@ -20,10 +20,16 @@ interface SpItem {
   updatedAt: string;
 }
 
+// Kinds drivam em qual bloco da LP o item aparece:
+// - lifestyle/photo → bloco "Sem dieta. Na vida real." (após hero)
+// - whatsapp/testimonial → bloco "O que outras mulheres estão vivendo"
+// - transformation → bloco "Mudanças reais. Sem extremos."
 const KINDS: Array<{ value: SpItem["kind"]; label: string; emoji: string }> = [
-  { value: "photo", label: "Foto", emoji: "📷" },
-  { value: "whatsapp", label: "WhatsApp", emoji: "💬" },
-  { value: "testimonial", label: "Depoimento", emoji: "⭐" },
+  { value: "lifestyle", label: "Lifestyle (bloco 1)", emoji: "🌿" },
+  { value: "whatsapp", label: "WhatsApp (bloco 2)", emoji: "💬" },
+  { value: "testimonial", label: "Depoimento (bloco 2)", emoji: "⭐" },
+  { value: "transformation", label: "Transformação (bloco 3)", emoji: "✨" },
+  { value: "photo", label: "Foto genérica (legado → bloco 1)", emoji: "📷" },
 ];
 
 const LP_DEFAULT = "emagreca-sem-dieta";
@@ -359,56 +365,62 @@ export default function SocialProofAdminPage() {
 /* ------------------------------------------------------------------ */
 /*  ContentGuide — sugestões de conteúdo pra galeria                   */
 /* ------------------------------------------------------------------ */
+// 3 blocos independentes na LP (em posições diferentes da página).
+// Use o kind correto no upload pra cada item cair no bloco certo.
 const GUIDE_ROWS = [
   {
     num: 1,
-    title: "Linha 1 — Transformações",
-    subtitle: "Antes/depois + resultado",
-    emoji: "📷",
-    color: "rgba(16,185,129,0.12)",
-    tone: "#34d399",
+    title: 'Bloco 1 — "Sem dieta. Na vida real."',
+    subtitle: "Lifestyle — logo abaixo do hero",
+    emoji: "🌿",
+    color: "rgba(212,169,75,0.12)",
+    tone: "#d4a94b",
+    kindLabel: "lifestyle",
     ideas: [
-      "Foto antes e depois lado a lado (mesmo ângulo, mesma roupa)",
-      "Silhueta / roupa que não cabia mais, agora cabe",
-      "Aluna sorrindo segurando foto antiga",
-      "Barriga antes × agora (perfil)",
-      "Número do manequim / medidas",
+      "5-6 imagens da MESMA personagem (idealmente a Barbara) em cenas lifestyle",
+      "Sem pressa, sem pressão — tomando café olhando pela janela",
+      "Comer bem sem culpa — montando o prato",
+      "Se olhar com leveza no espelho",
+      "Rotina que cabe na vida — trabalhando/cuidando da casa",
+      "Recomeçar sem começar do zero — caminhada leve",
     ],
-    tip: "Melhor formato: 4:5 vertical. Use caption curta tipo '-7kg em 21 dias'.",
+    tip: "Ideal: fotos consistentes da Barbara (mesma pessoa, várias cenas do dia). Captions curtas tipo 'Sem culpa no fim do dia.'",
   },
   {
     num: 2,
-    title: "Linha 2 — Lifestyle & rotina",
-    subtitle: "A vida real aplicando o método",
-    emoji: "🥗",
-    color: "rgba(212,169,75,0.12)",
-    tone: "#d4a94b",
-    ideas: [
-      "Prato montado da aluna (almoço S.E.M)",
-      "Café da manhã prático",
-      "15 min de movimento em casa / caminhada",
-      "Selfie natural segurando o ebook ou o app",
-      "Lista de compras da semana impressa",
-      "Geladeira organizada pós-método",
-    ],
-    tip: "Fotos autênticas de celular convertem mais que estúdio. Luz natural > filtro.",
-  },
-  {
-    num: 3,
-    title: "Linha 3 — WhatsApp & Depoimentos",
-    subtitle: "Provas em forma de conversa",
+    title: 'Bloco 2 — "O que outras mulheres estão vivendo"',
+    subtitle: "Prova social — prints WhatsApp e depoimentos",
     emoji: "💬",
     color: "rgba(16,185,129,0.12)",
     tone: "#34d399",
+    kindLabel: "whatsapp / testimonial",
     ideas: [
-      "Print de conversa de WhatsApp (aluna agradecendo)",
+      "Print de conversa WhatsApp (aluna agradecendo)",
       "Screenshot de story do Instagram marcando você",
       "Print de DM com depoimento",
       "Print de avaliação 5★ do Hotmart",
       "Comentário em post no Instagram/Facebook",
       "Print de depoimento em grupo (com consentimento)",
     ],
-    tip: "Sempre peça permissão antes. Se for conversa privada, censure nome/número com preto.",
+    tip: "Sempre peça permissão. Em conversa privada, censure nome/número com preto. Use kind=whatsapp pra chats e kind=testimonial pra reviews/posts.",
+  },
+  {
+    num: 3,
+    title: 'Bloco 3 — "Mudanças reais. Sem extremos."',
+    subtitle: "Transformação — lifestyle, não academia pesada",
+    emoji: "✨",
+    color: "rgba(99,153,34,0.14)",
+    tone: "#639922",
+    kindLabel: "transformation",
+    ideas: [
+      "Aluna antes × agora (sutil, postura + expressão, não só corpo)",
+      "Roupa que caiu melhor — foto com espelho",
+      "Recomeço gradual — 3 momentos em sequência (semana 1/3/6)",
+      "Rotina nova — antes comia na rua, agora prepara em casa",
+      "Confiança recuperada — selfie expressão vs silhueta antiga",
+      "Números sutis (medidas, manequim) em overlay discreto",
+    ],
+    tip: "⚠️ Evitar estética fitness/academia pesada. Foco em LEVEZA, não performance. Captions tipo '3 meses de método. Sem extremos.'",
   },
 ];
 

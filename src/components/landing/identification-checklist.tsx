@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { InlineCTA } from "./inline-cta";
 
 const ITEMS = [
   "Voce ja comecou uma dieta na segunda e desistiu antes de sexta",
@@ -154,35 +155,15 @@ export function IdentificationChecklist() {
                 </p>
               </>
             ) : (
-              <>
-                <p
-                  className="font-body font-bold text-lg md:text-xl"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  Se marcou {checkedCount} ou mais, continue lendo.
-                </p>
-                <p className="font-body text-base mt-2" style={{ color: 'var(--accent)' }}>
-                  O que vou te mostrar agora pode mudar a forma como voce enxerga emagrecimento — pra sempre.
-                </p>
-              </>
-            )}
-            <div className="mt-4 flex justify-center">
-              <span
-                className="inline-flex items-center gap-1 text-sm font-semibold"
-                style={{ color: 'var(--accent)' }}
+              <p
+                className="font-body text-base md:text-lg leading-relaxed"
+                style={{ color: 'var(--text-primary)' }}
               >
-                Continue lendo
-                <svg
-                  className="w-4 h-4 animate-bounce"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            </div>
+                Se você marcou <strong>3 ou mais</strong>, não é falta de disciplina.
+                É falta de um <span style={{ color: 'var(--accent)' }}>método que caiba na sua vida</span>.
+              </p>
+            )}
+            <InlineCTA ctaKey="quiz-primary" label="Quero um método que funcione" size="md" />
           </div>
         </div>
       </div>

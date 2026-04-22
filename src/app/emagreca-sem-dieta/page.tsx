@@ -10,7 +10,10 @@ import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
 import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
 import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
 import { PricingSection } from "@/components/landing/pricing-section";
-import { SocialProofGallery } from "@/components/landing/social-proof-gallery";
+import { LifestyleBlock } from "@/components/landing/lifestyle-block";
+import { SocialProofBlock } from "@/components/landing/social-proof-block";
+import { TransformationBlock } from "@/components/landing/transformation-block";
+import { InlineCTA } from "@/components/landing/inline-cta";
 import { AutoraSection } from "@/components/landing/autora-section";
 import { MetodoComparativo } from "@/components/landing/metodo-comparativo";
 import { StickyBottomCTA } from "@/components/landing/sticky-bottom-cta";
@@ -337,22 +340,28 @@ export default function EmagrecaSemDietaPage() {
               </span>
             </div>
             <h1
-              className="mb-6 text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl"
+              className="mb-4 text-4xl font-bold leading-[1.08] tracking-tight md:text-5xl"
               style={{ color: "var(--text-primary)" }}
             >
-              Você Não Precisa de Mais Uma Dieta.
+              Você não precisa de mais uma dieta.
               <br />
               <span style={{ color: "var(--accent)" }}>
-                Precisa de um Método que Funcione na Sua Vida Real.
+                Precisa de um método simples, em ebook, que funcione na sua vida real.
               </span>
             </h1>
             <p
-              className="mb-8 max-w-2xl text-lg leading-relaxed md:text-xl"
+              className="mb-4 text-sm md:text-base font-semibold"
+              style={{ color: "var(--accent-text)" }}
+            >
+              Plano prático de 7 dias · lista de compras · checklist diário
+            </p>
+            <p
+              className="mb-8 max-w-2xl text-base leading-relaxed md:text-lg"
               style={{ color: "var(--text-secondary)" }}
             >
-              Descubra o Método S.E.M — 3 pilares simples que estão ajudando mulheres ocupadas a
-              emagrecerem sem cortar alimentos, sem academia e sem aquela culpa de todo dia. Inclui
-              plano prático de 7 dias com cardápio, lista de compras e checklist diário.
+              Um ebook objetivo com o <strong style={{ color: "var(--text-primary)" }}>Método S.E.M</strong> —
+              3 pilares simples pra mulheres ocupadas emagrecerem sem cortar alimentos, sem academia e
+              sem culpa. Você lê em 1 hora e aplica no dia seguinte. Cabe na sua rotina, não ao contrário.
             </p>
             <div
               className="mx-auto md:mx-0 mb-8 max-w-md rounded-2xl border p-6"
@@ -414,8 +423,8 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* GALERIA ROTATIVA DE PROVA SOCIAL */}
-      <SocialProofGallery />
+      {/* BLOCO 1 — LIFESTYLE ("Sem dieta. Na vida real.") */}
+      <LifestyleBlock />
 
       {/* STATS */}
       <div className="border-y py-8" style={{ borderColor: "var(--border-subtle)", backgroundColor: "var(--shimmer)" }}>
@@ -465,6 +474,7 @@ export default function EmagrecaSemDietaPage() {
               o método. Ou melhor — a falta de um método que funcione pra quem vive na vida real.
             </p>
           </div>
+          <InlineCTA ctaKey="emotional-primary" label="Quero sair desse ciclo" size="md" />
         </div>
       </section>
 
@@ -593,6 +603,7 @@ export default function EmagrecaSemDietaPage() {
               </div>
             ))}
           </div>
+          <InlineCTA ctaKey="pillars-primary" label="Quero aplicar o S.E.M" size="md" />
         </div>
       </section>
 
@@ -639,6 +650,7 @@ export default function EmagrecaSemDietaPage() {
               </div>
             ))}
           </div>
+          <InlineCTA ctaKey="bonus-primary" label="Quero o método com todos os bônus" size="md" />
         </div>
       </section>
 
@@ -698,6 +710,9 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
+      {/* BLOCO 2 — PROVA SOCIAL ("O que outras mulheres estão vivendo") */}
+      <SocialProofBlock />
+
       {/* PARA QUEM É */}
       <section className="py-20 px-6" style={{ backgroundColor: "var(--shimmer)" }}>
         <div className="mx-auto max-w-4xl">
@@ -741,10 +756,13 @@ export default function EmagrecaSemDietaPage() {
         </div>
       </section>
 
-      {/* PRICING — 3 planos com checkout Hotmart */}
       {/* COMPARATIVO — Tradicional vs Método S.E.M */}
       <MetodoComparativo />
 
+      {/* BLOCO 3 — TRANSFORMAÇÃO ("Mudanças reais. Sem extremos.") */}
+      <TransformationBlock />
+
+      {/* PRICING — 3 planos com checkout Hotmart */}
       <PricingSection />
 
       {/* GARANTIA */}
