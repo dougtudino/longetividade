@@ -92,6 +92,9 @@ export default function LpAssetsPage() {
       form.append("file", file);
       form.append("folder", "lp-assets");
       form.append("slug", `${lpSlug}-${slot.key.replace(/\./g, "-")}`);
+      // Dimensões do slot → pipeline sharp aplica resize + crop cover pro aspect exato.
+      form.append("targetWidth", String(slot.targetWidth));
+      form.append("targetHeight", String(slot.targetHeight));
       const upRes = await fetch("/api/admin/upload", { method: "POST", body: form });
       const upData = await upRes.json();
       if (!upRes.ok) throw new Error(upData.error ?? "upload falhou");

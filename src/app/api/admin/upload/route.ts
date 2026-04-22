@@ -18,6 +18,12 @@ export async function POST(req: Request) {
   const file = form.get("file");
   const folder = (form.get("folder") ?? "") as string;
   const slug = (form.get("slug") ?? "") as string;
+  // Slot-aware crop: se o admin enviar targetWidth + targetHeight, sharp aplica
+  // resize + crop cover pro aspect exato (prioriza área de interesse / rosto).
+  const targetWidthRaw = Number(form.get("targetWidth") ?? 0);
+  const targetHeightRaw = Number(form.get("targetHeight") ?? 0);
+  const targetWidth = targetWidthRaw > 0 ? targetWidthRaw : undefined;
+  const targetHeight = targetHeightRaw > 0 ? targetHeightRaw : undefined;
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "campo 'file' ausente" }, { status: 400 });
@@ -37,7 +43,7 @@ export async function POST(req: Request) {
 
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const processed = await processImage(arrayBuffer);
+    const processed = await processImage(arrayBuffer, { targetWidth, targetHeight });
     const key = makeAssetKey(folder, slug);
     const url = await uploadToR2({
       key,
