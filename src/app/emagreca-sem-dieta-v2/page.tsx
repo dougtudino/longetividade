@@ -6,9 +6,6 @@ import { trackViewContent, trackInitiateCheckout, trackAddToCart } from "@/lib/t
 import { captureUTMs } from "@/lib/utm";
 import ThemeToggle from "@/components/ThemeToggle";
 import { IdentificationChecklist } from "@/components/landing/identification-checklist";
-import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
-import { MockupPhoneTela } from "@/components/mockups/mockup-phone-tela";
-import { MockupEbookSpread } from "@/components/mockups/mockup-ebook-spread";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { SocialProofGallery } from "@/components/landing/social-proof-gallery";
 import { AutoraSection } from "@/components/landing/autora-section";

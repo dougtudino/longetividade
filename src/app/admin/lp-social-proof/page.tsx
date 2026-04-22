@@ -217,6 +217,9 @@ export default function SocialProofAdminPage() {
         <Stat label="Linha 3" value={activeByRow[3]} hint={`${MIN_PER_ROW} mínimo`} tone={activeByRow[3] >= MIN_PER_ROW ? "success" : "warn"} />
       </div>
 
+      {/* ─── Guia de conteúdo ─────────────────────────────── */}
+      <ContentGuide />
+
       {/* ─── Form novo item ──────────────────────────────── */}
       <NewItemForm
         onCreate={async (data) => {
@@ -350,6 +353,201 @@ export default function SocialProofAdminPage() {
         </section>
       )}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  ContentGuide — sugestões de conteúdo pra galeria                   */
+/* ------------------------------------------------------------------ */
+const GUIDE_ROWS = [
+  {
+    num: 1,
+    title: "Linha 1 — Transformações",
+    subtitle: "Antes/depois + resultado",
+    emoji: "📷",
+    color: "rgba(16,185,129,0.12)",
+    tone: "#34d399",
+    ideas: [
+      "Foto antes e depois lado a lado (mesmo ângulo, mesma roupa)",
+      "Silhueta / roupa que não cabia mais, agora cabe",
+      "Aluna sorrindo segurando foto antiga",
+      "Barriga antes × agora (perfil)",
+      "Número do manequim / medidas",
+    ],
+    tip: "Melhor formato: 4:5 vertical. Use caption curta tipo '-7kg em 21 dias'.",
+  },
+  {
+    num: 2,
+    title: "Linha 2 — Lifestyle & rotina",
+    subtitle: "A vida real aplicando o método",
+    emoji: "🥗",
+    color: "rgba(212,169,75,0.12)",
+    tone: "#d4a94b",
+    ideas: [
+      "Prato montado da aluna (almoço S.E.M)",
+      "Café da manhã prático",
+      "15 min de movimento em casa / caminhada",
+      "Selfie natural segurando o ebook ou o app",
+      "Lista de compras da semana impressa",
+      "Geladeira organizada pós-método",
+    ],
+    tip: "Fotos autênticas de celular convertem mais que estúdio. Luz natural > filtro.",
+  },
+  {
+    num: 3,
+    title: "Linha 3 — WhatsApp & Depoimentos",
+    subtitle: "Provas em forma de conversa",
+    emoji: "💬",
+    color: "rgba(16,185,129,0.12)",
+    tone: "#34d399",
+    ideas: [
+      "Print de conversa de WhatsApp (aluna agradecendo)",
+      "Screenshot de story do Instagram marcando você",
+      "Print de DM com depoimento",
+      "Print de avaliação 5★ do Hotmart",
+      "Comentário em post no Instagram/Facebook",
+      "Print de depoimento em grupo (com consentimento)",
+    ],
+    tip: "Sempre peça permissão antes. Se for conversa privada, censure nome/número com preto.",
+  },
+];
+
+const GUIDE_COMPLIANCE = [
+  "Sempre com autorização da aluna pra publicar",
+  "Censure nomes/números em prints privados (retângulo preto)",
+  "Nunca fabrique depoimento — só use conteúdo real",
+  "Qualidade mínima: imagem nítida, 800px+ largura",
+  "Aspecto ideal: 4:5 vertical (combina com o card da galeria)",
+];
+
+function ContentGuide() {
+  return (
+    <details style={{ marginBottom: 20 }}>
+      <summary
+        style={{
+          ...card,
+          padding: "14px 18px",
+          cursor: "pointer",
+          listStyle: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          transition: "border-color 0.15s",
+        }}
+      >
+        <span style={{ fontSize: 18 }}>📋</span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
+            Guia de conteúdo — o que produzir por linha
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            Sugestões + compliance. Clique pra expandir.
+          </div>
+        </div>
+        <span style={{ color: "var(--text-muted)", fontSize: 14 }}>▾</span>
+      </summary>
+
+      <div
+        style={{
+          marginTop: 12,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: 12,
+        }}
+      >
+        {GUIDE_ROWS.map((r) => (
+          <div
+            key={r.num}
+            style={{
+              border: "0.5px solid var(--border-default)",
+              borderRadius: 10,
+              padding: 14,
+              background: "var(--bg-card)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: r.color,
+                  color: r.tone,
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {r.emoji} LINHA {r.num}
+              </span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>
+              {r.title}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>{r.subtitle}</div>
+            <ul
+              style={{
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                paddingLeft: 18,
+                margin: 0,
+                lineHeight: 1.7,
+              }}
+            >
+              {r.ideas.map((idea, i) => (
+                <li key={i}>{idea}</li>
+              ))}
+            </ul>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--text-muted)",
+                marginTop: 10,
+                marginBottom: 0,
+                padding: "6px 10px",
+                background: "var(--shimmer)",
+                borderRadius: 6,
+                lineHeight: 1.5,
+              }}
+            >
+              💡 {r.tip}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          padding: 14,
+          border: "0.5px solid rgba(239,68,68,0.25)",
+          background: "rgba(239,68,68,0.04)",
+          borderRadius: 10,
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#f87171", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+          ⚠️ Compliance & qualidade
+        </div>
+        <ul style={{ fontSize: 12, color: "var(--text-secondary)", paddingLeft: 18, margin: 0, lineHeight: 1.7 }}>
+          {GUIDE_COMPLIANCE.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          padding: 12,
+          background: "var(--accent-soft)",
+          borderRadius: 10,
+          fontSize: 12,
+          color: "var(--accent-text)",
+          lineHeight: 1.6,
+        }}
+      >
+        <strong>Meta ideal:</strong> 18 itens ativos (6 por linha). Mínimo pra galeria aparecer na LP: 4 por linha.
+      </div>
+    </details>
   );
 }
 

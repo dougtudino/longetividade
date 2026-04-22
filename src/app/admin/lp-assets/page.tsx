@@ -51,7 +51,7 @@ export default function LpAssetsPage() {
     setTimeout(() => setToast((t) => (t?.msg === msg ? null : t)), 3500);
   }, []);
 
-  const slots = LP_SLOTS[lpSlug] ?? [];
+  const slots = useMemo(() => LP_SLOTS[lpSlug] ?? [], [lpSlug]);
   const assetMap = useMemo(() => {
     const map: Record<string, LpAssetRow> = {};
     for (const r of rows) map[r.key] = r;
