@@ -9,6 +9,15 @@
 import { NextResponse } from "next/server";
 import { signAppToken, APP_TOKEN_COOKIE, APP_TOKEN_MAX_AGE } from "./app-token";
 
+// Cookie compartilhado entre apex (longetividade.com.br) e subdomínios (www.*) em prod.
+// Resolve: usuário que entra em apex e termina em www (ou vice-versa) perderia o cookie.
+function getCookieDomainAttr(): string {
+  if (process.env.NODE_ENV !== "production") return "";
+  const raw = process.env.NEXT_PUBLIC_DOMAIN || "longetividade.com.br";
+  const bare = raw.replace(/^www\./, "");
+  return `; Domain=.${bare}`;
+}
+
 export async function setAppSessionCookies(
   response: NextResponse,
   email: string,
@@ -17,7 +26,8 @@ export async function setAppSessionCookies(
 ): Promise<string> {
   const token = await signAppToken({ userId, email, plan });
   const isProduction = process.env.NODE_ENV === "production";
-  const opts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${APP_TOKEN_MAX_AGE}${isProduction ? "; Secure" : ""}`;
+  const domainAttr = getCookieDomainAttr();
+  const opts = `Path=/; HttpOnly; SameSite=Lax; Max-Age=${APP_TOKEN_MAX_AGE}${isProduction ? "; Secure" : ""}${domainAttr}`;
 
   response.headers.append("Set-Cookie", `${APP_TOKEN_COOKIE}=${token}; ${opts}`);
   // Keep app_email for backward compat with getAppUser()
@@ -27,10 +37,11 @@ export async function setAppSessionCookies(
 }
 
 export function clearAppSessionCookies(response: NextResponse): void {
-  const expired = "Path=/; HttpOnly; SameSite=Lax; Max-Age=0";
+  const domainAttr = getCookieDomainAttr();
+  const expired = `Path=/; HttpOnly; SameSite=Lax; Max-Age=0${domainAttr}`;
   response.headers.append("Set-Cookie", `${APP_TOKEN_COOKIE}=; ${expired}`);
   response.headers.append("Set-Cookie", `app_email=; ${expired}`);
   // Legacy /app path cleanup
-  response.headers.append("Set-Cookie", `app_token=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0`);
-  response.headers.append("Set-Cookie", `app_email=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0`);
+  response.headers.append("Set-Cookie", `app_token=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0${domainAttr}`);
+  response.headers.append("Set-Cookie", `app_email=; Path=/app; HttpOnly; SameSite=Lax; Max-Age=0${domainAttr}`);
 }

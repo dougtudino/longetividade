@@ -106,7 +106,12 @@ export async function GET(req: NextRequest) {
 
     const response = NextResponse.redirect(new URL("/app", baseUrl));
     await setAppSessionCookies(response, email, appUser.id, appUser.plan);
-    response.cookies.set("google_oauth_state", "", { maxAge: 0, path: "/" });
+    const cookieDomain = getCookieDomain();
+    response.cookies.set("google_oauth_state", "", {
+      maxAge: 0,
+      path: "/",
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
+    });
     return response;
   }
 
@@ -144,16 +149,29 @@ export async function GET(req: NextRequest) {
     });
 
     const response = NextResponse.redirect(new URL("/admin/dashboard", baseUrl));
+    const cookieDomain = getCookieDomain();
     response.cookies.set(ADMIN_TOKEN_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       maxAge: ADMIN_TOKEN_MAX_AGE,
       path: "/",
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
     });
-    response.cookies.set("google_oauth_state", "", { maxAge: 0, path: "/" });
+    response.cookies.set("google_oauth_state", "", {
+      maxAge: 0,
+      path: "/",
+      ...(cookieDomain ? { domain: cookieDomain } : {}),
+    });
     return response;
   }
 
   return errorRedirect(baseUrl, "app", "google_invalid_context");
+}
+
+function getCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const raw = process.env.NEXT_PUBLIC_DOMAIN || "longetividade.com.br";
+  const bare = raw.replace(/^www\./, "");
+  return `.${bare}`;
 }

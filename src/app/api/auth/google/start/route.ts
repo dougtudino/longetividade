@@ -19,13 +19,24 @@ export async function GET(req: NextRequest) {
   const authUrl = buildAuthUrl(creds, state, context);
 
   const response = NextResponse.redirect(authUrl);
+  // Cookie compartilhado entre apex (longetividade.com.br) e subdomínios (www.*) em prod.
+  // Sem isso: usuário que chega em apex, clica Google, volta callback em www → cookie perdido → state mismatch.
+  const cookieDomain = getCookieDomain();
   response.cookies.set("google_oauth_state", state, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     maxAge: 600,
     path: "/",
+    ...(cookieDomain ? { domain: cookieDomain } : {}),
   });
 
   return response;
+}
+
+function getCookieDomain(): string | undefined {
+  if (process.env.NODE_ENV !== "production") return undefined;
+  const raw = process.env.NEXT_PUBLIC_DOMAIN || "longetividade.com.br";
+  const bare = raw.replace(/^www\./, "");
+  return `.${bare}`;
 }
