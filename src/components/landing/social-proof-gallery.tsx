@@ -5,7 +5,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { SOCIAL_PROOF_CARDS, type SocialProofCard } from "@/data/social-proof";
+import { SOCIAL_PROOF_CARDS } from "@/data/social-proof";
 
 type ApiItem = {
   id: string;
@@ -88,21 +88,20 @@ function Row({ config, cards }: { config: RowConfig; cards: Card[] }) {
 
 // items opcional: quando vem via prop (preview do admin), pula o fetch.
 export function SocialProofGallery({ items }: { items?: Card[] } = {}) {
-  const [cards, setCards] = useState<Card[]>(items ?? (SOCIAL_PROOF_CARDS as Card[]));
+  // State só é usado quando fetchamos do DB (modo produção).
+  // Quando items vem via prop (preview do admin), deriva direto do prop.
+  const [fetched, setFetched] = useState<Card[] | null>(null);
 
   useEffect(() => {
-    if (items) {
-      setCards(items);
-      return;
-    }
+    if (items) return; // prop sobrepõe fetch, não precisa buscar
     let alive = true;
     (async () => {
       try {
         const res = await fetch(`/api/social-proof?lpSlug=${LP_SLUG}`);
-        if (!res.ok) return; // mantém fallback
+        if (!res.ok) return;
         const data = (await res.json()) as { items: ApiItem[] };
         if (!alive) return;
-        if (!data.items?.length) return; // DB vazio → usa estático
+        if (!data.items?.length) return;
         const mapped: Card[] = data.items.map((i) => ({
           id: i.id,
           row: (i.row === 1 || i.row === 2 || i.row === 3 ? i.row : 1) as 1 | 2 | 3,
@@ -110,7 +109,7 @@ export function SocialProofGallery({ items }: { items?: Card[] } = {}) {
           alt: i.alt,
           caption: i.caption ?? undefined,
         }));
-        setCards(mapped);
+        setFetched(mapped);
       } catch {
         // rede ruim? mantém fallback
       }
@@ -119,6 +118,8 @@ export function SocialProofGallery({ items }: { items?: Card[] } = {}) {
       alive = false;
     };
   }, [items]);
+
+  const cards: Card[] = items ?? fetched ?? (SOCIAL_PROOF_CARDS as Card[]);
 
   const rowsData = ROWS.map((cfg) => ({
     cfg,
