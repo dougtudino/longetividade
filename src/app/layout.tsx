@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, Nunito } from "next/font/google";
-import TrackingScripts from "@/components/tracking/TrackingScripts";
+import TrackingScripts, { TrackingNoscripts } from "@/components/tracking/TrackingScripts";
 import UTMCapture from "@/components/tracking/UTMCapture";
 import TrackPageView from "@/components/tracking/TrackPageView";
 import "./globals.css";
@@ -69,9 +69,12 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('longetividade-theme');var h=document.documentElement;h.classList.remove('light','neon');if(t==='dark'){}else if(t==='neon'){h.classList.add('neon')}else{h.classList.add('light')}}catch(e){document.documentElement.classList.add('light')}})()`,
           }}
         />
+        {/* Tracking no head: script inline executa antes do body renderizar,
+            reduzindo perda de LPV em mobile lento (Story/Reels fast-scroll) */}
+        <TrackingScripts />
       </head>
       <body className="min-h-full flex flex-col font-body">
-        <TrackingScripts />
+        <TrackingNoscripts />
         <UTMCapture />
         <TrackPageView />
         {children}

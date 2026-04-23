@@ -6,6 +6,9 @@ import { usePathname } from "next/navigation";
 // Componente client-side que registra pageview no banco local via
 // POST /api/track a cada navegacao. Coloca no layout raiz.
 //
+// Meta PageView e disparado pelo snippet inline (load inicial) +
+// auto-SPA-detect do SDK Pixel (navegacoes subsequentes), nao duplicar aqui.
+//
 // Nao bloqueia renderizacao — fetch e fire-and-forget.
 // Nao duplica: usa ref pra garantir 1x por pathname change.
 // Le UTMs do URL params (se existirem) e envia junto.
@@ -39,6 +42,7 @@ export default function TrackPageView() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
+      keepalive: true,
     }).catch(() => {
       // Silently fail — never block user navigation
     });

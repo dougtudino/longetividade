@@ -243,3 +243,42 @@ export function extractVisitorContext(req: {
   const fbc = req.cookies?.get("_fbc")?.value;
   return { fbp, fbc, clientIpAddress, clientUserAgent };
 }
+
+// Espelha eventos client-side (ViewContent, InitiateCheckout, AddToCart, PageView)
+// pro CAPI. Usa eventId vindo do browser para permitir dedup no Meta.
+// Nao exige email — fbp/fbc/IP/UA sao suficientes pra match quality em eventos
+// top-of-funnel. Retorna rapido; falhas silenciosas (nao quebram UX).
+export async function sendClientMirrorEvent(opts: {
+  eventName: string;
+  eventId: string;
+  sourceUrl: string;
+  value?: number;
+  currency?: string;
+  contentName?: string;
+  contentCategory?: string;
+  contentIds?: string[];
+  contentType?: string;
+  numItems?: number;
+  visitor: VisitorContext;
+}): Promise<CAPIResult> {
+  const custom: Record<string, unknown> = {};
+  if (opts.value !== undefined) custom.value = opts.value;
+  if (opts.currency) custom.currency = opts.currency;
+  if (opts.contentName) custom.content_name = opts.contentName;
+  if (opts.contentCategory) custom.content_category = opts.contentCategory;
+  if (opts.contentIds) custom.content_ids = opts.contentIds;
+  if (opts.contentType) custom.content_type = opts.contentType;
+  if (opts.numItems !== undefined) custom.num_items = opts.numItems;
+
+  const event: ServerEvent = {
+    event_name: opts.eventName,
+    event_time: Math.floor(Date.now() / 1000),
+    event_id: opts.eventId,
+    event_source_url: opts.sourceUrl,
+    action_source: "website",
+    user_data: buildUserData(opts.visitor),
+    custom_data: Object.keys(custom).length > 0 ? custom : undefined,
+  };
+
+  return sendEvents([event]);
+}

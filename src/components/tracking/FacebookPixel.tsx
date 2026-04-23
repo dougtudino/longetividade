@@ -3,6 +3,9 @@
 
 const FB_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "953736244279938";
 
+// Script inline — vai no <head> pra disparar PageView o mais cedo possivel.
+// Exporta so o <script>; o <noscript> fallback e o FacebookPixelNoscript
+// separado (HTML5 nao permite <noscript><img> no <head>, so no <body>).
 export default function FacebookPixel() {
   if (!FB_PIXEL_ID) {
     if (typeof window !== "undefined") {
@@ -28,21 +31,26 @@ export default function FacebookPixel() {
   `;
 
   return (
-    <>
-      <script
-        id="fb-pixel"
-        dangerouslySetInnerHTML={{ __html: pixelCode }}
+    <script
+      id="fb-pixel"
+      dangerouslySetInnerHTML={{ __html: pixelCode }}
+    />
+  );
+}
+
+// Fallback pra usuarios com JS desabilitado. Deve ser renderizado no <body>.
+export function FacebookPixelNoscript() {
+  if (!FB_PIXEL_ID) return null;
+  return (
+    <noscript>
+      <img
+        height="1"
+        width="1"
+        style={{ display: "none" }}
+        src={`https://www.facebook.com/tr?id=${FB_PIXEL_ID}&ev=PageView&noscript=1`}
+        alt=""
       />
-      <noscript>
-        <img
-          height="1"
-          width="1"
-          style={{ display: "none" }}
-          src={`https://www.facebook.com/tr?id=${FB_PIXEL_ID}&ev=PageView&noscript=1`}
-          alt=""
-        />
-      </noscript>
-    </>
+    </noscript>
   );
 }
 
