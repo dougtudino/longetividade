@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
       contentIds?: string[];
       contentType?: string;
       numItems?: number;
+      testEventCode?: string;
+      debug?: boolean;
     };
 
     if (!body.eventName || !body.eventId || !body.sourceUrl) {
@@ -34,7 +36,7 @@ export async function POST(req: NextRequest) {
 
     const visitor = extractVisitorContext(req);
 
-    await sendClientMirrorEvent({
+    const result = await sendClientMirrorEvent({
       eventName: body.eventName,
       eventId: body.eventId,
       sourceUrl: body.sourceUrl,
@@ -46,11 +48,18 @@ export async function POST(req: NextRequest) {
       contentType: body.contentType,
       numItems: body.numItems,
       visitor,
+      testEventCode: body.testEventCode,
     });
 
+    // debug=true retorna o resultado real pra diagnostico. Em produção normal
+    // o tracking client-side nao precisa do resultado (fire-and-forget).
+    if (body.debug) {
+      return NextResponse.json({ ok: true, capi: result });
+    }
+
     return NextResponse.json({ ok: true });
-  } catch {
+  } catch (e) {
     // Silently succeed — tracking nao deve quebrar UX
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, error: (e as Error).message });
   }
 }

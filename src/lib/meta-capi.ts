@@ -90,20 +90,23 @@ export type CAPIResult =
   | { ok: true; eventsReceived: number }
   | { ok: false; error: string };
 
-async function sendEvents(events: ServerEvent[]): Promise<CAPIResult> {
+async function sendEvents(events: ServerEvent[], testEventCode?: string): Promise<CAPIResult> {
   const creds = await getCreds();
   if (!creds) {
     return { ok: false, error: "META_ACCESS_TOKEN ou NEXT_PUBLIC_META_PIXEL_ID nao configurados" };
   }
 
   try {
+    const payload: Record<string, unknown> = {
+      data: events,
+      access_token: creds.token,
+    };
+    if (testEventCode) payload.test_event_code = testEventCode;
+
     const res = await fetch(`${BASE}/${creds.pixelId}/events`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        data: events,
-        access_token: creds.token,
-      }),
+      body: JSON.stringify(payload),
       cache: "no-store",
     });
 
@@ -260,6 +263,7 @@ export async function sendClientMirrorEvent(opts: {
   contentType?: string;
   numItems?: number;
   visitor: VisitorContext;
+  testEventCode?: string;
 }): Promise<CAPIResult> {
   const custom: Record<string, unknown> = {};
   if (opts.value !== undefined) custom.value = opts.value;
@@ -280,5 +284,5 @@ export async function sendClientMirrorEvent(opts: {
     custom_data: Object.keys(custom).length > 0 ? custom : undefined,
   };
 
-  return sendEvents([event]);
+  return sendEvents([event], opts.testEventCode);
 }
