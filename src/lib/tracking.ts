@@ -52,11 +52,29 @@ function mirrorToCAPI(
     if (typeof params.num_items === "number") payload.numItems = params.num_items;
   }
 
+  const body = JSON.stringify(payload);
+
+  // navigator.sendBeacon e a API certa pra fire-and-forget que sobrevive
+  // a navegacoes/fechamento de aba — sem ela, eventos disparados imediatamente
+  // antes do user clicar em CTA (que abre nova aba/navega) somem.
+  // Browser queue garante delivery mesmo se a aba que originou for descartada.
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
+    try {
+      const blob = new Blob([body], { type: "application/json" });
+      const queued = navigator.sendBeacon("/api/meta-capi", blob);
+      if (queued) return;
+      // sendBeacon retorna false quando queue do user agent ta cheia — fallback
+    } catch {
+      // alguns browsers lancam ao usar Blob com sendBeacon — fallback
+    }
+  }
+
+  // Fallback pra browsers sem sendBeacon (~1% do trafego em 2026)
   fetch("/api/meta-capi", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-    keepalive: true, // garante que o POST sobrevive a navegacoes/fecham de aba
+    body,
+    keepalive: true,
   }).catch(() => {
     // silently ignore
   });
