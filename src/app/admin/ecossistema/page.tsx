@@ -417,9 +417,9 @@ export default function EcossistemaPage() {
               </div>
               <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
                 {[
-                  { plan: "Basico", price: "R$ 37", color: "#9EBF9E" },
-                  { plan: "Completo", price: "R$ 67", color: "#7A9E7E" },
-                  { plan: "VIP", price: "R$ 97", color: "#3D5A3E" },
+                  { plan: "Basico", price: "R$ 67", color: "#9EBF9E" },
+                  { plan: "Completo", price: "R$ 147", color: "#7A9E7E" },
+                  { plan: "VIP", price: "R$ 297", color: "#3D5A3E" },
                 ].map(p => (
                   <div key={p.plan} style={{ flex: 1, padding: "8px 10px", borderRadius: 8, background: p.color + "18", textAlign: "center" }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: p.color }}>{p.plan}</div>
@@ -461,9 +461,9 @@ export default function EcossistemaPage() {
         <Section num={4} title="Checkout e Pagamento" sub="Hotmart — 3 ofertas com webhook ativo">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
             {[
-              { plan: "Basico", price: "R$ 37", offerId: "zxq5tgew", color: "#9EBF9E" },
-              { plan: "Completo", price: "R$ 67", offerId: "uzvdkzkf", color: "#7A9E7E" },
-              { plan: "VIP", price: "R$ 97", offerId: "h84hak4e", color: "#3D5A3E" },
+              { plan: "Basico", price: "R$ 67", offerId: "zxq5tgew", color: "#9EBF9E" },
+              { plan: "Completo", price: "R$ 147", offerId: "uzvdkzkf", color: "#7A9E7E" },
+              { plan: "VIP", price: "R$ 297", offerId: "h84hak4e", color: "#3D5A3E" },
             ].map(p => (
               <div key={p.plan} style={{ ...cardStyle, borderLeft: `3px solid ${p.color}` }}>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 4 }}>{p.plan} — {p.price}</div>
@@ -541,7 +541,7 @@ export default function EcossistemaPage() {
         {/* ============================================================ */}
         {/*  SECAO 6 — APP VIP                                            */}
         {/* ============================================================ */}
-        <Section num={6} title="App VIP — Acompanhamento" sub="PWA exclusivo para compradores do plano VIP (R$97)">
+        <Section num={6} title="App VIP — Acompanhamento" sub="PWA exclusivo para compradores do plano VIP (R$297)">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12, marginBottom: 16 }}>
             {[
               { label: "Login", path: "/app/login", desc: "Email da compra" },

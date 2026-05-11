@@ -114,9 +114,9 @@ function resolveArgs(
     return { contentName: DEFAULT_CONTENT_NAME, value: nameOrValue };
   }
   if (typeof nameOrValue === "string") {
-    return { contentName: nameOrValue, value: maybeValue ?? 37 };
+    return { contentName: nameOrValue, value: maybeValue ?? 67 };
   }
-  return { contentName: DEFAULT_CONTENT_NAME, value: 37 };
+  return { contentName: DEFAULT_CONTENT_NAME, value: 67 };
 }
 
 export function trackViewContent(nameOrValue?: string | number, value?: number) {
@@ -181,7 +181,7 @@ export function fireCheckoutAndGo(
   url: string,
   opts: { targetBlank?: boolean; value?: number; contentName?: string } = {}
 ) {
-  const value = opts.value ?? 37;
+  const value = opts.value ?? 67;
   const name = opts.contentName ?? DEFAULT_CONTENT_NAME;
   trackInitiateCheckout(name, value);
   trackAddToCart(name, value);

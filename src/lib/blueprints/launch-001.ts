@@ -91,7 +91,7 @@ export const LAUNCH_001 = {
       id: "COPY-A",
       name: "Identificacao",
       headline: "Metodo S.E.M — Reeducacao alimentar",
-      description: "A partir de R$ 37 · Sem restricao extrema",
+      description: "A partir de R$ 67 · Sem restricao extrema",
       message: `Cansada de dietas que nao funcionam?
 
 O problema nao e voce. E o metodo.
@@ -109,7 +109,7 @@ Reeducacao alimentar real, feita pra mulher com rotina de verdade.
       id: "COPY-B",
       name: "Prova Social",
       headline: "Metodo S.E.M — Reeducacao alimentar",
-      description: "A partir de R$ 37 · Sem restricao extrema",
+      description: "A partir de R$ 67 · Sem restricao extrema",
       message: `+1.000 mulheres ja conheceram o Metodo S.E.M esse mes.
 
 Barbara, 38 anos:
@@ -117,13 +117,13 @@ Barbara, 38 anos:
 
 Um jeito diferente de se relacionar com a comida.
 
-👉 Comece hoje a partir de R$ 37`,
+👉 Comece hoje a partir de R$ 67`,
     },
     copy_c: {
       id: "COPY-C",
       name: "Quebra de Objecao",
       headline: "Metodo S.E.M — Reeducacao alimentar",
-      description: "A partir de R$ 37 · Sem restricao extrema",
+      description: "A partir de R$ 67 · Sem restricao extrema",
       message: `"Eu ja tentei tudo."
 
 Sei como e. Um metodo novo por mes, resultado que nao dura, frustracao.

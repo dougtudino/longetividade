@@ -7,7 +7,7 @@ import { captureUTMs, appendUTMs } from "@/lib/utm";
 import { trackViewContent, trackInitiateCheckout } from "@/lib/tracking";
 import LeadCapture from "@/components/LeadCapture";
 
-// Hotmart checkout com offer code do plano Basico (R$37)
+// Hotmart checkout com offer code do plano Basico (R$67)
 const HOTMART_BASE = "https://pay.hotmart.com/H105141835Q?off=zxq5tgew";
 
 interface CampaignVariant {
@@ -27,7 +27,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Cansada de dietas que não funcionam?",
     subheadline:
       "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
-    cta: "Conhecer o Método — R$ 37",
+    cta: "Conhecer o Método — R$ 67",
     badge: "Reeducação alimentar",
     utm_source: "meta",
   },
@@ -36,7 +36,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Cansada de dietas que não funcionam?",
     subheadline:
       "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
-    cta: "Conhecer o Método — R$ 37",
+    cta: "Conhecer o Método — R$ 67",
     badge: "Reeducação alimentar",
     utm_source: "meta",
   },
@@ -45,7 +45,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Cansada de dietas que não funcionam?",
     subheadline:
       "Conheça o Método S.E.M — reeducação alimentar real pra mulher com rotina corrida. Sem restrição extrema, sem contar calorias.",
-    cta: "Conhecer o Método — R$ 37",
+    cta: "Conhecer o Método — R$ 67",
     badge: "Reeducação alimentar",
     utm_source: "meta",
   },
@@ -54,7 +54,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Reeducação alimentar sem dieta restritiva",
     subheadline:
       "Método S.E.M: 3 pilares pra uma nova relação com a comida. Sem contar calorias, sem culpa. Acesso imediato ao ebook completo.",
-    cta: "Ver Método Completo — R$ 37",
+    cta: "Ver Método Completo — R$ 67",
     badge: "Método completo",
     utm_source: "google",
   },
@@ -63,7 +63,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Uma nova relação com a comida",
     subheadline:
       "O Método S.E.M é reeducação alimentar real — sem restrição extrema, sem culpa, sem o peso emocional da balança. Pra mulher com rotina de verdade.",
-    cta: "Quero Meu Ebook — R$ 37",
+    cta: "Quero Meu Ebook — R$ 67",
     badge: "Método S.E.M",
     utm_source: "organico",
   },
@@ -72,7 +72,7 @@ const VARIANTS: Record<string, CampaignVariant> = {
     headline: "Uma nova relação com a comida",
     subheadline:
       "O Método S.E.M é reeducação alimentar real — sem restrição extrema, sem culpa, sem o peso emocional da balança. Pra mulher com rotina de verdade.",
-    cta: "Quero Meu Ebook — R$ 37",
+    cta: "Quero Meu Ebook — R$ 67",
     badge: "Método S.E.M",
     utm_source: "whatsapp",
   },
@@ -92,13 +92,13 @@ export default function CampaignPage() {
     if (!sp.has("utm_medium")) sp.set("utm_medium", "campaign_page");
     if (!sp.has("utm_campaign")) sp.set("utm_campaign", slug);
     captureUTMs(sp);
-    trackViewContent("Emagreça Sem Dieta", 37);
+    trackViewContent("Emagreça Sem Dieta", 67);
   }, [searchParams, slug, variant.utm_source]);
 
   const buyUrl = appendUTMs(`${HOTMART_BASE}&src=camp-${slug}`);
 
   function handleClick() {
-    trackInitiateCheckout("Emagreça Sem Dieta", 37);
+    trackInitiateCheckout("Emagreça Sem Dieta", 67);
   }
 
   return (
@@ -156,8 +156,8 @@ export default function CampaignPage() {
           <div className="mt-4 flex flex-col items-center gap-1">
             <p className="text-sm text-[#2D2D2D]/40">
               A partir de{" "}
-              <strong className="text-[#2D2D2D]/70">R$ 37</strong>
-              <span className="text-[#2D2D2D]/30"> · ou 6x de R$ 6,17</span>
+              <strong className="text-[#2D2D2D]/70">R$ 67</strong>
+              <span className="text-[#2D2D2D]/30"> · ou 6x de R$ 11,17</span>
             </p>
             <p className="text-xs text-[#2D2D2D]/30">
               Pagamento seguro · Acesso imediato · Garantia 7 dias
@@ -198,8 +198,8 @@ export default function CampaignPage() {
               Ebook completo + bônus
             </div>
             <div className="my-6 flex flex-col items-center gap-1">
-              <span className="text-6xl font-black">R$ 37</span>
-              <span className="text-sm text-[#2D2D2D]/40">ou 6x de R$ 6,17 sem juros</span>
+              <span className="text-6xl font-black">R$ 67</span>
+              <span className="text-sm text-[#2D2D2D]/40">ou 6x de R$ 11,17 sem juros</span>
             </div>
             <a
               href={buyUrl}

@@ -18,7 +18,7 @@ const LAUNCH_001_COPIES: Record<string, CopyDef> = {
   "feed-dor": {
     label: "A",
     headline: "Metodo S.E.M — Reeducacao alimentar",
-    description: "A partir de R$ 37 · Sem restricao extrema",
+    description: "A partir de R$ 67 · Sem restricao extrema",
     cta: "LEARN_MORE",
     primaryText: `Cansada de dietas que nao funcionam?
 
@@ -36,7 +36,7 @@ Reeducacao alimentar real, feita pra mulher com rotina de verdade.
   "feed-prova": {
     label: "B",
     headline: "Metodo S.E.M — Reeducacao alimentar",
-    description: "A partir de R$ 37 · Sem restricao extrema",
+    description: "A partir de R$ 67 · Sem restricao extrema",
     cta: "LEARN_MORE",
     primaryText: `+1.000 mulheres ja conheceram o Metodo S.E.M esse mes.
 
@@ -45,12 +45,12 @@ Barbara, 38 anos:
 
 Um jeito diferente de se relacionar com a comida.
 
-👉 Comece hoje a partir de R$ 37`,
+👉 Comece hoje a partir de R$ 67`,
   },
   "feed-objecao": {
     label: "C",
     headline: "Metodo S.E.M — Reeducacao alimentar",
-    description: "A partir de R$ 37 · Sem restricao extrema",
+    description: "A partir de R$ 67 · Sem restricao extrema",
     cta: "LEARN_MORE",
     primaryText: `"Eu ja tentei tudo."
 
@@ -75,7 +75,7 @@ Uma nova relacao com a comida — sem dieta, sem culpa.
   "story-cta": {
     label: "D",
     headline: "Comece hoje — Metodo S.E.M",
-    description: "A partir de R$ 37",
+    description: "A partir de R$ 67",
     cta: "SHOP_NOW",
     primaryText: `Uma nova relacao com a comida.
 Sem dieta. Sem culpa.
@@ -86,9 +86,9 @@ Metodo S.E.M.
   "banner-display": {
     label: "A",
     headline: "Emagreca Sem Dieta — Metodo S.E.M",
-    description: "Reeducacao alimentar a partir de R$ 37",
+    description: "Reeducacao alimentar a partir de R$ 67",
     cta: "LEARN_MORE",
-    primaryText: `Metodo S.E.M — uma nova relacao com a comida. Sem restricao, sem culpa, sem contar caloria. A partir de R$ 37.`,
+    primaryText: `Metodo S.E.M — uma nova relacao com a comida. Sem restricao, sem culpa, sem contar caloria. A partir de R$ 67.`,
   },
 };
 
@@ -96,7 +96,7 @@ function defaultCopyFor(creative: { slug: string; name: string }): CopyDef {
   return {
     label: "A",
     headline: creative.name.slice(0, 40),
-    description: "A partir de R$ 37",
+    description: "A partir de R$ 67",
     cta: "LEARN_MORE",
     primaryText: `Conheca ${creative.name} — uma nova abordagem pra emagrecer sem dieta.`,
   };

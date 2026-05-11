@@ -21,6 +21,7 @@ import { BadgeResultado } from "@/components/visual";
 import Image from "next/image";
 import LeadCapture from "@/components/LeadCapture";
 import { useLpAssets } from "@/lib/useLpAssets";
+import { PLAN_BASICO } from "@/config/plans";
 
 // Fallbacks estáticos. Quando houver LpAsset avatar.<name> no DB, useLpAssets
 // sobrescreve via resolveAsset(). Isso deixa deploy zero-downtime.
@@ -35,15 +36,15 @@ const AVATAR_FALLBACK_MAP: Record<string, string> = {
 };
 
 const LINKS = {
-  hotmart: "https://pay.hotmart.com/H105141835Q?src=pagina-vendas",
+  hotmart: PLAN_BASICO.checkoutUrl,
   kiwify: "https://pay.kiwify.com.br/3fle7dM",
 };
 
 // Nova aba (target_blank) — a aba original mantém o fbq vivo pra
 // terminar o send, então não precisa de setTimeout aqui.
 function handleBuyClick() {
-  trackInitiateCheckout("Método S.E.M", 37);
-  trackAddToCart("Método S.E.M", 37);
+  trackInitiateCheckout("Método S.E.M", PLAN_BASICO.price);
+  trackAddToCart("Método S.E.M", PLAN_BASICO.price);
 }
 
 const bullets = [
@@ -174,7 +175,7 @@ const depoimentos = [
 // mode="scroll" → scroll âncora pra #pricing (usado no Hero; usuário vê pricing + VIP antes de decidir)
 // mode="checkout" → abre Hotmart direto em nova aba + dispara InitiateCheckout + AddToCart (usado no CTA Final)
 function CTA({
-  label = "Garantir Meu Acesso — R$37",
+  label = "Garantir Meu Acesso — R$67",
   ctaKey = "hero-primary",
   mode = "checkout",
 }: {
@@ -262,7 +263,7 @@ export default function EmagrecaSemDietaPage() {
     if (typeof window !== "undefined") {
       captureUTMs(new URLSearchParams(window.location.search));
     }
-    trackViewContent("Emagreca Sem Dieta", 37);
+    trackViewContent("Emagreca Sem Dieta", PLAN_BASICO.price);
   }, []);
 
   return (
@@ -296,7 +297,7 @@ export default function EmagrecaSemDietaPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
             <span className="text-xs font-medium text-red-400">
-              Oferta por tempo limitado — R$37
+              Oferta por tempo limitado — R$67
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -343,7 +344,7 @@ export default function EmagrecaSemDietaPage() {
                   color: "#C4787A",
                 }}
               >
-                🔥 Oferta por tempo limitado — R$37
+                🔥 Oferta por tempo limitado — R$67
               </div>
 
               {/* Social proof pill — soft green */}
@@ -390,25 +391,28 @@ export default function EmagrecaSemDietaPage() {
               {/* Price block */}
               <div className="mb-6">
                 <p className="text-sm mb-1" style={{ color: "var(--text-muted)" }}>
-                  De <span className="line-through">R$97</span> por apenas
+                  De <span className="line-through">R$147</span> por apenas
                 </p>
                 <div className="flex items-baseline gap-3 flex-wrap">
                   <span
                     className="text-6xl md:text-7xl font-black leading-none tracking-tight"
                     style={{ color: "var(--accent)" }}
                   >
-                    R$37
+                    R$67
                   </span>
                   <span className="text-sm md:text-base" style={{ color: "var(--text-muted)" }}>
-                    ou 3x de R$ 12,33
+                    ou 6x de R$ 11,17
                   </span>
                 </div>
               </div>
 
-              {/* CTA grande — direto scroll #pricing */}
+              {/* CTA grande — checkout direto (plano basico R$67) */}
               <a
-                href="#pricing"
+                href={LINKS.hotmart}
+                onClick={handleBuyClick}
                 data-cta="hero-primary"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group inline-flex items-center justify-center gap-3 rounded-2xl py-5 px-8 text-lg md:text-xl font-bold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
                 style={{
                   background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
@@ -1079,7 +1083,7 @@ export default function EmagrecaSemDietaPage() {
             <div className="rounded-2xl border p-5" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}>
               <p className="mb-1 font-bold" style={{ color: "var(--accent)" }}>Opção 2</p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Investir R$ 37 — o preço de um delivery — e dar uma chance pra um método que respeita
+                Investir R$ 67 — o preço de um delivery — e dar uma chance pra um método que respeita
                 sua rotina, seu corpo e suas emoções. Com plano de 7 dias pronto. Para começar AMANHÃ.
               </p>
             </div>
@@ -1087,12 +1091,12 @@ export default function EmagrecaSemDietaPage() {
           <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
             A escolha é sua. Mas se você chegou até aqui, lá no fundo você já sabe qual é.
           </p>
-          <CTA ctaKey="final-primary" mode="checkout" label="SIM, EU QUERO O MÉTODO S.E.M — R$37" />
+          <CTA ctaKey="final-primary" mode="checkout" label="SIM, EU QUERO O MÉTODO S.E.M — R$67" />
           <div className="mt-10 space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
             <p>
               <strong style={{ color: "var(--text-primary)" }}>P.S.</strong> — Se você está pensando
               &ldquo;talvez depois&rdquo;: quantas vezes você já adiou cuidar de você? Quantas
-              &ldquo;segundas-feiras&rdquo; já passaram? R$37 e 1 hora de leitura podem ser o início
+              &ldquo;segundas-feiras&rdquo; já passaram? R$67 e 1 hora de leitura podem ser o início
               de uma mudança que você vai agradecer daqui a 6 meses.
             </p>
             <p>

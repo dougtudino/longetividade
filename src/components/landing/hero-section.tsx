@@ -24,7 +24,7 @@ export function HeroSection() {
           className="inline-block text-white font-body font-bold text-base md:text-lg px-8 py-4 rounded-xl transition-colors shadow-lg hover:shadow-xl"
           style={{backgroundColor: 'var(--accent)'}}
         >
-          QUERO COMECAR AGORA -- R$ 37,00
+          QUERO COMECAR AGORA -- R$ 67,00
         </a>
 
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-6 text-xs md:text-sm" style={{color: 'var(--text-muted)'}}>

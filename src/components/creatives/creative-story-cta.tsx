@@ -83,10 +83,10 @@ const CreativeStoryCta = forwardRef<HTMLDivElement>(function CreativeStoryCta(_,
             a partir de
           </div>
           <div style={{ fontSize: 200, fontWeight: 900, lineHeight: 0.9, letterSpacing: "-0.04em" }}>
-            R$37
+            R$67
           </div>
           <div style={{ fontSize: 30, fontWeight: 700, color: BRAND.greenMid, marginTop: 14 }}>
-            ou 6x R$ 6,17
+            ou 6x R$ 11,17
           </div>
         </div>
       </div>

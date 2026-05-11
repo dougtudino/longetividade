@@ -136,7 +136,7 @@ export function isNoExecutionAction(action: ProposedAction | null): boolean {
 
 // Parametros da Gaia — podem vir da knowledge base no futuro
 export type GaiaThresholds = {
-  ticketMedioCents: number;          // ticket medio esperado (default: R$37 = 3700 cents)
+  ticketMedioCents: number;          // ticket medio esperado (default: R$67 = 6700 cents)
   killSpendMultiplier: number;        // spend > killSpendMultiplier × ticket → kill se zero purchases
   killCtrMin: number;                 // ctr% minimo pra nao matar (padrao 0.8)
   killCtrAfterImpressions: number;    // so aplica CTR kill apos N impressions (evita kill prematuro)
@@ -150,7 +150,7 @@ export type GaiaThresholds = {
 };
 
 export const DEFAULT_THRESHOLDS: GaiaThresholds = {
-  ticketMedioCents: 3700, // R$ 37 (plano basico)
+  ticketMedioCents: 6700, // R$ 67 (plano basico)
   killSpendMultiplier: 3,
   killCtrMin: 0.8,
   killCtrAfterImpressions: 5000,

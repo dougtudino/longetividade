@@ -90,7 +90,7 @@ export function MapaCampanhas() {
           <div style={{border:'0.5px solid #D5E8D4',borderRadius:10,padding:'14px 18px',background:'rgba(90,160,100,0.06)',marginTop:4,marginBottom:10}}>
             <div style={{fontSize:11,fontWeight:700,color:'#3A6B4F',textTransform:'uppercase',marginBottom:8}}>Destino — todos os anuncios levam para:</div>
             <div style={{display:'flex',gap:14,flexWrap:'wrap',alignItems:'center'}}>
-              <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700}}>Emgreca Sem Dieta — Metodo S.E.M</div><div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>CTA: Quero Meu Ebook — Apenas R$37</div></div>
+              <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700}}>Emgreca Sem Dieta — Metodo S.E.M</div><div style={{fontSize:12,color:'var(--text-secondary)',marginTop:2}}>CTA: Quero Meu Ebook — Apenas R$67</div></div>
               <div style={{background:'var(--bg-secondary)',border:'0.5px solid #D5E8D4',borderRadius:8,padding:'8px 14px',fontSize:12,fontFamily:'monospace',color:'#3A6B4F'}}>longetividade.com.br/c/instagram</div>
             </div>
           </div>
@@ -115,7 +115,7 @@ export function MapaCampanhas() {
           <div style={{fontSize:13,color:'var(--text-secondary)',marginBottom:20}}>Jornada completa do clique no anuncio ate o email de boas-vindas</div>
           {[
             {icon:'📱',etapa:'Anuncio Meta Ads',desc:'3 publicos x 2 criativos = 6 anuncios'},
-            {icon:'🌐',etapa:'Landing /c/instagram',desc:'longetividade.com.br — CTA Quero Meu Ebook R$37'},
+            {icon:'🌐',etapa:'Landing /c/instagram',desc:'longetividade.com.br — CTA Quero Meu Ebook R$67'},
             {icon:'💳',etapa:'Checkout Hotmart',desc:'Pix, boleto, cartao de credito'},
             {icon:'✅',etapa:'Pagina /obrigado',desc:'Confirmacao + upsell Completo/VIP'},
             {icon:'📧',etapa:'Sequencia Brevo',desc:'5 emails nurture automaticos'},
@@ -133,7 +133,7 @@ export function MapaCampanhas() {
           ))}
           <div style={{border:'0.5px solid var(--border-default)',borderRadius:10,overflow:'hidden',marginTop:24}}>
             <div style={{background:'var(--bg-secondary)',padding:'10px 16px',fontSize:12,fontWeight:700,color:'var(--text-secondary)',textTransform:'uppercase'}}>Produtos no checkout</div>
-            {[['Basico','R$37','Ebook Emgreca Sem Dieta'],['Completo','R$67','Ebook + Bonus'],['VIP','R$97','Ebook + Bonus + App PWA vitalicio']].map(([p,v,d],i)=>(
+            {[['Basico','R$67','Ebook Emgreca Sem Dieta'],['Completo','R$147','Ebook + Bonus'],['VIP','R$297','Ebook + Bonus + App PWA vitalicio']].map(([p,v,d],i)=>(
               <div key={p} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderTop:i>0?'0.5px solid var(--border-default)':'none'}}>
                 <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700}}>{p}</div><div style={{fontSize:11,color:'var(--text-secondary)'}}>{d}</div></div>
                 <div style={{fontSize:20,fontWeight:700,color:'var(--accent)'}}>{v}</div>

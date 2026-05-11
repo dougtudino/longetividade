@@ -97,8 +97,8 @@ export function offerEmail(name: string | null): SequenceEmail {
       <p>Eu separei uma condição especial pra quem está na minha lista:</p>
       <div style="background:#FFF8EC;border:2px solid #D4A94B;border-radius:14px;padding:24px;text-align:center;margin:24px 0;">
         <div style="font-size:13px;color:#8B7332;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Método S.E.M completo</div>
-        <div style="font-size:48px;font-weight:900;color:#3D5A3E;margin:8px 0;">R$ 37</div>
-        <div style="font-size:13px;color:#666;">ou 6x de R$ 6,17 sem juros</div>
+        <div style="font-size:48px;font-weight:900;color:#3D5A3E;margin:8px 0;">R$ 67</div>
+        <div style="font-size:13px;color:#666;">ou 6x de R$ 11,17 sem juros</div>
       </div>
       <p><strong>O que você leva:</strong></p>
       <ul style="padding-left:20px;line-height:1.8;">
@@ -108,10 +108,10 @@ export function offerEmail(name: string | null): SequenceEmail {
         <li>Checklist diário imprimível</li>
         <li>10 atalhos de aceleração</li>
       </ul>
-      <p>Se hoje você não pode investir R$ 37 em você, não tem problema — vou continuar mandando conteúdo gratuito.</p>
+      <p>Se hoje você não pode investir R$ 67 em você, não tem problema — vou continuar mandando conteúdo gratuito.</p>
       <p>Mas se você quer começar de verdade, esse é o momento.</p>
       `,
-      "Quero começar agora · R$ 37",
+      "Quero começar agora · R$ 67",
       offerUrl
     ),
   };

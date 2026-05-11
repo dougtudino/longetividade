@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect } from "react";
 
-const CTA_LABEL = "QUERO MEU EBOOK — APENAS R$37";
+const CTA_LABEL = "QUERO MEU EBOOK — APENAS R$67";
 
 const COLORS = {
   bg: "#FDF8F3",
@@ -367,7 +367,7 @@ function OfferSection({ checkoutUrl }: { checkoutUrl: string }) {
             className="text-6xl md:text-7xl text-[#3D5A3E]"
             style={{ fontFamily: FONT_DISPLAY, fontWeight: 800 }}
           >
-            R$37
+            R$67
           </p>
         </div>
         <CTAButton checkoutUrl={checkoutUrl} id="cta-final" />
@@ -418,7 +418,7 @@ export default function InstagramLP({ checkoutUrl }: { checkoutUrl: string }) {
       w.fbq("track", "ViewContent", {
         content_name: "Emagreca Sem Dieta — Metodo SEM",
         content_category: "ebook",
-        value: 37.0,
+        value: 67.0,
         currency: "BRL",
       });
     }

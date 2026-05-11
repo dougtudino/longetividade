@@ -106,7 +106,7 @@ const CreativeBannerDisplay = forwardRef<HTMLDivElement>(function CreativeBanner
             Quero conhecer →
           </div>
           <div style={{ fontSize: 16, color: BRAND.inkMuted, fontWeight: 600 }}>
-            a partir de <strong style={{ color: BRAND.greenDark, fontSize: 22 }}>R$ 37</strong>
+            a partir de <strong style={{ color: BRAND.greenDark, fontSize: 22 }}>R$ 67</strong>
           </div>
         </div>
       </div>

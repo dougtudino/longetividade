@@ -36,8 +36,8 @@ const LINKS = {
 // Nova aba (target_blank) — a aba original mantém o fbq vivo pra
 // terminar o send, então não precisa de setTimeout aqui.
 function handleBuyClick() {
-  trackInitiateCheckout("Método S.E.M", 37);
-  trackAddToCart("Método S.E.M", 37);
+  trackInitiateCheckout("Método S.E.M", 67);
+  trackAddToCart("Método S.E.M", 67);
 }
 
 const bullets = [
@@ -168,7 +168,7 @@ const depoimentos = [
 // mode="scroll" → scroll âncora pra #pricing (usado no Hero; usuário vê pricing + VIP antes de decidir)
 // mode="checkout" → abre Hotmart direto em nova aba + dispara InitiateCheckout + AddToCart (usado no CTA Final)
 function CTA({
-  label = "Garantir Meu Acesso — R$37",
+  label = "Garantir Meu Acesso — R$67",
   ctaKey = "hero-primary",
   mode = "checkout",
 }: {
@@ -256,7 +256,7 @@ export default function EmagrecaSemDietaPage() {
     if (typeof window !== "undefined") {
       captureUTMs(new URLSearchParams(window.location.search));
     }
-    trackViewContent("Emagreca Sem Dieta V2", 37);
+    trackViewContent("Emagreca Sem Dieta V2", 67);
   }, []);
 
   return (
@@ -290,7 +290,7 @@ export default function EmagrecaSemDietaPage() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-red-400 animate-pulse" />
             <span className="text-xs font-medium text-red-400">
-              Oferta por tempo limitado — R$37
+              Oferta por tempo limitado — R$67
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -352,9 +352,9 @@ export default function EmagrecaSemDietaPage() {
                 Uma consulta com nutricionista custa R$ 200 a R$ 400. O método sai por:
               </p>
               <div className="mb-4 flex items-baseline justify-center gap-3 flex-wrap">
-                <span className="text-5xl font-black leading-none" style={{ color: "var(--text-primary)" }}>R$37</span>
+                <span className="text-5xl font-black leading-none" style={{ color: "var(--text-primary)" }}>R$67</span>
                 <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  ou 3x de R$ 12,33 sem juros
+                  ou 6x de R$ 11,17 sem juros
                 </span>
               </div>
               <CTA ctaKey="hero-primary" mode="scroll" label="Quero começar agora" />
@@ -813,7 +813,7 @@ export default function EmagrecaSemDietaPage() {
             <div className="rounded-2xl border p-5" style={{ borderColor: "var(--border-default)", backgroundColor: "var(--accent-soft)" }}>
               <p className="mb-1 font-bold" style={{ color: "var(--accent)" }}>Opção 2</p>
               <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                Investir R$ 37 — o preço de um delivery — e dar uma chance pra um método que respeita
+                Investir R$ 67 — o preço de um delivery — e dar uma chance pra um método que respeita
                 sua rotina, seu corpo e suas emoções. Com plano de 7 dias pronto. Para começar AMANHÃ.
               </p>
             </div>
@@ -821,12 +821,12 @@ export default function EmagrecaSemDietaPage() {
           <p className="mb-8 text-lg" style={{ color: "var(--text-secondary)" }}>
             A escolha é sua. Mas se você chegou até aqui, lá no fundo você já sabe qual é.
           </p>
-          <CTA ctaKey="final-primary" mode="checkout" label="SIM, EU QUERO O MÉTODO S.E.M — R$37" />
+          <CTA ctaKey="final-primary" mode="checkout" label="SIM, EU QUERO O MÉTODO S.E.M — R$67" />
           <div className="mt-10 space-y-2 text-sm" style={{ color: "var(--text-secondary)" }}>
             <p>
               <strong style={{ color: "var(--text-primary)" }}>P.S.</strong> — Se você está pensando
               &ldquo;talvez depois&rdquo;: quantas vezes você já adiou cuidar de você? Quantas
-              &ldquo;segundas-feiras&rdquo; já passaram? R$37 e 1 hora de leitura podem ser o início
+              &ldquo;segundas-feiras&rdquo; já passaram? R$67 e 1 hora de leitura podem ser o início
               de uma mudança que você vai agradecer daqui a 6 meses.
             </p>
             <p>

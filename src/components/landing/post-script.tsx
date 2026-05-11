@@ -8,7 +8,7 @@ export function PostScript() {
             pensando &ldquo;talvez depois&rdquo;, eu entendo. Mas me diz:
             quantas vezes voce ja adiou cuidar de voce? Quantas
             &ldquo;segundas-feiras&rdquo; ja passaram? Seus filhos estao
-            crescendo agora. Sua vida esta acontecendo agora. R$ 37 e 1 hora de
+            crescendo agora. Sua vida esta acontecendo agora. R$ 67 e 1 hora de
             leitura podem ser o inicio de uma mudanca que voce vai agradecer
             daqui a 6 meses.
           </p>
@@ -25,7 +25,7 @@ export function PostScript() {
             href="#pricing"
             className="font-body text-sage hover:text-olive underline underline-offset-4 text-base font-medium transition-colors"
           >
-            Quero comecar agora -- R$ 37,00
+            Quero comecar agora -- R$ 67,00
           </a>
         </div>
       </div>

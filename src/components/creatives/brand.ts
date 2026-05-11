@@ -22,7 +22,7 @@ export const BRAND = {
 } as const;
 
 export const PRICING = {
-  basico: { price: "37", label: "Básico" },
-  completo: { price: "67", label: "Completo" },
-  vip: { price: "97", label: "VIP" },
+  basico: { price: "67", label: "Básico" },
+  completo: { price: "147", label: "Completo" },
+  vip: { price: "297", label: "VIP" },
 } as const;

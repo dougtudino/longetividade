@@ -48,7 +48,7 @@ interface PlanInfo {
 const PLANS: Record<PlanKey, PlanInfo> = {
   basico: {
     name: "Basico",
-    price: "R$ 37",
+    price: "R$ 67",
     offerId: "zxq5tgew",
     color: "#9EBF9E",
     deliverables: [
@@ -60,7 +60,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
       { name: "10 atalhos de aceleracao", type: "pdf", status: "pronto", desc: "Capitulo 10 — dicas de aceleracao de resultados" },
     ],
     accessFlow: [
-      "Cliente compra no Hotmart (R$37)",
+      "Cliente compra no Hotmart (R$67)",
       "Webhook cria Order no banco",
       "Email Brevo com link de download (token 72h)",
       "Cliente clica e baixa o PDF",
@@ -69,7 +69,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
   },
   completo: {
     name: "Completo",
-    price: "R$ 67",
+    price: "R$ 147",
     offerId: "uzvdkzkf",
     color: "#7A9E7E",
     deliverables: [
@@ -79,7 +79,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
       { name: "Acesso grupo WhatsApp (30 dias)", type: "whatsapp", status: "configurar", desc: "Doug cria grupo + link de convite — enviado no email pos-compra" },
     ],
     accessFlow: [
-      "Cliente compra no Hotmart (R$67)",
+      "Cliente compra no Hotmart (R$147)",
       "Webhook cria Order no banco",
       "Email Brevo com link de download + link do grupo WhatsApp",
       "Cliente baixa ebook + bonus PDFs extras",
@@ -88,7 +88,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
   },
   vip: {
     name: "VIP",
-    price: "R$ 97",
+    price: "R$ 297",
     offerId: "h84hak4e",
     color: "#3D5A3E",
     deliverables: [
@@ -99,7 +99,7 @@ const PLANS: Record<PlanKey, PlanInfo> = {
       { name: "Diario de Autoconhecimento (PDF)", type: "pdf", status: "criar", desc: "Journal imprimivel 30 dias — reflexoes sobre fome emocional, gatilhos, vitorias, gratidao" },
     ],
     accessFlow: [
-      "Cliente compra no Hotmart (R$97)",
+      "Cliente compra no Hotmart (R$297)",
       "Webhook cria Order + AppUser + decrementa vaga VIP",
       "Email Brevo com link download + link grupo WhatsApp + instrucoes app",
       "Cliente baixa ebook + bonus PDFs",

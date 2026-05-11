@@ -11,7 +11,7 @@ const LAUNCH_001_SEED = {
     name: "LAUNCH-001-Pioneer",
     status: "draft",
     productName: "Longetividade - Emagreca Sem Dieta",
-    productPriceBrl: 37,
+    productPriceBrl: 67,
     productHotmartId: "7474328",
     landingUrl: "https://www.longetividade.com.br/emagreca-sem-dieta",
     pixelId: "953736244279938",

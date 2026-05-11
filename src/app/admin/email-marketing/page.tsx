@@ -123,7 +123,7 @@ export default function EmailMarketingPage() {
           {[
             { step: 0, label: "D+0 Welcome", desc: "Email imediato ao capturar lead", count: stats?.step0_welcome ?? 0, color: "#4A90D9", preview: "welcome" },
             { step: 1, label: "D+2 Valor", desc: "Dica 'Regra das 3 horas'", count: stats?.step1_d2 ?? 0, color: "#D4A94B", preview: "value" },
-            { step: 2, label: "D+5 Oferta", desc: "Oferta R$37 direto Hotmart", count: stats?.step2_d5 ?? 0, color: "#6B9E6B", preview: "offer" },
+            { step: 2, label: "D+5 Oferta", desc: "Oferta R$67 direto Hotmart", count: stats?.step2_d5 ?? 0, color: "#6B9E6B", preview: "offer" },
             { step: -1, label: "Converteu", desc: "Lead virou comprador", count: stats?.converted ?? 0, color: "#3D5A3E", preview: null },
           ].map((s, i) => (
             <div key={s.step} style={{ flex: 1, position: "relative" }}>
@@ -207,7 +207,7 @@ export default function EmailMarketingPage() {
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
           {[
             { label: "30min", subject: "Voce esqueceu algo...", desc: "Lembrete gentil. Lista o que leva. CTA: Finalizar compra → Hotmart direto.", rule: "AbandonedCheckout.step='checkout' E idade >= 30min E nao tem Order aprovada com mesmo email", color: "#D4A94B" },
-            { label: "24h", subject: "Sua vaga ainda esta aberta", desc: "Responde 3 objecoes (caro? funciona? tempo?). Box R$37 + garantia. CTA: Checkout direto.", rule: "AbandonedCheckout.step='email_30min' E idade >= 24h E nao tem Order aprovada", color: "#C4787A" },
+            { label: "24h", subject: "Sua vaga ainda esta aberta", desc: "Responde 3 objecoes (caro? funciona? tempo?). Box R$67 + garantia. CTA: Checkout direto.", rule: "AbandonedCheckout.step='email_30min' E idade >= 24h E nao tem Order aprovada", color: "#C4787A" },
           ].map((e, i) => (
             <div key={i} style={{ flex: 1, minWidth: 260 }}>
               <div style={{ padding: 14, background: `${e.color}10`, border: `1.5px solid ${e.color}35`, borderRadius: 10 }}>

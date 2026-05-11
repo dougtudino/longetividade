@@ -143,7 +143,7 @@ export async function sendPurchaseEvent(opts: {
   email: string;
   phone?: string | null;
   name?: string;
-  value: number; // em reais (ex: 37.00)
+  value: number; // em reais (ex: 67.00)
   currency?: string;
   orderId: string;
   contentName?: string;

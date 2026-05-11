@@ -17,7 +17,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Emagreça Sem Dieta — Método S.E.M | R$37",
+  title: "Emagreça Sem Dieta — Método S.E.M | R$67",
   robots: "noindex, nofollow",
 };
 

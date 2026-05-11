@@ -16,7 +16,7 @@ export function FinalCTA() {
           </div>
           <div>
             <p className="font-body text-base md:text-lg leading-relaxed font-medium">
-              <strong>Opcao 2:</strong> Investir R$ 37 -- o preco de um delivery
+              <strong>Opcao 2:</strong> Investir R$ 67 -- o preco de um delivery
               que voce pede quando esta estressada -- e dar uma chance pra um
               metodo que respeita sua rotina, seu corpo e suas emocoes. Com plano
               de 7 dias pronto. Com lista de compras. Com tudo que voce precisa
@@ -30,7 +30,7 @@ export function FinalCTA() {
           className="inline-block font-body font-bold text-base md:text-lg px-10 py-4 rounded-xl transition-all hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)]"
           style={{backgroundColor: 'var(--bg-card)', color: 'var(--accent)'}}
         >
-          SIM, EU QUERO O METODO S.E.M -- R$ 37,00
+          SIM, EU QUERO O METODO S.E.M -- R$ 67,00
         </a>
 
         <div className="flex flex-wrap items-center justify-center gap-4 mt-6 text-white/80 text-xs md:text-sm">

@@ -6,9 +6,9 @@ export const PLANS: Plan[] = [
   {
     id: "basico",
     name: "Basico",
-    price: 37,
-    priceInCents: 3700,
-    installments: "6x de R$ 6,17",
+    price: 67,
+    priceInCents: 6700,
+    installments: "6x de R$ 11,17",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=zxq5tgew&src=site-basico`,
     features: [
       "Ebook completo Metodo S.E.M",
@@ -24,9 +24,9 @@ export const PLANS: Plan[] = [
   {
     id: "completo",
     name: "Completo",
-    price: 67,
-    priceInCents: 6700,
-    installments: "6x de R$ 11,17",
+    price: 147,
+    priceInCents: 14700,
+    installments: "6x de R$ 24,50",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=uzvdkzkf&src=site-completo`,
     features: [
       "Ebook completo Metodo S.E.M",
@@ -45,9 +45,9 @@ export const PLANS: Plan[] = [
   {
     id: "vip",
     name: "VIP",
-    price: 97,
-    priceInCents: 9700,
-    installments: "6x de R$ 16,17",
+    price: 297,
+    priceInCents: 29700,
+    installments: "6x de R$ 49,50",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=h84hak4e&src=site-vip`,
     features: [
       "Ebook completo Metodo S.E.M",

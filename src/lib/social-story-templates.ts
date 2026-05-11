@@ -27,7 +27,7 @@ export const STORY_POLL_TEMPLATES: Record<Pillar, StoryTemplate[]> = {
   ],
   promo: [
     { title: "Poll: reeducação", content: "Já tentou reeducação alimentar?\n---\nSim, várias vezes\nAinda não", hashtags: "#reeducacao #metodosem" },
-    { title: "Poll: investir em você", content: "Se R$37 te fizesse mudar de vida, você investiria?\n---\nClaro que sim\nPreciso saber mais", hashtags: "#metodosem #investaemvoce" },
+    { title: "Poll: investir em você", content: "Se R$67 te fizesse mudar de vida, você investiria?\n---\nClaro que sim\nPreciso saber mais", hashtags: "#metodosem #investaemvoce" },
   ],
 };
 
@@ -90,7 +90,7 @@ export const STORY_SEQUENCE_TEMPLATES: Record<Pillar, StoryTemplate[]> = {
   promo: [
     {
       title: "Sequence: por que o Método S.E.M",
-      content: "🌿 Por que o Método S.E.M funciona\n---\nS — SIMPLICIDADE (sem contar caloria)\n---\nE — EQUILÍBRIO (emocional conta)\n---\nM — MOVIMENTO (15 min/dia)\n---\n✅ R$37 · resultado pra vida toda",
+      content: "🌿 Por que o Método S.E.M funciona\n---\nS — SIMPLICIDADE (sem contar caloria)\n---\nE — EQUILÍBRIO (emocional conta)\n---\nM — MOVIMENTO (15 min/dia)\n---\n✅ R$67 · resultado pra vida toda",
       hashtags: "#metodosem #reeducacao #longetividade",
     },
   ],

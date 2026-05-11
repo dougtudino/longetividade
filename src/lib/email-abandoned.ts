@@ -51,7 +51,7 @@ export function abandonedEmail30min(email: string): AbandonedEmail {
         <li>Plano de 7 dias + cardapio</li>
         <li>Lista de compras + checklist diario</li>
       </ul>
-      <p>Tudo isso por <strong>R$ 37</strong> (ou 6x de R$ 6,17).</p>
+      <p>Tudo isso por <strong>R$ 67</strong> (ou 6x de R$ 11,17).</p>
       <p>Se tiver alguma duvida, responda esse email que eu ajudo.</p>
       `,
       "Finalizar minha compra →",
@@ -70,13 +70,13 @@ export function abandonedEmail24h(email: string): AbandonedEmail {
       <p>Ontem voce demonstrou interesse no <strong>Metodo S.E.M</strong> e eu quero te ajudar a dar esse passo.</p>
       <p>Vou ser direta: <strong>o que te impediu de finalizar?</strong></p>
       <ul style="padding-left:20px;line-height:1.8;">
-        <li><strong>"E caro?"</strong> — Sao R$ 37, menos que um delivery. E o investimento mais barato que voce vai fazer na sua saude.</li>
+        <li><strong>"E caro?"</strong> — Sao R$ 67, menos que um delivery. E o investimento mais barato que voce vai fazer na sua saude.</li>
         <li><strong>"Sera que funciona?"</strong> — Garantia de 7 dias. Se nao gostar, devolvemos 100% sem perguntas.</li>
         <li><strong>"Nao tenho tempo"</strong> — O metodo foi feito pra mulher com rotina corrida. 15 minutos por dia.</li>
       </ul>
       <div style="background:#FFF8EC;border:2px solid #D4A94B;border-radius:14px;padding:20px;text-align:center;margin:24px 0;">
         <div style="font-size:13px;color:#8B7332;font-weight:700;text-transform:uppercase;">Metodo S.E.M completo</div>
-        <div style="font-size:42px;font-weight:900;color:#3D5A3E;margin:8px 0;">R$ 37</div>
+        <div style="font-size:42px;font-weight:900;color:#3D5A3E;margin:8px 0;">R$ 67</div>
         <div style="font-size:13px;color:#666;">Garantia 7 dias · Acesso imediato</div>
       </div>
       `,

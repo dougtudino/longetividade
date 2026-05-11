@@ -32,7 +32,7 @@ reseta o aprendizado do algoritmo).`,
     kind: "rule",
     title: "Kill Criteria — quando matar um ad set",
     body: `Criterios cumulativos (basta um para matar):
-1. Spend > 3x ticket medio sem 1 venda (ex: gastou R$111 com ticket R$37 = mata)
+1. Spend > 3x ticket medio sem 1 venda (ex: gastou R$201 com ticket R$67 = mata)
 2. CTR < 0.8% apos 5.000 impressoes (criativo/audiencia nao engaja)
 3. CPA > 1.5x ticket apos 3 dias de dados (economicamente inviavel)
 
@@ -76,9 +76,9 @@ Regra: deixar dormir 72h antes do primeiro review.`,
   // ═══════════════════════════════════════════════════════════
   {
     kind: "benchmark",
-    title: "CPA benchmark — ebook emagrecimento R$37-97 Brasil",
+    title: "CPA benchmark — ebook emagrecimento R$67-297 Brasil",
     body: `Faixa esperada de CPA para produtos digitais de wellness/emagrecimento
-no Brasil (front-end R$37-97):
+no Brasil (front-end R$67-297):
 
 - Excelente: R$ 12 - R$ 20
 - Saudavel:  R$ 20 - R$ 35
@@ -88,7 +88,7 @@ no Brasil (front-end R$37-97):
 Fonte: observacoes de mercado brasileiro 2024-2025. Varia por sazonalidade
 (janeiro = ano novo = CPA baixo; dezembro = concorrencia alta = CPA alto).`,
     source: "market-observation-2025",
-    metadata: { vertical: "weight-loss", region: "BR", price_range: "37-97" },
+    metadata: { vertical: "weight-loss", region: "BR", price_range: "67-297" },
   },
   {
     kind: "benchmark",

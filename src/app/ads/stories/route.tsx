@@ -78,8 +78,8 @@ export async function GET(req: NextRequest) {
         {/* Price + CTA */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-            <span style={{ fontSize: "28px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$97</span>
-            <span style={{ fontSize: "72px", fontWeight: 900, color: "#fff" }}>R$37</span>
+            <span style={{ fontSize: "28px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$147</span>
+            <span style={{ fontSize: "72px", fontWeight: 900, color: "#fff" }}>R$67</span>
           </div>
           <div
             style={{

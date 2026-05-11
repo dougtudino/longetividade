@@ -191,8 +191,8 @@ const produtos: Produto[] = [
     subtitulo: "Método S.E.M",
     badge: "Mais Vendido",
     badgeEmoji: "🔥",
-    preco: "R$ 37",
-    precoOriginal: "R$ 97",
+    preco: "R$ 67",
+    precoOriginal: "R$ 147",
     descricao:
       "Perca peso de forma permanente sem passar fome, sem contar calorias e sem radicalismos. Um método que funciona na sua vida real.",
     beneficios: [
@@ -335,7 +335,7 @@ const depoimentos = [
     nome: "Marina T.",
     local: "Florianópolis, SC",
     texto:
-      "Melhor investimento que fiz na saúde. R$ 37 que mudaram minha relação com o corpo. Minha autoestima voltou.",
+      "Melhor investimento que fiz na saúde. R$ 67 que mudaram minha relação com o corpo. Minha autoestima voltou.",
     resultado: "-5kg",
   },
 ];

@@ -78,7 +78,7 @@ export function MethodSEM() {
             className="inline-block text-white font-body font-bold text-base px-8 py-4 rounded-xl transition-colors"
             style={{backgroundColor: 'var(--accent)'}}
           >
-            QUERO O METODO S.E.M -- R$ 37,00
+            QUERO O METODO S.E.M -- R$ 67,00
           </a>
         </div>
       </div>

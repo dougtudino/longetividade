@@ -684,7 +684,7 @@ export default function ManualPage() {
 
 PRODUTO: [nome do produto, ex: "Sono Profundo"]
 VERTICAL: [área, ex: "sono/saúde feminina 30-50"]
-PRECO_ALVO: R$ [valor, ex: "37"]
+PRECO_ALVO: R$ [valor, ex: "67"]
 HIPOTESE_PERSONA: [1 frase, ex: "mulheres que sofrem de insônia ou sono ruim há 6+ meses"]
 
 Rode a equipe AIOX em sequência, cada um entregando antes de passar pro próximo:

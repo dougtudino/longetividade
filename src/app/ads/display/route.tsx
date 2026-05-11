@@ -71,8 +71,8 @@ export async function GET() {
           }}
         >
           <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-            <span style={{ fontSize: "20px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$97</span>
-            <span style={{ fontSize: "56px", fontWeight: 900, color: "#fff" }}>R$37</span>
+            <span style={{ fontSize: "20px", textDecoration: "line-through", color: "rgba(255,255,255,0.4)" }}>R$147</span>
+            <span style={{ fontSize: "56px", fontWeight: 900, color: "#fff" }}>R$67</span>
           </div>
           <div
             style={{

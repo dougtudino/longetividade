@@ -83,7 +83,7 @@ export const CREATIVES_REGISTRY: Record<string, RegistryEntry> = {
     height: 1920,
     defaultTags: ["story", "cta", "conversao", "pt-BR"],
     description:
-      "Comece hoje a partir de R$37. Card branco com preco destacado, CTA dourado. Fundo gradient verde escuro.",
+      "Comece hoje a partir de R$67. Card branco com preco destacado, CTA dourado. Fundo gradient verde escuro.",
   },
   "creative-banner-display": {
     componentKey: "creative-banner-display",
