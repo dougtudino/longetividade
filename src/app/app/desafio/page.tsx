@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AppNav } from "@/components/app/app-nav";
 
@@ -13,10 +13,46 @@ type ChallengeDay = {
   ctaPath: string;
 };
 
-const PILLAR_COLORS: Record<string, string> = {
-  S: "#639922",
-  E: "#FFC107",
-  M: "#378ADD",
+type CycleSummary = {
+  id: string;
+  cycleNumber: number;
+  status: "active" | "paused" | "completed";
+  startDate: string;
+  endDate: string | null;
+  daysCompleted: number;
+  daysRemaining: number;
+  percent: number;
+  pausedAt: string | null;
+  resumedAt: string | null;
+  completedAt: string | null;
+};
+
+type CyclesResponse = {
+  cycles: CycleSummary[];
+  current: CycleSummary | null;
+  stats: {
+    totalCycles: number;
+    completedCycles: number;
+    activeCycles: number;
+    pausedCycles: number;
+    totalDaysCompleted: number;
+    highestCycleNumber: number;
+  };
+};
+
+type ChallengeResponse = {
+  days: ChallengeDay[];
+  progress: number[];
+  currentDay: number;
+  cycle: {
+    id: string;
+    cycleNumber: number;
+    status: string;
+    daysCompleted: number;
+    startDate: string;
+    completedAt: string | null;
+  } | null;
+  needsNewCycle: boolean;
 };
 
 const WEEKS = [
@@ -28,74 +64,61 @@ const WEEKS = [
 const MILESTONE_MESSAGES: Record<number, string> = {
   7: "Primeira semana completa! Voce esta construindo habitos de verdade.",
   14: "Duas semanas! Metade do desafio. Voce e incrivel!",
-  21: "PARABENS! Voce completou o Desafio 21 Dias S.E.M! Voce provou que nao precisa de dieta. Precisa de um caminho que respeite quem voce e.",
+  21: "PARABENS! Voce fechou mais um ciclo do Desafio 21 Dias S.E.M! Cada ciclo solidifica o caminho que respeita quem voce e.",
 };
 
 export default function DesafioPage() {
   const router = useRouter();
-  const [days, setDays] = useState<ChallengeDay[]>([]);
-  const [progress, setProgress] = useState<number[]>([]);
-  const [currentDay, setCurrentDay] = useState(1);
+  const [data, setData] = useState<ChallengeResponse | null>(null);
+  const [cyclesData, setCyclesData] = useState<CyclesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
+  const [actioning, setActioning] = useState(false);
   const [celebration, setCelebration] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const fetchChallenge = async () => {
+  const fetchAll = useCallback(async () => {
     try {
-      const res = await fetch("/api/app/challenge");
-      if (!res.ok) {
-        // Auth failed or error — still show the static days
-        const { CHALLENGE_DAYS } = await import("@/data/challenge-days");
-        setDays(CHALLENGE_DAYS);
-        setLoading(false);
-        return;
-      }
-      const data = await res.json();
-      setDays(data.days ?? []);
-      setProgress(data.progress ?? []);
-      setCurrentDay(data.currentDay ?? 1);
+      const [chRes, cyRes] = await Promise.all([
+        fetch("/api/app/challenge"),
+        fetch("/api/app/cycles"),
+      ]);
+      if (chRes.ok) setData(await chRes.json());
+      if (cyRes.ok) setCyclesData(await cyRes.json());
     } catch {
-      // Fallback to static data
-      const { CHALLENGE_DAYS } = await import("@/data/challenge-days");
-      setDays(CHALLENGE_DAYS);
+      // silencioso — UI mostra fallback
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
-    fetchChallenge();
-  }, []);
+    fetchAll();
+  }, [fetchAll]);
 
   const completeDay = async (day: number) => {
     if (completing) return;
     setCompleting(true);
-
     const res = await fetch("/api/app/challenge", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ day }),
     });
-
     if (res.ok) {
-      const newProgress = [...progress, day];
-      setProgress(newProgress);
-      setCurrentDay(day < 21 ? day + 1 : 22);
-
-      // Check for milestone
-      if (MILESTONE_MESSAGES[day]) {
-        setCelebration(MILESTONE_MESSAGES[day]);
-      }
+      const payload = await res.json();
+      if (MILESTONE_MESSAGES[day]) setCelebration(MILESTONE_MESSAGES[day]);
+      if (payload.justCompleted) setCelebration(MILESTONE_MESSAGES[21]);
+      await fetchAll();
     }
-
     setCompleting(false);
   };
 
-  const completedSet = new Set(progress);
-  const completedCount = progress.length;
-  const progressPercent = Math.round((completedCount / 21) * 100);
-
-  const getDayForNumber = (dayNum: number): ChallengeDay | undefined =>
-    days.find((d) => d.day === dayNum);
+  const callCycleAction = async (path: string) => {
+    if (actioning) return;
+    setActioning(true);
+    const res = await fetch(`/api/app/cycles/${path}`, { method: "POST" });
+    if (res.ok) await fetchAll();
+    setActioning(false);
+  };
 
   if (loading) {
     return (
@@ -106,30 +129,116 @@ export default function DesafioPage() {
     );
   }
 
+  const cycle = data?.cycle;
+  const days = data?.days ?? [];
+  const progress = data?.progress ?? [];
+  const currentDay = data?.currentDay ?? 1;
+  const needsNewCycle = data?.needsNewCycle ?? false;
+
+  const completedSet = new Set(progress);
+  const completedCount = progress.length;
+  const progressPercent = Math.round((completedCount / 21) * 100);
+
+  const getDayForNumber = (dayNum: number): ChallengeDay | undefined =>
+    days.find((d) => d.day === dayNum);
+
+  const isPaused = cycle?.status === "paused";
+  const stats = cyclesData?.stats;
+
   return (
     <div className="px-5 pb-24 pt-6">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Desafio 21 Dias S.E.M</h1>
-        <p className="text-sm text-gray-400">{completedCount}/21 dias completados</p>
+      <div className="mb-2 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Desafio 21 Dias S.E.M</h1>
+          {cycle ? (
+            <p className="text-sm text-gray-500">
+              Ciclo {cycle.cycleNumber} · {completedCount}/21 dias
+            </p>
+          ) : (
+            <p className="text-sm text-gray-500">Nenhum ciclo ativo</p>
+          )}
+        </div>
+        {stats && stats.completedCycles > 0 && (
+          <div className="rounded-2xl bg-amber-50 px-3 py-2 text-right">
+            <p className="text-lg font-black" style={{ color: "#BA7517" }}>
+              🏆 {stats.completedCycles}
+            </p>
+            <p className="text-[10px] text-gray-500">ciclos completos</p>
+          </div>
+        )}
       </div>
 
+      {/* Banner: pausado */}
+      {isPaused && (
+        <div className="mb-4 rounded-2xl p-3 text-sm" style={{ backgroundColor: "#FFF6E7", border: "1px solid #f5e6cc" }}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-amber-800">
+              Ciclo {cycle?.cycleNumber} <strong>pausado</strong>. Retome quando quiser.
+            </p>
+            <button
+              onClick={() => callCycleAction("resume")}
+              disabled={actioning}
+              className="rounded-xl px-3 py-1.5 text-xs font-bold text-white"
+              style={{ backgroundColor: "#BA7517" }}
+            >
+              Retomar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner: precisa comecar novo ciclo */}
+      {needsNewCycle && (
+        <div className="mb-4 rounded-2xl p-4 text-center" style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}>
+          <p className="mb-2 text-2xl">🏆</p>
+          <p className="text-sm font-bold" style={{ color: "#3B6D11" }}>
+            Ciclo {cycle?.cycleNumber} concluido!
+          </p>
+          <p className="mt-1 mb-3 text-xs text-gray-600">
+            Voce ja completou {stats?.totalDaysCompleted ?? 0} dias no total. Pronta pro proximo?
+          </p>
+          <button
+            onClick={() => callCycleAction("start")}
+            disabled={actioning}
+            className="w-full rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-60"
+            style={{ backgroundColor: "#639922" }}
+          >
+            {actioning ? "..." : `Comecar Ciclo ${(cycle?.cycleNumber ?? 0) + 1}`}
+          </button>
+        </div>
+      )}
+
       {/* Progress bar */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs font-bold" style={{ color: "#639922" }}>{progressPercent}%</span>
-          <span className="text-xs text-gray-400">{completedCount}/21</span>
+      {cycle && cycle.status !== "completed" && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-bold" style={{ color: "#639922" }}>{progressPercent}%</span>
+            <span className="text-xs text-gray-400">{completedCount}/21</span>
+          </div>
+          <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700 ease-out"
+              style={{
+                width: `${progressPercent}%`,
+                background: "linear-gradient(90deg, #639922, #FFC107, #378ADD)",
+              }}
+            />
+          </div>
+          {!isPaused && cycle.status === "active" && (
+            <div className="mt-2 text-right">
+              <button
+                onClick={() => callCycleAction("pause")}
+                disabled={actioning}
+                className="text-[11px] font-semibold underline"
+                style={{ color: "#BA7517" }}
+              >
+                Pausar ciclo
+              </button>
+            </div>
+          )}
         </div>
-        <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className="h-full rounded-full transition-all duration-700 ease-out"
-            style={{
-              width: `${progressPercent}%`,
-              background: "linear-gradient(90deg, #639922, #FFC107, #378ADD)",
-            }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Celebration modal */}
       {celebration && (
@@ -154,13 +263,10 @@ export default function DesafioPage() {
       )}
 
       {/* Week sections */}
-      {WEEKS.map((week) => (
+      {cycle && WEEKS.map((week) => (
         <div key={week.label} className="mb-6">
           <div className="mb-3 flex items-center gap-2">
-            <div
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: week.color }}
-            />
+            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: week.color }} />
             <h2 className="text-sm font-bold" style={{ color: week.color }}>
               {week.label}
             </h2>
@@ -170,27 +276,17 @@ export default function DesafioPage() {
             {week.days.map((dayNum) => {
               const dayData = getDayForNumber(dayNum);
               const isCompleted = completedSet.has(dayNum);
-              const isCurrent = dayNum === currentDay;
-              const isLocked = dayNum > currentDay;
+              const isCurrent = dayNum === currentDay && !isPaused && !needsNewCycle;
+              const isLocked = dayNum > currentDay || isPaused || needsNewCycle;
 
               return (
                 <div key={dayNum}>
-                  {/* Day row */}
                   <div className="flex items-center gap-3">
-                    {/* Day circle */}
                     <div
                       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all"
                       style={{
-                        backgroundColor: isCompleted
-                          ? "#639922"
-                          : isCurrent
-                          ? "white"
-                          : "#e5e7eb",
-                        color: isCompleted
-                          ? "white"
-                          : isCurrent
-                          ? week.color
-                          : "#9ca3af",
+                        backgroundColor: isCompleted ? "#639922" : isCurrent ? "white" : "#e5e7eb",
+                        color: isCompleted ? "white" : isCurrent ? week.color : "#9ca3af",
                         border: isCurrent ? `2px solid ${week.color}` : "none",
                         boxShadow: isCompleted ? "0 2px 8px rgba(99,153,34,0.3)" : "none",
                       }}
@@ -209,7 +305,6 @@ export default function DesafioPage() {
                       )}
                     </div>
 
-                    {/* Day title */}
                     <p
                       className="flex-1 text-sm"
                       style={{
@@ -220,11 +315,8 @@ export default function DesafioPage() {
                       {dayData?.title ?? `Dia ${dayNum}`}
                     </p>
 
-                    {/* Status label */}
                     {isCompleted && (
-                      <span className="text-[10px] font-bold" style={{ color: "#639922" }}>
-                        Feito
-                      </span>
+                      <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Feito</span>
                     )}
                     {isCurrent && (
                       <span
@@ -236,7 +328,6 @@ export default function DesafioPage() {
                     )}
                   </div>
 
-                  {/* Expanded card for current day */}
                   {isCurrent && dayData && (
                     <div
                       className="ml-10 mt-2 rounded-2xl p-4"
@@ -246,26 +337,16 @@ export default function DesafioPage() {
                         border: `1px solid ${week.color}30`,
                       }}
                     >
-                      {/* Mission */}
                       <div className="mb-3">
                         <p className="text-xs font-bold text-gray-700 mb-1">Missao do dia</p>
                         <p className="text-xs text-gray-600">{dayData.mission}</p>
                       </div>
-
-                      {/* Tip */}
                       <div className="mb-3 rounded-xl p-2.5" style={{ backgroundColor: "#EAF3DE" }}>
                         <p className="text-xs" style={{ color: "#3B6D11" }}>
-                          <span className="font-bold">Dica: </span>
-                          {dayData.tip}
+                          <span className="font-bold">Dica: </span>{dayData.tip}
                         </p>
                       </div>
-
-                      {/* Quote */}
-                      <p className="mb-4 text-xs italic text-gray-500">
-                        &ldquo;{dayData.quote}&rdquo;
-                      </p>
-
-                      {/* CTA buttons */}
+                      <p className="mb-4 text-xs italic text-gray-500">&ldquo;{dayData.quote}&rdquo;</p>
                       <div className="flex gap-2">
                         <button
                           onClick={() => router.push(dayData.ctaPath)}
@@ -296,16 +377,43 @@ export default function DesafioPage() {
         </div>
       ))}
 
-      {/* All done message */}
-      {currentDay > 21 && (
-        <div className="mt-4 rounded-2xl p-6 text-center" style={{ backgroundColor: "#EAF3DE" }}>
-          <p className="text-3xl mb-2">🏆</p>
-          <h3 className="text-lg font-bold" style={{ color: "#3B6D11" }}>
-            Desafio Completo!
-          </h3>
-          <p className="mt-1 text-sm" style={{ color: "#3B6D11" }}>
-            Voce completou os 21 dias. O Metodo S.E.M agora faz parte da sua vida.
-          </p>
+      {/* Historico de ciclos passados */}
+      {cyclesData && cyclesData.cycles.length > 1 && (
+        <div className="mt-6 rounded-2xl border border-gray-100 p-4">
+          <button
+            onClick={() => setShowHistory((v) => !v)}
+            className="flex w-full items-center justify-between text-sm font-bold text-gray-700"
+          >
+            <span>Historico de ciclos ({cyclesData.cycles.length})</span>
+            <span className="text-xs text-gray-400">{showHistory ? "−" : "+"}</span>
+          </button>
+          {showHistory && (
+            <div className="mt-3 flex flex-col gap-2">
+              {cyclesData.cycles.map((c) => (
+                <div
+                  key={c.id}
+                  className="flex items-center justify-between rounded-xl p-3 text-xs"
+                  style={{
+                    backgroundColor:
+                      c.status === "completed" ? "#EAF3DE" : c.status === "paused" ? "#FFF6E7" : "#F0F7FF",
+                  }}
+                >
+                  <div>
+                    <p className="font-bold text-gray-800">Ciclo {c.cycleNumber}</p>
+                    <p className="text-gray-500">
+                      {c.status === "completed" ? "Completo" : c.status === "paused" ? "Pausado" : "Em andamento"} ·{" "}
+                      {c.daysCompleted}/21 dias
+                    </p>
+                  </div>
+                  <div className="text-right text-gray-400">
+                    {c.completedAt
+                      ? new Date(c.completedAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })
+                      : new Date(c.startDate).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -3,23 +3,39 @@ import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { addXP, XP_REWARDS } from "@/lib/gamification";
 import { CHALLENGE_DAYS } from "@/data/challenge-days";
+import { ensureActiveCycle, markDayCompleted, CYCLE_LENGTH_DAYS } from "@/lib/cycles";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
-  const completed = await prisma.appChallenge.findMany({
-    where: { userId: user.id },
-    select: { day: true },
-    orderBy: { day: "asc" },
-  });
+  // ensureActiveCycle faz backfill + retorna ciclo vivo (ou null se ultimo
+  // ciclo ficou completed e o user ainda nao iniciou o proximo).
+  const cycle = await ensureActiveCycle(user.id);
+
+  // Lista challenges do ciclo vivo (se houver). Se nao tiver ciclo vivo,
+  // mostra o ultimo ciclo completo (pra exibir 21/21 no UI).
+  const targetCycle =
+    cycle ??
+    (await prisma.appCycle.findFirst({
+      where: { userId: user.id },
+      orderBy: { cycleNumber: "desc" },
+    }));
+
+  const completed = targetCycle
+    ? await prisma.appChallenge.findMany({
+        where: { userId: user.id, cycleId: targetCycle.id },
+        select: { day: true },
+        orderBy: { day: "asc" },
+      })
+    : [];
 
   const progress = completed.map((c) => c.day);
   const completedSet = new Set(progress);
 
-  // Current day = first uncompleted day (1-21), or 22 if all done
-  let currentDay = 22;
-  for (let d = 1; d <= 21; d++) {
+  // currentDay = primeiro dia nao completado (1..21), ou 22 se acabou
+  let currentDay = CYCLE_LENGTH_DAYS + 1;
+  for (let d = 1; d <= CYCLE_LENGTH_DAYS; d++) {
     if (!completedSet.has(d)) {
       currentDay = d;
       break;
@@ -30,6 +46,17 @@ export async function GET(req: NextRequest) {
     days: CHALLENGE_DAYS,
     progress,
     currentDay,
+    cycle: targetCycle
+      ? {
+          id: targetCycle.id,
+          cycleNumber: targetCycle.cycleNumber,
+          status: targetCycle.status,
+          daysCompleted: targetCycle.daysCompleted,
+          startDate: targetCycle.startDate,
+          completedAt: targetCycle.completedAt,
+        }
+      : null,
+    needsNewCycle: cycle === null && targetCycle !== null,
   });
 }
 
@@ -40,30 +67,29 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { day } = body as { day: number };
 
-  if (!day || day < 1 || day > 21) {
-    return NextResponse.json({ error: "Dia invalido (1-21)" }, { status: 400 });
+  if (!day || day < 1 || day > CYCLE_LENGTH_DAYS) {
+    return NextResponse.json(
+      { error: `Dia invalido (1-${CYCLE_LENGTH_DAYS})` },
+      { status: 400 }
+    );
   }
 
-  // Check if already completed
-  const existing = await prisma.appChallenge.findUnique({
-    where: { userId_day: { userId: user.id, day } },
-  });
+  try {
+    const result = await markDayCompleted(user.id, day);
+    if (result.alreadyDone) {
+      return NextResponse.json({ error: "Dia ja completado", cycle: result.cycle }, { status: 409 });
+    }
 
-  if (existing) {
-    return NextResponse.json({ error: "Dia ja completado" }, { status: 409 });
+    const xpResult = await addXP(user.id, XP_REWARDS.challenge_day);
+
+    return NextResponse.json({
+      ok: true,
+      day,
+      xp: xpResult,
+      cycle: result.cycle,
+      justCompleted: result.justCompleted, // true se acabou de fechar 21/21
+    });
+  } catch (e) {
+    return NextResponse.json({ error: (e as Error).message }, { status: 409 });
   }
-
-  // Mark as completed
-  await prisma.appChallenge.create({
-    data: { userId: user.id, day },
-  });
-
-  // Award XP
-  const xpResult = await addXP(user.id, XP_REWARDS.challenge_day);
-
-  return NextResponse.json({
-    ok: true,
-    day,
-    xp: xpResult,
-  });
 }

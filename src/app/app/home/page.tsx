@@ -24,6 +24,9 @@ type TodayMood = {
 type ChallengeProgress = {
   completedCount: number;
   currentDay: number;
+  cycleNumber: number | null;
+  cycleStatus: "active" | "paused" | "completed" | null;
+  needsNewCycle: boolean;
 };
 
 type RecipeSuggestion = {
@@ -173,6 +176,9 @@ export default function AppHome() {
           setChallengeProgress({
             completedCount: d.progress.length,
             currentDay: d.currentDay ?? 1,
+            cycleNumber: d.cycle?.cycleNumber ?? null,
+            cycleStatus: d.cycle?.status ?? null,
+            needsNewCycle: !!d.needsNewCycle,
           });
         }
       })
@@ -496,9 +502,25 @@ export default function AppHome() {
           className="rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
           style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc" }}
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">🎯</span>
-            <span className="text-xs font-bold" style={{ color: "#378ADD" }}>Desafio 21 Dias</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🎯</span>
+              <span className="text-xs font-bold" style={{ color: "#378ADD" }}>
+                {challengeProgress?.cycleNumber
+                  ? `Ciclo ${challengeProgress.cycleNumber}`
+                  : "Desafio 21 Dias"}
+              </span>
+            </div>
+            {challengeProgress?.cycleStatus === "paused" && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">
+                PAUSADO
+              </span>
+            )}
+            {challengeProgress?.needsNewCycle && (
+              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold text-green-700">
+                COMPLETO
+              </span>
+            )}
           </div>
           {challengeProgress ? (
             <>
@@ -515,9 +537,13 @@ export default function AppHome() {
                 />
               </div>
               <p className="mt-1 text-[10px] text-gray-400">
-                {challengeProgress.completedCount >= 21
-                  ? "Completo!"
-                  : `Dia ${challengeProgress.currentDay} hoje`}
+                {challengeProgress.needsNewCycle
+                  ? "Comece o proximo →"
+                  : challengeProgress.cycleStatus === "paused"
+                    ? "Toque pra retomar"
+                    : challengeProgress.completedCount >= 21
+                      ? "Completo!"
+                      : `Dia ${challengeProgress.currentDay} hoje`}
               </p>
             </>
           ) : (

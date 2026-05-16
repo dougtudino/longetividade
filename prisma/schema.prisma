@@ -443,6 +443,7 @@ model AppUser {
   favoriteRecipes AppFavoriteRecipe[]
   challenges      AppChallenge[]
   measurements    AppMeasurement[]
+  cycles          AppCycle[]
 
   @@index([email])
 }
@@ -594,13 +595,47 @@ model AppFavoriteRecipe {
 }
 
 model AppChallenge {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
+  // cycleId nullable durante a migracao. ensureActiveCycle backfilla
+  // registros antigos pro Ciclo 1 retroativo no proximo acesso do user.
+  cycleId     String?
   day         Int
-  completedAt DateTime @default(now())
-  user        AppUser  @relation(fields: [userId], references: [id])
+  completedAt DateTime  @default(now())
+  user        AppUser   @relation(fields: [userId], references: [id])
+  cycle       AppCycle? @relation(fields: [cycleId], references: [id], onDelete: SetNull)
 
-  @@unique([userId, day])
+  // Unique antigo era [userId, day]. Trocar pra [userId, cycleId, day]
+  // permite mesmo day em ciclos diferentes (ex: dia 1 do ciclo 1 e dia 1
+  // do ciclo 2). Postgres trata multiplos NULLs como distintos no unique,
+  // entao registros legados ainda passam pelo backfill sem conflito.
+  @@unique([userId, cycleId, day])
+  @@index([userId])
+  @@index([cycleId])
+}
+
+// Ciclo de 21 dias do desafio. Eterno crescente: cycleNumber 1, 2, 3...
+// Status: active (pode marcar dias) | paused (pessoa pausou) | completed (chegou em 21).
+// Auto-completa quando daysCompleted atinge 21. Pessoa decide quando comeca o
+// proximo ciclo (manual via POST /api/app/cycles/start).
+model AppCycle {
+  id            String         @id @default(uuid())
+  userId        String
+  cycleNumber   Int
+  startDate     DateTime       @default(now())
+  endDate       DateTime?
+  status        String         @default("active") // active | paused | completed
+  daysCompleted Int            @default(0)
+  pausedAt      DateTime?
+  resumedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          AppUser        @relation(fields: [userId], references: [id])
+  challenges    AppChallenge[]
+
+  @@unique([userId, cycleNumber])
+  @@index([userId, status])
   @@index([userId])
 }
 
