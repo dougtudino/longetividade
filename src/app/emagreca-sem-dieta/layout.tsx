@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Emagreça Sem Dieta — Método SEM",
+  title: "Calendário Detox 21 Dias — Volte ao controle sem dieta",
   description:
-    "Perca peso de forma permanente sem passar fome. O Método SEM transforma sua relação com a comida com 3 pilares científicos. De R$147 por R$67.",
+    "21 dias, 1 calendário, hábitos simples. Sem dieta restritiva, sem culpa, sem recomeçar segunda. A partir de R$67. Garantia de 7 dias.",
   openGraph: {
-    title: "Emagreça Sem Dieta — Método SEM | De R$147 por R$67",
+    title: "Calendário Detox 21 Dias — Volte ao controle sem dieta",
     description:
-      "Perca peso sem dietas restritivas. 12.400+ alunas transformadas. Garantia de 7 dias.",
+      "Pare de começar dieta na segunda-feira. +12.400 mulheres aceitaram o desafio. Garantia de 7 dias.",
     type: "website",
     locale: "pt_BR",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Emagreça Sem Dieta — Método SEM",
+    title: "Calendário Detox 21 Dias",
     description:
-      "Perca peso sem dietas restritivas. De R$147 por R$67. Garantia de 7 dias.",
+      "Pare de começar dieta na segunda-feira. A partir de R$67. Garantia de 7 dias.",
   },
 };
 
