@@ -50,7 +50,9 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  // Busca ou cria Order VIP
+  // Busca ou cria Order VIP. amount=0 pra grant manual nao inflar receita
+  // em /api/admin/stats (sum(amount)/100). Status="approved" eh necessario
+  // pro fallback do /api/app/auth criar AppUser na primeira vez.
   let order = await prisma.order.findFirst({
     where: { email, plan: "vip", status: "approved" },
   });
@@ -61,21 +63,31 @@ export async function POST(req: NextRequest) {
         email,
         name,
         plan: "vip",
-        amount: 9700,
+        amount: 0, // grant manual nao conta como receita
         status: "approved",
       },
     });
   }
 
-  // Cria AppUser
-  const appUser = await prisma.appUser.create({
-    data: {
-      email,
-      orderId: order.id,
-      plan: "vip",
-      accessType: "lifetime",
-    },
-  });
+  // Cria AppUser + incrementa AppVipSlot atomicamente.
+  // Compatibilidade com slots dessincronizados: recomputa usedSlots a partir
+  // do count real de AppUsers VIP a cada chamada de grant-vip (self-heal).
+  const vipCount = await prisma.appUser.count({ where: { plan: "vip" } });
+  const [, appUser] = await prisma.$transaction([
+    prisma.appVipSlot.upsert({
+      where: { id: "singleton" },
+      create: { id: "singleton", totalSlots: 100, usedSlots: vipCount + 1 },
+      update: { usedSlots: vipCount + 1 },
+    }),
+    prisma.appUser.create({
+      data: {
+        email,
+        orderId: order.id,
+        plan: "vip",
+        accessType: "lifetime",
+      },
+    }),
+  ]);
 
   // Envia convite por email
   if (sendInvite) {

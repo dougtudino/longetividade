@@ -69,21 +69,35 @@ export async function GET(req: NextRequest) {
       take: 50,
     });
 
-    // App VIP stats
+    // App VIP stats — self-heal: recomputa AppVipSlot.usedSlots a partir
+    // do count real de AppUsers VIP. Garante que se o webhook/grant-vip
+    // criou AppUser sem incrementar o slot (bug historico), a UI sempre
+    // mostra o numero correto e o singleton fica em sync.
     let appStats = { users: 0, activeToday: 0, totalCheckins: 0, slotsUsed: 0, slotsTotal: 100 };
     try {
-      const [appUsers, activeToday, totalCheckins, vipSlot] = await Promise.all([
+      const [appUsers, vipUsers, activeToday, totalCheckins, vipSlot] = await Promise.all([
         prisma.appUser.count(),
+        prisma.appUser.count({ where: { plan: "vip" } }),
         prisma.appCheckin.groupBy({ by: ["userId"], where: { date: { gte: todayStart } } }).then((r) => r.length),
         prisma.appCheckin.count(),
         prisma.appVipSlot.findUnique({ where: { id: "singleton" } }),
       ]);
+      const totalSlots = vipSlot?.totalSlots ?? 100;
+      // Sync se divergiu (sem await em background poderia ser melhor,
+      // mas a query eh barata o suficiente pra ficar sincrono)
+      if (!vipSlot || vipSlot.usedSlots !== vipUsers) {
+        await prisma.appVipSlot.upsert({
+          where: { id: "singleton" },
+          create: { id: "singleton", totalSlots, usedSlots: vipUsers },
+          update: { usedSlots: vipUsers },
+        });
+      }
       appStats = {
         users: appUsers,
         activeToday,
         totalCheckins,
-        slotsUsed: vipSlot?.usedSlots ?? 0,
-        slotsTotal: vipSlot?.totalSlots ?? 100,
+        slotsUsed: vipUsers,
+        slotsTotal: totalSlots,
       };
     } catch {
       // Tabelas podem nao existir ainda
