@@ -35,7 +35,7 @@ export function StickyBottomCTA() {
         className="flex items-center justify-center h-16 text-white font-body font-bold text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.15)]"
         style={{backgroundColor: 'var(--accent)'}}
       >
-        QUERO O METODO S.E.M -- R$ 67
+        QUERO MEU CALENDARIO · A PARTIR DE R$ 67
       </a>
     </div>
   );

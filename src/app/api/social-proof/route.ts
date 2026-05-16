@@ -18,8 +18,10 @@ export async function GET(req: Request) {
       row: true,
       imageUrl: true,
       alt: true,
+      name: true,
       caption: true,
       kind: true,
+      orderIndex: true,
     },
   });
 

@@ -12,8 +12,17 @@ interface SpItem {
   row: number;
   imageUrl: string;
   alt: string;
+  name: string | null;
   caption: string | null;
-  kind: "photo" | "whatsapp" | "testimonial" | string;
+  kind:
+    | "photo"
+    | "whatsapp"
+    | "testimonial"
+    | "lifestyle"
+    | "transformation"
+    | "progress-quote"
+    | "women-gallery"
+    | string;
   orderIndex: number;
   active: boolean;
   createdAt: string;
@@ -21,14 +30,18 @@ interface SpItem {
 }
 
 // Kinds drivam em qual bloco da LP o item aparece:
-// - lifestyle/photo → bloco "Sem dieta. Na vida real." (após hero)
-// - whatsapp/testimonial → bloco "O que outras mulheres estão vivendo"
-// - transformation → bloco "Mudanças reais. Sem extremos."
+// - lifestyle/photo → bloco "Sem dieta. Na vida real." (LifestyleBlock)
+// - whatsapp/testimonial → bloco "O que outras mulheres estão vivendo" (SocialProofBlock)
+// - transformation → bloco "Mudanças reais. Sem extremos." (TransformationBlock)
+// - progress-quote → 3 quotes da secao "Pequenas vitorias" (DetoxProgress)
+// - women-gallery → galeria "Mulheres que cansaram de recomecar" (DetoxWomenGallery)
 const KINDS: Array<{ value: SpItem["kind"]; label: string; emoji: string }> = [
   { value: "lifestyle", label: "Lifestyle (bloco 1)", emoji: "🌿" },
   { value: "whatsapp", label: "WhatsApp (bloco 2)", emoji: "💬" },
   { value: "testimonial", label: "Depoimento (bloco 2)", emoji: "⭐" },
   { value: "transformation", label: "Transformação (bloco 3)", emoji: "✨" },
+  { value: "progress-quote", label: "Quote do Progresso (3 cards)", emoji: "💚" },
+  { value: "women-gallery", label: "Galeria 'Mulheres que cansaram'", emoji: "👯" },
   { value: "photo", label: "Foto genérica (legado → bloco 1)", emoji: "📷" },
 ];
 
@@ -613,6 +626,7 @@ function NewItemForm({
   const [row, setRow] = useState<1 | 2 | 3>(1);
   const [kind, setKind] = useState<SpItem["kind"]>("photo");
   const [caption, setCaption] = useState("");
+  const [name, setName] = useState("");
   const [alt, setAlt] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -642,6 +656,7 @@ function NewItemForm({
         row,
         imageUrl: upData.url,
         alt: alt || `Prova social — linha ${row}`,
+        name: name.trim() || null,
         caption: caption || null,
         kind,
         orderIndex: 0,
@@ -652,6 +667,7 @@ function NewItemForm({
       handleFile(null);
       if (fileRef.current) fileRef.current.value = "";
       setCaption("");
+      setName("");
       setAlt("");
     } catch (e) {
       setErr(e instanceof Error ? e.message : "erro");
@@ -750,12 +766,21 @@ function NewItemForm({
               </select>
             </Field>
           </div>
-          <Field label="Caption — texto sobreposto no card (opcional)">
+          <Field label="Nome (pra Quote do Progresso e Galeria de Mulheres)">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Camila R., Patricia M."
+              style={inputStyle}
+            />
+          </Field>
+          <Field label="Caption / depoimento (texto exibido)">
             <input
               type="text"
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
-              placeholder="Ex: -7kg em 21 dias"
+              placeholder="Ex: Marcar o calendario virou meu momento do dia"
               style={inputStyle}
             />
           </Field>
@@ -806,8 +831,12 @@ function ItemCard({
   onDelete: () => Promise<void>;
 }) {
   const [caption, setCaption] = useState(item.caption ?? "");
+  const [name, setName] = useState(item.name ?? "");
   const [orderIndex, setOrderIndex] = useState(item.orderIndex);
-  const dirty = (caption || "") !== (item.caption ?? "") || orderIndex !== item.orderIndex;
+  const dirty =
+    (caption || "") !== (item.caption ?? "") ||
+    (name || "") !== (item.name ?? "") ||
+    orderIndex !== item.orderIndex;
 
   return (
     <div style={{ ...card, padding: 10, opacity: item.active ? 1 : 0.55, transition: "opacity 0.2s" }}>
@@ -842,9 +871,16 @@ function ItemCard({
       <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
         <input
           type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nome (Camila R.)"
+          style={{ ...inputStyle, fontSize: 12 }}
+        />
+        <input
+          type="text"
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
-          placeholder="Caption"
+          placeholder="Caption / depoimento"
           style={{ ...inputStyle, fontSize: 12 }}
         />
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -876,7 +912,9 @@ function ItemCard({
         </div>
         <div style={{ display: "flex", gap: 6 }}>
           <button
-            onClick={() => void onPatch({ caption: caption || null, orderIndex })}
+            onClick={() =>
+              void onPatch({ caption: caption || null, name: name.trim() || null, orderIndex })
+            }
             disabled={!dirty}
             style={{
               flex: 1,

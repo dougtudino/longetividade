@@ -1,6 +1,6 @@
 // GET    /api/admin/social-proof?lpSlug=<slug>  — lista todos (ativos + inativos)
 // POST   /api/admin/social-proof                — cria item
-// Body: { lpSlug, row, imageUrl, alt?, caption?, kind?, orderIndex?, active? }
+// Body: { lpSlug, row, imageUrl, alt?, name?, caption?, kind?, orderIndex?, active? }
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { lpSlug, row, imageUrl, alt, caption, kind, orderIndex, active } = body ?? {};
+  const { lpSlug, row, imageUrl, alt, name, caption, kind, orderIndex, active } = body ?? {};
   if (!lpSlug || !row || !imageUrl) {
     return NextResponse.json({ error: "lpSlug, row, imageUrl obrigatórios" }, { status: 400 });
   }
@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       row: Number(row),
       imageUrl,
       alt: alt ?? "",
+      name: typeof name === "string" && name.trim() ? name.trim() : null,
       caption: caption ?? null,
       kind: kind ?? "photo",
       orderIndex: orderIndex ?? 0,
