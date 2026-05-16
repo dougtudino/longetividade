@@ -598,6 +598,92 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
         AND c."source" = 'legacy'
     `,
   },
+
+  // ─── AppCycle (Desafio 21d com restart/pause) ──────────────
+  // Adicionado 2026-05-16. Em prod o `prisma db push` do build do Railway
+  // nao criou essas tabelas em alguns deploys — esse fallback SQL garante
+  // a criacao via /api/admin/migrate/schema.
+  {
+    label: "AppCycle table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppCycle" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "cycleNumber" INTEGER NOT NULL,
+        "startDate" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "endDate" TIMESTAMP(3),
+        "status" TEXT NOT NULL DEFAULT 'active',
+        "daysCompleted" INTEGER NOT NULL DEFAULT 0,
+        "pausedAt" TIMESTAMP(3),
+        "resumedAt" TIMESTAMP(3),
+        "completedAt" TIMESTAMP(3),
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppCycle_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppCycle userId+cycleNumber unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppCycle_userId_cycleNumber_key" ON "AppCycle"("userId", "cycleNumber")`,
+  },
+  {
+    label: "AppCycle userId+status index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppCycle_userId_status_idx" ON "AppCycle"("userId", "status")`,
+  },
+  {
+    label: "AppCycle userId index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppCycle_userId_idx" ON "AppCycle"("userId")`,
+  },
+  {
+    label: "AppCycle FK to AppUser",
+    sql: `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'AppCycle_userId_fkey' AND table_name = 'AppCycle'
+        ) THEN
+          ALTER TABLE "AppCycle"
+            ADD CONSTRAINT "AppCycle_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "AppUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+        END IF;
+      END $$
+    `,
+  },
+  {
+    label: "AppChallenge cycleId column",
+    sql: `ALTER TABLE "AppChallenge" ADD COLUMN IF NOT EXISTS "cycleId" TEXT`,
+  },
+  {
+    label: "AppChallenge cycleId index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppChallenge_cycleId_idx" ON "AppChallenge"("cycleId")`,
+  },
+  {
+    label: "AppChallenge FK to AppCycle",
+    sql: `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'AppChallenge_cycleId_fkey' AND table_name = 'AppChallenge'
+        ) THEN
+          ALTER TABLE "AppChallenge"
+            ADD CONSTRAINT "AppChallenge_cycleId_fkey"
+            FOREIGN KEY ("cycleId") REFERENCES "AppCycle"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$
+    `,
+  },
+  {
+    // Drop unique antigo [userId, day] que impedia day repetido entre ciclos.
+    label: "AppChallenge drop old userId_day unique",
+    sql: `ALTER TABLE "AppChallenge" DROP CONSTRAINT IF EXISTS "AppChallenge_userId_day_key"`,
+  },
+  {
+    label: "AppChallenge userId+cycleId+day unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppChallenge_userId_cycleId_day_key" ON "AppChallenge"("userId", "cycleId", "day")`,
+  },
 ];
 
 export type MigrationResult = {
