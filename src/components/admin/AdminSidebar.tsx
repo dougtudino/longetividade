@@ -89,6 +89,15 @@ const NAV_SECTIONS: NavSection[] = [
           </svg>
         ),
       },
+      {
+        label: "Funil",
+        href: "/admin/funil",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 4h18l-7 9v6l-4 2v-8z" />
+          </svg>
+        ),
+      },
     ],
   },
   {
