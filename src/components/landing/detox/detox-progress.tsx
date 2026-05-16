@@ -85,25 +85,28 @@ export function DetoxProgress() {
 
   return (
     <section
-      className="py-16 md:py-24"
+      className="py-20 md:py-28"
       style={{ backgroundColor: "var(--bg-page)" }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-14 md:mb-20 max-w-3xl mx-auto">
           <span
-            className="font-body text-xs md:text-sm font-bold uppercase tracking-wider"
+            className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
             Pequenas vitorias
           </span>
           <h2
-            className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl mt-2 mb-4"
-            style={{ color: "var(--text-primary)" }}
+            className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
+            style={{
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
           >
             Pequenas vitorias criam resultados reais.
           </h2>
           <p
-            className="font-body text-base md:text-lg max-w-2xl mx-auto"
+            className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
             Cada habito marcado e um passo. 21 passos depois, voce esta em
@@ -116,7 +119,10 @@ export function DetoxProgress() {
             {appPhotoUrl ? (
               <div
                 className="relative w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden"
-                style={{ boxShadow: "0 24px 60px -20px rgba(0,0,0,0.25)" }}
+                style={{
+                  boxShadow: "0 30px 70px -20px rgba(0,0,0,0.25)",
+                  border: "6px solid var(--bg-card)",
+                }}
               >
                 <Image
                   src={appPhotoUrl}
@@ -132,17 +138,24 @@ export function DetoxProgress() {
             )}
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4">
             {quotes.map((q) => (
-              <div
+              <figure
                 key={q.id}
-                className="rounded-2xl p-6 flex items-start gap-4"
-                style={{ backgroundColor: "var(--bg-card)" }}
+                className="rounded-2xl p-6 md:p-7 flex items-start gap-4 transition-transform hover:-translate-y-0.5"
+                style={{
+                  backgroundColor: "var(--bg-card)",
+                  border: "1px solid var(--border-default)",
+                  boxShadow: "0 4px 18px -8px rgba(0,0,0,0.08)",
+                }}
               >
-                {q.imageUrl && (
+                {q.imageUrl ? (
                   <div
                     className="relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden"
-                    style={{ backgroundColor: "var(--bg-page)" }}
+                    style={{
+                      backgroundColor: "var(--bg-page)",
+                      border: "2px solid var(--accent-soft)",
+                    }}
                   >
                     <Image
                       src={q.imageUrl}
@@ -153,38 +166,49 @@ export function DetoxProgress() {
                       unoptimized
                     />
                   </div>
+                ) : (
+                  <div
+                    className="flex-shrink-0 w-14 h-14 rounded-full inline-flex items-center justify-center font-heading font-bold text-lg"
+                    style={{
+                      backgroundColor: "var(--accent-soft)",
+                      color: "var(--accent)",
+                    }}
+                  >
+                    {q.name.charAt(0)}
+                  </div>
                 )}
-                <div className="flex-1">
-                  <p
-                    className="font-body text-base md:text-lg leading-relaxed mb-3 italic"
+                <div className="flex-1 min-w-0">
+                  <blockquote
+                    className="font-body text-[15px] md:text-base leading-relaxed mb-3"
                     style={{ color: "var(--text-primary)" }}
                   >
                     &ldquo;{q.text}&rdquo;
-                  </p>
-                  <p
-                    className="font-body text-sm font-bold"
+                  </blockquote>
+                  <figcaption
+                    className="font-body text-[13px] font-bold uppercase tracking-[0.08em]"
                     style={{ color: "var(--accent)" }}
                   >
-                    — {q.name}
-                  </p>
+                    {q.name}
+                  </figcaption>
                 </div>
-              </div>
+              </figure>
             ))}
 
-            <div className="pt-4">
+            <div className="pt-3">
               <a
                 href="#pricing"
                 onClick={handleCtaClick}
                 data-cta="progress-primary"
-                className="inline-flex items-center justify-center gap-3 rounded-2xl py-4 px-7 text-base md:text-lg font-bold text-white transition-all hover:scale-[1.02]"
+                className="group inline-flex items-center justify-center gap-3 rounded-2xl py-4 px-8 text-base md:text-lg font-bold text-white transition-all hover:scale-[1.02]"
                 style={{
                   background:
                     "linear-gradient(145deg, var(--accent), var(--accent-hover))",
-                  boxShadow: "0 10px 32px -8px var(--accent-soft)",
+                  boxShadow:
+                    "0 12px 36px -10px var(--accent-soft), 0 4px 12px -3px rgba(0,0,0,0.12)",
                 }}
               >
                 Comecar meus 21 dias
-                <span>→</span>
+                <span className="transition-transform group-hover:translate-x-1">→</span>
               </a>
             </div>
           </div>

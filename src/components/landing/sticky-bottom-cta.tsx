@@ -26,16 +26,32 @@ export function StickyBottomCTA() {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300 ${
+      className={`fixed bottom-0 left-0 right-0 z-40 md:hidden transition-transform duration-300 px-3 pb-3 ${
         visible ? "translate-y-0" : "translate-y-full"
       }`}
     >
       <a
         href="#pricing"
-        className="flex items-center justify-center h-16 text-white font-body font-bold text-sm shadow-[0_-4px_12px_rgba(0,0,0,0.15)]"
-        style={{backgroundColor: 'var(--accent)'}}
+        className="group flex items-center justify-between gap-3 h-14 px-5 rounded-2xl text-white font-body font-bold text-sm"
+        style={{
+          background:
+            "linear-gradient(145deg, var(--accent), var(--accent-hover))",
+          boxShadow:
+            "0 18px 36px -10px rgba(0,0,0,0.35), 0 8px 16px -6px rgba(0,0,0,0.18)",
+        }}
       >
-        QUERO MEU CALENDARIO · A PARTIR DE R$ 67
+        <span className="flex flex-col items-start leading-tight">
+          <span className="text-[10px] uppercase tracking-[0.15em] opacity-85 font-bold">
+            Calendario Detox
+          </span>
+          <span className="text-[15px]">Quero meu calendario · R$67</span>
+        </span>
+        <span
+          className="inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform group-active:translate-x-0.5"
+          style={{ backgroundColor: "rgba(255,255,255,0.18)" }}
+        >
+          →
+        </span>
       </a>
     </div>
   );

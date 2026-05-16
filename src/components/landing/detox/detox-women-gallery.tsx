@@ -52,25 +52,28 @@ export function DetoxWomenGallery() {
   return (
     <section
       aria-label="Mulheres que cansaram de recomecar"
-      className="py-16 md:py-24"
+      className="py-20 md:py-28"
       style={{ backgroundColor: "var(--bg-card)" }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className="text-center mb-10 md:mb-14">
+        <div className="text-center mb-12 md:mb-16 max-w-3xl mx-auto">
           <span
-            className="font-body text-xs md:text-sm font-bold uppercase tracking-wider"
+            className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
             Voce nao esta sozinha
           </span>
           <h2
-            className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl mt-2 mb-4"
-            style={{ color: "var(--text-primary)" }}
+            className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
+            style={{
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
           >
             Mulheres que cansaram de recomecar
           </h2>
           <p
-            className="font-body text-base md:text-lg max-w-2xl mx-auto"
+            className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
             Elas comecaram um dia. Marcaram a primeira tarefa. Hoje sao outras
@@ -82,15 +85,20 @@ export function DetoxWomenGallery() {
           {items.map((item) => (
             <figure
               key={item.id}
-              className="rounded-2xl overflow-hidden flex flex-col items-center text-center p-5"
+              className="rounded-2xl overflow-hidden flex flex-col items-center text-center p-5 md:p-6 transition-transform hover:-translate-y-1"
               style={{
                 backgroundColor: "var(--bg-page)",
                 border: "1px solid var(--border-default)",
+                boxShadow: "0 4px 18px -8px rgba(0,0,0,0.08)",
               }}
             >
               <div
                 className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden mb-4"
-                style={{ backgroundColor: "var(--bg-card)" }}
+                style={{
+                  backgroundColor: "var(--bg-card)",
+                  border: "3px solid var(--accent-soft)",
+                  boxShadow: "0 6px 18px -8px rgba(0,0,0,0.12)",
+                }}
               >
                 <Image
                   src={item.imageUrl}
@@ -103,7 +111,7 @@ export function DetoxWomenGallery() {
               </div>
               {item.caption && (
                 <blockquote
-                  className="font-body text-sm md:text-base leading-relaxed mb-3 italic"
+                  className="font-body text-sm md:text-[15px] leading-relaxed mb-4"
                   style={{ color: "var(--text-primary)" }}
                 >
                   &ldquo;{item.caption}&rdquo;
@@ -111,7 +119,7 @@ export function DetoxWomenGallery() {
               )}
               {item.name && (
                 <figcaption
-                  className="font-body text-xs md:text-sm font-bold uppercase tracking-wider mt-auto"
+                  className="font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.12em] mt-auto"
                   style={{ color: "var(--accent)" }}
                 >
                   {item.name}
@@ -122,7 +130,7 @@ export function DetoxWomenGallery() {
         </div>
 
         <p
-          className="mt-10 text-center font-body text-xs"
+          className="mt-12 text-center font-body text-xs"
           style={{ color: "var(--text-muted)" }}
         >
           Publicado com autorizacao. Resultados variam de pessoa para pessoa.
