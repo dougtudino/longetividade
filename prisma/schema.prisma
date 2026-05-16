@@ -758,14 +758,23 @@ model MetaCapiEvent {
   @@index([status])
 }
 
-// Galeria rotativa da LP: 3 linhas, múltiplos itens por linha.
-// kind: photo | whatsapp | testimonial
+// Galeria editavel da LP. kind discrimina onde aparece:
+//   lifestyle      -> LifestyleBlock
+//   whatsapp       -> SocialProofBlock (prints WhatsApp)
+//   testimonial    -> SocialProofBlock (cards depoimento)
+//   transformation -> TransformationBlock
+//   photo          -> legado (mesmo bloco que lifestyle)
+//   progress-quote -> detox-progress (3 quotes com avatar + nome)
+//   women-gallery  -> detox-women-gallery ("Mulheres que cansaram de recomecar")
 model SocialProofItem {
   id         String   @id @default(uuid())
   lpSlug     String // "emagreca-sem-dieta"
-  row        Int // 1 | 2 | 3
+  row        Int // 1 | 2 | 3 (legacy: usado pelos kinds classicos)
   imageUrl   String // URL pública no R2
   alt        String   @default("")
+  // Nome da pessoa (ex: "Camila R."). Usado nos kinds progress-quote e
+  // women-gallery pra assinar o depoimento. Opcional pra compat.
+  name       String?
   caption    String?
   kind       String   @default("photo")
   orderIndex Int      @default(0)
@@ -774,4 +783,5 @@ model SocialProofItem {
   updatedAt  DateTime @updatedAt
 
   @@index([lpSlug, active, row, orderIndex])
+  @@index([lpSlug, kind, active, orderIndex])
 }

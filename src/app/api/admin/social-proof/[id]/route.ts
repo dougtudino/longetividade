@@ -11,7 +11,7 @@ type RouteCtx = { params: Promise<{ id: string }> };
 export async function PATCH(req: Request, ctx: RouteCtx) {
   const { id } = await ctx.params;
   const body = await req.json();
-  const allowed = ["row", "imageUrl", "alt", "caption", "kind", "orderIndex", "active"] as const;
+  const allowed = ["row", "imageUrl", "alt", "name", "caption", "kind", "orderIndex", "active"] as const;
   const data: Record<string, unknown> = {};
   for (const k of allowed) {
     if (body[k] !== undefined) data[k] = body[k];
