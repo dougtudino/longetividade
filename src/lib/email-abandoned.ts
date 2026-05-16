@@ -51,7 +51,7 @@ export function abandonedEmail30min(email: string): AbandonedEmail {
         <li>Plano de 7 dias + cardapio</li>
         <li>Lista de compras + checklist diario</li>
       </ul>
-      <p>Tudo isso por <strong>R$ 67</strong> (ou 6x de R$ 11,17).</p>
+      <p>Tudo isso por <strong>R$ 67</strong> (ou 12x de R$ 6,49).</p>
       <p>Se tiver alguma duvida, responda esse email que eu ajudo.</p>
       `,
       "Finalizar minha compra →",

@@ -98,7 +98,7 @@ export function offerEmail(name: string | null): SequenceEmail {
       <div style="background:#FFF8EC;border:2px solid #D4A94B;border-radius:14px;padding:24px;text-align:center;margin:24px 0;">
         <div style="font-size:13px;color:#8B7332;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Método S.E.M completo</div>
         <div style="font-size:48px;font-weight:900;color:#3D5A3E;margin:8px 0;">R$ 67</div>
-        <div style="font-size:13px;color:#666;">ou 6x de R$ 11,17 sem juros</div>
+        <div style="font-size:13px;color:#666;">ou 12x de R$ 6,49</div>
       </div>
       <p><strong>O que você leva:</strong></p>
       <ul style="padding-left:20px;line-height:1.8;">

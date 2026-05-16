@@ -1,6 +1,7 @@
 "use client";
 
 import { fireCheckoutAndGo } from "@/lib/tracking";
+import { trackCtaClick } from "@/lib/cta-tracking";
 import { appendUTMs } from "@/lib/utm";
 
 interface PlanCTAButtonProps {
@@ -13,8 +14,8 @@ interface PlanCTAButtonProps {
 }
 
 const CTA_KEY_MAP: Record<string, string> = {
-  basico: "pricing-basic",
-  completo: "pricing-complete",
+  basico: "pricing-basico",
+  completo: "pricing-completo",
   vip: "pricing-vip",
 };
 
@@ -30,6 +31,8 @@ export function PlanCTAButton({
   function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
     const href = appendUTMs(checkoutUrl);
+    // sendBeacon ANTES do redirect — sobrevive a target=_blank/fechamento.
+    trackCtaClick({ ctaId: ctaKey, planId, destinationUrl: href });
     fireCheckoutAndGo(href, { targetBlank: true, value: price });
   }
 

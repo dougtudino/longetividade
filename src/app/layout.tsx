@@ -69,6 +69,12 @@ export default function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('longetividade-theme');var h=document.documentElement;h.classList.remove('light','neon');if(t==='dark'){}else if(t==='neon'){h.classList.add('neon')}else{h.classList.add('light')}}catch(e){document.documentElement.classList.add('light')}})()`,
           }}
         />
+        {/* Preconnect pixel CDN — handshake TLS antes do script inline pedir
+            fbevents.js, corta ~150-300ms em mobile lento (story-ads fast-scroll
+            perde LPV se PageView demora). dns-prefetch como fallback. */}
+        <link rel="preconnect" href="https://connect.facebook.net" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
+        <link rel="preconnect" href="https://www.facebook.com" crossOrigin="anonymous" />
         {/* Tracking no head: script inline executa antes do body renderizar,
             reduzindo perda de LPV em mobile lento (Story/Reels fast-scroll) */}
         <TrackingScripts />

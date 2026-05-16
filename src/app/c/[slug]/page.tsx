@@ -157,7 +157,7 @@ export default function CampaignPage() {
             <p className="text-sm text-[#2D2D2D]/40">
               A partir de{" "}
               <strong className="text-[#2D2D2D]/70">R$ 67</strong>
-              <span className="text-[#2D2D2D]/30"> · ou 6x de R$ 11,17</span>
+              <span className="text-[#2D2D2D]/30"> · ou 12x de R$ 6,49</span>
             </p>
             <p className="text-xs text-[#2D2D2D]/30">
               Pagamento seguro · Acesso imediato · Garantia 7 dias
@@ -199,7 +199,7 @@ export default function CampaignPage() {
             </div>
             <div className="my-6 flex flex-col items-center gap-1">
               <span className="text-6xl font-black">R$ 67</span>
-              <span className="text-sm text-[#2D2D2D]/40">ou 6x de R$ 11,17 sem juros</span>
+              <span className="text-sm text-[#2D2D2D]/40">ou 12x de R$ 6,49 sem juros</span>
             </div>
             <a
               href={buyUrl}

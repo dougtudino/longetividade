@@ -62,7 +62,7 @@ export function PricingSection() {
               )}
               {plan.id === "vip" && (
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 font-body font-bold text-xs uppercase tracking-wider px-4 py-1 rounded-full" style={{backgroundColor: '#639922', color: 'white'}}>
-                  Inclui App Vitalicio
+                  Primeiras 100 Vagas
                 </span>
               )}
 

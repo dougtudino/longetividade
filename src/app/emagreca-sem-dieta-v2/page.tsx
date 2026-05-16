@@ -354,7 +354,7 @@ export default function EmagrecaSemDietaPage() {
               <div className="mb-4 flex items-baseline justify-center gap-3 flex-wrap">
                 <span className="text-5xl font-black leading-none" style={{ color: "var(--text-primary)" }}>R$67</span>
                 <span className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  ou 6x de R$ 11,17 sem juros
+                  ou 12x de R$ 6,49
                 </span>
               </div>
               <CTA ctaKey="hero-primary" mode="scroll" label="Quero começar agora" />

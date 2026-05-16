@@ -13,6 +13,7 @@
 //   - NEXT_PUBLIC_META_PIXEL_ID (pixel/dataset ID)
 
 import { getSetting, getSettingWithFallback } from "./settings";
+import { prisma } from "./prisma";
 import { createHash } from "crypto";
 
 const GRAPH_VERSION = "v21.0";
@@ -90,10 +91,46 @@ export type CAPIResult =
   | { ok: true; eventsReceived: number }
   | { ok: false; error: string };
 
+// Log no banco pra auditar "por que esse Purchase nao apareceu no Events
+// Manager?". Falha silenciosa — nunca quebrar o envio CAPI por erro de log.
+async function logCapiEvent(
+  event: ServerEvent,
+  status: "sent" | "failed",
+  errorMessage: string | null,
+  rawResponse: unknown,
+): Promise<void> {
+  try {
+    await prisma.metaCapiEvent.create({
+      data: {
+        eventName: event.event_name,
+        eventId: event.event_id ?? `noid_${Date.now()}`,
+        sourceUrl: event.event_source_url ?? null,
+        value:
+          typeof event.custom_data?.value === "number" ? (event.custom_data.value as number) : null,
+        currency:
+          typeof event.custom_data?.currency === "string"
+            ? (event.custom_data.currency as string)
+            : null,
+        orderId:
+          typeof event.custom_data?.order_id === "string"
+            ? (event.custom_data.order_id as string)
+            : null,
+        status,
+        errorMessage,
+        rawResponse: rawResponse === undefined ? undefined : (rawResponse as object),
+      },
+    });
+  } catch {
+    // silently ignore — log nao deve quebrar tracking
+  }
+}
+
 async function sendEvents(events: ServerEvent[], testEventCode?: string): Promise<CAPIResult> {
   const creds = await getCreds();
   if (!creds) {
-    return { ok: false, error: "META_ACCESS_TOKEN ou NEXT_PUBLIC_META_PIXEL_ID nao configurados" };
+    const err = "META_ACCESS_TOKEN ou NEXT_PUBLIC_META_PIXEL_ID nao configurados";
+    await Promise.all(events.map((ev) => logCapiEvent(ev, "failed", err, null)));
+    return { ok: false, error: err };
   }
 
   try {
@@ -116,12 +153,17 @@ async function sendEvents(events: ServerEvent[], testEventCode?: string): Promis
     };
 
     if (!res.ok || json.error) {
-      return { ok: false, error: json.error?.message ?? `HTTP ${res.status}` };
+      const err = json.error?.message ?? `HTTP ${res.status}`;
+      await Promise.all(events.map((ev) => logCapiEvent(ev, "failed", err, json)));
+      return { ok: false, error: err };
     }
 
+    await Promise.all(events.map((ev) => logCapiEvent(ev, "sent", null, json)));
     return { ok: true, eventsReceived: json.events_received ?? 0 };
   } catch (e) {
-    return { ok: false, error: (e as Error).message };
+    const err = (e as Error).message;
+    await Promise.all(events.map((ev) => logCapiEvent(ev, "failed", err, null)));
+    return { ok: false, error: err };
   }
 }
 

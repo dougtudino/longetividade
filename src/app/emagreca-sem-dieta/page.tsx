@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { trackViewContent, trackInitiateCheckout, trackAddToCart } from "@/lib/tracking";
-import { captureUTMs } from "@/lib/utm";
+import { trackCtaClick } from "@/lib/cta-tracking";
+import { captureUTMs, appendUTMs } from "@/lib/utm";
 import ThemeToggle from "@/components/ThemeToggle";
 import { IdentificationChecklist } from "@/components/landing/identification-checklist";
 import { MockupEbookCover } from "@/components/mockups/mockup-ebook-cover";
@@ -42,9 +43,16 @@ const LINKS = {
 
 // Nova aba (target_blank) — a aba original mantém o fbq vivo pra
 // terminar o send, então não precisa de setTimeout aqui.
-function handleBuyClick() {
+// ctaId muda por origem do clique (hero, nav, final, etc) pra distinguir
+// no painel /admin/funil qual posicao converte melhor.
+function handleBuyClick(ctaId: string = "hero-primary") {
   trackInitiateCheckout("Método S.E.M", PLAN_BASICO.price);
   trackAddToCart("Método S.E.M", PLAN_BASICO.price);
+  trackCtaClick({
+    ctaId,
+    planId: "basico",
+    destinationUrl: appendUTMs(LINKS.hotmart),
+  });
 }
 
 const bullets = [
@@ -201,7 +209,7 @@ function CTA({
       ) : (
         <a
           href={LINKS.hotmart}
-          onClick={handleBuyClick}
+          onClick={() => handleBuyClick(ctaKey)}
           data-cta={ctaKey}
           target="_blank"
           rel="noopener noreferrer"
@@ -304,7 +312,7 @@ export default function EmagrecaSemDietaPage() {
             <ThemeToggle />
             <a
               href={LINKS.hotmart}
-              onClick={handleBuyClick}
+              onClick={() => handleBuyClick("nav-primary")}
               data-cta="nav-primary"
               target="_blank"
               rel="noopener noreferrer"
@@ -401,18 +409,23 @@ export default function EmagrecaSemDietaPage() {
                     R$67
                   </span>
                   <span className="text-sm md:text-base" style={{ color: "var(--text-muted)" }}>
-                    ou 6x de R$ 11,17
+                    ou 12x de R$ 6,49
                   </span>
                 </div>
               </div>
 
-              {/* CTA grande — checkout direto (plano basico R$67) */}
+              {/* CTA grande — Opção B (STORY-004 AC-03): scroll suave pra
+                  seção de pricing pra usuário escolher plano consciente.
+                  Continua trackeando o clique em CtaClick pra mensurar engajamento. */}
               <a
-                href={LINKS.hotmart}
-                onClick={handleBuyClick}
+                href="#pricing"
+                onClick={() =>
+                  trackCtaClick({
+                    ctaId: "hero-primary",
+                    destinationUrl: "#pricing",
+                  })
+                }
                 data-cta="hero-primary"
-                target="_blank"
-                rel="noopener noreferrer"
                 className="group inline-flex items-center justify-center gap-3 rounded-2xl py-5 px-8 text-lg md:text-xl font-bold text-white transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] w-full sm:w-auto"
                 style={{
                   background: "linear-gradient(145deg, var(--accent), var(--accent-hover))",
@@ -420,8 +433,8 @@ export default function EmagrecaSemDietaPage() {
                     "0 12px 40px -8px var(--accent-soft), 0 6px 16px -4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}
               >
-                Quero começar sem dieta
-                <span className="transition-transform group-hover:translate-x-1">→</span>
+                Quero ver os planos
+                <span className="transition-transform group-hover:translate-x-1">↓</span>
               </a>
 
               {/* Secondary proof */}

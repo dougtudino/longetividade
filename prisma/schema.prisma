@@ -8,22 +8,22 @@ datasource db {
 }
 
 model Order {
-  id                    String    @id @default(uuid())
-  email                 String
-  name                  String
-  phone                 String?
-  plan                  String    // "basico" | "completo" | "vip"
-  amount                Int       // em centavos
-  status                String    @default("pending") // pending | approved | refunded | canceled | chargeback
-  mpPaymentId           String?   @unique
-  mpPreferenceId        String?   @unique
-  hotmartTransactionId  String?   @unique // ID Hotmart (HP...) — source of truth
-  downloadToken         String?   @unique
-  downloadCount         Int       @default(0)
-  tokenExpiresAt        DateTime?
-  syncedFromApiAt       DateTime? // quando foi reconciliada via Hotmart Sales API
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  id                   String    @id @default(uuid())
+  email                String
+  name                 String
+  phone                String?
+  plan                 String // "basico" | "completo" | "vip"
+  amount               Int // em centavos
+  status               String    @default("pending") // pending | approved | refunded | canceled | chargeback
+  mpPaymentId          String?   @unique
+  mpPreferenceId       String?   @unique
+  hotmartTransactionId String?   @unique // ID Hotmart (HP...) — source of truth
+  downloadToken        String?   @unique
+  downloadCount        Int       @default(0)
+  tokenExpiresAt       DateTime?
+  syncedFromApiAt      DateTime? // quando foi reconciliada via Hotmart Sales API
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   @@index([email])
   @@index([status])
@@ -45,7 +45,7 @@ model Lead {
   id           String    @id @default(uuid())
   email        String    @unique
   name         String?
-  source       String?   // utm_source
+  source       String? // utm_source
   sequenceStep Int       @default(0) // 0=welcome enviado, 1=D+2 enviado, 2=D+5 enviado, -1=opt-out
   lastEmailAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -58,40 +58,40 @@ model Lead {
 // ─── Creatives — Collections & Gallery ─────────────────
 
 model CreativeCollection {
-  id          String     @id @default(uuid())
-  slug        String     @unique
+  id          String   @id @default(uuid())
+  slug        String   @unique
   name        String
   description String?
-  icon        String?    // emoji
-  campaignId  String?    // opcional: liga a uma Campaign local
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  icon        String? // emoji
+  campaignId  String? // opcional: liga a uma Campaign local
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  creatives   Creative[]
+  creatives Creative[]
 
   @@index([createdAt])
 }
 
 model Creative {
-  id           String    @id @default(uuid())
-  collectionId String
-  slug         String    // identificador unico dentro da colecao (ex: "feed-dor")
-  componentKey String    // mapeia para CREATIVES_REGISTRY (registry.ts) ou "ai:<templateId>" se gerado por IA
-  name         String
-  format       String    // "feed" | "story" | "banner" | "custom"
-  width        Int
-  height       Int
-  description  String?
-  tags         String[]  @default([])
-  metaImageHash String?  // hash da imagem na Meta /adimages (se uploaded)
-  imageUrl     String?   // URL publica (CDN Blotato) pra creatives AI
-  aiGenerated  Boolean   @default(false) // true se gerado via Uma+Blotato
-  archived     Boolean   @default(false) // soft-archive: nao usar em novos ads, mas preserva historico
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            String   @id @default(uuid())
+  collectionId  String
+  slug          String // identificador unico dentro da colecao (ex: "feed-dor")
+  componentKey  String // mapeia para CREATIVES_REGISTRY (registry.ts) ou "ai:<templateId>" se gerado por IA
+  name          String
+  format        String // "feed" | "story" | "banner" | "custom"
+  width         Int
+  height        Int
+  description   String?
+  tags          String[] @default([])
+  metaImageHash String? // hash da imagem na Meta /adimages (se uploaded)
+  imageUrl      String? // URL publica (CDN Blotato) pra creatives AI
+  aiGenerated   Boolean  @default(false) // true se gerado via Uma+Blotato
+  archived      Boolean  @default(false) // soft-archive: nao usar em novos ads, mas preserva historico
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  collection   CreativeCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  copies       CreativeCopy[]
+  collection CreativeCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  copies     CreativeCopy[]
 
   @@unique([collectionId, slug])
   @@index([collectionId])
@@ -105,10 +105,10 @@ model Creative {
 model CreativeCopy {
   id          String   @id @default(uuid())
   creativeId  String
-  label       String   // "A", "B", "controle", "variante-dor"
+  label       String // "A", "B", "controle", "variante-dor"
   headline    String
   description String?  @db.Text
-  cta         String?  // "Saiba mais" | "Comprar agora" | "Inscreva-se"
+  cta         String? // "Saiba mais" | "Comprar agora" | "Inscreva-se"
   primaryText String?  @db.Text // texto principal Meta (acima do visual)
   // metricas agregadas (sincronizadas pelo cron sync-meta-ads)
   impressions Int      @default(0)
@@ -119,7 +119,7 @@ model CreativeCopy {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  creative    Creative @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+  creative Creative @relation(fields: [creativeId], references: [id], onDelete: Cascade)
 
   @@unique([creativeId, label])
   @@index([creativeId])
@@ -129,26 +129,26 @@ model CreativeCopy {
 // ─── Social Media — Posts & Calendar ───────────────────
 
 model SocialPost {
-  id           String    @id @default(uuid())
-  title        String
-  content      String    @db.Text // copy/legenda do post
-  platform     String    // "instagram" | "facebook" | "stories" | "reels" | "tiktok"
-  format       String    // "carrossel" | "imagem" | "reels" | "stories" | "texto"
-  pillar       String    // "s" | "e" | "m" | "promo"
-  hashtags     String?   @db.Text
-  imageUrl     String?   // URL do criativo (se tiver)
-  imageBriefing String?  @db.Text // briefing pra Uma criar o visual
-  slot         String    @default("FEED_AM") // FEED_AM | REEL | STORY — slot de conteudo
-  status       String    @default("draft") // draft | review | approved | posted | rejected
-  reviewNote   String?   // nota do QA
-  scheduledAt  DateTime? // quando postar
-  postedAt     DateTime?
-  engagementData Json?   // { likes, comments, shares, reach, saves }
-  createdBy    String?   // admin que criou
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  title          String
+  content        String    @db.Text // copy/legenda do post
+  platform       String // "instagram" | "facebook" | "stories" | "reels" | "tiktok"
+  format         String // "carrossel" | "imagem" | "reels" | "stories" | "texto"
+  pillar         String // "s" | "e" | "m" | "promo"
+  hashtags       String?   @db.Text
+  imageUrl       String? // URL do criativo (se tiver)
+  imageBriefing  String?   @db.Text // briefing pra Uma criar o visual
+  slot           String    @default("FEED_AM") // FEED_AM | REEL | STORY — slot de conteudo
+  status         String    @default("draft") // draft | review | approved | posted | rejected
+  reviewNote     String? // nota do QA
+  scheduledAt    DateTime? // quando postar
+  postedAt       DateTime?
+  engagementData Json? // { likes, comments, shares, reach, saves }
+  createdBy      String? // admin que criou
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  images       SocialPostImage[]
+  images SocialPostImage[]
 
   @@index([status])
   @@index([platform])
@@ -179,12 +179,12 @@ model SocialPostImage {
 
 model AgentKnowledge {
   id        String   @id @default(uuid())
-  agentId   String   // "gaia" | "maya" | "uma" | "alex" | ...
-  kind      String   // "fact" | "rule" | "benchmark" | "reference" | "learning" | "policy"
+  agentId   String // "gaia" | "maya" | "uma" | "alex" | ...
+  kind      String // "fact" | "rule" | "benchmark" | "reference" | "learning" | "policy"
   title     String
   body      String   @db.Text
-  source    String?  // where it came from (manual, gaia-persona, meta-docs, blog-url, etc)
-  metadata  Json?    // optional structured data
+  source    String? // where it came from (manual, gaia-persona, meta-docs, blog-url, etc)
+  metadata  Json? // optional structured data
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -194,28 +194,28 @@ model AgentKnowledge {
 }
 
 model AgentDecision {
-  id          String   @id @default(uuid())
-  agentId     String   // who proposed
-  action      String   // "PAUSE_ADSET" | "DUPLICATE_ADSET" | "INCREASE_BUDGET" | "DECREASE_BUDGET" | "ACTIVATE_ADSET"
-  targetType  String   // "adset" | "campaign" | "ad" | "creative"
-  targetId    String   // Meta ID
-  targetName  String   // human-readable
-  params      Json     // action params (e.g. { budget_cents: 3600, reason: "..." })
-  reasoning   String   @db.Text
-  priority    String   @default("normal") // "low" | "normal" | "high" | "critical"
-  status      String   @default("proposed") // "proposed" | "approved" | "executed" | "rejected" | "failed"
+  id              String    @id @default(uuid())
+  agentId         String // who proposed
+  action          String // "PAUSE_ADSET" | "DUPLICATE_ADSET" | "INCREASE_BUDGET" | "DECREASE_BUDGET" | "ACTIVATE_ADSET"
+  targetType      String // "adset" | "campaign" | "ad" | "creative"
+  targetId        String // Meta ID
+  targetName      String // human-readable
+  params          Json // action params (e.g. { budget_cents: 3600, reason: "..." })
+  reasoning       String    @db.Text
+  priority        String    @default("normal") // "low" | "normal" | "high" | "critical"
+  status          String    @default("proposed") // "proposed" | "approved" | "executed" | "rejected" | "failed"
   // progressStatus eh ortogonal a status: controla a posicao do card nas
   // tabs do painel Gaia (proposed | in_progress | completed | archived).
   // Usado principalmente por DIAGNOSE_FUNNEL/PROPOSE_ITERATION pra fluxo
   // de checklist acionavel. Default proposed pra rows existentes.
-  progressStatus String @default("proposed")
-  approvedBy  String?  // admin email who approved
-  approvedAt  DateTime?
-  executedAt  DateTime?
+  progressStatus  String    @default("proposed")
+  approvedBy      String? // admin email who approved
+  approvedAt      DateTime?
+  executedAt      DateTime?
   executionResult Json?
-  rejectedReason String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  rejectedReason  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   checklistItems DecisionChecklistItem[]
 
@@ -230,20 +230,20 @@ model AgentDecision {
 // aprovado/pulado individualmente. Em Sprint 2, approve dispara o agente
 // real; em Sprint 1, gera apenas um doc placeholder em docs/checklist-items/.
 model DecisionChecklistItem {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   decisionId     String
   decision       AgentDecision @relation(fields: [decisionId], references: [id], onDelete: Cascade)
   orderIndex     Int
   title          String
-  description    String   @db.Text
+  description    String        @db.Text
   assignedAgents String[] // ['morgan', 'uma-creative', 'dex']
-  status         String   @default("pending") // pending | approved | in_progress | done | skipped
+  status         String        @default("pending") // pending | approved | in_progress | done | skipped
   approvedAt     DateTime?
   completedAt    DateTime?
-  artifactPath   String?  // caminho do doc gerado ou URL do PR
+  artifactPath   String? // caminho do doc gerado ou URL do PR
   metadata       Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@index([decisionId])
   @@index([status])
@@ -255,59 +255,59 @@ model DecisionChecklistItem {
 // — DEPRECATED). Admin edita na UI /admin/campanhas/launch-blueprint.
 // ─────────────────────────────────────────────────────────────────────
 model LaunchBlueprint {
-  id                String   @id @default(cuid())
-  launchId          String   @unique                 // "LAUNCH-001"
-  name              String                           // "LAUNCH-001-Pioneer"
-  status            String   @default("draft")       // draft | ready | launched | paused | archived
+  id       String @id @default(cuid())
+  launchId String @unique // "LAUNCH-001"
+  name     String // "LAUNCH-001-Pioneer"
+  status   String @default("draft") // draft | ready | launched | paused | archived
 
   productName       String
   productPriceBrl   Int
   productHotmartId  String?
   landingUrl        String
   pixelId           String
-  datasetName       String                           // "Dados de Longetividade"
-  adAccountId       String                           // "act_837047967961012"
+  datasetName       String // "Dados de Longetividade"
+  adAccountId       String // "act_837047967961012"
   businessManagerId String
 
-  campaignName      String                           // "LONG-AQ-01-Conversao-Pioneer-Mar2026"
-  campaignObjective String   @default("OUTCOME_SALES")
-  budgetTotalBrl    Int                              // R$95/dia (somatorio esperado)
-  advantageBudget   Boolean  @default(false)
+  campaignName      String // "LONG-AQ-01-Conversao-Pioneer-Mar2026"
+  campaignObjective String  @default("OUTCOME_SALES")
+  budgetTotalBrl    Int // R$95/dia (somatorio esperado)
+  advantageBudget   Boolean @default(false)
 
-  metaCampaignId    String?                          // preenchido apos launch
-  launchedAt        DateTime?
+  metaCampaignId String? // preenchido apos launch
+  launchedAt     DateTime?
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  audiences         LaunchAudience[]
-  adSets            LaunchAdSet[]
+  audiences LaunchAudience[]
+  adSets    LaunchAdSet[]
 
   @@index([status])
   @@index([createdAt])
 }
 
 model LaunchAudience {
-  id                 String   @id @default(cuid())
-  blueprintId        String
-  blueprint          LaunchBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
-  orderIndex         Int
+  id          String          @id @default(cuid())
+  blueprintId String
+  blueprint   LaunchBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  orderIndex  Int
 
-  audienceKey        String                          // "ca_compradores" | "lal_1pct_pageview_30d"
-  audienceType       String                          // "website_event" | "lookalike"
-  eventName          String?                         // "Purchase" | "PageView" | "InitiateCheckout" | "Lead"
-  retentionDays      Int?
+  audienceKey   String // "ca_compradores" | "lal_1pct_pageview_30d"
+  audienceType  String // "website_event" | "lookalike"
+  eventName     String? // "Purchase" | "PageView" | "InitiateCheckout" | "Lead"
+  retentionDays Int?
 
-  lookalikeSourceKey String?                         // referencia outra audience (pra source do lookalike)
-  lookalikeCountry   String?                         // "BR"
-  lookalikeRatio     Float?                          // 0.01 (1%)
+  lookalikeSourceKey String? // referencia outra audience (pra source do lookalike)
+  lookalikeCountry   String? // "BR"
+  lookalikeRatio     Float? // 0.01 (1%)
 
-  metaAudienceId     String?                         // preenchido apos criar no Meta
-  status             String   @default("pending")    // pending | operational | processing | failed
-  statusMessage      String?
+  metaAudienceId String? // preenchido apos criar no Meta
+  status         String  @default("pending") // pending | operational | processing | failed
+  statusMessage  String?
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([blueprintId, audienceKey])
   @@index([blueprintId])
@@ -315,41 +315,41 @@ model LaunchAudience {
 }
 
 model LaunchAdSet {
-  id                    String   @id @default(cuid())
-  blueprintId           String
-  blueprint             LaunchBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
-  orderIndex            Int
+  id          String          @id @default(cuid())
+  blueprintId String
+  blueprint   LaunchBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  orderIndex  Int
 
-  adSetKey              String                       // "ASET-01-Cold-Interesses-3050"
-  layer                 String                       // "cold" | "warm" | "hot"
-  activateOn            String                       // "day_1" | "day_5" | "manual"
+  adSetKey   String // "ASET-01-Cold-Interesses-3050"
+  layer      String // "cold" | "warm" | "hot"
+  activateOn String // "day_1" | "day_5" | "manual"
 
-  budgetDailyBrl        Int                          // 25
+  budgetDailyBrl Int // 25
 
-  ageMin                Int
-  ageMax                Int
-  genders               String[]                     // ["female"] | ["male"] | ["female", "male"]
-  countries             String[]                     // ["BR"]
+  ageMin    Int
+  ageMax    Int
+  genders   String[] // ["female"] | ["male"] | ["female", "male"]
+  countries String[] // ["BR"]
 
-  interests             Json?                        // [{ id: "6003107902433", name: "Emagrecimento" }]
-  behaviors             Json?                        // [{ id: "...", name: "..." }]
+  interests Json? // [{ id: "6003107902433", name: "Emagrecimento" }]
+  behaviors Json? // [{ id: "...", name: "..." }]
 
-  customAudienceKeys    String[]                     // ["lal_1pct_pageview_30d"]
-  excludedAudienceKeys  String[]                     // ["ca_compradores"]
+  customAudienceKeys   String[] // ["lal_1pct_pageview_30d"]
+  excludedAudienceKeys String[] // ["ca_compradores"]
 
-  optimizationGoal      String   @default("OFFSITE_CONVERSIONS")
-  promotedObjectEvent   String   @default("PURCHASE")
+  optimizationGoal    String @default("OFFSITE_CONVERSIONS")
+  promotedObjectEvent String @default("PURCHASE")
 
-  creativesCollectionId String?                      // slug da CreativeCollection (ex: "launch-001-pioneer")
-  creativesAngles       String[]                     // ["dor", "prova", "objecao", "promessa", "cta"]
-  numAds                Int                          // 5
+  creativesCollectionId String? // slug da CreativeCollection (ex: "launch-001-pioneer")
+  creativesAngles       String[] // ["dor", "prova", "objecao", "promessa", "cta"]
+  numAds                Int // 5
 
-  metaAdSetId           String?
-  status                String   @default("pending") // pending | created | failed
-  statusMessage         String?
+  metaAdSetId   String?
+  status        String  @default("pending") // pending | created | failed
+  statusMessage String?
 
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([blueprintId, adSetKey])
   @@index([blueprintId])
@@ -358,30 +358,30 @@ model LaunchAdSet {
 }
 
 model Campaign {
-  id              String    @id @default(uuid())
-  name            String
-  platform        String    // "meta" | "google" | "organic" | "email"
-  objective       String    // "conversao" | "trafego" | "awareness"
-  status          String    @default("active") // active | paused | finished
-  budget          Float     // orçamento diário R$
-  startDate       DateTime
-  endDate         DateTime?
-  notes           String?
-  metaCampaignId  String?   @unique // ID da campanha no Meta (act_xxx/campaigns)
-  lastSyncedAt    DateTime?
+  id             String    @id @default(uuid())
+  name           String
+  platform       String // "meta" | "google" | "organic" | "email"
+  objective      String // "conversao" | "trafego" | "awareness"
+  status         String    @default("active") // active | paused | finished
+  budget         Float // orçamento diário R$
+  startDate      DateTime
+  endDate        DateTime?
+  notes          String?
+  metaCampaignId String?   @unique // ID da campanha no Meta (act_xxx/campaigns)
+  lastSyncedAt   DateTime?
   // source distingue origem da campanha pro admin filtrar:
   // - blueprint: criada via launcher do LaunchBlueprint (sistema novo, oficial)
   // - legacy: criada via UI antiga "+ Nova campanha" (DEPRECATED 2026-04-20)
   // - synced: vinda do sync-meta-ads sem LaunchBlueprint correspondente
   //   (campanha criada manualmente no Meta Ads Manager, fora do sistema)
-  source          String    @default("legacy")
+  source         String    @default("legacy")
   // Liga campanha local ao LaunchBlueprint que a originou (apenas
   // pra source=blueprint). Permite navegar Campaign -> Blueprint na UI.
-  launchId        String?   // ref LaunchBlueprint.launchId (string, nao FK)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  launchId       String? // ref LaunchBlueprint.launchId (string, nao FK)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  metrics         CampaignMetric[]
+  metrics CampaignMetric[]
 
   @@index([source])
   @@index([launchId])
@@ -398,7 +398,7 @@ model CampaignMetric {
   revenue     Float    @default(0)
   createdAt   DateTime @default(now())
 
-  campaign    Campaign @relation(fields: [campaignId], references: [id])
+  campaign Campaign @relation(fields: [campaignId], references: [id])
 
   @@unique([campaignId, date])
   @@index([campaignId])
@@ -427,9 +427,9 @@ model AppUser {
   id           String   @id @default(uuid())
   email        String   @unique
   orderId      String   @unique
-  plan         String   // "vip"
+  plan         String // "vip"
   accessType   String   @default("lifetime") // "lifetime" | "subscription"
-  passwordHash String?  // bcrypt hash (null se login via email-only ou Google)
+  passwordHash String? // bcrypt hash (null se login via email-only ou Google)
   googleId     String?  @unique // Google sub ID para OAuth
   createdAt    DateTime @default(now())
 
@@ -451,11 +451,11 @@ model AppProfile {
   id             String   @id @default(uuid())
   userId         String   @unique
   name           String
-  objective      String   // "emagrecer" | "habitos" | "ambos"
+  objective      String // "emagrecer" | "habitos" | "ambos"
   currentWeight  Float?
   height         Float?
   age            Int?
-  goalType       String   // "primeiro_kg" | "5kg" | "10kg" | "peso_ideal" | "custom"
+  goalType       String // "primeiro_kg" | "5kg" | "10kg" | "peso_ideal" | "custom"
   goalCustom     String?
   goalWeight     Float?
   challenges     String[]
@@ -464,21 +464,21 @@ model AppProfile {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  user           AppUser  @relation(fields: [userId], references: [id])
+  user AppUser @relation(fields: [userId], references: [id])
 }
 
 model AppCheckin {
   id           String   @id @default(uuid())
   userId       String
   date         DateTime @db.Date
-  habits       Json     // { agua: bool, refeicoes: bool, fruta: bool, ... }
+  habits       Json // { agua: bool, refeicoes: bool, fruta: bool, ... }
   waterCount   Int      @default(0)
   exerciseDone Boolean  @default(false)
   exerciseMin  Int      @default(0)
   note         String?
   createdAt    DateTime @default(now())
 
-  user         AppUser  @relation(fields: [userId], references: [id])
+  user AppUser @relation(fields: [userId], references: [id])
 
   @@unique([userId, date])
   @@index([userId])
@@ -491,7 +491,7 @@ model AppWaterLog {
   cups     Int
   loggedAt DateTime @default(now())
 
-  user     AppUser  @relation(fields: [userId], references: [id])
+  user AppUser @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -503,7 +503,7 @@ model AppWeightLog {
   note     String?
   loggedAt DateTime @default(now())
 
-  user     AppUser  @relation(fields: [userId], references: [id])
+  user AppUser @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -524,25 +524,26 @@ model AppSetting {
 // ─── App VIP Sprint 2 ─────────────────────────────
 
 model AppMoodLog {
-  id        String   @id @default(uuid())
-  userId    String
-  mood      String
-  note      String?
-  triggers  String[]
-  loggedAt  DateTime @default(now())
-  user      AppUser  @relation(fields: [userId], references: [id])
+  id       String   @id @default(uuid())
+  userId   String
+  mood     String
+  note     String?
+  triggers String[]
+  loggedAt DateTime @default(now())
+  user     AppUser  @relation(fields: [userId], references: [id])
+
   @@index([userId])
   @@index([loggedAt])
 }
 
 model AppAchievement {
-  id               String   @id
+  id               String               @id
   name             String
   description      String
   icon             String
   category         String
   condition        String
-  xp               Int      @default(10)
+  xp               Int                  @default(10)
   userAchievements AppUserAchievement[]
 }
 
@@ -553,6 +554,7 @@ model AppUserAchievement {
   earnedAt      DateTime       @default(now())
   user          AppUser        @relation(fields: [userId], references: [id])
   achievement   AppAchievement @relation(fields: [achievementId], references: [id])
+
   @@unique([userId, achievementId])
   @@index([userId])
 }
@@ -567,7 +569,7 @@ model AppUserLevel {
 }
 
 model AppRecipe {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   name        String
   category    String
   pillar      String
@@ -576,7 +578,7 @@ model AppRecipe {
   ingredients String[]
   steps       String[]
   tip         String
-  createdAt   DateTime @default(now())
+  createdAt   DateTime            @default(now())
   favorites   AppFavoriteRecipe[]
 }
 
@@ -587,6 +589,7 @@ model AppFavoriteRecipe {
   createdAt DateTime  @default(now())
   user      AppUser   @relation(fields: [userId], references: [id])
   recipe    AppRecipe @relation(fields: [recipeId], references: [id])
+
   @@unique([userId, recipeId])
 }
 
@@ -596,18 +599,20 @@ model AppChallenge {
   day         Int
   completedAt DateTime @default(now())
   user        AppUser  @relation(fields: [userId], references: [id])
+
   @@unique([userId, day])
   @@index([userId])
 }
 
 model AppMeasurement {
-  id        String   @id @default(uuid())
-  userId    String
-  waist     Float?
-  hip       Float?
-  note      String?
-  loggedAt  DateTime @default(now())
-  user      AppUser  @relation(fields: [userId], references: [id])
+  id       String   @id @default(uuid())
+  userId   String
+  waist    Float?
+  hip      Float?
+  note     String?
+  loggedAt DateTime @default(now())
+  user     AppUser  @relation(fields: [userId], references: [id])
+
   @@index([userId])
 }
 
@@ -635,20 +640,21 @@ model MayaMessage {
   content   String    @db.Text
   createdAt DateTime  @default(now())
   admin     AdminUser @relation(fields: [adminId], references: [id])
+
   @@index([adminId])
   @@index([createdAt])
 }
 
 // ─── Video Intelligence ──────────────────────────────
 model VideoCompetitor {
-  id          String   @id @default(uuid())
-  username    String   @unique
-  category    String   @default("longetividade")
-  followers   Int      @default(0)
-  avgViews30d Int      @default(0)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String          @id @default(uuid())
+  username    String          @unique
+  category    String          @default("longetividade")
+  followers   Int             @default(0)
+  avgViews30d Int             @default(0)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   analyses    VideoAnalysis[]
 
   @@index([active])
@@ -665,19 +671,19 @@ model VideoAnalysis {
   comments     Int             @default(0)
   datePosted   String          @default("")
 
-  concept      String          @default("") @db.Text
-  hook         String          @default("") @db.Text
-  retention    String          @default("") @db.Text
-  reward       String          @default("") @db.Text
-  script       String          @default("") @db.Text
-  rawAnalysis  String          @default("") @db.Text
-  lunaConcepts String          @default("") @db.Text
+  concept      String @default("") @db.Text
+  hook         String @default("") @db.Text
+  retention    String @default("") @db.Text
+  reward       String @default("") @db.Text
+  script       String @default("") @db.Text
+  rawAnalysis  String @default("") @db.Text
+  lunaConcepts String @default("") @db.Text
 
-  savedToKnowledge Boolean     @default(false)
+  savedToKnowledge Boolean @default(false)
   knowledgeId      String?
-  starred          Boolean     @default(false)
+  starred          Boolean @default(false)
 
-  createdAt   DateTime         @default(now())
+  createdAt DateTime @default(now())
 
   @@index([competitorId])
   @@index([views])
@@ -690,9 +696,9 @@ model VideoAnalysis {
 // se nenhum registro existir pra aquela (lpSlug, key).
 model LpAsset {
   id        String   @id @default(uuid())
-  lpSlug    String   // "emagreca-sem-dieta" | "instagram" | etc.
-  key       String   // "hero.woman" | "hero.phone" | "avatar.ana" | "mockup.spread"
-  imageUrl  String   // URL pública no R2
+  lpSlug    String // "emagreca-sem-dieta" | "instagram" | etc.
+  key       String // "hero.woman" | "hero.phone" | "avatar.ana" | "mockup.spread"
+  imageUrl  String // URL pública no R2
   alt       String   @default("")
   width     Int?
   height    Int?
@@ -703,13 +709,62 @@ model LpAsset {
   @@index([lpSlug])
 }
 
+// Cliques no CTA capturados pelo /api/track/cta-click via sendBeacon.
+// Fonte da verdade interna independente de Hotmart e Pixel — resolve
+// "Origem: Nao identificada" do Hotmart e cliques bloqueados por adblock.
+// IP guardado como SHA256 pra nao armazenar PII bruto.
+model CtaClick {
+  id             String   @id @default(uuid())
+  timestamp      DateTime @default(now())
+  ctaId          String // "hero", "pricing-basico", "pricing-completo", "pricing-vip", "sticky-bottom", "final-cta"
+  planId         String? // "basico" | "completo" | "vip"
+  destinationUrl String
+  userAgent      String?
+  referrer       String?
+  pathname       String? // pagina onde o clique aconteceu
+  utmSource      String?
+  utmCampaign    String?
+  utmMedium      String?
+  utmContent     String?
+  utmTerm        String?
+  ipHash         String? // SHA256 do IP
+
+  @@index([timestamp])
+  @@index([ctaId])
+  @@index([utmCampaign])
+  @@index([planId])
+}
+
+// Log auditavel dos eventos enviados pro Meta Conversions API server-side.
+// Util pra debugar "Por que esse Purchase nao apareceu no Events Manager?"
+// e pra reconciliar com Hotmart caso o webhook caia.
+model MetaCapiEvent {
+  id           String   @id @default(uuid())
+  timestamp    DateTime @default(now())
+  eventName    String // "Purchase" | "Lead" | "InitiateCheckout" | ...
+  eventId      String // event_id usado pra dedup com Pixel client-side
+  sourceUrl    String?
+  value        Float?
+  currency     String?
+  orderId      String?
+  status       String // "sent" | "failed"
+  errorMessage String?  @db.Text
+  rawResponse  Json? // resposta crua da Graph API pra debug
+
+  @@index([timestamp])
+  @@index([eventName])
+  @@index([eventId])
+  @@index([orderId])
+  @@index([status])
+}
+
 // Galeria rotativa da LP: 3 linhas, múltiplos itens por linha.
 // kind: photo | whatsapp | testimonial
 model SocialProofItem {
   id         String   @id @default(uuid())
-  lpSlug     String   // "emagreca-sem-dieta"
-  row        Int      // 1 | 2 | 3
-  imageUrl   String   // URL pública no R2
+  lpSlug     String // "emagreca-sem-dieta"
+  row        Int // 1 | 2 | 3
+  imageUrl   String // URL pública no R2
   alt        String   @default("")
   caption    String?
   kind       String   @default("photo")
