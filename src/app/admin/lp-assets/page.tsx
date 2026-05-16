@@ -143,9 +143,20 @@ export default function LpAssetsPage() {
     }
   }
 
+  // Agrupa por categoria visual + separa "legacy" (slots descontinuados que
+  // ainda existem pra LPs alternativas).
   const grouped = useMemo(() => {
-    const g: Record<string, LpAssetSlot[]> = { hero: [], mockup: [], avatar: [] };
-    for (const s of slots) g[s.group].push(s);
+    const g: Record<string, LpAssetSlot[]> = {
+      hero: [],
+      product: [],
+      mockup: [],
+      avatar: [],
+      legacy: [],
+    };
+    for (const s of slots) {
+      if (s.legacy) g.legacy.push(s);
+      else g[s.group].push(s);
+    }
     return g;
   }, [slots]);
 
@@ -250,22 +261,49 @@ export default function LpAssetsPage() {
       {loading ? (
         <p style={{ color: "var(--text-muted)" }}>Carregando…</p>
       ) : (
-        (["hero", "mockup", "avatar"] as const).map((g) => {
+        (["hero", "product", "mockup", "avatar", "legacy"] as const).map((g) => {
           const items = grouped[g];
           if (!items.length) return null;
+          const isLegacy = g === "legacy";
           return (
-            <section key={g} style={{ marginBottom: 28 }}>
+            <section key={g} style={{ marginBottom: 28, opacity: isLegacy ? 0.7 : 1 }}>
               <h2
                 style={{
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "var(--text-secondary)",
+                  color: isLegacy ? "var(--text-muted)" : "var(--text-secondary)",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   marginBottom: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                {g === "hero" ? "Hero" : g === "mockup" ? "Mockups" : "Avatares (depoimentos)"}
+                {g === "hero"
+                  ? "Hero — Calendario, mulher, app"
+                  : g === "product"
+                  ? "Produto — Kit, checklist (fotos tangiveis)"
+                  : g === "mockup"
+                  ? "Mockups"
+                  : g === "avatar"
+                  ? "Avatares (depoimentos)"
+                  : "Legacy — Ebook (LPs antigas)"}
+                {isLegacy && (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      padding: "2px 7px",
+                      borderRadius: 999,
+                      background: "rgba(239,68,68,0.10)",
+                      color: "#f87171",
+                      fontWeight: 700,
+                      letterSpacing: "0.05em",
+                    }}
+                  >
+                    NAO USADO NA LP NOVA
+                  </span>
+                )}
               </h2>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14 }}>
                 {items.map((slot) => (
@@ -439,6 +477,21 @@ function SlotCard({
         <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>
           {slot.label}
         </div>
+
+        {/* Aparece em — onde esse slot eh renderizado na LP */}
+        {slot.appearsIn && (
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 10,
+              color: "var(--text-muted)",
+              fontStyle: "italic",
+              lineHeight: 1.4,
+            }}
+          >
+            📍 {slot.appearsIn}
+          </div>
+        )}
 
         {/* Badge de tamanho ideal — destaque visual */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>

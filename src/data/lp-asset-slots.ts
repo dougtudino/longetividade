@@ -5,8 +5,8 @@
 export type LpAssetSlot = {
   key: string;            // identificador estável — não mudar depois de migrado
   label: string;          // label no admin
-  group: "hero" | "mockup" | "avatar";
-  fallback: string;       // caminho /public pra fallback
+  group: "hero" | "product" | "mockup" | "avatar";
+  fallback: string;       // caminho /public pra fallback (string vazia = sem fallback, usa SVG component)
   // Dimensões alvo — upload é redimensionado + cropado pra esse aspecto exato.
   targetWidth: number;
   targetHeight: number;
@@ -16,39 +16,91 @@ export type LpAssetSlot = {
   uploadGuide?: string;
   // Tamanho mínimo aceitável (pra qualidade). Abaixo disso, pode pixelar.
   minSize?: string;
+  // Marca slots descontinuados (ebook → calendario). Admin agrupa em "Legacy"
+  // mas preserva os dados ja cadastrados pra LPs alternativas (v2, /c/[slug]).
+  legacy?: boolean;
+  // Texto curto explicando onde aparece na LP nova.
+  appearsIn?: string;
 };
 
-// LP /emagreca-sem-dieta
+// LP /emagreca-sem-dieta — posicionamento: Calendario Detox 21 Dias.
+// Cada slot tem fallback pra SVG component ou imagem estatica /public.
 export const SLOTS_EMAGRECA: LpAssetSlot[] = [
   // ─── Hero ─────────────────────────────────────────────
   {
+    key: "hero.calendar",
+    label: "Hero — Foto do calendario",
+    group: "hero",
+    fallback: "", // sem fallback estatico — DetoxHero usa MockupCalendarDetox SVG quando nao tiver foto
+    targetWidth: 1200,
+    targetHeight: 1500,
+    aspectHint: "4:5 vertical (calendario emoldurado, mulher marcando dia)",
+    recommendedSize: "1200×1500px",
+    minSize: "900×1125px",
+    appearsIn: "Hero (lado direito, sobrepoe o mockup SVG)",
+    uploadGuide:
+      "Foto do calendario A3 fisico em uso: pendurado na cozinha/quarto, alguns dias marcados com adesivo verde. Idealmente com mao de mulher marcando o dia. Luz natural suave, fundo creme/sage. Estetica wellness premium tipo Pinterest.",
+  },
+  {
     key: "hero.woman",
-    label: "Hero — Foto da mulher",
+    label: "Hero — Mulher com calendario",
     group: "hero",
     fallback: "/images/hero-woman2.png",
     targetWidth: 1200,
     targetHeight: 1600,
-    aspectHint: "3:4 vertical (cara/busto centralizado)",
+    aspectHint: "3:4 vertical (mulher segurando/marcando calendario)",
     recommendedSize: "1200×1600px",
     minSize: "900×1200px",
+    appearsIn: "Hero (alternativa a hero.calendar — uso adicional)",
     uploadGuide:
-      "Foto vertical de corpo 3/4 ou meio-corpo. Rosto no terço superior da imagem, olhando pra frente ou levemente de lado. Luz natural, fundo limpo. Evite fotos muito escuras ou com muitos elementos atrás.",
+      "Foto vertical da mulher em rotina (cozinha/sala), segurando ou apontando pra o calendario. Expressao calma e confiante. Luz natural, fundo limpo creme/sage. Evite fotos muito formais ou de estudio.",
   },
   {
     key: "hero.phone",
-    label: "Hero — Mockup celular",
+    label: "Hero — App de acompanhamento",
     group: "hero",
     fallback: "/images/ebook-phone.jpg",
     targetWidth: 480,
     targetHeight: 640,
-    aspectHint: "3:4 vertical",
+    aspectHint: "3:4 vertical (screenshot real do app)",
     recommendedSize: "480×640px",
     minSize: "360×480px",
+    appearsIn: "Progresso e Veja o que recebe (substitui MockupAppDetox SVG)",
     uploadGuide:
-      "Screenshot ou render do ebook visto no celular. Idealmente da capa. Fundo transparente ou neutro claro.",
+      "Screenshot real do app de progresso aberto: streak counter, habitos do dia, calendario mensal. Fundo transparente ou neutro claro. Idealmente com algumas tarefas marcadas pra mostrar uso real.",
   },
 
-  // ─── Mockups do ebook ─────────────────────────────────
+  // ─── Produto (tangiveis) ──────────────────────────────
+  {
+    key: "product.kit-physical",
+    label: "Produto — Kit fisico completo",
+    group: "product",
+    fallback: "",
+    targetWidth: 1200,
+    targetHeight: 1200,
+    aspectHint: "1:1 quadrado (kit montado: calendario + cartilha + checklist)",
+    recommendedSize: "1200×1200px",
+    minSize: "800×800px",
+    appearsIn: "Veja o que voce recebe (card destacado do Kit Detox)",
+    uploadGuide:
+      "Flat lay overhead do kit fisico montado: calendario A3 dobrado, cartilha de habitos, checklist impresso, embalagem premium. Fundo linho cru ou creme. Luz natural suave. Estetica planner premium tipo Pinterest wellness.",
+  },
+  {
+    key: "product.checklist-paper",
+    label: "Produto — Checklist impresso",
+    group: "product",
+    fallback: "",
+    targetWidth: 800,
+    targetHeight: 1000,
+    aspectHint: "4:5 vertical (checklist na geladeira)",
+    recommendedSize: "800×1000px",
+    minSize: "600×750px",
+    appearsIn: "Veja o que voce recebe (substitui MockupChecklistPaper SVG)",
+    uploadGuide:
+      "Foto do checklist impresso pendurado na geladeira com imã, alguns itens marcados a caneta. Fundo geladeira bege ou cozinha clara, luz da manha. Estetica realista (nao mockup digital).",
+  },
+
+  // ─── Mockups do ebook (LEGACY — pre Calendario Detox) ─
   {
     key: "mockup.spread",
     label: "Mockup — Páginas abertas do ebook",
@@ -59,8 +111,10 @@ export const SLOTS_EMAGRECA: LpAssetSlot[] = [
     aspectHint: "horizontal 7:4",
     recommendedSize: "1400×800px",
     minSize: "1050×600px",
+    legacy: true,
+    appearsIn: "Legacy: LPs alternativas (v2, /c/[slug])",
     uploadGuide:
-      "Mockup horizontal de páginas internas do ebook (checklist, cardápio, dia 1 de 7). Mostra conteúdo rico — o usuário quer ver o que tem dentro.",
+      "[LEGACY — eram do ebook, nao usado na LP nova] Mockup horizontal de paginas internas. Mantido por compatibilidade com LPs antigas.",
   },
   {
     key: "mockup.cover",
@@ -72,8 +126,10 @@ export const SLOTS_EMAGRECA: LpAssetSlot[] = [
     aspectHint: "vertical 8:11",
     recommendedSize: "800×1100px",
     minSize: "600×825px",
+    legacy: true,
+    appearsIn: "Legacy: LPs alternativas (v2, /c/[slug])",
     uploadGuide:
-      "Capa do ebook em perspectiva vertical (pode ser mockup 3D). Fundo transparente ou bem neutro. A capa inteira precisa estar visível.",
+      "[LEGACY — era do ebook, nao usado na LP nova] Capa em perspectiva. Mantido por compatibilidade.",
   },
 
   // ─── Autora ───────────────────────────────────────────
@@ -87,6 +143,7 @@ export const SLOTS_EMAGRECA: LpAssetSlot[] = [
     aspectHint: "4:5 vertical",
     recommendedSize: "520×650px",
     minSize: "400×500px",
+    appearsIn: "AutoraSection",
     uploadGuide:
       "Foto da Barbara em ambiente natural (casa, cozinha, ao ar livre). Luz suave, expressão confiante. Enquadre do busto pra cima. Evite fotos muito formais ou de estúdio.",
   },

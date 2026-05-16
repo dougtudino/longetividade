@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { trackCtaClick } from "@/lib/cta-tracking";
+import { useLpAssets } from "@/lib/useLpAssets";
 import { MockupAppDetox } from "@/components/mockups/mockup-app-detox";
 
 type SpItem = {
@@ -46,6 +47,9 @@ const LP_SLUG = "emagreca-sem-dieta";
 
 export function DetoxProgress() {
   const [quotes, setQuotes] = useState<Quote[]>(FALLBACK_QUOTES);
+  // Foto/screenshot do app editavel via /admin/lp-assets slot "hero.phone".
+  const { resolveAsset } = useLpAssets("emagreca-sem-dieta");
+  const appPhotoUrl = resolveAsset("hero.phone", "");
 
   useEffect(() => {
     let alive = true;
@@ -109,7 +113,23 @@ export function DetoxProgress() {
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-16 items-center max-w-5xl mx-auto">
           <div className="flex justify-center">
-            <MockupAppDetox />
+            {appPhotoUrl ? (
+              <div
+                className="relative w-full max-w-[280px] aspect-[3/4] rounded-3xl overflow-hidden"
+                style={{ boxShadow: "0 24px 60px -20px rgba(0,0,0,0.25)" }}
+              >
+                <Image
+                  src={appPhotoUrl}
+                  alt="App de acompanhamento detox"
+                  fill
+                  sizes="(min-width: 1024px) 280px, 80vw"
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <MockupAppDetox />
+            )}
           </div>
 
           <div className="space-y-5">
