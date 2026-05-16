@@ -42,20 +42,23 @@ export function DetoxFaq() {
 
   return (
     <section
-      className="py-16 md:py-24"
+      className="py-20 md:py-28"
       style={{ backgroundColor: "var(--bg-page)" }}
     >
       <div className="mx-auto max-w-3xl px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 md:mb-14">
           <span
-            className="font-body text-xs md:text-sm font-bold uppercase tracking-wider"
+            className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
             Perguntas frequentes
           </span>
           <h2
-            className="font-heading font-bold text-3xl md:text-4xl mt-2"
-            style={{ color: "var(--text-primary)" }}
+            className="font-heading font-extrabold text-3xl md:text-4xl lg:text-5xl leading-[1.1]"
+            style={{
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
           >
             A gente ja ouviu essas
           </h2>

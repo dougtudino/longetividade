@@ -19,19 +19,39 @@ export function DetoxFinalCta() {
 
   return (
     <section
-      className="py-20 md:py-28"
+      className="relative overflow-hidden py-24 md:py-36"
       style={{ backgroundColor: "var(--bg-card)" }}
     >
-      <div className="mx-auto max-w-3xl px-4 text-center">
+      {/* Backdrop sage decorativo */}
+      <div
+        aria-hidden
+        className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full pointer-events-none opacity-40"
+        style={{
+          background:
+            "radial-gradient(circle at center, var(--accent-soft) 0%, transparent 65%)",
+        }}
+      />
+
+      <div className="relative mx-auto max-w-3xl px-4 text-center">
+        <span
+          className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-4"
+          style={{ color: "var(--accent)" }}
+        >
+          Ultimo passo
+        </span>
+
         <h2
-          className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl mb-6"
-          style={{ color: "var(--text-primary)" }}
+          className="font-heading font-extrabold text-4xl md:text-5xl lg:text-6xl leading-[1.05] mb-8"
+          style={{
+            color: "var(--text-primary)",
+            letterSpacing: "-0.02em",
+          }}
         >
           Voce tem 21 dias pela frente.
         </h2>
 
         <p
-          className="font-body text-base md:text-lg leading-relaxed mb-3"
+          className="font-body text-base md:text-lg leading-relaxed mb-4"
           style={{ color: "var(--text-secondary)" }}
         >
           A escolha e simples:
@@ -42,9 +62,7 @@ export function DetoxFinalCta() {
           style={{ color: "var(--text-secondary)" }}
         >
           <li>Continuar comecando segunda-feira que nunca termina,</li>
-          <li>
-            ou abrir o calendario no dia 1 e marcar a primeira tarefa.
-          </li>
+          <li>ou abrir o calendario no dia 1 e marcar a primeira tarefa.</li>
         </ul>
 
         <p
@@ -62,12 +80,12 @@ export function DetoxFinalCta() {
           data-cta="final-detox"
           target="_blank"
           rel="noopener noreferrer"
-          className="group inline-flex items-center justify-center gap-3 rounded-2xl py-5 px-10 text-base md:text-lg font-bold text-white transition-all hover:scale-[1.02]"
+          className="group inline-flex items-center justify-center gap-3 rounded-2xl py-6 px-12 text-lg md:text-xl font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98]"
           style={{
             background:
               "linear-gradient(145deg, var(--accent), var(--accent-hover))",
             boxShadow:
-              "0 12px 40px -8px var(--accent-soft), 0 6px 16px -4px rgba(0,0,0,0.15)",
+              "0 18px 56px -14px var(--accent-soft), 0 8px 20px -6px rgba(0,0,0,0.2)",
           }}
         >
           Quero meu calendario detox
@@ -75,14 +93,23 @@ export function DetoxFinalCta() {
         </a>
 
         <p
-          className="mt-5 font-body text-sm"
+          className="mt-6 font-body text-sm"
           style={{ color: "var(--text-muted)" }}
         >
           Garantia de 7 dias · Pagamento seguro · Acesso imediato
         </p>
 
+        <div
+          aria-hidden
+          className="mx-auto max-w-xs my-12 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, var(--border-default), transparent)",
+          }}
+        />
+
         <p
-          className="mt-12 font-body text-sm md:text-base italic max-w-xl mx-auto"
+          className="font-body text-sm md:text-base italic max-w-xl mx-auto"
           style={{ color: "var(--text-muted)" }}
         >
           P.S. Se voce esta pensando &ldquo;talvez depois&rdquo; — quantas

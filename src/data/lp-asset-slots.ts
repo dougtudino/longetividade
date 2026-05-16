@@ -33,13 +33,13 @@ export const SLOTS_EMAGRECA: LpAssetSlot[] = [
     group: "hero",
     fallback: "", // sem fallback estatico — DetoxHero usa MockupCalendarDetox SVG quando nao tiver foto
     targetWidth: 1200,
-    targetHeight: 1500,
-    aspectHint: "4:5 vertical (calendario emoldurado, mulher marcando dia)",
-    recommendedSize: "1200×1500px",
-    minSize: "900×1125px",
-    appearsIn: "Hero (lado direito, sobrepoe o mockup SVG)",
+    targetHeight: 1600,
+    aspectHint: "3:4 vertical (calendario + mao de mulher marcando)",
+    recommendedSize: "1200×1600px",
+    minSize: "900×1200px",
+    appearsIn: "Hero (lado direito, container redondo grande com sombra)",
     uploadGuide:
-      "Foto do calendario A3 fisico em uso: pendurado na cozinha/quarto, alguns dias marcados com adesivo verde. Idealmente com mao de mulher marcando o dia. Luz natural suave, fundo creme/sage. Estetica wellness premium tipo Pinterest.",
+      "Foto vertical 3:4 do calendario A3 fisico em uso: pendurado na cozinha/quarto, alguns dias marcados com adesivo verde. Idealmente com mao de mulher marcando o dia. Luz natural suave, fundo creme/sage. Estetica wellness premium tipo Pinterest. IMPORTANTE: o motivo central (calendario+mao) deve estar no terco superior pra nao ser cortado em telas menores.",
   },
   {
     key: "hero.woman",

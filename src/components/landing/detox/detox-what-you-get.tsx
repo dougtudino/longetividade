@@ -92,25 +92,28 @@ export function DetoxWhatYouGet() {
 
   return (
     <section
-      className="py-16 md:py-24"
+      className="py-20 md:py-28"
       style={{ backgroundColor: "var(--bg-page)" }}
     >
       <div className="mx-auto max-w-6xl px-4">
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-14 md:mb-20 max-w-3xl mx-auto">
           <span
-            className="font-body text-xs md:text-sm font-bold uppercase tracking-wider"
+            className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
             Tudo ja organizado pra voce
           </span>
           <h2
-            className="font-heading font-bold text-3xl md:text-4xl lg:text-5xl mt-2 mb-4"
-            style={{ color: "var(--text-primary)" }}
+            className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
+            style={{
+              color: "var(--text-primary)",
+              letterSpacing: "-0.02em",
+            }}
           >
             Veja o que chega na sua tela
           </h2>
           <p
-            className="font-body text-base md:text-lg max-w-2xl mx-auto"
+            className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
             Sem mil PDFs separados. Sem perder tempo organizando. Voce abre,
@@ -119,23 +122,29 @@ export function DetoxWhatYouGet() {
         </div>
 
         {/* 3 mockups/fotos visuais */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 max-w-5xl mx-auto mb-16 md:mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 max-w-5xl mx-auto mb-16 md:mb-24">
           {items.map((item, i) => (
             <div
               key={i}
               className="flex flex-col items-center text-center"
             >
-              <div className="mb-5 flex items-end justify-center" style={{ minHeight: 320 }}>
+              <div
+                className="mb-6 flex items-end justify-center w-full"
+                style={{ minHeight: 340 }}
+              >
                 {item.visual}
               </div>
               <h3
-                className="font-body font-bold text-lg mb-1"
-                style={{ color: "var(--text-primary)" }}
+                className="font-heading font-bold text-lg md:text-xl mb-1.5"
+                style={{
+                  color: "var(--text-primary)",
+                  letterSpacing: "-0.01em",
+                }}
               >
                 {item.label}
               </h3>
               <p
-                className="font-body text-sm leading-relaxed"
+                className="font-body text-sm md:text-[15px] leading-relaxed max-w-[280px]"
                 style={{ color: "var(--text-secondary)" }}
               >
                 {item.sub}
@@ -144,18 +153,40 @@ export function DetoxWhatYouGet() {
           ))}
         </div>
 
-        {/* 3 extras (icons) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
+        {/* Divider sutil */}
+        <div
+          aria-hidden
+          className="mx-auto max-w-2xl mb-12 md:mb-16 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, var(--border-default), transparent)",
+          }}
+        />
+
+        {/* 3 extras — cards mais polidos */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto mb-14">
           {EXTRAS.map((e, i) => (
             <div
               key={i}
-              className="rounded-2xl p-6 text-center"
-              style={{ backgroundColor: "var(--bg-card)" }}
+              className="rounded-2xl p-7 text-center transition-transform hover:-translate-y-0.5"
+              style={{
+                backgroundColor: "var(--bg-card)",
+                border: "1px solid var(--border-default)",
+                boxShadow: "0 4px 18px -8px rgba(0,0,0,0.08)",
+              }}
             >
-              <div className="text-3xl mb-3">{e.icon}</div>
+              <div
+                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl text-2xl mb-4"
+                style={{ backgroundColor: "var(--accent-soft)" }}
+              >
+                {e.icon}
+              </div>
               <h3
-                className="font-body font-bold text-base mb-2"
-                style={{ color: "var(--text-primary)" }}
+                className="font-heading font-bold text-base md:text-lg mb-2"
+                style={{
+                  color: "var(--text-primary)",
+                  letterSpacing: "-0.01em",
+                }}
               >
                 {e.label}
               </h3>
@@ -174,15 +205,16 @@ export function DetoxWhatYouGet() {
             href="#pricing"
             onClick={handleCtaClick}
             data-cta="whatyouget-primary"
-            className="inline-flex items-center justify-center gap-3 rounded-2xl py-4 px-7 text-base md:text-lg font-bold text-white transition-all hover:scale-[1.02]"
+            className="group inline-flex items-center justify-center gap-3 rounded-2xl py-4 px-8 text-base md:text-lg font-bold text-white transition-all hover:scale-[1.02]"
             style={{
               background:
                 "linear-gradient(145deg, var(--accent), var(--accent-hover))",
-              boxShadow: "0 10px 32px -8px var(--accent-soft)",
+              boxShadow:
+                "0 12px 36px -10px var(--accent-soft), 0 4px 12px -3px rgba(0,0,0,0.12)",
             }}
           >
             Quero receber meu kit
-            <span>→</span>
+            <span className="transition-transform group-hover:translate-x-1">→</span>
           </a>
         </div>
       </div>
