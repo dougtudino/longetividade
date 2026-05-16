@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
 
 // GET /api/admin/app-users/[id]
 // Retorna detalhe completo de um AppUser: profile, level, todas as
 // series temporais (weight, water, mood, measurements, challenges),
 // conquistas ganhas, checkins dos ultimos 30 dias.
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   const { id } = await ctx.params;
 
   try {

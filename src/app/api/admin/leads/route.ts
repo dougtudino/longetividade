@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
 
 // GET /api/admin/leads?status=all|new|d2|d5|done
 // Lista leads com metadata enriquecida pra dashboard email marketing
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   try {
     const url = new URL(req.url);
     const stepFilter = url.searchParams.get("step");

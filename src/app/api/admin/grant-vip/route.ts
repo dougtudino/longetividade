@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendEmail } from "@/lib/email";
 import { buildVipInviteEmail } from "@/lib/email-invite";
+import { requireAdmin } from "@/lib/require-admin";
 
 // POST /api/admin/grant-vip
 // Body: { email, name?, sendInvite?: boolean }
@@ -10,6 +11,8 @@ import { buildVipInviteEmail } from "@/lib/email-invite";
 // Se sendInvite=true (default), envia email de boas-vindas VIP.
 // Se email ja tem AppUser, envia convite de reacesso (link do app).
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   let body: { email?: string; name?: string; sendInvite?: boolean };
   try {
     body = await req.json();

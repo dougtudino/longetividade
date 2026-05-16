@@ -9,12 +9,18 @@ export const APP_TOKEN_COOKIE = "app_token";
 export const APP_TOKEN_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
 function getSecret(): string {
-  return (
+  const secret =
     process.env.JWT_SECRET ||
     process.env.NEXTAUTH_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    "longetividade-app-fallback-secret"
-  );
+    process.env.ADMIN_PASSWORD;
+  if (secret) return secret;
+  // Em prod, nunca aceitar fallback — token forjavel eh risco critico.
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "JWT_SECRET (ou NEXTAUTH_SECRET) ausente em producao — app token nao pode ser assinado/verificado com seguranca."
+    );
+  }
+  return "longetividade-app-dev-fallback-secret";
 }
 
 function base64UrlEncode(bytes: Uint8Array): string {

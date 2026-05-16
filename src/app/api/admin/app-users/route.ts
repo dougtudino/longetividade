@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
 
 // GET /api/admin/app-users
 // Lista todos os AppUsers com metadata enriquecida:
@@ -10,7 +11,9 @@ import { prisma } from "@/lib/prisma";
 //  - XP + level
 //  - peso inicial vs atual (perda)
 //  - total conquistas ganhas
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   try {
     const users = await prisma.appUser.findMany({
       orderBy: { createdAt: "desc" },

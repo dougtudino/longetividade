@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runSchemaMigrations } from "@/lib/db-migrations";
+import { requireAdmin } from "@/lib/require-admin";
 
 // POST /api/admin/reset-test-data
 // Body: { confirmPhrase: "DELETAR TUDO", preserveSynced?: boolean }
@@ -59,7 +60,9 @@ async function countAll(): Promise<Counters> {
 }
 
 // GET /api/admin/reset-test-data — retorna contadores (preview do que sera deletado)
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   const counts = await countAll();
   return NextResponse.json({
     ok: true,
@@ -70,6 +73,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   let body: { confirmPhrase?: string; preserveSynced?: boolean } = {};
   try {
     body = await req.json();

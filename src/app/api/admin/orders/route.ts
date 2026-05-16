@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/require-admin";
 
 // GET /api/admin/orders?page=0&per_page=20&plan=vip&status=approved&days=30
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") ?? "0", 10);

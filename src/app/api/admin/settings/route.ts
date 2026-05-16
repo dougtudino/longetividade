@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { clearSettingsCache } from "@/lib/settings";
+import { requireAdmin } from "@/lib/require-admin";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   try {
     const settings = await prisma.appSetting.findMany();
     const map: Record<string, string> = {};
@@ -17,6 +20,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   const body = await req.json();
   const entries = Object.entries(body) as [string, string][];
 

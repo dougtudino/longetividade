@@ -61,42 +61,79 @@ export async function POST(request: NextRequest) {
       else plan = "basico";
     }
 
-    // Criar ou atualizar Order
-    const downloadToken = generateDownloadToken();
-    const tokenExpiresAt = getTokenExpiration();
+    // Criar ou atualizar Order — idempotente por hotmartTransactionId pra
+    // suportar retry da Hotmart sem duplicar. Se nao veio txn (improvavel),
+    // cai num create simples pra nao bloquear venda.
+    const hotmartTransactionId = (purchase.transaction as string | undefined) ?? null;
 
-    const order = await prisma.order.create({
-      data: {
-        email,
-        name,
-        plan,
-        amount,
-        status: "approved",
-        downloadToken,
-        tokenExpiresAt,
-      },
-    });
+    const existing = hotmartTransactionId
+      ? await prisma.order.findUnique({ where: { hotmartTransactionId } })
+      : null;
+    const isNewOrder = !existing;
 
-    // Se VIP, reivindicar vaga no app
+    const downloadToken = existing?.downloadToken ?? generateDownloadToken();
+    const tokenExpiresAt = existing?.tokenExpiresAt ?? getTokenExpiration();
+
+    const order = hotmartTransactionId
+      ? await prisma.order.upsert({
+          where: { hotmartTransactionId },
+          create: {
+            email,
+            name,
+            phone: buyer.phone ?? null,
+            plan,
+            amount,
+            status: "approved",
+            downloadToken,
+            tokenExpiresAt,
+            hotmartTransactionId,
+          },
+          update: {
+            // Em retry/refund/chargeback a Hotmart manda eventos novos —
+            // refletir status atual sem perder o downloadToken original.
+            status: "approved",
+            email,
+            name,
+            plan,
+            amount,
+          },
+        })
+      : await prisma.order.create({
+          data: {
+            email,
+            name,
+            phone: buyer.phone ?? null,
+            plan,
+            amount,
+            status: "approved",
+            downloadToken,
+            tokenExpiresAt,
+          },
+        });
+
+    // Se VIP, reivindicar vaga no app (claimVipSlot ja eh idempotente)
     if (plan === "vip") {
       await claimVipSlot(order.id, email);
     }
 
-    // Enviar email de entrega
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.longetividade.com.br";
-    const downloadUrl = `${baseUrl}/api/download?token=${downloadToken}`;
+    // Enviar email de entrega APENAS em ordem nova — em retry da Hotmart
+    // nao queremos spammar o comprador com o mesmo email.
+    if (isNewOrder) {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.longetividade.com.br";
+      const downloadUrl = `${baseUrl}/api/download?token=${order.downloadToken}`;
 
-    const { subject, htmlContent } = buildDeliveryEmail(name, downloadUrl);
+      const { subject, htmlContent } = buildDeliveryEmail(name, downloadUrl);
 
-    try {
-      await sendEmail({
-        to: email,
-        toName: name,
-        subject,
-        htmlContent,
-      });
-    } catch (emailError: unknown) {
-      console.error("Failed to send delivery email:", emailError);
+      try {
+        await sendEmail({
+          to: email,
+          toName: name,
+          subject,
+          htmlContent,
+        });
+      } catch (emailError: unknown) {
+        console.error("Failed to send delivery email:", emailError);
+      }
     }
 
     // CAPI: enviar evento Purchase server-side pro Meta

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/admin-auth";
+import { requireAdmin } from "@/lib/require-admin";
 
 // GET /api/admin/admins
 // Lista todos os AdminUsers com metadata (sem passwordHash por seguranca)
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   try {
     const admins = await prisma.adminUser.findMany({
       orderBy: { createdAt: "desc" },

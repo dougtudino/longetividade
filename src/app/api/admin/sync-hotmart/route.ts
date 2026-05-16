@@ -8,6 +8,7 @@ import {
   mapHotmartStatus,
   type NormalizedSale,
 } from "@/lib/hotmart";
+import { requireAdmin } from "@/lib/require-admin";
 
 // POST /api/admin/sync-hotmart
 // Body: { days?: number, status?: "APPROVED" | "REFUNDED" | ... }
@@ -127,6 +128,8 @@ async function syncSales(body: { days?: number; status?: string } = {}) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   let body: { days?: number; status?: string } = {};
   try {
     body = await req.json();
@@ -137,7 +140,9 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(result);
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
   const result = await syncSales();
   return NextResponse.json(result);
 }
