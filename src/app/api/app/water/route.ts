@@ -54,7 +54,22 @@ export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
-  // Historico dos ultimos 7 dias
+  const dateParam = req.nextUrl.searchParams.get("date");
+
+  if (dateParam) {
+    // Modo "ver dia passado": apenas logs do dia informado (UTC bound)
+    const dayStart = new Date(dateParam + "T00:00:00Z");
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
+    const logs = await prisma.appWaterLog.findMany({
+      where: { userId: user.id, loggedAt: { gte: dayStart, lt: dayEnd } },
+      orderBy: { loggedAt: "desc" },
+    });
+    return NextResponse.json({ logs });
+  }
+
+  // Default: historico dos ultimos 7 dias
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 

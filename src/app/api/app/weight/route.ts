@@ -33,6 +33,19 @@ export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
+  const dateParam = req.nextUrl.searchParams.get("date");
+  if (dateParam) {
+    // Filtra logs do dia (UTC bounds)
+    const dayStart = new Date(dateParam + "T00:00:00Z");
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+    const logs = await prisma.appWeightLog.findMany({
+      where: { userId: user.id, loggedAt: { gte: dayStart, lt: dayEnd } },
+      orderBy: { loggedAt: "desc" },
+    });
+    return NextResponse.json({ logs });
+  }
+
   const logs = await prisma.appWeightLog.findMany({
     where: { userId: user.id },
     orderBy: { loggedAt: "asc" },

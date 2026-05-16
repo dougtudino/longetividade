@@ -7,17 +7,28 @@ export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
+  const dateParam = req.nextUrl.searchParams.get("date");
   const daysParam = req.nextUrl.searchParams.get("days");
-  const days = daysParam ? parseInt(daysParam, 10) : 7;
 
-  const since = new Date();
-  since.setDate(since.getDate() - days);
-  since.setHours(0, 0, 0, 0);
+  let whereLogged: { gte: Date; lt?: Date };
+  if (dateParam) {
+    // Modo dia especifico (UTC bounds)
+    const dayStart = new Date(dateParam + "T00:00:00Z");
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+    whereLogged = { gte: dayStart, lt: dayEnd };
+  } else {
+    const days = daysParam ? parseInt(daysParam, 10) : 7;
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    since.setHours(0, 0, 0, 0);
+    whereLogged = { gte: since };
+  }
 
   const logs = await prisma.appMoodLog.findMany({
     where: {
       userId: user.id,
-      loggedAt: { gte: since },
+      loggedAt: whereLogged,
     },
     orderBy: { loggedAt: "desc" },
   });

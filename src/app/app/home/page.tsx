@@ -4,6 +4,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
+import { DateScrubber } from "@/components/app/date-scrubber";
+
+function todayIso(): string {
+  return new Date().toISOString().split("T")[0];
+}
 
 type Profile = {
   name: string;
@@ -129,19 +134,38 @@ export default function AppHome() {
     setCelebration((prev) => ({ ...prev, show: false }));
   }, []);
 
+  const [selectedDate, setSelectedDate] = useState<string>(todayIso());
+  const isToday = selectedDate === todayIso();
+
+  // Re-fetch dados que sao "do dia" quando muda selectedDate. O resto
+  // (profile, quote, achievements, challenge, recipe, streak) eh "global"
+  // e fica num useEffect com [] separado mais abaixo.
+  useEffect(() => {
+    const dateQuery = isToday ? "" : `?date=${selectedDate}`;
+
+    fetch(`/api/app/checkin${dateQuery}`)
+      .then((r) => r.json())
+      .then((d) => setCheckin(d.checkin));
+
+    // Mood: pra hoje usamos days=1 (logica antiga); pra dia passado, ?date=
+    const moodUrl = isToday ? "/api/app/mood?days=1" : `/api/app/mood?date=${selectedDate}`;
+    fetch(moodUrl)
+      .then((r) => r.json())
+      .then((d) => {
+        // Em modo passado, todayLog nao se aplica — usa primeiro mood do dia
+        const dayLog = isToday ? d.todayLog : d.logs?.[0] ?? null;
+        setTodayMood(dayLog);
+        setMoodChecked(true);
+      });
+  }, [selectedDate, isToday]);
+
+  // Dados "globais" + auth — carregam uma vez
   useEffect(() => {
     fetch("/api/app/profile").then((r) => {
       if (r.status === 401) { window.location.href = "/app/login"; return null; }
       return r.json();
     }).then((d) => { if (d) setProfile(d.profile); });
     fetch("/api/app/quote").then((r) => r.json()).then((d) => setQuote(d.quote));
-    fetch("/api/app/checkin").then((r) => r.json()).then((d) => setCheckin(d.checkin));
-    fetch("/api/app/mood?days=1")
-      .then((r) => r.json())
-      .then((d) => {
-        setTodayMood(d.todayLog ?? null);
-        setMoodChecked(true);
-      });
 
     // Fetch level + achievements
     fetch("/api/app/achievements")
@@ -292,6 +316,9 @@ export default function AppHome() {
         )}
       </div>
 
+      {/* DateScrubber: navegacao entre os ultimos 7 dias */}
+      <DateScrubber selectedDate={selectedDate} onSelect={setSelectedDate} />
+
       {/* Streak badge + Progress ring */}
       <div className="mb-5 flex items-center gap-5">
         {/* Streak count */}
@@ -352,11 +379,12 @@ export default function AppHome() {
         </div>
       )}
 
-      {/* Mood quick action */}
+      {/* Mood quick action — disabled em modo passado (so leitura) */}
       {moodChecked && (
         <button
-          onClick={() => router.push("/app/emocional")}
-          className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-gray-100 p-4 text-left transition-transform active:scale-[0.98]"
+          onClick={() => isToday && router.push("/app/emocional")}
+          disabled={!isToday && !todayMood}
+          className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-gray-100 p-4 text-left transition-transform active:scale-[0.98] disabled:opacity-50"
         >
           <div
             className="flex h-10 w-10 items-center justify-center rounded-full"
@@ -372,12 +400,14 @@ export default function AppHome() {
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold text-gray-700">
-              {todayMood ? "Como esta se sentindo?" : "Como esta se sentindo?"}
+              {isToday ? "Como esta se sentindo?" : "Humor desse dia"}
             </p>
             <p className="text-xs text-gray-400">
               {todayMood
-                ? `Hoje: ${MOOD_MAP[todayMood.mood]?.label ?? todayMood.mood}`
-                : "Registre seu humor do dia"}
+                ? `${isToday ? "Hoje" : "Registrado"}: ${MOOD_MAP[todayMood.mood]?.label ?? todayMood.mood}`
+                : isToday
+                  ? "Registre seu humor do dia"
+                  : "Sem registro"}
             </p>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
@@ -395,7 +425,8 @@ export default function AppHome() {
         </div>
       )}
 
-      {/* Quick action buttons */}
+      {/* Quick action buttons — escondidos em modo passado (sao acoes/edit) */}
+      {isToday && (
       <div className="mb-5 grid grid-cols-4 gap-2">
         <button
           onClick={() => router.push("/app/agua")}
@@ -444,6 +475,7 @@ export default function AppHome() {
           <span className="text-[10px] font-bold" style={{ color: "#E53935" }}>Emocional</span>
         </button>
       </div>
+      )}
 
       {/* Progress cards */}
       <div className="mb-5 grid grid-cols-3 gap-3">
