@@ -1,29 +1,34 @@
 "use client";
 
+import Image from "next/image";
 import { trackCtaClick } from "@/lib/cta-tracking";
+import { useLpAssets } from "@/lib/useLpAssets";
 import { MockupCalendarDetox } from "@/components/mockups/mockup-calendar-detox";
 import { MockupAppDetox } from "@/components/mockups/mockup-app-detox";
 import { MockupChecklistPaper } from "@/components/mockups/mockup-checklist-paper";
 
-// Cards-feature de "Veja o que voce recebe". Cada um e visual-first: imagem
-// grande + label curta. Sem listar PDFs/bonus genericos.
-const ITEMS = [
-  {
-    label: "Calendario A3 imprimivel",
-    sub: "Pendura na geladeira, marca todo dia.",
-    mockup: <MockupCalendarDetox markedDays={7} />,
-  },
-  {
-    label: "App de acompanhamento",
-    sub: "Seu streak, seus habitos, seu progresso.",
-    mockup: <MockupAppDetox />,
-  },
-  {
-    label: "Checklist diario",
-    sub: "Beber agua, refeicao, movimento, sono.",
-    mockup: <MockupChecklistPaper />,
-  },
-];
+// Wrapper visual unificado pra fotos reais (substitui mockups SVG quando
+// admin cadastra foto via /admin/lp-assets).
+function PhotoCard({ src, alt, aspect = "4/5" }: { src: string; alt: string; aspect?: string }) {
+  return (
+    <div
+      className="relative w-full max-w-[280px] rounded-2xl overflow-hidden"
+      style={{
+        aspectRatio: aspect,
+        boxShadow: "0 18px 40px -16px rgba(0,0,0,0.22)",
+      }}
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        sizes="(min-width: 768px) 280px, 90vw"
+        className="object-cover"
+        unoptimized
+      />
+    </div>
+  );
+}
 
 const EXTRAS = [
   {
@@ -44,6 +49,43 @@ const EXTRAS = [
 ];
 
 export function DetoxWhatYouGet() {
+  // Fotos editaveis via /admin/lp-assets. Substituem o mockup SVG quando
+  // existem; caso contrario o SVG fallback continua sendo usado.
+  const { resolveAsset } = useLpAssets("emagreca-sem-dieta");
+  const kitPhotoUrl = resolveAsset("product.kit-physical", "");
+  const appPhotoUrl = resolveAsset("hero.phone", "");
+  const checklistPhotoUrl = resolveAsset("product.checklist-paper", "");
+
+  const items = [
+    {
+      label: "Calendario A3 imprimivel",
+      sub: "Pendura na geladeira, marca todo dia.",
+      visual: kitPhotoUrl ? (
+        <PhotoCard src={kitPhotoUrl} alt="Kit Detox fisico" aspect="1/1" />
+      ) : (
+        <MockupCalendarDetox markedDays={7} />
+      ),
+    },
+    {
+      label: "App de acompanhamento",
+      sub: "Seu streak, seus habitos, seu progresso.",
+      visual: appPhotoUrl ? (
+        <PhotoCard src={appPhotoUrl} alt="App de acompanhamento" aspect="3/4" />
+      ) : (
+        <MockupAppDetox />
+      ),
+    },
+    {
+      label: "Checklist diario",
+      sub: "Beber agua, refeicao, movimento, sono.",
+      visual: checklistPhotoUrl ? (
+        <PhotoCard src={checklistPhotoUrl} alt="Checklist impresso" aspect="4/5" />
+      ) : (
+        <MockupChecklistPaper />
+      ),
+    },
+  ];
+
   function handleCtaClick() {
     trackCtaClick({ ctaId: "whatyouget-primary", destinationUrl: "#pricing" });
   }
@@ -76,15 +118,15 @@ export function DetoxWhatYouGet() {
           </p>
         </div>
 
-        {/* 3 mockups visuais */}
+        {/* 3 mockups/fotos visuais */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-8 max-w-5xl mx-auto mb-16 md:mb-20">
-          {ITEMS.map((item, i) => (
+          {items.map((item, i) => (
             <div
               key={i}
               className="flex flex-col items-center text-center"
             >
               <div className="mb-5 flex items-end justify-center" style={{ minHeight: 320 }}>
-                {item.mockup}
+                {item.visual}
               </div>
               <h3
                 className="font-body font-bold text-lg mb-1"

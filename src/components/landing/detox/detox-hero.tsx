@@ -1,6 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { trackCtaClick } from "@/lib/cta-tracking";
+import { useLpAssets } from "@/lib/useLpAssets";
 import { MockupCalendarDetox } from "@/components/mockups/mockup-calendar-detox";
 
 // Headlines testadas. Default = "Pare de comecar dieta na segunda-feira".
@@ -23,6 +25,11 @@ const HEADLINE_VARIANTS = {
 const ACTIVE = HEADLINE_VARIANTS.A;
 
 export function DetoxHero() {
+  // Foto editavel via /admin/lp-assets slot "hero.calendar" — quando admin
+  // cadastrar uma foto real do calendario, substitui o mockup SVG abaixo.
+  const { resolveAsset } = useLpAssets("emagreca-sem-dieta");
+  const calendarPhotoUrl = resolveAsset("hero.calendar", "");
+
   function handleCtaClick() {
     trackCtaClick({ ctaId: "hero-detox", destinationUrl: "#pricing" });
   }
@@ -114,9 +121,26 @@ export function DetoxHero() {
             </div>
           </div>
 
-          {/* Coluna mockup */}
+          {/* Coluna mockup — foto real (admin upload) sobrescreve o mockup SVG */}
           <div className="order-1 lg:order-2 flex justify-center lg:justify-end">
-            <MockupCalendarDetox markedDays={14} />
+            {calendarPhotoUrl ? (
+              <div
+                className="relative w-full max-w-md aspect-[4/5] rounded-3xl overflow-hidden"
+                style={{ boxShadow: "0 24px 60px -20px rgba(0,0,0,0.25)" }}
+              >
+                <Image
+                  src={calendarPhotoUrl}
+                  alt="Calendario Detox 21 Dias"
+                  fill
+                  sizes="(min-width: 1024px) 480px, 90vw"
+                  className="object-cover"
+                  priority
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <MockupCalendarDetox markedDays={14} />
+            )}
           </div>
         </div>
       </div>
