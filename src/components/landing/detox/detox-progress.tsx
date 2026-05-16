@@ -1,24 +1,80 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { trackCtaClick } from "@/lib/cta-tracking";
 import { MockupAppDetox } from "@/components/mockups/mockup-app-detox";
 
-const QUOTES = [
+type SpItem = {
+  id: string;
+  imageUrl: string;
+  alt: string;
+  name: string | null;
+  caption: string | null;
+  kind: string;
+  orderIndex: number;
+};
+
+type Quote = {
+  id: string;
+  imageUrl?: string;
+  alt?: string;
+  name: string;
+  text: string;
+};
+
+// Fallback hardcoded — renderiza se o admin nao cadastrou kind="progress-quote".
+const FALLBACK_QUOTES: Quote[] = [
   {
-    text: "Nao acreditei que ia conseguir 21 dias. No dia 18 nem pensava mais — ja era automatico.",
+    id: "fallback-1",
     name: "Camila R.",
+    text: "Nao acreditei que ia conseguir 21 dias. No dia 18 nem pensava mais — ja era automatico.",
   },
   {
-    text: "Marcar o calendario virou meu momento do dia. E bobo, mas funciona.",
+    id: "fallback-2",
     name: "Patricia M.",
+    text: "Marcar o calendario virou meu momento do dia. E bobo, mas funciona.",
   },
   {
-    text: "Nao emagreci 10kg. Emagreci 4kg e parei de odiar segunda-feira.",
+    id: "fallback-3",
     name: "Fernanda B.",
+    text: "Nao emagreci 10kg. Emagreci 4kg e parei de odiar segunda-feira.",
   },
 ];
 
+const LP_SLUG = "emagreca-sem-dieta";
+
 export function DetoxProgress() {
+  const [quotes, setQuotes] = useState<Quote[]>(FALLBACK_QUOTES);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch(`/api/social-proof?lpSlug=${LP_SLUG}`);
+        if (!res.ok) return;
+        const data = (await res.json()) as { items: SpItem[] };
+        const fromDb = data.items
+          .filter((i) => i.kind === "progress-quote" && i.caption && i.name)
+          .sort((a, b) => a.orderIndex - b.orderIndex)
+          .slice(0, 3)
+          .map<Quote>((i) => ({
+            id: i.id,
+            imageUrl: i.imageUrl,
+            alt: i.alt || i.name || "Depoimento",
+            name: i.name as string,
+            text: i.caption as string,
+          }));
+        if (alive && fromDb.length === 3) setQuotes(fromDb);
+      } catch {
+        /* mantem fallback */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   function handleCtaClick() {
     trackCtaClick({ ctaId: "progress-primary", destinationUrl: "#pricing" });
   }
@@ -57,24 +113,41 @@ export function DetoxProgress() {
           </div>
 
           <div className="space-y-5">
-            {QUOTES.map((q, i) => (
+            {quotes.map((q) => (
               <div
-                key={i}
-                className="rounded-2xl p-6"
+                key={q.id}
+                className="rounded-2xl p-6 flex items-start gap-4"
                 style={{ backgroundColor: "var(--bg-card)" }}
               >
-                <p
-                  className="font-body text-base md:text-lg leading-relaxed mb-3 italic"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  &ldquo;{q.text}&rdquo;
-                </p>
-                <p
-                  className="font-body text-sm font-bold"
-                  style={{ color: "var(--accent)" }}
-                >
-                  — {q.name}
-                </p>
+                {q.imageUrl && (
+                  <div
+                    className="relative w-14 h-14 flex-shrink-0 rounded-full overflow-hidden"
+                    style={{ backgroundColor: "var(--bg-page)" }}
+                  >
+                    <Image
+                      src={q.imageUrl}
+                      alt={q.alt ?? q.name}
+                      fill
+                      sizes="56px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
+                  <p
+                    className="font-body text-base md:text-lg leading-relaxed mb-3 italic"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    &ldquo;{q.text}&rdquo;
+                  </p>
+                  <p
+                    className="font-body text-sm font-bold"
+                    style={{ color: "var(--accent)" }}
+                  >
+                    — {q.name}
+                  </p>
+                </div>
               </div>
             ))}
 

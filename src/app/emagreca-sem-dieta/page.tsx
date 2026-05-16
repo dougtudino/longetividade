@@ -18,9 +18,12 @@ import { DetoxHowItWorks } from "@/components/landing/detox/detox-how-it-works";
 import { DetoxWhatYouGet } from "@/components/landing/detox/detox-what-you-get";
 import { DetoxNotDiet } from "@/components/landing/detox/detox-not-diet";
 import { DetoxProgress } from "@/components/landing/detox/detox-progress";
+import { DetoxWomenGallery } from "@/components/landing/detox/detox-women-gallery";
 import { DetoxFaq } from "@/components/landing/detox/detox-faq";
 import { DetoxFinalCta } from "@/components/landing/detox/detox-final-cta";
 import { PricingSection } from "@/components/landing/pricing-section";
+import { LifestyleBlock } from "@/components/landing/lifestyle-block";
+import { AutoraSection } from "@/components/landing/autora-section";
 import { SocialProofBlock } from "@/components/landing/social-proof-block";
 import { StickyBottomCTA } from "@/components/landing/sticky-bottom-cta";
 import LeadCapture from "@/components/LeadCapture";
@@ -48,9 +51,20 @@ export default function EmagrecaSemDietaPage() {
 
       <DetoxHero />
       <DetoxHowItWorks />
+      {/* LifestyleBlock: DB-driven (kind=lifestyle/photo). So renderiza se admin
+          cadastrou >=3 fotos. Reforca "sem dieta. na vida real." */}
+      <LifestyleBlock />
       <DetoxWhatYouGet />
       <DetoxNotDiet />
       <DetoxProgress />
+      {/* DetoxWomenGallery: DB-driven (kind=women-gallery). So renderiza se admin
+          cadastrou >=6 mulheres com nome+caption+foto. */}
+      <DetoxWomenGallery />
+      {/* AutoraSection: DB-driven (LpAsset author.barbara). Sempre renderiza com
+          fallback SVG (HeroAutora) se nao tiver foto da Barbara cadastrada. */}
+      <AutoraSection />
+      {/* SocialProofBlock: DB-driven (kind=whatsapp/testimonial, row=3). Prints
+          de WhatsApp. So renderiza se >=3 items ativos na row 3. */}
       <SocialProofBlock />
       <PricingSection />
       <DetoxFaq />
