@@ -2,45 +2,44 @@ import type { Plan } from "@/types/order";
 
 const HOTMART_PRODUCT = "H105141835Q";
 
+// Posicionamento Calendario Detox 21 Dias: nomes e bullets em linguagem
+// tangivel (calendario, checklist, planner) em vez de linguagem de curso
+// (ebook, metodo). IDs basico|completo|vip permanecem — sao consumidos por
+// Hotmart webhook, admin, emails de pos-compra e PlanId em types/order.ts.
 export const PLANS: Plan[] = [
   {
     id: "basico",
-    name: "Basico",
+    name: "Digital",
     price: 67,
     priceInCents: 6700,
     installments: "12x de R$ 6,49",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=zxq5tgew&src=site-basico`,
     features: [
-      "Ebook completo Metodo S.E.M",
-      "Plano de 7 dias + cardapio",
-      "Lista de compras",
-      "Checklist diario",
-      "Tabela de substituicoes",
-      "10 atalhos de aceleracao",
+      "Calendario Detox 21 Dias (PDF A4 imprimivel)",
+      "Plano de 7 dias com cardapio simples",
+      "Lista de compras semanal",
+      "Checklist diario pra colar na geladeira",
+      "Tabela de substituicoes alimentares",
+      "10 atalhos que destravam a continuidade",
     ],
     highlighted: false,
-    ctaLabel: "QUERO ESSE",
+    ctaLabel: "QUERO MEU CALENDARIO",
   },
   {
     id: "completo",
-    name: "Completo",
+    name: "Kit Detox",
     price: 147,
     priceInCents: 14700,
     installments: "12x de R$ 14,24",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=uzvdkzkf&src=site-completo`,
     features: [
-      "Ebook completo Metodo S.E.M",
-      "Plano de 7 dias + cardapio",
-      "Lista de compras",
-      "Checklist diario",
-      "Tabela de substituicoes",
-      "10 atalhos de aceleracao",
-      "Guia de controle emocional avancado",
-      "Planner mensal imprimivel",
-      "Acesso grupo WhatsApp (30 dias)",
+      "Tudo do plano Digital",
+      "Guia de controle emocional avancado (PDF)",
+      "Planner mensal pra continuar depois dos 21 dias",
+      "Grupo no WhatsApp por 30 dias — tira duvidas com a comunidade",
     ],
     highlighted: true,
-    ctaLabel: "MAIS ESCOLHIDO",
+    ctaLabel: "QUERO MEU KIT",
   },
   {
     id: "vip",
@@ -50,22 +49,14 @@ export const PLANS: Plan[] = [
     installments: "12x de R$ 28,76",
     checkoutUrl: `https://pay.hotmart.com/${HOTMART_PRODUCT}?off=h84hak4e&src=site-vip`,
     features: [
-      "Ebook completo Metodo S.E.M",
-      "Plano de 7 dias + cardapio",
-      "Lista de compras",
-      "Checklist diario",
-      "Tabela de substituicoes",
-      "10 atalhos de aceleracao",
-      "Guia de controle emocional avancado",
-      "Planner mensal imprimivel",
-      "Acesso grupo WhatsApp (30 dias)",
-      "Guia de Receitas S.E.M — 30 receitas praticas (PDF)",
-      "Desafio 21 Dias — programa diario por email",
+      "Tudo do Kit Detox",
+      "30 receitas praticas pra rotina corrida (PDF)",
+      "Desafio 21 Dias guiado por email — um dia de cada vez",
       "Diario de Autoconhecimento imprimivel (PDF)",
-      "APP de acompanhamento vitalicio",
+      "App de acompanhamento vitalicio",
     ],
     highlighted: false,
-    ctaLabel: "QUERO ESSE",
+    ctaLabel: "QUERO O VIP",
   },
 ];
 
