@@ -18,7 +18,7 @@ export function PricingSection() {
     >
       <div className="mx-auto max-w-5xl px-4">
         <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-8" style={{color: 'var(--text-primary)'}}>
-          Quanto vale transformar sua relacao com comida?
+          Escolha como voce quer comecar
         </h2>
 
         <div className="mx-auto max-w-lg mb-10">
