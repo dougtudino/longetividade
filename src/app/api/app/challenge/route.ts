@@ -9,22 +9,35 @@ export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
+  try {
+    return await getChallenge(user.id);
+  } catch (e) {
+    const msg = (e as Error).message;
+    console.error("GET /api/app/challenge error:", msg);
+    return NextResponse.json(
+      { error: "challenge_failed", detail: msg },
+      { status: 500 }
+    );
+  }
+}
+
+async function getChallenge(userId: string) {
   // ensureActiveCycle faz backfill + retorna ciclo vivo (ou null se ultimo
   // ciclo ficou completed e o user ainda nao iniciou o proximo).
-  const cycle = await ensureActiveCycle(user.id);
+  const cycle = await ensureActiveCycle(userId);
 
   // Lista challenges do ciclo vivo (se houver). Se nao tiver ciclo vivo,
   // mostra o ultimo ciclo completo (pra exibir 21/21 no UI).
   const targetCycle =
     cycle ??
     (await prisma.appCycle.findFirst({
-      where: { userId: user.id },
+      where: { userId },
       orderBy: { cycleNumber: "desc" },
     }));
 
   const completed = targetCycle
     ? await prisma.appChallenge.findMany({
-        where: { userId: user.id, cycleId: targetCycle.id },
+        where: { userId, cycleId: targetCycle.id },
         select: { day: true },
         orderBy: { day: "asc" },
       })
