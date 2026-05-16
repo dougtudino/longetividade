@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Diagnóstico — Longetividade (Auth, Admin, App VIP, Hotmart)</title>
+<style>
+  :root {
+    --bg: #FAF8F5;
+    --panel: #FFFFFF;
+    --ink: #1B2A1C;
+    --ink-2: #3D5A3E;
+    --muted: #6B7280;
+    --line: #E5E5E5;
+    --accent: #639922;
+    --accent-2: #3D5A3E;
+    --warn: #BA7517;
+    --bad:  #C4787A;
+    --good: #6B9E6B;
+    --code-bg: #F3F1EC;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{
+    background:linear-gradient(135deg,#3D5A3E,#1A3A1C);
+    color:#fff;padding:36px 28px;border-bottom:4px solid var(--accent);
+  }
+  header h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em}
+  header .sub{opacity:.85;font-size:13px;text-transform:uppercase;letter-spacing:.12em}
+  header .meta{margin-top:14px;font-size:13px;opacity:.9}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  nav.toc{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 22px;margin:-28px auto 28px;max-width:1132px;position:relative;z-index:2;
+    box-shadow:0 6px 26px rgba(30,40,30,.06);
+  }
+  nav.toc h3{margin:0 0 10px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  nav.toc ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;margin:0;padding:0 0 0 18px}
+  nav.toc li{font-size:13.5px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin:0 0 22px}
+  section > h2{margin:0 0 6px;font-size:22px;color:var(--ink-2);letter-spacing:-.01em}
+  section > h2 .num{
+    display:inline-block;min-width:30px;height:30px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:13px;line-height:30px;text-align:center;
+    margin-right:10px;vertical-align:2px;
+  }
+  section > .lead{margin:0 0 18px;color:var(--muted)}
+  h3{font-size:16px;color:var(--ink-2);margin:22px 0 8px}
+  h4{font-size:14px;color:var(--ink);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  code{background:var(--code-bg);padding:1px 6px;border-radius:6px}
+  pre{background:#0f1523;color:#e5e7eb;padding:14px 16px;border-radius:10px;overflow:auto;line-height:1.55}
+  pre code{background:transparent;color:inherit;padding:0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13.5px}
+  th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+  th{background:#F0EDE5;color:var(--ink-2);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  ul.clean{padding-left:18px;margin:6px 0 14px}
+  ul.clean li{margin:4px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:8px 0 14px}
+  .card{background:#FBFAF6;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+  .card .v{font-weight:700;color:var(--ink-2);margin-top:2px}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em}
+  .tag.ok{background:rgba(107,158,107,.15);color:#3D5A3E}
+  .tag.warn{background:rgba(186,117,23,.15);color:#7A4A11}
+  .tag.bad{background:rgba(196,120,122,.15);color:#7A2E30}
+  .tag.info{background:rgba(99,153,34,.12);color:#3D5A3E}
+  .flow{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0
+  }
+  .flow .step{
+    background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative;
+  }
+  .flow .step .n{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+  .flow .step .t{font-size:13.5px;font-weight:700;color:var(--ink-2);margin:6px 0 2px}
+  .flow .step .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+  .callout{
+    border-left:4px solid var(--accent);background:#F4F8EC;border-radius:8px;padding:12px 14px;margin:10px 0 14px;font-size:13.5px
+  }
+  .callout.warn{border-left-color:var(--warn);background:#FFF6E7}
+  .callout.bad{border-left-color:var(--bad);background:#FBEDED}
+  .pill-row{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+  .grade{
+    display:inline-block;font-weight:800;padding:3px 10px;border-radius:8px;font-size:12px;letter-spacing:.05em
+  }
+  .g-A{background:#EAF6E1;color:#2E6F1E}
+  .g-B{background:#FFF6E0;color:#7A5712}
+  .g-C{background:#FBE7E7;color:#7A2A2C}
+  details summary{cursor:pointer;font-weight:700;color:var(--ink-2);margin:6px 0}
+  footer{padding:30px 24px;color:var(--muted);font-size:12.5px;text-align:center}
+  hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:780px){.twocol{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="sub">Longetividade · Método S.E.M</div>
+    <h1>Diagnóstico Operacional do Aplicativo</h1>
+    <div class="meta">
+      Branch: <code style="color:#fff;background:rgba(255,255,255,.12)">feat/lp-detox-restructure</code>
+      · Stack: Next.js 16 (App Router) + PostgreSQL/Prisma + Railway
+      · Gerado em 2026-05-16
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h3>Índice</h3>
+  <ol>
+    <li><a href="#arquitetura">Arquitetura geral & rotas</a></li>
+    <li><a href="#login-admin">Login Admin</a></li>
+    <li><a href="#login-app">Login do usuário (App VIP)</a></li>
+    <li><a href="#hotmart">Compra Hotmart → Liberação de acesso</a></li>
+    <li><a href="#dados">Salvamento de dados (schema)</a></li>
+    <li><a href="#painel">Monitoramento no painel Admin</a></li>
+    <li><a href="#uso">Como o usuário usa o app</a></li>
+    <li><a href="#manual">Manual de uso (rápido)</a></li>
+    <li><a href="#crons">Crons / automação</a></li>
+    <li><a href="#riscos">Pontos de risco & melhorias</a></li>
+    <li><a href="#checklist">Checklist priorizado</a></li>
+  </ol>
+</nav>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="arquitetura">
+  <h2><span class="num">1</span>Arquitetura geral & rotas</h2>
+  <p class="lead">Tudo é um único app Next.js 16 (App Router) servido pelo Railway. Não há serviços separados — admin, LPs públicas, app VIP, APIs e webhooks vivem no mesmo deploy.</p>
+
+  <div class="cards">
+    <div class="card"><div class="k">Banco</div><div class="v">PostgreSQL (Prisma 7 + adapter pg)</div></div>
+    <div class="card"><div class="k">Auth</div><div class="v">JWT HMAC-SHA256 caseiro (cookies httpOnly)</div></div>
+    <div class="card"><div class="k">E-mail</div><div class="v">Brevo (sib-api-v3-sdk + REST)</div></div>
+    <div class="card"><div class="k">Pagamento</div><div class="v">Hotmart (Webhook + Sales API)</div></div>
+    <div class="card"><div class="k">Storage</div><div class="v">Cloudflare R2 (imagens LP)</div></div>
+    <div class="card"><div class="k">OAuth</div><div class="v">Google (App + Admin)</div></div>
+  </div>
+
+  <h3>Famílias de rotas</h3>
+  <table>
+    <tr><th>Prefixo</th><th>Função</th><th>Proteção</th></tr>
+    <tr><td><code>/</code> + subdomínios</td><td>Landing pages (emagreca-sem-dieta, detox-mental, sono-profundo, jejum-inteligente, movimento-vital)</td><td>Público</td></tr>
+    <tr><td><code>/admin/*</code></td><td>Painel operacional (Doug + Bárbara)</td><td>cookie <code>admin-token</code> via middleware</td></tr>
+    <tr><td><code>/app/*</code></td><td>App VIP do cliente (home, água, hábitos, peso, humor, receitas, desafio 21d, conquistas)</td><td>cookie <code>app_token</code> (ou legacy <code>app_email</code>)</td></tr>
+    <tr><td><code>/api/admin/*</code></td><td>APIs do painel (stats, sync hotmart, social, criativos…)</td><td>Mesmo cookie admin; bloqueado no <code>middleware.ts</code></td></tr>
+    <tr><td><code>/api/app/*</code></td><td>APIs do app VIP (profile, checkin, water, weight, mood, achievements, recipes, challenge)</td><td>Cookie app; exceto <code>auth</code>, <code>register</code>, <code>demo-login</code></td></tr>
+    <tr><td><code>/api/webhooks/hotmart</code></td><td>Recebe PURCHASE_APPROVED / PURCHASE_COMPLETE</td><td>Header <code>x-hotmart-hottok</code> = <code>HOTMART_WEBHOOK_SECRET</code></td></tr>
+    <tr><td><code>/api/cron/*</code></td><td>Crons (post-purchase, sync-hotmart, email-sequence, social, video-intel…)</td><td>Header <code>x-cron-secret</code> ou <code>?secret=</code> = <code>CRON_SECRET</code></td></tr>
+    <tr><td><code>/api/download</code></td><td>Entrega o PDF (token de uso único, expira em 72h, 3 downloads)</td><td>Token assinado em <code>Order.downloadToken</code></td></tr>
+  </table>
+
+  <h3>Subdomínios → páginas</h3>
+  <p>O middleware reescreve <code>detox.longetividade.com.br</code>, <code>sono.</code>, <code>jejum.</code>, <code>movimento.</code> e <code>emagrecer.</code> para a LP correspondente sem redirect (rewrite interno).</p>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="login-admin">
+  <h2><span class="num">2</span>Login Admin (painel de gestão)</h2>
+  <p class="lead">Quem entra no painel <code>/admin/*</code> são os operadores do negócio (você + Bárbara). Não tem cadastro aberto — é por seed/convite.</p>
+
+  <h3>Fluxo de autenticação</h3>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><div class="t">POST /api/admin/auth/login</div><div class="d">Recebe <code>{email, password}</code></div></div>
+    <div class="step"><span class="n">2</span><div class="t">Busca AdminUser</div><div class="d">Por email (lowercased)</div></div>
+    <div class="step"><span class="n">3</span><div class="t">bcrypt.compare</div><div class="d">Confronta com <code>passwordHash</code> salvo</div></div>
+    <div class="step"><span class="n">4</span><div class="t">signAdminToken (HMAC)</div><div class="d">Body base64url + HMAC-SHA256 (TTL 7 dias)</div></div>
+    <div class="step"><span class="n">5</span><div class="t">Cookie httpOnly</div><div class="d"><code>admin-token</code>, sameSite=lax, secure em prod</div></div>
+    <div class="step"><span class="n">6</span><div class="t">middleware.ts</div><div class="d">Cada request <code>/admin/*</code> e <code>/api/admin/*</code> revalida o token</div></div>
+  </div>
+
+  <h3>Como criar um Admin novo</h3>
+  <ul class="clean">
+    <li><b>Via UI:</b> <code>/admin/admins</code> (página existente) tem CRUD com hashing bcrypt.</li>
+    <li><b>Via seed inicial:</b> <code>POST /api/admin/auth/seed</code> com header <code>seedKey=ADMIN_SEED_KEY</code> e payload <code>{users:[{email,name,password,role}]}</code>. Roda <code>prisma db push</code> antes de inserir — usado no bootstrap do banco.</li>
+    <li><b>Convite por token:</b> o schema tem <code>AdminUser.inviteToken</code> + <code>inviteUsed</code>, mas o fluxo de convite ainda é manual (não há rota dedicada de "aceitar convite").</li>
+    <li><b>Google OAuth:</b> o admin tem campo <code>googleId</code> e <code>/api/auth/google/start?context=admin</code> existe — vincula um Google account a um AdminUser já cadastrado.</li>
+  </ul>
+
+  <details>
+    <summary>Token JWT caseiro (lib/admin-token.ts)</summary>
+<pre><code>// HMAC-SHA256 com secret = JWT_SECRET || NEXTAUTH_SECRET || ADMIN_PASSWORD || fallback
+// Payload: { adminId, email, name, role, exp } base64url + assinatura
+// TTL: 7 dias. Cookie httpOnly, sameSite=lax.
+// Verificação faz comparação constant-time do HMAC.</code></pre>
+  </details>
+
+  <div class="callout warn">
+    <b>Risco moderado:</b> o secret usa fallback hardcoded (<code>"longetividade-admin-fallback-secret"</code>) se nenhuma env var estiver setada. Verificar em produção que <code>JWT_SECRET</code> ou <code>NEXTAUTH_SECRET</code> existe no Railway.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="login-app">
+  <h2><span class="num">3</span>Login do usuário (App VIP)</h2>
+  <p class="lead">É o login da cliente que comprou o plano VIP. UI mobile-first em <code>/app/login</code> e <code>/app/cadastro</code>.</p>
+
+  <h3>Três cenários no <code>POST /api/app/auth</code></h3>
+  <table>
+    <tr><th>Cenário</th><th>Comportamento</th></tr>
+    <tr><td><b>A.</b> AppUser existe e tem <code>passwordHash</code></td><td>Exige senha. Se ausente, devolve <code>requiresPassword:true</code> e a UI revela o campo de senha.</td></tr>
+    <tr><td><b>B.</b> AppUser existe sem senha (legado)</td><td>Aceita <b>email-only</b> — basta digitar o e-mail que entrou na compra.</td></tr>
+    <tr><td><b>C.</b> AppUser não existe</td><td>Busca <code>Order</code> aprovada com esse e-mail. Se achou, <b>cria o AppUser na hora</b> com <code>plan</code> herdado e libera acesso (fallback do webhook).</td></tr>
+  </table>
+
+  <h3>Cadastro de senha — <code>POST /api/app/register</code></h3>
+  <ul class="clean">
+    <li>Exige Order VIP aprovada com o mesmo e-mail (status=<code>approved</code>).</li>
+    <li>Faz <code>upsert</code> em AppUser e gera <code>passwordHash</code> bcrypt (cost 10).</li>
+    <li>Seta cookies <code>app_token</code> (TTL 1 ano!) + <code>app_email</code> (legacy).</li>
+  </ul>
+
+  <h3>Google OAuth</h3>
+  <p>Botão "Continuar com Google" em <code>/app/login</code> aponta para <code>/api/auth/google/start?context=app</code>. O callback grava <code>googleId</code> no AppUser e seta o cookie.</p>
+
+  <h3>Demo login (admin testando o app)</h3>
+  <p>Botão "Entrar como Admin" em <code>/app/login</code> chama <code>/api/app/demo-login</code>. Útil pra Bárbara experimentar o app sem comprar.</p>
+
+  <div class="callout warn">
+    <b>Atenção:</b> o cookie <code>app_token</code> tem TTL de <b>1 ano</b>. Se o usuário compartilhar o dispositivo, a sessão dura muito. Ok pra app pessoal, mas vale revisar.
+  </div>
+
+  <h3>Onboarding (primeira entrada)</h3>
+  <p><code>/app/onboarding</code> tem 5 passos: nome+objetivo → dados corporais → meta de peso → desafios → resumo. Salva em <code>AppProfile</code> com <code>onboardingDone=true</code>. Roteamento em <code>/app/page.tsx</code> redireciona automaticamente:</p>
+  <pre><code>profile?.onboardingDone === true   →  /app/home
+profile?.onboardingDone === false  →  /app/onboarding
+sem sessão                          →  /app/login</code></pre>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="hotmart">
+  <h2><span class="num">4</span>Compra Hotmart → liberação de acesso</h2>
+  <p class="lead">Esse é o caminho crítico. Tem 3 vias de redundância pra garantir que o cliente nunca fique sem acesso.</p>
+
+  <h3>Via 1 — Webhook em tempo real</h3>
+  <div class="flow">
+    <div class="step"><span class="n">1</span><div class="t">Hotmart envia POST</div><div class="d">/api/webhooks/hotmart com header <code>x-hotmart-hottok</code></div></div>
+    <div class="step"><span class="n">2</span><div class="t">Valida secret</div><div class="d">Header == <code>HOTMART_WEBHOOK_SECRET</code> (AppSetting ou env)</div></div>
+    <div class="step"><span class="n">3</span><div class="t">Determina plano</div><div class="d">offer_code → basico / completo / vip (fallback por valor)</div></div>
+    <div class="step"><span class="n">4</span><div class="t">Cria Order</div><div class="d">status=approved, gera <code>downloadToken</code> + <code>tokenExpiresAt</code>(72h)</div></div>
+    <div class="step"><span class="n">5</span><div class="t">Se VIP, claim slot</div><div class="d"><code>claimVipSlot()</code> incrementa <code>AppVipSlot.usedSlots</code> + cria AppUser</div></div>
+    <div class="step"><span class="n">6</span><div class="t">Email de entrega</div><div class="d">Brevo · "Seu ebook chegou!" com link <code>/api/download?token=...</code></div></div>
+    <div class="step"><span class="n">7</span><div class="t">Meta CAPI</div><div class="d">Envia Purchase server-side, event_id = <code>purchase_HP{txn}</code> pra dedup com Pixel</div></div>
+  </div>
+
+  <h3>Via 2 — Sincronização via Sales API (sync diário/manual)</h3>
+  <p>Se o webhook falhar (caiu, hottok mudou, etc.), o dashboard tem botão <b>"Sincronizar Hotmart"</b> que chama <code>POST /api/admin/sync-hotmart</code>. Há também <b>cron diário</b> <code>/api/cron/sync-hotmart</code>:</p>
+  <ul class="clean">
+    <li>OAuth client_credentials → token cached 1h.</li>
+    <li>GET <code>/payments/api/v1/sales/history</code> paginado (até 30 dias).</li>
+    <li>Upsert por <code>hotmartTransactionId</code> (chave única) — atualiza status (refund/chargeback/canceled).</li>
+  </ul>
+
+  <h3>Via 3 — Fallback no login</h3>
+  <p>Se nenhuma das vias acima rodou, o próprio <code>/api/app/auth</code> cria o AppUser na hora se achar uma Order aprovada com aquele e-mail. <span class="tag info">defesa em profundidade</span></p>
+
+  <h3>Plano da cliente vs. acesso liberado</h3>
+  <table>
+    <tr><th>Plano</th><th>Conteúdo</th><th>Acesso ao App VIP?</th><th>Vagas</th></tr>
+    <tr><td><b>Básico</b> (R$ 47)</td><td>Ebook PDF (download)</td><td>Não</td><td>—</td></tr>
+    <tr><td><b>Kit Detox</b> / Completo (R$ 67)</td><td>Ebook + bônus</td><td>Não</td><td>—</td></tr>
+    <tr><td><b>VIP</b> (R$ 97)</td><td>Ebook + App VIP vitalício</td><td><b>Sim</b></td><td>100 slots (<code>AppVipSlot</code>)</td></tr>
+  </table>
+
+  <h3>Identificação por offer code</h3>
+  <p>Defaults em <code>AppSetting</code> (editável em <code>/admin/configuracoes</code>):</p>
+  <ul class="clean">
+    <li><code>HOTMART_OFFER_BASICO</code> → <code>zxq5tgew</code></li>
+    <li><code>HOTMART_OFFER_COMPLETO</code> → <code>uzvdkzkf</code></li>
+    <li><code>HOTMART_OFFER_VIP</code> → <code>h84hak4e</code></li>
+  </ul>
+  <p>Se o offer_code não bater (campanha nova sem cadastro), cai pro fallback por valor: ≥ R$ 97 = VIP, ≥ R$ 67 = completo, senão básico.</p>
+
+  <div class="callout">
+    <b>Como a cliente recebe o acesso:</b>
+    <ol style="margin:8px 0">
+      <li>Compra na Hotmart com o e-mail X.</li>
+      <li>Recebe e-mail "Seu ebook chegou!" com botão <b>BAIXAR MEU EBOOK AGORA</b> (link com token).</li>
+      <li>Se for VIP, recebe também o e-mail de convite ao App: <i>"Seu acesso VIP está liberado!"</i> com botão <b>Acessar meu App VIP</b> → <code>/app/login</code>.</li>
+      <li>Ela entra com o e-mail da compra (email-only no primeiro acesso) ou cria senha em <code>/app/cadastro</code>.</li>
+      <li>Faz o onboarding de 5 passos e cai no <code>/app/home</code>.</li>
+    </ol>
+  </div>
+
+  <div class="callout warn">
+    <b>Bug histórico/risco:</b> o webhook hoje cria a Order <b>sem checar duplicata</b> (não usa <code>hotmartTransactionId</code> no momento do INSERT). Em caso de retry da Hotmart pode duplicar — a sync diária reconcilia, mas vale ajustar pra upsert também no webhook.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="dados">
+  <h2><span class="num">5</span>Salvamento de dados (schema Prisma)</h2>
+  <p class="lead">Banco PostgreSQL único. Todas as gravações passam por <code>src/lib/prisma.ts</code> (Prisma client gerado em <code>src/generated/prisma</code>).</p>
+
+  <h3>Modelos críticos do funil de venda</h3>
+  <table>
+    <tr><th>Modelo</th><th>Pra que serve</th><th>Campos-chave</th></tr>
+    <tr><td><code>Order</code></td><td>Compra (qualquer plano)</td><td>email, plan, amount, status, mpPaymentId, hotmartTransactionId (único), downloadToken, tokenExpiresAt, downloadCount</td></tr>
+    <tr><td><code>AbandonedCheckout</code></td><td>Lead que iniciou checkout e não finalizou</td><td>email, plan, step</td></tr>
+    <tr><td><code>Lead</code></td><td>Newsletter / quem baixou material</td><td>email único, sequenceStep (0..12), source</td></tr>
+    <tr><td><code>CtaClick</code></td><td>Clique em CTA (sendBeacon)</td><td>ctaId, planId, UTM, ipHash</td></tr>
+    <tr><td><code>MetaCapiEvent</code></td><td>Log de eventos enviados pro Meta CAPI</td><td>eventName, eventId, orderId, status, rawResponse</td></tr>
+  </table>
+
+  <h3>Modelos do App VIP</h3>
+  <table>
+    <tr><th>Modelo</th><th>O que guarda</th></tr>
+    <tr><td><code>AppUser</code></td><td>Usuária VIP (email único, orderId único, plan, passwordHash, googleId)</td></tr>
+    <tr><td><code>AppProfile</code></td><td>Nome, objetivo, peso/altura/idade, goalType/Weight, desafios, onboardingDone, waterGoal</td></tr>
+    <tr><td><code>AppCheckin</code></td><td>Check-in diário (1 por dia/usuário): habits Json, waterCount, exerciseDone, exerciseMin, note</td></tr>
+    <tr><td><code>AppWaterLog / AppWeightLog / AppMoodLog</code></td><td>Históricos pontuais (granularidade hora)</td></tr>
+    <tr><td><code>AppMeasurement</code></td><td>Cintura/quadril por data</td></tr>
+    <tr><td><code>AppUserLevel</code></td><td>XP + level (1..10)</td></tr>
+    <tr><td><code>AppAchievement / AppUserAchievement</code></td><td>Catálogo de conquistas + quem ganhou</td></tr>
+    <tr><td><code>AppRecipe / AppFavoriteRecipe</code></td><td>Receitas do Método S.E.M e favoritas por usuária</td></tr>
+    <tr><td><code>AppChallenge</code></td><td>Progresso Desafio 21 Dias (1 linha por dia completado)</td></tr>
+    <tr><td><code>AppVipSlot</code></td><td>Singleton: <code>totalSlots=100</code>, <code>usedSlots</code></td></tr>
+    <tr><td><code>AppSetting</code></td><td>Key-value (offer codes, segredos não-sensíveis, flags)</td></tr>
+  </table>
+
+  <h3>Modelos do painel/operação</h3>
+  <ul class="clean">
+    <li><b>AdminUser, MayaMessage</b> — admins e histórico do chat Maya.</li>
+    <li><b>Creative, CreativeCopy, CreativeCollection</b> — galeria de criativos Meta Ads.</li>
+    <li><b>Campaign, CampaignMetric</b> — campanhas Meta + métricas diárias.</li>
+    <li><b>LaunchBlueprint, LaunchAudience, LaunchAdSet</b> — blueprint editável de campanha.</li>
+    <li><b>SocialPost, SocialPostImage</b> — calendário social (Luna) + bytes dos PNGs.</li>
+    <li><b>AgentKnowledge, AgentDecision, DecisionChecklistItem</b> — base de conhecimento dos agentes AIOX (Gaia/Maya/Uma).</li>
+    <li><b>VideoCompetitor, VideoAnalysis</b> — pipeline Apify + Gemini de inteligência de vídeo.</li>
+    <li><b>LpAsset, SocialProofItem</b> — imagens editáveis das LPs sem redeploy.</li>
+    <li><b>PageView</b> — analytics interno básico.</li>
+  </ul>
+
+  <div class="callout">
+    Total: <b>40+ tabelas</b>. Banco grande mas coerente — tudo está num mesmo schema versionado por <code>prisma migrate</code>.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="painel">
+  <h2><span class="num">6</span>Monitoramento no painel Admin</h2>
+  <p class="lead">O painel é a fonte da verdade operacional. Tem 27 páginas organizadas em sidebar por seções.</p>
+
+  <h3>Sidebar (grupos)</h3>
+  <div class="cards">
+    <div class="card"><div class="k">Operação</div><div class="v">Dashboard, Vendas, Abandonos, Tráfego, Funil</div></div>
+    <div class="card"><div class="k">Cadastros</div><div class="v">Clientes App, Admins</div></div>
+    <div class="card"><div class="k">Social orgânico</div><div class="v">Social Media (Luna), Video Intel</div></div>
+    <div class="card"><div class="k">Ads/Criativos</div><div class="v">Campanhas, Criativos</div></div>
+    <div class="card"><div class="k">Ecossistema/IA</div><div class="v">Agents (Gaia, Maya), Ecossistema</div></div>
+    <div class="card"><div class="k">Setup</div><div class="v">Configurações, LP Assets, Social Proof, Setup, Manual</div></div>
+  </div>
+
+  <h3>Como a venda é monitorada — Dashboard (<code>/admin/dashboard</code>)</h3>
+  <ul class="clean">
+    <li><b>KPIs em tempo real:</b> Receita hoje / mês, vendas hoje, taxa de conversão (orders / (orders + abandoned)), abandonos do dia.</li>
+    <li><b>Receita 30d</b> em gráfico SVG nativo (sem libs).</li>
+    <li><b>Distribuição por plano</b> com barras proporcionais.</li>
+    <li><b>Funil:</b> Visitantes → Iniciaram checkout → Compraram.</li>
+    <li><b>Últimas vendas</b> (tabela com status colorido).</li>
+    <li><b>Botão "Sincronizar Hotmart"</b> que reconcilia via Sales API.</li>
+    <li><b>App VIP block:</b> total de usuárias, ativas hoje, total checkins, vagas restantes.</li>
+    <li><b>Maya Chat:</b> assistente conversacional com contexto carregado (precisa <code>ANTHROPIC_API_KEY</code>).</li>
+  </ul>
+
+  <h3>Como o cliente é monitorado — Clientes App (<code>/admin/app-users</code>)</h3>
+  <p>Lista <b>todos</b> AppUsers VIP com métricas reais:</p>
+  <ul class="clean">
+    <li><b>Filtros:</b> Todos · Ativos (checkin nos últimos 7d) · Inativos · Sem onboarding.</li>
+    <li><b>Busca:</b> por e-mail ou nome do perfil.</li>
+    <li>Em cada linha: avatar com iniciais, e-mail, <b>🔥 streak</b> em dias consecutivos, Nv + XP, kg perdidos vs. total de pesagens, "último checkin" relativo (hoje/ontem/Xd atrás).</li>
+    <li><b>Estatísticas no topo:</b> Total VIP · Ativas (7d) · Onboarding feito · Streak médio · Peso perdido total.</li>
+    <li><b>Clique no card</b> → <code>/admin/app-users/[id]</code> com detalhe completo (pesos, água, humor, medidas, desafio, conquistas, últimos checkins, dados do pedido).</li>
+  </ul>
+
+  <h3>Liberar acesso manualmente (caso o webhook falhe)</h3>
+  <ul class="clean">
+    <li><b>POST /api/admin/grant-vip</b> body <code>{email, name?, sendInvite?:true}</code>:
+      <ol style="margin:4px 0 0">
+        <li>Se já tem AppUser → reenvia convite por e-mail.</li>
+        <li>Senão cria Order VIP "manual" (R$ 97 fictícios) + AppUser + envia convite.</li>
+      </ol>
+    </li>
+    <li>Há UI ligada a essa rota em <code>/admin/app-users</code> (botão "Conceder VIP").</li>
+  </ul>
+
+  <h3>Outras páginas relevantes pra monitoramento</h3>
+  <table>
+    <tr><th>Página</th><th>Pra que serve</th></tr>
+    <tr><td><code>/admin/vendas</code></td><td>Lista paginada de todas as Orders + filtros por plano/status + ações (reenviar e-mail, ver downloadToken)</td></tr>
+    <tr><td><code>/admin/abandonos</code></td><td>Carrinhos abandonados com gatilho de e-mail de recuperação</td></tr>
+    <tr><td><code>/admin/funil</code></td><td>Funil completo: CtaClick → checkout → compra (entregue 2026-05)</td></tr>
+    <tr><td><code>/admin/trafego</code></td><td>PageViews por UTM/canal</td></tr>
+    <tr><td><code>/admin/setup</code></td><td>Checklist auto-detectado de pendências (env vars, segredos, integrações)</td></tr>
+    <tr><td><code>/admin/configuracoes</code></td><td>Chaves de integração (Hotmart, Brevo, Meta, Blotato, R2…) salvas em AppSetting</td></tr>
+    <tr><td><code>/admin/email-marketing</code></td><td>Status de listas/funis Brevo</td></tr>
+    <tr><td><code>/admin/manual</code></td><td>Documentação interna navegável (Quick Start, agentes, rotinas, glossário)</td></tr>
+  </table>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="uso">
+  <h2><span class="num">7</span>Como o usuário usa o app (App VIP)</h2>
+  <p class="lead">UI mobile-first em PWA-style (sem PWA real ainda). Navegação inferior (<code>AppNav</code>) com Home, Hábitos, Progresso, Emocional, Perfil.</p>
+
+  <h3>Tela inicial — <code>/app/home</code></h3>
+  <ul class="clean">
+    <li><b>Header:</b> "Bom dia, Maria 👋" + nível (Nv.3) + dias no método.</li>
+    <li><b>Streak</b> em destaque (🔥 Xd) + <b>ProgressRing</b> com % de hábitos hoje.</li>
+    <li><b>Conquistas recentes</b> (até 3 badges).</li>
+    <li><b>Mood quick action:</b> CTA pra registrar humor do dia.</li>
+    <li><b>Frase motivacional</b> (rotativa via <code>/api/app/quote</code>).</li>
+    <li><b>Atalhos:</b> Água · Hábitos · Progresso · Emocional.</li>
+    <li><b>3 cards:</b> copos d'água /8 · hábitos /10 · movimento (sim/não).</li>
+    <li><b>Desafio 21 Dias</b> e <b>Receita do dia</b> em cards lado a lado.</li>
+    <li><b>Últimos 7 dias</b> em bolinhas (✓ verde / · cinza).</li>
+  </ul>
+
+  <h3>Mapa de telas</h3>
+  <table>
+    <tr><th>Rota</th><th>O que faz</th><th>API back</th></tr>
+    <tr><td><code>/app/agua</code></td><td>+1 copo de água, meta 8/dia, log com hora</td><td>POST <code>/api/app/water</code></td></tr>
+    <tr><td><code>/app/habitos</code></td><td>Toggle de 10 hábitos diários (água, refeições, fruta, andar…)</td><td>PATCH <code>/api/app/checkin</code></td></tr>
+    <tr><td><code>/app/progresso</code></td><td>Gráficos: peso ao longo do tempo, cintura/quadril, % meta</td><td>GET <code>/api/app/weight</code>, <code>/measurements</code></td></tr>
+    <tr><td><code>/app/emocional</code></td><td>Humor (5 estados), triggers, nota livre</td><td>POST <code>/api/app/mood</code></td></tr>
+    <tr><td><code>/app/desafio</code></td><td>Desafio 21 Dias: 1 tarefa por dia, marca como completa</td><td>POST <code>/api/app/challenge</code></td></tr>
+    <tr><td><code>/app/receitas</code></td><td>Lista de receitas, favoritar, filtro por pilar</td><td>GET <code>/api/app/recipes</code></td></tr>
+    <tr><td><code>/app/conquistas</code></td><td>Catálogo de badges com progresso + nível atual</td><td>GET <code>/api/app/achievements</code></td></tr>
+    <tr><td><code>/app/perfil</code></td><td>Editar dados, meta, sair</td><td>PATCH <code>/api/app/profile</code></td></tr>
+  </table>
+
+  <h3>Gamificação</h3>
+  <ul class="clean">
+    <li>Cada ação gera XP (definido em <code>AppAchievement</code>); subir de nível abre cores novas (escala 1..10).</li>
+    <li>Streak conta dias consecutivos com checkin (loop pelos últimos 30 dias em <code>/api/admin/app-users</code>).</li>
+    <li>Celebrações com overlay (<code>CelebrationOverlay</code>) quando ganha badge ou completa meta.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="manual">
+  <h2><span class="num">8</span>Manual de uso (resumo)</h2>
+
+  <div class="twocol">
+    <div>
+      <h3>Para a cliente final (VIP)</h3>
+      <ol>
+        <li><b>Receba o e-mail "Seu acesso VIP está liberado!"</b> e clique em <i>Acessar meu App VIP</i>.</li>
+        <li>Em <code>/app/login</code>, digite o <b>e-mail da compra</b>. (Se a conta já tem senha, ela aparece.)</li>
+        <li>Opcional: clique em <b>"Continuar com Google"</b> pra vincular.</li>
+        <li>Preencha o <b>onboarding</b> (5 passos · 3 min): nome, objetivo, peso/altura/idade, meta, desafios.</li>
+        <li>Use a Home pra <b>check-in diário</b>: marque hábitos, registre água/peso/humor.</li>
+        <li>Faça o <b>Desafio 21 Dias</b> pra criar tração rápida.</li>
+        <li>Veja <b>Progresso</b> pra acompanhar peso/medidas no tempo.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>Para o operador (Doug/Bárbara)</h3>
+      <ol>
+        <li><b>Login admin:</b> <code>/admin/login</code> com e-mail + senha (bcrypt).</li>
+        <li><b>Rotina diária:</b> abra <code>/admin/dashboard</code> e clique <b>Sincronizar Hotmart</b> (puxa vendas reais).</li>
+        <li><b>Monitorar clientes VIP:</b> <code>/admin/app-users</code> → ver quem está ativo, quem não fez onboarding.</li>
+        <li><b>Cliente reclamou que não recebeu acesso?</b> Use <code>/admin/app-users</code> → "Conceder VIP" (POST <code>/api/admin/grant-vip</code>). Envia convite por e-mail.</li>
+        <li><b>Editar imagens da LP:</b> <code>/admin/lp-assets</code> (sobe pra R2 + invalida cache).</li>
+        <li><b>Trocar segredos de integração:</b> <code>/admin/configuracoes</code> (AppSetting). Não mexe em env Railway.</li>
+        <li><b>Ver IA/automação:</b> <code>/admin/social-media</code> (Luna), <code>/admin/video-intelligence</code>, <code>/admin/agents/gaia</code>.</li>
+        <li><b>Pendências do sistema:</b> <code>/admin/setup</code> mostra checklist auto-detectado.</li>
+      </ol>
+    </div>
+  </div>
+
+  <h3>Atalhos úteis (operação)</h3>
+  <pre><code># Type-check
+npx tsc --noEmit
+
+# Rodar dev local
+npm run dev
+
+# Migrar schema
+npx prisma migrate dev --name &lt;name&gt;
+npx prisma generate
+
+# Seed de admin (bootstrap)
+POST /api/admin/auth/seed
+Headers: Content-Type: application/json
+Body:
+{
+  "seedKey": "$ADMIN_SEED_KEY",
+  "users": [
+    { "email":"doug@...", "name":"Doug", "password":"...", "role":"admin" }
+  ]
+}</code></pre>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="crons">
+  <h2><span class="num">9</span>Crons / automações</h2>
+  <p class="lead">Todos os crons exigem header <code>x-cron-secret: $CRON_SECRET</code>. Agendamento é externo (cron-job.org ou EasyCron) chamando as URLs.</p>
+
+  <table>
+    <tr><th>Rota</th><th>Função</th><th>Status</th></tr>
+    <tr><td><code>/api/cron/sync-hotmart</code></td><td>Reconcilia vendas Hotmart diariamente</td><td><span class="tag ok">implementado</span></td></tr>
+    <tr><td><code>/api/cron/post-purchase</code></td><td>Envia e-mails D+1 / D+7 / D+21 (nurture pós-compra)</td><td><span class="tag warn">não agendado em prod</span></td></tr>
+    <tr><td><code>/api/cron/email-sequence</code></td><td>Newsletter / nurture de leads (welcome, D+2, D+5)</td><td><span class="tag warn">não agendado em prod</span></td></tr>
+    <tr><td><code>/api/cron/abandoned-cart</code></td><td>Recuperação de carrinho abandonado</td><td><span class="tag warn">não agendado em prod</span></td></tr>
+    <tr><td><code>/api/cron/social-generate</code> + <code>plan-week</code> + <code>auto-post</code> + <code>sync-engagement</code> + <code>trends</code></td><td>Pipeline Luna (calendário 12 posts/sem)</td><td><span class="tag ok">implementado</span></td></tr>
+    <tr><td><code>/api/cron/video-intelligence</code></td><td>Apify scrape + Gemini analyze (sáb 20h BRT)</td><td><span class="tag ok">implementado</span></td></tr>
+    <tr><td><code>/api/cron/blotato-*</code></td><td>Geração de mídia AI (feed/story/reels)</td><td><span class="tag ok">implementado</span></td></tr>
+    <tr><td><code>/api/cron/gaia-review</code> + <code>execute-approved</code></td><td>Revisão do agente Gaia + execução de decisões aprovadas</td><td><span class="tag ok">implementado</span></td></tr>
+    <tr><td><code>/api/cron/maya-daily-report</code></td><td>Relatório diário da Maya</td><td><span class="tag ok">implementado</span></td></tr>
+  </table>
+
+  <div class="callout warn">
+    Lembrete da memória do projeto: <b>os crons de e-mail (post-purchase, email-sequence, abandoned-cart) NÃO estão agendados em produção</b> — é bloqueador conhecido do funil 2026-05. A delivery via webhook Hotmart funciona normalmente.
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="riscos">
+  <h2><span class="num">10</span>Pontos de risco & oportunidades de melhoria</h2>
+
+  <h3>🔴 Críticos</h3>
+  <table>
+    <tr><th>Item</th><th>Risco</th><th>Sugestão</th></tr>
+    <tr>
+      <td>JWT com secret fallback hardcoded</td>
+      <td>Se nenhuma env (<code>JWT_SECRET</code>, <code>NEXTAUTH_SECRET</code>, <code>ADMIN_PASSWORD</code>) estiver setada no Railway, todos os tokens podem ser forjados.</td>
+      <td>Falhar explicitamente quando não houver secret. Auditar Railway agora.</td>
+    </tr>
+    <tr>
+      <td>Webhook Hotmart cria Order sem upsert</td>
+      <td>Retry da Hotmart duplica Order. <code>hotmartTransactionId</code> é único, mas o webhook hoje nem grava esse campo no INSERT.</td>
+      <td>Trocar <code>create</code> por <code>upsert({where:{hotmartTransactionId}})</code> e gravar o txn id.</td>
+    </tr>
+    <tr>
+      <td>Cookie legacy <code>app_email</code> não-assinado</td>
+      <td>Middleware aceita <code>app_email</code> como fallback — qualquer cookie com formato "email" valida.</td>
+      <td>Definir cutoff e remover. Já existe <code>app_token</code> assinado pronto.</td>
+    </tr>
+    <tr>
+      <td>Crons de e-mail não agendados em prod</td>
+      <td>Nurture pós-compra D+1/D+7/D+21 não dispara — perda de engajamento e refund preventivo.</td>
+      <td>Configurar cron-job.org com <code>?secret=$CRON_SECRET</code> em todas as rotas de e-mail.</td>
+    </tr>
+  </table>
+
+  <h3>🟡 Importantes</h3>
+  <table>
+    <tr><th>Item</th><th>Por quê</th><th>Sugestão</th></tr>
+    <tr><td>Streak calculado com 30 queries por usuário em <code>/api/admin/app-users</code></td><td>O(N × 30) consultas a cada GET. Lista trava com 200+ usuários.</td><td>Trocar por SQL único (<code>SELECT date FROM AppCheckin WHERE userId=... ORDER BY date DESC LIMIT 30</code>) e processar em JS.</td></tr>
+    <tr><td>App token TTL 1 ano</td><td>Sessão eterna; difícil de invalidar.</td><td>30-90 dias com rotação. Adicionar <code>/api/app/logout</code> que limpa o cookie em todos os clients (já existe a rota).</td></tr>
+    <tr><td><s>downloadCount não é checado</s> <span class="tag ok">já existe</span></td><td>O guard já vive em <code>lib/download.ts:isTokenValid()</code> (maxDownloads=3). Revisão inicial errou esse ponto.</td><td>Nenhuma ação. Vale só monitorar quem bate no <code>/link-expirado</code>.</td></tr>
+    <tr><td><code>AppVipSlot</code> singleton com 100 vagas</td><td>Vagas se esgotam silenciosamente; <code>claimVipSlot</code> retorna <code>{claimed:false}</code> sem alertar.</td><td>Alarme no admin quando restarem ≤ 10 (já existe destaque visual). Pode-se aumentar pra 1000 ou remover limite.</td></tr>
+    <tr><td>Demo-login exposto em <code>/app/login</code></td><td>UI mostra botão "Entrar como Admin" pra qualquer um.</td><td>Esconder atrás de cookie admin válido (rota já existe; falta gate de UI).</td></tr>
+    <tr><td>Mistura "completo" no painel mas LP fala "Kit Detox"</td><td>Inconsistência de nomenclatura desde o rename de planos.</td><td>Padronizar nome do plano em <code>config/plans.ts</code> e propagar.</td></tr>
+  </table>
+
+  <h3>🟢 Melhorias de experiência</h3>
+  <ul class="clean">
+    <li><b>PWA real:</b> adicionar manifest + service worker — a UI já é mobile-first. App "instalável" no celular reduz fricção (Bárbara pede isso há tempos).</li>
+    <li><b>Push notification</b> (web push) pra streak — empurra check-in no celular às 21h se o usuário não fez ainda hoje.</li>
+    <li><b>Magic link no login</b> em vez de email-only direto — mais seguro e UX igual.</li>
+    <li><b>Logs estruturados</b> (Pino/Winston) saindo pra um destino (Logtail/Axiom/Sentry) — hoje só <code>console.error</code>.</li>
+    <li><b>Health check</b> de integrações na <code>/admin/setup</code>: já existe parcial; bom expandir pra Hotmart/Brevo/R2/Meta com latência e último sucesso.</li>
+    <li><b>Auditoria de ações admin:</b> hoje não há tabela de audit log. Quem deu VIP manual? Quando trocou setting? Vale criar <code>AdminAuditLog</code>.</li>
+    <li><b>2FA</b> em <code>/admin/login</code> (TOTP) — é painel financeiro, vale o esforço.</li>
+    <li><b>Versionar receitas/desafios:</b> hoje vivem no banco mas sem CMS/versão. Bom planejar como atualizar conteúdo sem perder favoritos.</li>
+    <li><b>Export CSV</b> em <code>/admin/app-users</code> — útil pra Bárbara mandar mensagem WhatsApp em lote.</li>
+    <li><b>UI de "concedido manualmente"</b>: hoje a Order criada por <code>grant-vip</code> tem amount=R$97 fictício. Marcar como <code>source:"manual-grant"</code> pra não inflar receita real.</li>
+  </ul>
+</section>
+
+<!-- ─────────────────────────────────────────── -->
+<section id="checklist">
+  <h2><span class="num">11</span>Checklist priorizado de ação</h2>
+
+  <h3>Esta semana</h3>
+  <ol>
+    <li><span class="grade g-A">P0</span> <span class="tag ok">feito</span> Endurecer secret JWT — admin-token.ts/app-token.ts agora dão throw em prod sem env (commit nessa sessão).</li>
+    <li><span class="grade g-A">P0</span> <span class="tag ok">feito</span> Webhook Hotmart agora faz <code>upsert</code> idempotente por <code>hotmartTransactionId</code> + não reenvia e-mail em retry (commit nessa sessão).</li>
+    <li><span class="grade g-A">P0</span> <span class="tag warn">pendente — operacional</span> Verificar/setar <code>JWT_SECRET</code> no Railway (envs prod).</li>
+    <li><span class="grade g-A">P0</span> <span class="tag warn">pendente — operacional</span> Agendar crons de e-mail (post-purchase + email-sequence + abandoned-cart) no cron-job.org.</li>
+    <li class="muted" style="opacity:.55"><s><span class="grade g-A">P0</span> Adicionar check <code>downloadCount &lt; 3</code> em <code>/api/download</code></s> — <b>já existia</b>, retirado.</li>
+  </ol>
+
+  <h3>Próximas 2 semanas</h3>
+  <ol>
+    <li><span class="grade g-B">P1</span> Refatorar cálculo de streak (1 query por usuário em vez de 30).</li>
+    <li><span class="grade g-B">P1</span> Remover cookie legacy <code>app_email</code> do middleware.</li>
+    <li><span class="grade g-B">P1</span> Ocultar botão "Entrar como Admin" pra não-admins em <code>/app/login</code>.</li>
+    <li><span class="grade g-B">P1</span> Marcar orders criadas via <code>grant-vip</code> com flag pra não inflar receita.</li>
+    <li><span class="grade g-B">P1</span> Reduzir TTL do <code>app_token</code> pra 30-90d + endpoint de rotação.</li>
+  </ol>
+
+  <h3>Backlog estratégico</h3>
+  <ol>
+    <li><span class="grade g-C">P2</span> PWA + push notification de streak.</li>
+    <li><span class="grade g-C">P2</span> 2FA admin.</li>
+    <li><span class="grade g-C">P2</span> Tabela de audit log admin.</li>
+    <li><span class="grade g-C">P2</span> Logs estruturados em destino externo.</li>
+    <li><span class="grade g-C">P2</span> Export CSV de clientes no admin.</li>
+  </ol>
+
+  <hr/>
+  <p style="margin:0;color:var(--muted);font-size:13px">
+    <b>Resumo:</b> arquitetura sólida e bem instrumentada, com 3 vias de redundância pra liberar acesso pós-compra (webhook → sync diário → fallback no login). Os riscos críticos são <i>configuração</i> e <i>idempotência</i> mais do que arquitetura — quase tudo se resolve em 1-2 commits curtos.
+  </p>
+</section>
+
+</div>
+
+<footer>
+  Diagnóstico gerado a partir do código vivo em <code>feat/lp-detox-restructure</code> · Longetividade · Método S.E.M
+</footer>
+
+</body>
+</html>
