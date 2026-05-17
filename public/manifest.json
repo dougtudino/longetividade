@@ -1,7 +1,7 @@
 {
-  "name": "Longetividade — Método S.E.M",
-  "short_name": "Longetividade",
-  "description": "App de acompanhamento do Método S.E.M. Registre hábitos, água, peso, humor. Desafio 21 dias. Conquistas e XP.",
+  "name": "21 Dias · Sua Rotina Saudável",
+  "short_name": "21 Dias",
+  "description": "Desafio 21 dias em loop. Registre hábitos, água, peso e humor. Conquistas, XP e ciclos eternos. by Longetividade.",
   "start_url": "/app/home",
   "scope": "/app/",
   "display": "standalone",

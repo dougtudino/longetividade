@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { AppHeaderWrapper } from "@/components/app/app-header-wrapper";
+import { APP_BRAND } from "@/config/app-brand";
 
 export const metadata: Metadata = {
-  title: "Longetividade — App",
-  description: "Seu acompanhamento do Metodo S.E.M",
+  title: APP_BRAND.fullName,
+  description: `${APP_BRAND.tagline} — desafio 21 dias, hábitos, água, peso e humor em loop. ${APP_BRAND.by}.`,
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Longetividade",
+    title: APP_BRAND.name,
   },
 };
 

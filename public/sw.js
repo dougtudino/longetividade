@@ -1,4 +1,4 @@
-// Service Worker pro Web Push do app VIP Longetividade.
+// Service Worker pro Web Push do app "21 Dias" (by Longetividade).
 // Eventos:
 //  - push: exibe a notificacao recebida
 //  - notificationclick: abre o app na URL passada no payload
@@ -17,10 +17,10 @@ self.addEventListener("push", (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
-    data = { title: "Longetividade", body: event.data ? event.data.text() : "" };
+    data = { title: "21 Dias", body: event.data ? event.data.text() : "" };
   }
 
-  const title = data.title || "Longetividade";
+  const title = data.title || "21 Dias";
   const options = {
     body: data.body || "",
     icon: data.icon || "/icon-192.png",

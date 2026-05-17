@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AppNav } from "@/components/app/app-nav";
+import { APP_BRAND } from "@/config/app-brand";
 
 const ITEMS: Array<{ icon: string; label: string; desc: string; path: string }> = [
   { icon: "👤", label: "Meu perfil", desc: "Nome, meta, dados", path: "/app/perfil" },
@@ -55,7 +56,7 @@ export default function MaisPage() {
       </button>
 
       <p className="mt-6 text-center text-[10px] text-gray-400">
-        Longetividade · {new Date().getFullYear()}
+        {APP_BRAND.name} · {APP_BRAND.by} · {new Date().getFullYear()}
       </p>
 
       <AppNav />

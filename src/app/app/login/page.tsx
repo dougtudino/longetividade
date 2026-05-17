@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { APP_BRAND } from "@/config/app-brand";
 
 export default function AppLogin() {
   const [email, setEmail] = useState("");
@@ -51,13 +52,14 @@ export default function AppLogin() {
       {/* Logo */}
       <div className="mb-8 flex flex-col items-center gap-3">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white"
-          style={{ backgroundColor: "#639922" }}
+          className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white"
+          style={{ background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)" }}
         >
-          L
+          21
         </div>
-        <h1 className="text-xl font-bold text-gray-900">Longetividade</h1>
-        <p className="text-sm text-gray-500">App de Acompanhamento — Metodo S.E.M</p>
+        <h1 className="text-2xl font-black text-gray-900">{APP_BRAND.name}</h1>
+        <p className="text-sm text-gray-500">{APP_BRAND.tagline}</p>
+        <p className="text-[10px] text-gray-400 uppercase tracking-wider">{APP_BRAND.by}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">

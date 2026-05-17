@@ -47,14 +47,14 @@ export default function AppCadastro() {
     <div className="flex min-h-screen flex-col items-center justify-center px-6">
       <div className="mb-8 flex flex-col items-center gap-3">
         <div
-          className="flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-black text-white"
-          style={{ backgroundColor: "#639922" }}
+          className="flex h-16 w-16 items-center justify-center rounded-2xl text-xl font-black text-white"
+          style={{ background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)" }}
         >
-          L
+          21
         </div>
         <h1 className="text-xl font-bold text-gray-900">Criar sua conta</h1>
         <p className="text-sm text-gray-500 text-center max-w-xs">
-          Use o email da sua compra VIP e crie uma senha para acessar mais rapido na proxima vez.
+          Use o email da sua compra VIP e crie uma senha para acessar mais rápido na próxima vez.
         </p>
       </div>
 
