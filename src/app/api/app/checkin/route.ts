@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
+import { ensureActiveCycle, markDayCompleted } from "@/lib/cycles";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
 
   // Check if all habits done
   const habits = body.habits as Record<string, boolean> | undefined;
+  const habitsDoneCount = habits ? Object.values(habits).filter(Boolean).length : 0;
   if (habits) {
     const vals = Object.values(habits);
     if (vals.length >= 10 && vals.every(Boolean)) {
@@ -63,8 +65,28 @@ export async function POST(req: NextRequest) {
     await addXP(user.id, XP_REWARDS.exercise);
   }
 
+  // Auto-avanca o desafio: se o checkin tem 5+ habitos completados e o
+  // ciclo ativo ainda nao chegou em 21, marca o proximo dia automaticamente.
+  // Silencioso (catch) pra nao quebrar o checkin se algo der errado.
+  let autoChallengeDay: number | null = null;
+  if (habitsDoneCount >= 5) {
+    try {
+      const cycle = await ensureActiveCycle(user.id);
+      if (cycle && cycle.status === "active" && cycle.daysCompleted < 21) {
+        const nextDay = cycle.daysCompleted + 1;
+        const result = await markDayCompleted(user.id, nextDay);
+        if (!result.alreadyDone) {
+          autoChallengeDay = nextDay;
+          await addXP(user.id, XP_REWARDS.challenge_day);
+        }
+      }
+    } catch {
+      // silencioso — checkin nao deve falhar por causa do desafio
+    }
+  }
+
   // Evaluate achievements
   const newAchievements = await evaluateAchievements(user.id);
 
-  return NextResponse.json({ checkin, newAchievements });
+  return NextResponse.json({ checkin, newAchievements, autoChallengeDay });
 }
