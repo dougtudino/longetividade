@@ -477,18 +477,25 @@ export default function DesafioPage() {
                         </p>
                       </div>
                       <p className="mb-4 text-xs italic text-gray-500">&ldquo;{dayData.quote}&rdquo;</p>
+                      <div
+                        className="mb-3 rounded-xl p-3 text-xs"
+                        style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc", color: "#1e3a5f" }}
+                      >
+                        ℹ️ Pra fechar esse dia ✓ basta marcar 5+ hábitos na <strong>tela inicial</strong>. O ciclo avança automático.
+                      </div>
                       <div className="flex gap-2">
                         <button
-                          onClick={() => router.push(dayData.ctaPath)}
+                          onClick={() => router.push("/app/home")}
                           className="flex-1 rounded-xl py-2.5 text-xs font-bold transition-transform active:scale-95"
                           style={{
-                            backgroundColor: `${week.color}15`,
-                            color: week.color,
-                            border: `1px solid ${week.color}40`,
+                            background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)",
+                            color: "white",
                           }}
                         >
-                          Abrir no app
+                          Ir pra Home e marcar →
                         </button>
+                      </div>
+                      <div style={{ display: "none" }}>
                         <button
                           onClick={() => completeDay(dayNum)}
                           disabled={completing}

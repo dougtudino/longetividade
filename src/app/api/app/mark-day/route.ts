@@ -3,6 +3,7 @@ import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
 import { ensureActiveCycle, markDayCompleted, currentDayInCycle } from "@/lib/cycles";
+import { brasilStartOfDay, brasilEndOfDay } from "@/lib/tz";
 
 // POST /api/app/mark-day
 // O endpoint UNICO que o botao "Marcar meu dia" usa. Recebe o estado
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
   }
 
-  const today = new Date(new Date().toISOString().split("T")[0] + "T00:00:00Z");
+  const today = brasilStartOfDay();
   const habits = body.habits ?? {};
   const habitsCount = Object.values(habits).filter(Boolean).length;
   const exerciseDone = !!habits["movimento"];
@@ -80,8 +81,7 @@ export async function POST(req: NextRequest) {
   // 3) Mood log (so se nao tiver um do dia)
   let moodCreated = false;
   if (body.mood && typeof body.mood === "string") {
-    const todayEnd = new Date(today);
-    todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+    const todayEnd = brasilEndOfDay();
     const existingMood = await prisma.appMoodLog.findFirst({
       where: { userId: user.id, loggedAt: { gte: today, lt: todayEnd } },
     });

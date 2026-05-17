@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentCycle } from "@/lib/cycles";
+import { brasilStartOfDay, brasilEndOfDay, brasilToday } from "@/lib/tz";
 
 // GET /api/app/daily-quests?date=YYYY-MM-DD
 //
@@ -23,10 +24,9 @@ export async function GET(req: NextRequest) {
 
   try {
     const dateParam = req.nextUrl.searchParams.get("date");
-    const today = dateParam ? dateParam : new Date().toISOString().slice(0, 10);
-    const todayStart = new Date(today + "T00:00:00Z");
-    const todayEnd = new Date(todayStart);
-    todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
+    const today = dateParam ? dateParam : brasilToday();
+    const todayStart = brasilStartOfDay(today);
+    const todayEnd = brasilEndOfDay(today);
     const yesterdayStart = new Date(todayStart);
     yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
 

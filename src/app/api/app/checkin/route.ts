@@ -3,13 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
 import { ensureActiveCycle, markDayCompleted, currentDayInCycle } from "@/lib/cycles";
+import { brasilStartOfDay } from "@/lib/tz";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
   const dateParam = req.nextUrl.searchParams.get("date");
-  const date = dateParam ? new Date(dateParam + "T00:00:00Z") : new Date(new Date().toISOString().split("T")[0] + "T00:00:00Z");
+  // Timezone BR: meia-noite BR = 03:00 UTC do mesmo dia
+  const date = brasilStartOfDay(dateParam ?? undefined);
 
   const checkin = await prisma.appCheckin.findUnique({
     where: { userId_date: { userId: user.id, date } },
@@ -23,9 +25,8 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
   const body = await req.json();
-  const date = body.date
-    ? new Date(body.date + "T00:00:00Z")
-    : new Date(new Date().toISOString().split("T")[0] + "T00:00:00Z");
+  // Timezone BR
+  const date = brasilStartOfDay(body.date ?? undefined);
 
   const checkin = await prisma.appCheckin.upsert({
     where: { userId_date: { userId: user.id, date } },

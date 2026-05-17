@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { brasilStartOfDay, brasilNow } from "./tz";
 
 export const CYCLE_LENGTH_DAYS = 21;
 
@@ -8,16 +9,18 @@ export const CYCLE_LENGTH_DAYS = 21;
 // fecha automaticamente (com X/21 vitórias). Pular dia = falha daquele
 // dia mas não retrocede o ciclo.
 
-function utcDateOnly(d: Date | string): Date {
-  const dt = typeof d === "string" ? new Date(d) : d;
-  return new Date(dt.toISOString().split("T")[0] + "T00:00:00Z");
+function brStartFromDate(d: Date | string): Date {
+  if (typeof d === "string") return brasilStartOfDay(d);
+  // Date original — extrai YYYY-MM-DD em BR
+  const brDate = new Date(d.getTime() - 3 * 60 * 60 * 1000).toISOString().split("T")[0];
+  return brasilStartOfDay(brDate);
 }
 
-// Retorna quantos dias do calendário se passaram desde o startDate
+// Retorna quantos dias do calendário BR se passaram desde o startDate
 // (0 = mesmo dia do startDate, 1 = um dia depois, ...)
 export function daysSinceStart(startDate: Date | string): number {
-  const start = utcDateOnly(startDate);
-  const today = utcDateOnly(new Date());
+  const start = brStartFromDate(startDate);
+  const today = brStartFromDate(brasilNow());
   return Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
 }
 
