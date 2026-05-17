@@ -69,6 +69,8 @@ type ChallengeResponse = {
   days: ChallengeDay[];
   progress: number[];
   currentDay: number;
+  daysElapsed: number;
+  failedDays: number[];
   cycle: {
     id: string;
     cycleNumber: number;
@@ -382,6 +384,8 @@ export default function DesafioPage() {
             {week.days.map((dayNum) => {
               const dayData = getDayForNumber(dayNum);
               const isCompleted = completedSet.has(dayNum);
+              const failedDays = data?.failedDays ?? [];
+              const isFailed = failedDays.includes(dayNum);
               const isCurrent = dayNum === currentDay && !isPaused && !needsNewCycle;
               const isLocked = dayNum > currentDay || isPaused || needsNewCycle;
 
@@ -391,15 +395,32 @@ export default function DesafioPage() {
                     <div
                       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all"
                       style={{
-                        backgroundColor: isCompleted ? "#639922" : isCurrent ? "white" : "#e5e7eb",
-                        color: isCompleted ? "white" : isCurrent ? week.color : "#9ca3af",
-                        border: isCurrent ? `2px solid ${week.color}` : "none",
+                        backgroundColor: isCompleted
+                          ? "#639922"
+                          : isFailed
+                            ? "#FBEDED"
+                            : isCurrent
+                              ? "white"
+                              : "#e5e7eb",
+                        color: isCompleted
+                          ? "white"
+                          : isFailed
+                            ? "#C4787A"
+                            : isCurrent
+                              ? week.color
+                              : "#9ca3af",
+                        border: isCurrent ? `2px solid ${week.color}` : isFailed ? "1px solid #fcd4d4" : "none",
                         boxShadow: isCompleted ? "0 2px 8px rgba(99,153,34,0.3)" : "none",
                       }}
                     >
                       {isCompleted ? (
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      ) : isFailed ? (
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C4787A" strokeWidth="2.5" strokeLinecap="round">
+                          <line x1="5" y1="5" x2="19" y2="19" />
+                          <line x1="19" y1="5" x2="5" y2="19" />
                         </svg>
                       ) : isLocked ? (
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -422,7 +443,10 @@ export default function DesafioPage() {
                     </p>
 
                     {isCompleted && (
-                      <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Feito</span>
+                      <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Feito ✓</span>
+                    )}
+                    {isFailed && (
+                      <span className="text-[10px] font-bold" style={{ color: "#C4787A" }}>Falhou</span>
                     )}
                     {isCurrent && (
                       <span

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
-import { ensureActiveCycle, markDayCompleted } from "@/lib/cycles";
+import { ensureActiveCycle, markDayCompleted, currentDayInCycle } from "@/lib/cycles";
 
 // POST /api/app/mark-day
 // O endpoint UNICO que o botao "Marcar meu dia" usa. Recebe o estado
@@ -114,17 +114,21 @@ export async function POST(req: NextRequest) {
     await addXP(user.id, XP_REWARDS.weight_log);
   }
 
-  // 5) Auto-avanca desafio se >=5 habitos
+  // 5) Marca dia do ciclo (modelo CALENDÁRIO) — dia atual = data hoje
+  // relativa ao startDate do ciclo. Vitoria desse dia se habitsCount >= 5.
+  // ensureActiveCycle ja auto-fecha ciclo expirado antes.
   let autoChallengeDay: number | null = null;
   if (habitsCount >= 5) {
     try {
       const cycle = await ensureActiveCycle(user.id);
-      if (cycle && cycle.status === "active" && cycle.daysCompleted < 21) {
-        const nextDay = cycle.daysCompleted + 1;
-        const result = await markDayCompleted(user.id, nextDay);
-        if (!result.alreadyDone) {
-          autoChallengeDay = nextDay;
-          await addXP(user.id, XP_REWARDS.challenge_day);
+      if (cycle && cycle.status === "active") {
+        const dayInCycle = currentDayInCycle(cycle.startDate);
+        if (dayInCycle != null) {
+          const result = await markDayCompleted(user.id, dayInCycle);
+          if (!result.alreadyDone) {
+            autoChallengeDay = dayInCycle;
+            await addXP(user.id, XP_REWARDS.challenge_day);
+          }
         }
       }
     } catch {

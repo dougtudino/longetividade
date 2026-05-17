@@ -3,7 +3,7 @@ import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { addXP, XP_REWARDS } from "@/lib/gamification";
 import { CHALLENGE_DAYS } from "@/data/challenge-days";
-import { ensureActiveCycle, markDayCompleted, CYCLE_LENGTH_DAYS } from "@/lib/cycles";
+import { ensureActiveCycle, markDayCompleted, CYCLE_LENGTH_DAYS, currentDayInCycle, daysSinceStart } from "@/lib/cycles";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -46,19 +46,30 @@ async function getChallenge(userId: string) {
   const progress = completed.map((c) => c.day);
   const completedSet = new Set(progress);
 
-  // currentDay = primeiro dia nao completado (1..21), ou 22 se acabou
+  // currentDay agora vem do CALENDÁRIO (data hoje vs startDate).
+  // Se ciclo expirou (passou 21d), retorna 22 (UI mostra "completo").
   let currentDay = CYCLE_LENGTH_DAYS + 1;
-  for (let d = 1; d <= CYCLE_LENGTH_DAYS; d++) {
-    if (!completedSet.has(d)) {
-      currentDay = d;
-      break;
-    }
+  let daysElapsed = 0;
+  if (targetCycle && targetCycle.status !== "completed") {
+    const cd = currentDayInCycle(targetCycle.startDate);
+    if (cd != null) currentDay = cd;
+    daysElapsed = Math.min(CYCLE_LENGTH_DAYS, daysSinceStart(targetCycle.startDate) + 1);
+  } else if (targetCycle) {
+    daysElapsed = CYCLE_LENGTH_DAYS;
+  }
+
+  // failedDays = dias do calendário que JÁ passaram mas NÃO foram marcados
+  const failedDays: number[] = [];
+  for (let d = 1; d < daysElapsed; d++) {
+    if (!completedSet.has(d)) failedDays.push(d);
   }
 
   return NextResponse.json({
     days: CHALLENGE_DAYS,
     progress,
     currentDay,
+    daysElapsed,
+    failedDays,
     cycle: targetCycle
       ? {
           id: targetCycle.id,

@@ -2,6 +2,60 @@ import { prisma } from "./prisma";
 
 export const CYCLE_LENGTH_DAYS = 21;
 
+// ─── Modelo CALENDÁRIO ──────────────────────────────────────
+// Ciclo amarrado a data: cada dia REAL conta como 1 dos 21 dias.
+// Dia N = startDate + (N-1) dias. Após 21 dias do calendário, o ciclo
+// fecha automaticamente (com X/21 vitórias). Pular dia = falha daquele
+// dia mas não retrocede o ciclo.
+
+function utcDateOnly(d: Date | string): Date {
+  const dt = typeof d === "string" ? new Date(d) : d;
+  return new Date(dt.toISOString().split("T")[0] + "T00:00:00Z");
+}
+
+// Retorna quantos dias do calendário se passaram desde o startDate
+// (0 = mesmo dia do startDate, 1 = um dia depois, ...)
+export function daysSinceStart(startDate: Date | string): number {
+  const start = utcDateOnly(startDate);
+  const today = utcDateOnly(new Date());
+  return Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// Retorna o dia atual dentro do ciclo (1..21) baseado em data, ou null
+// se o ciclo já passou de 21 dias (deve ser fechado).
+export function currentDayInCycle(startDate: Date | string): number | null {
+  const since = daysSinceStart(startDate);
+  if (since < 0) return null; // futuro? defensivo
+  if (since >= CYCLE_LENGTH_DAYS) return null; // expirou
+  return since + 1;
+}
+
+// Auto-fecha um ciclo active/paused que já passou de 21 dias. Idempotente:
+// se ciclo não tem 21d no calendário ainda, não faz nada.
+export async function autoCloseExpiredCycle(userId: string): Promise<void> {
+  const cycle = await prisma.appCycle.findFirst({
+    where: { userId, status: { in: ["active", "paused"] } },
+    orderBy: { cycleNumber: "desc" },
+  });
+  if (!cycle) return;
+  const since = daysSinceStart(cycle.startDate);
+  if (since >= CYCLE_LENGTH_DAYS) {
+    // Recomputa daysCompleted real (count de AppChallenge desse ciclo)
+    const won = await prisma.appChallenge.count({
+      where: { userId, cycleId: cycle.id },
+    });
+    await prisma.appCycle.update({
+      where: { id: cycle.id },
+      data: {
+        status: "completed",
+        completedAt: new Date(),
+        endDate: new Date(),
+        daysCompleted: won,
+      },
+    });
+  }
+}
+
 export type CycleStatus = "active" | "paused" | "completed" | "abandoned";
 export type CycleDifficulty = "easy" | "normal" | "hard";
 
@@ -74,6 +128,9 @@ export async function suggestNextDifficulty(userId: string): Promise<CycleDiffic
 // Retorna o ciclo vivo se existir, ou null se o user precisa decidir
 // (caso: ciclo 21 completed sem novo iniciado).
 export async function ensureActiveCycle(userId: string) {
+  // Antes: auto-fecha ciclo que ja passou de 21 dias de calendario
+  await autoCloseExpiredCycle(userId);
+
   // Existe algum cycle pro user?
   const existing = await prisma.appCycle.findFirst({
     where: { userId, status: { in: ["active", "paused"] } },
