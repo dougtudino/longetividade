@@ -42,9 +42,9 @@ export function StickyBottomCTA() {
       >
         <span className="flex flex-col items-start leading-tight">
           <span className="text-[10px] uppercase tracking-[0.15em] opacity-85 font-bold">
-            Calendario Detox
+            Calendário Detox
           </span>
-          <span className="text-[15px]">Quero meu calendario · R$67</span>
+          <span className="text-[15px]">Quero meu calendário · R$67</span>
         </span>
         <span
           className="inline-flex items-center justify-center w-8 h-8 rounded-full transition-transform group-active:translate-x-0.5"

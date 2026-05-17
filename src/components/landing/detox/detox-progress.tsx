@@ -29,17 +29,17 @@ const FALLBACK_QUOTES: Quote[] = [
   {
     id: "fallback-1",
     name: "Camila R.",
-    text: "Foi a primeira vez que consegui continuar. No dia 18 nem precisava mais lembrar — ja era automatico.",
+    text: "Foi a primeira vez que consegui continuar. No dia 18 eu nem precisava mais lembrar — já era automático.",
   },
   {
     id: "fallback-2",
-    name: "Patricia M.",
-    text: "Marcar o calendario virou meu momentinho do dia. Parecia leve. Por isso funcionou.",
+    name: "Patrícia M.",
+    text: "Marcar o calendário virou meu momentinho do dia. Parecia leve. Por isso funcionou.",
   },
   {
     id: "fallback-3",
     name: "Fernanda B.",
-    text: "Nao parecia dieta. Parecia uma rotina que finalmente cabia em mim. Emagreci 4kg e parei de odiar segunda-feira.",
+    text: "Não parecia dieta. Parecia uma rotina que finalmente cabia em mim. Emagreci 4kg e parei de odiar segunda-feira.",
   },
 ];
 
@@ -94,7 +94,7 @@ export function DetoxProgress() {
             className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
-            Pequenas vitorias
+            Pequenas vitórias
           </span>
           <h2
             className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
@@ -103,13 +103,13 @@ export function DetoxProgress() {
               letterSpacing: "-0.02em",
             }}
           >
-            Pequenas vitorias criam resultados reais.
+            Pequenas vitórias criam resultados reais.
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Cada marcacao no calendario e um passo. No dia 21 voce ja nao e
+            Cada marcação no calendário é um passo. No dia 21, você já não é
             mais a mesma.
           </p>
         </div>
@@ -207,7 +207,7 @@ export function DetoxProgress() {
                     "0 12px 36px -10px var(--accent-soft), 0 4px 12px -3px rgba(0,0,0,0.12)",
                 }}
               >
-                Comecar meus 21 dias
+                Começar meus 21 dias
                 <span className="transition-transform group-hover:translate-x-1">→</span>
               </a>
             </div>

@@ -75,7 +75,7 @@ export function MockupCalendarDetox({
           zIndex: 2,
         }}
       >
-        beber agua todo dia ✨
+        beber água todo dia ✨
       </div>
 
       <div
@@ -103,7 +103,7 @@ export function MockupCalendarDetox({
               marginBottom: 4,
             }}
           >
-            Calendario Detox
+Calendário Detox
           </div>
           <div
             style={{

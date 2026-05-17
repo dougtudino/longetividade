@@ -9,16 +9,16 @@ import { MockupCalendarDetox } from "@/components/mockups/mockup-calendar-detox"
 // Variantes documentadas como constante pra trocar rapido em A/B sem PR.
 const HEADLINE_VARIANTS = {
   A: {
-    h1: "Pare de comecar dieta na segunda-feira.",
-    sub: "Um calendario. 21 dias. Voce so marca o que ja fez. A gente cuidou do resto.",
+    h1: "Pare de começar dieta na segunda-feira.",
+    sub: "Um calendário. 21 dias. Você só marca o que já fez. A gente cuidou do resto.",
   },
   B: {
     h1: "Um dia de cada vez.",
-    sub: "Um calendario simples pra continuar quando voce sempre desistia.",
+    sub: "Um calendário simples pra continuar quando você sempre desistia.",
   },
   C: {
-    h1: "O calendario que ajuda voce a finalmente continuar.",
-    sub: "21 dias. Habitos pequenos. Sem cardapio fechado, sem culpa de domingo.",
+    h1: "O calendário que ajuda você a finalmente continuar.",
+    sub: "21 dias. Hábitos pequenos. Sem cardápio fechado, sem culpa de domingo.",
   },
 };
 
@@ -60,7 +60,7 @@ export function DetoxHero() {
               }}
             >
               <span className="text-sm">📅</span>
-              21 dias · 1 calendario · resultados que ficam
+              21 dias · 1 calendário · resultados que ficam
             </span>
 
             <h1
@@ -83,9 +83,9 @@ export function DetoxHero() {
             {/* 3 micro-promessas — bullets enxutos com check icon */}
             <ul className="space-y-3.5 mb-10 max-w-xl mx-auto lg:mx-0">
               {[
-                "Um habito por dia. So isso.",
+                "Um hábito por dia. Só isso.",
                 "Marca na geladeira. Marca no app. Continua.",
-                "No dia 21 voce olha pra tras e ja virou rotina.",
+                "No dia 21 você olha pra trás e já virou rotina.",
               ].map((text, i) => (
                 <li
                   key={i}
@@ -130,7 +130,7 @@ export function DetoxHero() {
                     "0 14px 44px -10px var(--accent-soft), 0 6px 16px -4px rgba(0,0,0,0.18)",
                 }}
               >
-                Quero meu calendario detox
+                Quero meu calendário detox
                 <span className="transition-transform group-hover:translate-y-0.5">↓</span>
               </a>
 
@@ -138,7 +138,7 @@ export function DetoxHero() {
                 className="font-body text-xs md:text-sm"
                 style={{ color: "var(--text-muted)" }}
               >
-                Acesso na hora · Garantia de 7 dias · Comeca hoje se quiser
+                Acesso na hora · Garantia de 7 dias · Começa hoje se quiser
               </p>
             </div>
 
@@ -153,7 +153,7 @@ export function DetoxHero() {
               <span className="flex items-center gap-1.5">
                 <span style={{ color: "#E5A53C" }}>★★★★★</span> 4.9
               </span>
-              <span>+12.400 mulheres ja marcaram o dia 1</span>
+              <span>+12.400 mulheres já marcaram o dia 1</span>
               <span>Garantia 7 dias</span>
             </div>
           </div>
@@ -179,7 +179,7 @@ export function DetoxHero() {
                 >
                   <Image
                     src={calendarPhotoUrl}
-                    alt="Calendario Detox 21 Dias em uso"
+                    alt="Calendário Detox 21 Dias em uso"
                     fill
                     sizes="(min-width: 1024px) 420px, (min-width: 640px) 380px, 320px"
                     className="object-cover"

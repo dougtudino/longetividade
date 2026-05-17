@@ -5,35 +5,35 @@ import { useState } from "react";
 const FAQ = [
   {
     q: "Por que 21 dias?",
-    a: "21 dias e o tempo que um habito leva pra comecar a ficar automatico. Nao e magica, e repeticao. Voce nao precisa de forca de vontade pra escovar os dentes hoje — e a mesma logica.",
+    a: "21 dias é o tempo que um hábito leva pra começar a ficar automático. Não é mágica, é repetição. Você não precisa de força de vontade pra escovar os dentes hoje — é a mesma lógica.",
   },
   {
     q: "Funciona pra quem nunca conseguiu seguir nada?",
-    a: "Sim. O calendario foi pensado pra quem desiste no dia 4. Cada dia tem 3-4 tarefinhas pequenas. Nao tem como ficar grande demais.",
+    a: "Sim. O calendário foi pensado pra quem desiste no dia 4. Cada dia tem 3 a 4 tarefinhas pequenas. Não tem como ficar grande demais.",
   },
   {
     q: "Preciso fazer academia?",
-    a: "Nao. O movimento do calendario cabe em 15 minutos por dia, em casa, sem trocar de roupa.",
+    a: "Não. O movimento do calendário cabe em 15 minutos por dia, em casa, sem trocar de roupa.",
   },
   {
     q: "E se eu errar um dia?",
-    a: "Voce nao errou. So nao marcou. No dia seguinte voce abre o calendario e continua de onde parou. A regra aqui e: continuar vale mais que recomecar.",
+    a: "Você não errou. Só não marcou. No dia seguinte, você abre o calendário e continua de onde parou. A regra aqui é simples: continuar vale mais que recomeçar.",
   },
   {
-    q: "Isso e dieta?",
-    a: "Nao. Zero restricao. Zero alimento proibido. O foco e no que voce faz, nao no que voce corta.",
+    q: "Isso é dieta?",
+    a: "Não. Zero restrição. Zero alimento proibido. O foco é no que você faz, não no que você corta.",
   },
   {
     q: "Funciona pra quem tem 35+?",
-    a: "Sim, especialmente. O calendario nao depende de metabolismo acelerado. Foi feito pra mulheres com rotina real.",
+    a: "Sim, especialmente. O calendário não depende de metabolismo acelerado. Foi feito pra mulheres com rotina real.",
   },
   {
     q: "Quanto tempo tenho de acesso?",
-    a: "O plano Digital e Kit Detox tem acesso por 1 ano. O VIP e vitalicio. O calendario fica seu pra sempre — voce pode imprimir e usar quantas vezes quiser.",
+    a: "O Digital e o Kit Detox têm acesso por 1 ano. O VIP é vitalício. O calendário fica seu pra sempre — você pode imprimir e usar quantas vezes quiser.",
   },
   {
-    q: "E se eu nao gostar?",
-    a: "Voce tem 7 dias de garantia. Pediu reembolso, devolvemos 100%. Sem perguntas.",
+    q: "E se eu não gostar?",
+    a: "Você tem 7 dias de garantia. Pediu reembolso, devolvemos 100%. Sem perguntas.",
   },
 ];
 
@@ -60,7 +60,7 @@ export function DetoxFaq() {
               letterSpacing: "-0.02em",
             }}
           >
-            A gente ja ouviu essas
+            A gente já ouviu essas
           </h2>
         </div>
 

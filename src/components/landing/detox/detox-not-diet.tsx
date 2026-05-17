@@ -1,15 +1,15 @@
 const ROWS = [
   {
-    bad: "Cortar carboidrato, acucar, gluten",
-    good: "Comer do jeito que voce gosta, com inteligencia",
+    bad: "Cortar carboidrato, açúcar e glúten",
+    good: "Comer do jeito que você gosta, com inteligência",
   },
   {
-    bad: "Contar caloria de cada refeicao",
+    bad: "Contar caloria de cada refeição",
     good: "Marcar um checklist simples no fim do dia",
   },
   {
     bad: "Passar fome pra perder peso",
-    good: "Comer mais, mas certo",
+    good: "Comer mais, mas comer certo",
   },
   {
     bad: "Sentir culpa todo fim de semana",
@@ -20,8 +20,8 @@ const ROWS = [
     good: "Pequenos passos que se acumulam",
   },
   {
-    bad: "Recomecar toda segunda-feira",
-    good: "Continuar de onde parou — o calendario lembra",
+    bad: "Recomeçar toda segunda-feira",
+    good: "Continuar de onde parou — o calendário lembra",
   },
   {
     bad: "Resultado em 3 dias (e perde tudo em 3 semanas)",
@@ -41,7 +41,7 @@ export function DetoxNotDiet() {
             className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
-            A diferenca que muda tudo
+            A diferença que muda tudo
           </span>
           <h2
             className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1]"
@@ -50,7 +50,7 @@ export function DetoxNotDiet() {
               letterSpacing: "-0.02em",
             }}
           >
-            Isso aqui voce consegue continuar.
+            Isso aqui você consegue continuar.
           </h2>
         </div>
 
@@ -74,7 +74,7 @@ export function DetoxNotDiet() {
               border: "1px solid var(--accent)",
             }}
           >
-            <span className="text-base">✓</span> Calendario Detox 21 dias
+            <span className="text-base">✓</span> Calendário Detox 21 dias
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export function DetoxNotDiet() {
                     className="md:hidden font-bold text-[10px] uppercase tracking-[0.12em] block mb-1"
                     style={{ color: "var(--accent)" }}
                   >
-                    Calendario Detox
+                    Calendário Detox
                   </span>
                   {row.good}
                 </span>

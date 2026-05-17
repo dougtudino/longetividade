@@ -5,18 +5,18 @@ import { MockupDayCard } from "@/components/mockups/mockup-day-card";
 const DAYS = [
   {
     n: 1,
-    title: "Beber mais agua",
+    title: "Beber mais água",
     tasks: ["O resto da rotina continua igual", "Marca no app quando lembrar"],
   },
   {
     n: 2,
     title: "Jantar mais leve",
-    tasks: ["Sem cardapio fechado", "Continua marcando — virou 2 dias"],
+    tasks: ["Sem cardápio fechado", "Continua marcando — já são 2 dias"],
   },
   {
     n: 3,
     title: "Comer sem culpa",
-    tasks: ["E ok errar no fim de semana", "O calendario lembra por voce"],
+    tasks: ["É ok errar no fim de semana", "O calendário lembra por você"],
   },
 ];
 
@@ -41,13 +41,13 @@ export function DetoxHowItWorks() {
               letterSpacing: "-0.02em",
             }}
           >
-            Voce so segue. A gente ja organizou.
+            Você só segue. A gente já organizou.
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            21 dias. Um habito de cada vez. Sem cardapio fechado, sem regra dificil.
+            21 dias. Um hábito de cada vez. Sem cardápio fechado, sem regra difícil.
           </p>
         </div>
 
@@ -72,8 +72,8 @@ export function DetoxHowItWorks() {
           className="mt-14 text-center font-body text-sm md:text-base italic max-w-2xl mx-auto"
           style={{ color: "var(--text-muted)" }}
         >
-          Nos dias 4 a 21, voce ja tem ritmo. O calendario continua marcando
-          pequenas vitorias ate o dia 21.
+          Nos dias 4 a 21, você já tem ritmo. O calendário continua marcando
+          pequenas vitórias até o fim.
         </p>
       </div>
     </section>

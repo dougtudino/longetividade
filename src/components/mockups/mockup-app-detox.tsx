@@ -97,14 +97,14 @@ export function MockupAppDetox({ className = "" }: MockupAppDetoxProps) {
 
         {/* habits today */}
         <text x={22} y={262} fontSize={13} fill="#3D5A3E" fontWeight={800}>
-          Habitos de hoje
+          Hábitos de hoje
         </text>
 
         {[
-          { label: "Beber 2L de agua", done: true },
-          { label: "Cafe da manha com proteina", done: true },
+          { label: "Beber 2L de água", done: true },
+          { label: "Café com proteína", done: true },
           { label: "Caminhada 15 min", done: true },
-          { label: "Refeicao do calendario", done: false },
+          { label: "Refeição do calendário", done: false },
         ].map((h, i) => {
           const y = 282 + i * 48;
           return (
@@ -151,7 +151,7 @@ export function MockupAppDetox({ className = "" }: MockupAppDetoxProps) {
 
         {/* bottom progress */}
         <text x={22} y={502} fontSize={11} fill="#8B9D7B" fontWeight={700}>
-          3 DE 4 HABITOS · CONTINUE!
+          3 DE 4 HÁBITOS · CONTINUE!
         </text>
         <rect
           x={20}
