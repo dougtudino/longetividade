@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { InstallPwaButton } from "@/components/app/install-pwa-button";
 
 const CHALLENGES = [
@@ -109,9 +110,35 @@ export default function Onboarding() {
       </div>
       <p className="mb-2 text-xs font-medium text-gray-400">Etapa {step} de 5</p>
 
-      {/* Step 1 — Nome + Objetivo */}
+      {/* Step 1 — Apresentação do Broto + Nome + Objetivo */}
       {step === 1 && (
         <div className="flex-1">
+          {/* Broto apresentação — antes de pedir qualquer coisa, mostra
+              quem vai acompanhar a jornada. Sem login state ainda, então
+              renderizamos direto a sprite stage-2 (acolhedora). */}
+          <div className="mb-6 flex flex-col items-center text-center">
+            <Image
+              src="/broto/stage-2-brotinho.png"
+              alt="Broto, seu companheiro de jornada"
+              width={140}
+              height={140}
+              priority
+              style={{ animation: "brotoBreath 4s ease-in-out infinite", transformOrigin: "center bottom" }}
+            />
+            <p className="mt-3 text-sm font-bold" style={{ color: "#3B6D11" }}>
+              Oi, eu sou o Broto 🌱
+            </p>
+            <p className="mt-1 text-xs text-gray-500 max-w-xs leading-relaxed">
+              Vou te acompanhar nessa jornada. Cada cuidado seu me faz crescer junto.
+            </p>
+            <style jsx>{`
+              @keyframes brotoBreath {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.035); }
+              }
+            `}</style>
+          </div>
+
           <h2 className="mb-2 text-2xl font-bold text-gray-900">Como posso te chamar?</h2>
           <input
             type="text"

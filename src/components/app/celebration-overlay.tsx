@@ -1,11 +1,15 @@
 "use client";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 type CelebrationOverlayProps = {
   show: boolean;
   title: string;
   subtitle?: string;
   emoji: string;
+  // Opcional: imagem (ex: Broto moment-cycle-complete.png) substitui emoji.
+  // Quando preenchido, eclipsa o emoji.
+  imageSrc?: string;
   onClose: () => void;
 };
 
@@ -14,6 +18,7 @@ export function CelebrationOverlay({
   title,
   subtitle,
   emoji,
+  imageSrc,
   onClose,
 }: CelebrationOverlayProps) {
   const [visible, setVisible] = useState(false);
@@ -80,7 +85,20 @@ export function CelebrationOverlay({
           maxWidth: 320,
         }}
       >
-        <span className="text-6xl block mb-4">{emoji}</span>
+        {imageSrc ? (
+          <div className="mx-auto mb-4" style={{ width: 140, height: 140 }}>
+            <Image
+              src={imageSrc}
+              alt={title}
+              width={140}
+              height={140}
+              priority
+              style={{ objectFit: "contain", width: "100%", height: "100%" }}
+            />
+          </div>
+        ) : (
+          <span className="text-6xl block mb-4">{emoji}</span>
+        )}
         <h2 className="text-xl font-black text-gray-900 mb-2">{title}</h2>
         {subtitle && (
           <p className="text-sm text-gray-500">{subtitle}</p>

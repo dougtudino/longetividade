@@ -148,8 +148,13 @@ export default function DesafioPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200" style={{ borderTopColor: "#639922" }} />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "#FAF8F5" }}>
+        {/* Loading state com Broto — sem estado real ainda, usa stage 2
+            (brotinho acolhedor) como placeholder enquanto carrega. */}
+        <div className="flex flex-col items-center">
+          <BrotoAvatar state={brotoState} size={100} />
+          <p className="mt-2 text-xs text-gray-400">Carregando...</p>
+        </div>
         <AppNav />
       </div>
     );
