@@ -61,9 +61,17 @@ export function AppHeader() {
         </span>
       </div>
 
-      {/* Logo: 21 Dias */}
-      <Link href="/app/home" className="text-sm font-black" style={{ color: "#639922" }}>
-        {APP_BRAND.name}
+      {/* Logo: 21 Dias + tagline empilhado (responde "21 dias de quê?") */}
+      <Link href="/app/home" className="flex flex-col items-center leading-none">
+        <span className="text-sm font-black" style={{ color: "#639922" }}>
+          {APP_BRAND.name}
+        </span>
+        <span
+          className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider"
+          style={{ color: "#9ca3af", letterSpacing: "0.08em" }}
+        >
+          {APP_BRAND.tagline}
+        </span>
       </Link>
 
       {/* Right: Notif + Avatar */}
