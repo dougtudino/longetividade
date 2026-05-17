@@ -10,15 +10,15 @@ import { MockupCalendarDetox } from "@/components/mockups/mockup-calendar-detox"
 const HEADLINE_VARIANTS = {
   A: {
     h1: "Pare de comecar dieta na segunda-feira.",
-    sub: "Siga um calendario simples de 21 dias para voltar ao controle — sem dieta maluca, sem culpa, sem recomecar do zero.",
+    sub: "Um calendario. 21 dias. Voce so marca o que ja fez. A gente cuidou do resto.",
   },
   B: {
     h1: "Um dia de cada vez.",
-    sub: "Um calendario simples para mulheres que querem emagrecer sem radicalismo.",
+    sub: "Um calendario simples pra continuar quando voce sempre desistia.",
   },
   C: {
-    h1: "O calendario detox que ajuda voce a finalmente continuar.",
-    sub: "21 dias. Habitos pequenos. Sem dieta. Sem culpa. Sem recomecar.",
+    h1: "O calendario que ajuda voce a finalmente continuar.",
+    sub: "21 dias. Habitos pequenos. Sem cardapio fechado, sem culpa de domingo.",
   },
 };
 
@@ -83,9 +83,9 @@ export function DetoxHero() {
             {/* 3 micro-promessas — bullets enxutos com check icon */}
             <ul className="space-y-3.5 mb-10 max-w-xl mx-auto lg:mx-0">
               {[
-                "Habitos simples, um dia de cada vez",
-                "Checklist diario pra colar na geladeira",
-                "Progresso visual no app — seu streak, sua jornada",
+                "Um habito por dia. So isso.",
+                "Marca na geladeira. Marca no app. Continua.",
+                "No dia 21 voce olha pra tras e ja virou rotina.",
               ].map((text, i) => (
                 <li
                   key={i}
@@ -138,7 +138,7 @@ export function DetoxHero() {
                 className="font-body text-xs md:text-sm"
                 style={{ color: "var(--text-muted)" }}
               >
-                Garantia de 7 dias · Pagamento seguro · Acesso imediato
+                Acesso na hora · Garantia de 7 dias · Comeca hoje se quiser
               </p>
             </div>
 
@@ -153,7 +153,7 @@ export function DetoxHero() {
               <span className="flex items-center gap-1.5">
                 <span style={{ color: "#E5A53C" }}>★★★★★</span> 4.9
               </span>
-              <span>+12.400 aceitaram o desafio</span>
+              <span>+12.400 mulheres ja marcaram o dia 1</span>
               <span>Garantia 7 dias</span>
             </div>
           </div>

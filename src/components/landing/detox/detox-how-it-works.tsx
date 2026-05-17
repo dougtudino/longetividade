@@ -1,24 +1,22 @@
 import { MockupDayCard } from "@/components/mockups/mockup-day-card";
 
+// Brief fase 2: 1 acao principal por dia + 2 micro-detalhes emocionais.
+// Sair de "lista de tarefas" pra "1 promessa leve + 2 reasseguros".
 const DAYS = [
   {
     n: 1,
-    title: "Comecar leve",
-    tasks: ["Beber 2L de agua", "Cafe com proteina", "Caminhada 10 min"],
+    title: "Beber mais agua",
+    tasks: ["O resto da rotina continua igual", "Marca no app quando lembrar"],
   },
   {
     n: 2,
-    title: "Criar ritmo",
-    tasks: [
-      "Repetir habitos do dia 1",
-      "Substituir 1 refeicao",
-      "Marcar progresso no app",
-    ],
+    title: "Jantar mais leve",
+    tasks: ["Sem cardapio fechado", "Continua marcando — virou 2 dias"],
   },
   {
     n: 3,
-    title: "Sentir diferenca",
-    tasks: ["3 dias seguidos", "Streak ativo", "Roupa vestindo diferente"],
+    title: "Comer sem culpa",
+    tasks: ["E ok errar no fim de semana", "O calendario lembra por voce"],
   },
 ];
 
@@ -43,13 +41,13 @@ export function DetoxHowItWorks() {
               letterSpacing: "-0.02em",
             }}
           >
-            Nao e dieta. E um calendario simples.
+            Voce so segue. A gente ja organizou.
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            21 dias. Habitos pequenos. Voce so segue — a gente ja organizou tudo.
+            21 dias. Um habito de cada vez. Sem cardapio fechado, sem regra dificil.
           </p>
         </div>
 

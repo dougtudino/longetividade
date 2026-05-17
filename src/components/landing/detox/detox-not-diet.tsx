@@ -50,7 +50,7 @@ export function DetoxNotDiet() {
               letterSpacing: "-0.02em",
             }}
           >
-            Isso nao e mais uma dieta. E continuidade.
+            Isso aqui voce consegue continuar.
           </h2>
         </div>
 

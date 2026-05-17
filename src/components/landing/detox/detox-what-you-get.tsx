@@ -34,17 +34,17 @@ const EXTRAS = [
   {
     icon: "🍳",
     label: "Receitas praticas",
-    sub: "Pratos simples que dao pra fazer em 15 min, com ingredientes do dia a dia.",
+    sub: "Pratos de 15 minutos. Ingredientes que ja tem no armario.",
   },
   {
     icon: "🛒",
     label: "Lista de compras",
-    sub: "Semana inteira em 1 pagina, organizada por categoria. Sem improvisar.",
+    sub: "Imprime, leva no mercado, risca o que pegou. Nada de improviso.",
   },
   {
     icon: "📖",
     label: "Cartilha de habitos",
-    sub: "O que fazer quando der vontade de desistir. Estrategia pra cada cenario.",
+    sub: "Pra ler quando bater a vontade de desistir. Tem resposta pronta pra cada dia dificil.",
   },
 ];
 
@@ -59,7 +59,7 @@ export function DetoxWhatYouGet() {
   const items = [
     {
       label: "Calendario A3 imprimivel",
-      sub: "Pendura na geladeira, marca todo dia.",
+      sub: "Imprime, pendura na geladeira, marca com caneta. Igual quando voce era crianca.",
       visual: kitPhotoUrl ? (
         <PhotoCard src={kitPhotoUrl} alt="Kit Detox fisico" aspect="1/1" />
       ) : (
@@ -68,7 +68,7 @@ export function DetoxWhatYouGet() {
     },
     {
       label: "App de acompanhamento",
-      sub: "Seu streak, seus habitos, seu progresso.",
+      sub: "Abre no celular, marca o dia, fecha. 15 segundos.",
       visual: appPhotoUrl ? (
         <PhotoCard src={appPhotoUrl} alt="App de acompanhamento" aspect="3/4" />
       ) : (
@@ -77,7 +77,7 @@ export function DetoxWhatYouGet() {
     },
     {
       label: "Checklist diario",
-      sub: "Beber agua, refeicao, movimento, sono.",
+      sub: "4 coisinhas por dia. Marcou, ta feito.",
       visual: checklistPhotoUrl ? (
         <PhotoCard src={checklistPhotoUrl} alt="Checklist impresso" aspect="4/5" />
       ) : (
@@ -110,14 +110,13 @@ export function DetoxWhatYouGet() {
               letterSpacing: "-0.02em",
             }}
           >
-            Veja o que chega na sua tela
+            O que voce abre no dia 1
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Sem mil PDFs separados. Sem perder tempo organizando. Voce abre,
-            segue, marca.
+            Tudo num lugar so. Voce abre, segue, marca. Acabou.
           </p>
         </div>
 

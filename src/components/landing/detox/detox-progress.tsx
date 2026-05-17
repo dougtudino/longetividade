@@ -29,17 +29,17 @@ const FALLBACK_QUOTES: Quote[] = [
   {
     id: "fallback-1",
     name: "Camila R.",
-    text: "Nao acreditei que ia conseguir 21 dias. No dia 18 nem pensava mais — ja era automatico.",
+    text: "Foi a primeira vez que consegui continuar. No dia 18 nem precisava mais lembrar — ja era automatico.",
   },
   {
     id: "fallback-2",
     name: "Patricia M.",
-    text: "Marcar o calendario virou meu momento do dia. E bobo, mas funciona.",
+    text: "Marcar o calendario virou meu momentinho do dia. Parecia leve. Por isso funcionou.",
   },
   {
     id: "fallback-3",
     name: "Fernanda B.",
-    text: "Nao emagreci 10kg. Emagreci 4kg e parei de odiar segunda-feira.",
+    text: "Nao parecia dieta. Parecia uma rotina que finalmente cabia em mim. Emagreci 4kg e parei de odiar segunda-feira.",
   },
 ];
 
@@ -109,8 +109,8 @@ export function DetoxProgress() {
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Cada habito marcado e um passo. 21 passos depois, voce esta em
-            outro lugar.
+            Cada marcacao no calendario e um passo. No dia 21 voce ja nao e
+            mais a mesma.
           </p>
         </div>
 

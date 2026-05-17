@@ -18,7 +18,7 @@ export function PricingSection() {
     >
       <div className="mx-auto max-w-5xl px-4">
         <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-8" style={{color: 'var(--text-primary)'}}>
-          Escolha como voce quer comecar
+          Escolha como voce quer comecar seu dia 1
         </h2>
 
         <div className="mx-auto max-w-lg mb-10">
@@ -35,9 +35,9 @@ export function PricingSection() {
             ))}
           </div>
           <p className="font-body text-base md:text-lg font-medium mt-4 text-center" style={{color: 'var(--text-primary)'}}>
-            Facilmente voce gasta mais de{" "}
-            <strong>R$ 800 por mes</strong> tentando resolver de formas que nao
-            funcionam.
+            Voce ja gastou mais de{" "}
+            <strong>R$ 800 num mes</strong> tentando resolver de outras formas.
+            Essa daqui voce comeca hoje, por menos.
           </p>
         </div>
 

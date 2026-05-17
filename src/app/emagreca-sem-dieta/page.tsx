@@ -28,6 +28,28 @@ import { SocialProofBlock } from "@/components/landing/social-proof-block";
 import { StickyBottomCTA } from "@/components/landing/sticky-bottom-cta";
 import LeadCapture from "@/components/LeadCapture";
 
+// Pill emocional usado entre secoes — frase curta em italico tipo "lema".
+// Cria respiro emocional e reforca o sentimento de leveza.
+function Pill({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      aria-hidden
+      className="text-center py-6 md:py-8"
+      style={{ backgroundColor: "var(--bg-page)" }}
+    >
+      <span
+        className="inline-block font-body italic text-sm md:text-base"
+        style={{
+          color: "var(--text-muted)",
+          letterSpacing: "0.02em",
+        }}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
 export default function EmagrecaSemDietaPage() {
   useEffect(() => {
     captureUTMs(new URLSearchParams(window.location.search));
@@ -51,11 +73,13 @@ export default function EmagrecaSemDietaPage() {
 
       <DetoxHero />
       <DetoxHowItWorks />
+      <Pill>um dia de cada vez</Pill>
       {/* LifestyleBlock: DB-driven (kind=lifestyle/photo). So renderiza se admin
           cadastrou >=3 fotos. Reforca "sem dieta. na vida real." */}
       <LifestyleBlock />
       <DetoxWhatYouGet />
       <DetoxNotDiet />
+      <Pill>continuar vale mais que recomecar</Pill>
       <DetoxProgress />
       {/* DetoxWomenGallery: DB-driven (kind=women-gallery). So renderiza se admin
           cadastrou >=6 mulheres com nome+caption+foto. */}
@@ -66,6 +90,7 @@ export default function EmagrecaSemDietaPage() {
       {/* SocialProofBlock: DB-driven (kind=whatsapp/testimonial, row=3). Prints
           de WhatsApp. So renderiza se >=3 items ativos na row 3. */}
       <SocialProofBlock />
+      <Pill>voce so marca. a gente ja pensou.</Pill>
       <PricingSection />
       <DetoxFaq />
       <DetoxFinalCta />

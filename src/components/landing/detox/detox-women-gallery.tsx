@@ -76,8 +76,8 @@ export function DetoxWomenGallery() {
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Elas comecaram um dia. Marcaram a primeira tarefa. Hoje sao outras
-            pessoas.
+            Comecaram num dia comum. Marcaram a primeira tarefinha. Hoje
+            contam que parecia impossivel.
           </p>
         </div>
 
