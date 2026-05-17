@@ -427,23 +427,34 @@ export default function AppHome() {
             );
           })}
 
-          {/* Linha de peso (semanal) */}
-          {wellbeing?.needsWeighIn && (
-            <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
-              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-base" style={{ backgroundColor: "#FFF6E7" }}>
-                ⚖️
-              </div>
-              <span className="text-sm text-gray-700">Atualizar peso (semanal)</span>
-              <input
-                type="number"
-                step="0.1"
-                value={weightInput}
-                onChange={(e) => setWeightInput(e.target.value)}
-                placeholder={wellbeing.currentWeight ? `${wellbeing.currentWeight}` : "kg"}
-                className="ml-auto w-16 rounded-lg border border-gray-200 px-2 py-1 text-right text-sm outline-none focus:border-[#639922]"
-              />
+          {/* Linha de peso — sempre visivel. Em semanas que ja pesou
+              fica neutro (opcional); em semanas que precisa pesar
+              fica destacado em amarelo. Submetido junto com "Marcar
+              meu dia" se houver valor; ou via secao Evolucao. */}
+          <div
+            className="flex items-center gap-3 rounded-xl px-2 py-1.5"
+            style={{
+              backgroundColor: wellbeing?.needsWeighIn ? "#FFF6E7" : "transparent",
+            }}
+          >
+            <div
+              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-base"
+              style={{ backgroundColor: wellbeing?.needsWeighIn ? "white" : "#f3f4f6" }}
+            >
+              ⚖️
             </div>
-          )}
+            <span className="text-sm text-gray-700">
+              {wellbeing?.needsWeighIn ? "Atualizar peso (semanal)" : "Registrar peso (opcional)"}
+            </span>
+            <input
+              type="number"
+              step="0.1"
+              value={weightInput}
+              onChange={(e) => setWeightInput(e.target.value)}
+              placeholder={wellbeing?.currentWeight ? `${wellbeing.currentWeight}` : "kg"}
+              className="ml-auto w-16 rounded-lg border border-gray-200 px-2 py-1 text-right text-sm outline-none focus:border-[#639922]"
+            />
+          </div>
         </div>
 
         {/* Botão "Marcar meu dia" */}

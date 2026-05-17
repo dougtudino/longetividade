@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 
@@ -31,6 +31,7 @@ type Stats = {
 };
 type LevelInfo = { level: number; levelName: string; xp: number; nextLevelXp: number };
 type Achievement = { id: string; name: string; icon: string; earnedAt: string };
+type WeightLog = { weight: number; loggedAt: string; note?: string | null };
 
 export default function EvolucaoPage() {
   const [wellbeing, setWellbeing] = useState<Summary | null>(null);
@@ -38,8 +39,13 @@ export default function EvolucaoPage() {
   const [cycleStats, setCycleStats] = useState<Stats | null>(null);
   const [level, setLevel] = useState<LevelInfo | null>(null);
   const [earned, setEarned] = useState<Achievement[]>([]);
+  const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
+  const [weightInput, setWeightInput] = useState("");
+  const [weightNote, setWeightNote] = useState("");
+  const [weightSaving, setWeightSaving] = useState(false);
+  const [weightSaved, setWeightSaved] = useState(false);
 
-  useEffect(() => {
+  const fetchAll = useCallback(() => {
     fetch("/api/app/wellbeing-week").then((r) => r.json()).then(setWellbeing);
     fetch("/api/app/cycles").then((r) => r.json()).then((d) => {
       setCycles(d.cycles ?? []);
@@ -49,7 +55,38 @@ export default function EvolucaoPage() {
       setLevel(d.level ?? null);
       setEarned(d.earned ?? []);
     });
+    fetch("/api/app/weight").then((r) => r.json()).then((d) => {
+      // GET sem ?date retorna histórico completo ordenado ASC
+      const logs = (d.logs ?? []).slice().reverse(); // mais recente primeiro
+      setWeightLogs(logs.slice(0, 10)); // ultimas 10
+    });
   }, []);
+
+  useEffect(() => {
+    fetchAll();
+  }, [fetchAll]);
+
+  async function saveWeight() {
+    const w = parseFloat(weightInput);
+    if (isNaN(w) || w <= 0) return;
+    setWeightSaving(true);
+    try {
+      const r = await fetch("/api/app/weight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weight: w, note: weightNote || null }),
+      });
+      if (r.ok) {
+        setWeightInput("");
+        setWeightNote("");
+        setWeightSaved(true);
+        setTimeout(() => setWeightSaved(false), 2000);
+        fetchAll();
+      }
+    } finally {
+      setWeightSaving(false);
+    }
+  }
 
   return (
     <div className="px-5 pb-24 pt-6" style={{ background: "#FAF8F5", minHeight: "100vh" }}>
@@ -81,6 +118,79 @@ export default function EvolucaoPage() {
           )}
         </div>
       )}
+
+      {/* ─── Peso (input + ultimas pesagens) ─── */}
+      <div className="mb-5 rounded-2xl bg-white p-4 border border-gray-100">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-500">Peso</p>
+          {wellbeing?.currentWeight != null && (
+            <p className="text-xs text-gray-500">
+              atual: <strong style={{ color: "#1f2937" }}>{wellbeing.currentWeight}kg</strong>
+              {wellbeing.weightDelta != null && wellbeing.weightDelta !== 0 && (
+                <span style={{ color: wellbeing.weightDelta < 0 ? "#639922" : "#C4787A", marginLeft: 6 }}>
+                  ({wellbeing.weightDelta < 0 ? "−" : "+"}{Math.abs(wellbeing.weightDelta).toFixed(1)}kg / 7d)
+                </span>
+              )}
+            </p>
+          )}
+        </div>
+
+        {/* Input registrar */}
+        <div className="mb-3 flex gap-2">
+          <input
+            type="number"
+            step="0.1"
+            value={weightInput}
+            onChange={(e) => setWeightInput(e.target.value)}
+            placeholder="Ex: 72.5"
+            className="flex-1 rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#639922]"
+          />
+          <button
+            onClick={saveWeight}
+            disabled={!weightInput || weightSaving}
+            className="rounded-xl px-4 py-2.5 text-sm font-bold text-white disabled:opacity-40"
+            style={{ backgroundColor: "#639922" }}
+          >
+            {weightSaved ? "Salvo ✓" : weightSaving ? "..." : "Registrar"}
+          </button>
+        </div>
+        <input
+          type="text"
+          value={weightNote}
+          onChange={(e) => setWeightNote(e.target.value)}
+          placeholder="Nota (opcional, ex: jejum / após treino)"
+          className="mb-3 w-full rounded-xl border border-gray-200 px-3 py-2 text-xs outline-none focus:border-[#639922]"
+        />
+
+        {/* Ultimas pesagens */}
+        {weightLogs.length > 0 && (
+          <div>
+            <p className="mb-2 text-[10px] uppercase tracking-wider text-gray-400">
+              Últimas pesagens
+            </p>
+            <div className="flex flex-col gap-1">
+              {weightLogs.slice(0, 5).map((w, i) => (
+                <div key={i} className="flex items-center justify-between rounded-lg bg-gray-50 px-3 py-2 text-xs">
+                  <span className="font-bold text-gray-800">{w.weight} kg</span>
+                  <span className="text-gray-400">
+                    {new Date(w.loggedAt).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "short",
+                    })}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <Link
+              href="/app/progresso"
+              className="mt-2 block text-center text-xs font-bold"
+              style={{ color: "#639922" }}
+            >
+              Ver gráfico completo →
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* ─── Esta semana ─── */}
       {wellbeing && (
