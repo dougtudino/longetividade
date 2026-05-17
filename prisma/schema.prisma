@@ -622,6 +622,7 @@ model AppCycle {
   id            String         @id @default(uuid())
   userId        String
   cycleNumber   Int
+  difficulty    String         @default("normal") // easy | normal | hard
   startDate     DateTime       @default(now())
   endDate       DateTime?
   status        String         @default("active") // active | paused | completed

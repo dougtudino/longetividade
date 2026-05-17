@@ -63,6 +63,7 @@ async function getChallenge(userId: string) {
       ? {
           id: targetCycle.id,
           cycleNumber: targetCycle.cycleNumber,
+          difficulty: targetCycle.difficulty ?? "normal",
           status: targetCycle.status,
           daysCompleted: targetCycle.daysCompleted,
           startDate: targetCycle.startDate,

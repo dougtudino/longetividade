@@ -684,6 +684,11 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppChallenge userId+cycleId+day unique",
     sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppChallenge_userId_cycleId_day_key" ON "AppChallenge"("userId", "cycleId", "day")`,
   },
+  {
+    // S3.1: niveis de dificuldade no ciclo (easy/normal/hard)
+    label: "AppCycle difficulty column",
+    sql: `ALTER TABLE "AppCycle" ADD COLUMN IF NOT EXISTS "difficulty" TEXT NOT NULL DEFAULT 'normal'`,
+  },
 ];
 
 export type MigrationResult = {

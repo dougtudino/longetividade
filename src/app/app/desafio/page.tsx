@@ -13,9 +13,12 @@ type ChallengeDay = {
   ctaPath: string;
 };
 
+type CycleDifficulty = "easy" | "normal" | "hard";
+
 type CycleSummary = {
   id: string;
   cycleNumber: number;
+  difficulty: CycleDifficulty;
   status: "active" | "paused" | "completed";
   startDate: string;
   endDate: string | null;
@@ -30,6 +33,7 @@ type CycleSummary = {
 type CyclesResponse = {
   cycles: CycleSummary[];
   current: CycleSummary | null;
+  suggestedDifficulty: CycleDifficulty;
   stats: {
     totalCycles: number;
     completedCycles: number;
@@ -40,6 +44,27 @@ type CyclesResponse = {
   };
 };
 
+const DIFFICULTY_META: Record<CycleDifficulty, { label: string; subtitle: string; color: string; icon: string }> = {
+  easy: {
+    label: "Suave",
+    subtitle: "Entrada gentil. Pequenos passos diarios.",
+    color: "#8BC34A",
+    icon: "🌱",
+  },
+  normal: {
+    label: "Constante",
+    subtitle: "Ritmo equilibrado. Habitos firmando.",
+    color: "#639922",
+    icon: "🌿",
+  },
+  hard: {
+    label: "Intenso",
+    subtitle: "Pra quem ja consolidou e quer subir.",
+    color: "#BA7517",
+    icon: "🌳",
+  },
+};
+
 type ChallengeResponse = {
   days: ChallengeDay[];
   progress: number[];
@@ -47,6 +72,7 @@ type ChallengeResponse = {
   cycle: {
     id: string;
     cycleNumber: number;
+    difficulty?: CycleDifficulty;
     status: string;
     daysCompleted: number;
     startDate: string;
@@ -76,6 +102,7 @@ export default function DesafioPage() {
   const [actioning, setActioning] = useState(false);
   const [celebration, setCelebration] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<CycleDifficulty | null>(null);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -112,10 +139,14 @@ export default function DesafioPage() {
     setCompleting(false);
   };
 
-  const callCycleAction = async (path: string) => {
+  const callCycleAction = async (path: string, body?: Record<string, unknown>) => {
     if (actioning) return;
     setActioning(true);
-    const res = await fetch(`/api/app/cycles/${path}`, { method: "POST" });
+    const res = await fetch(`/api/app/cycles/${path}`, {
+      method: "POST",
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
     if (res.ok) await fetchAll();
     setActioning(false);
   };
@@ -188,24 +219,84 @@ export default function DesafioPage() {
         </div>
       )}
 
-      {/* Banner: precisa comecar novo ciclo */}
-      {needsNewCycle && (
-        <div className="mb-4 rounded-2xl p-4 text-center" style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}>
-          <p className="mb-2 text-2xl">🏆</p>
-          <p className="text-sm font-bold" style={{ color: "#3B6D11" }}>
-            Ciclo {cycle?.cycleNumber} concluido!
+      {/* Banner: precisa comecar novo ciclo OU nao tem nenhum ciclo */}
+      {(needsNewCycle || !cycle) && (
+        <div className="mb-4 rounded-2xl p-4" style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}>
+          <div className="text-center mb-3">
+            <p className="text-2xl">{cycle ? "🏆" : "✨"}</p>
+            <p className="text-sm font-bold" style={{ color: "#3B6D11" }}>
+              {cycle ? `Ciclo ${cycle.cycleNumber} concluido!` : "Pronta pra sua primeira jornada?"}
+            </p>
+            <p className="mt-1 text-xs text-gray-600">
+              {cycle
+                ? `Voce ja completou ${stats?.totalDaysCompleted ?? 0} dias no total.`
+                : "Escolha sua intensidade. Voce pode subir entre ciclos."}
+            </p>
+          </div>
+
+          {/* Seletor de dificuldade */}
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            Escolha a intensidade
           </p>
-          <p className="mt-1 mb-3 text-xs text-gray-600">
-            Voce ja completou {stats?.totalDaysCompleted ?? 0} dias no total. Pronta pro proximo?
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            {(["easy", "normal", "hard"] as CycleDifficulty[]).map((d) => {
+              const meta = DIFFICULTY_META[d];
+              const isSuggested = cyclesData?.suggestedDifficulty === d;
+              const isSelected = selectedDifficulty === d || (selectedDifficulty === null && isSuggested);
+              return (
+                <button
+                  key={d}
+                  onClick={() => setSelectedDifficulty(d)}
+                  className="rounded-xl p-2 text-center transition-all"
+                  style={{
+                    backgroundColor: isSelected ? meta.color : "white",
+                    color: isSelected ? "white" : meta.color,
+                    border: `2px solid ${meta.color}`,
+                  }}
+                >
+                  <div className="text-xl">{meta.icon}</div>
+                  <div className="text-[11px] font-bold mt-0.5">{meta.label}</div>
+                  {isSuggested && !selectedDifficulty && (
+                    <div className="text-[8px] mt-0.5 uppercase tracking-wider opacity-90">sugerida</div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mb-3 text-[11px] italic text-gray-600 text-center">
+            {DIFFICULTY_META[selectedDifficulty ?? cyclesData?.suggestedDifficulty ?? "normal"].subtitle}
           </p>
+
           <button
-            onClick={() => callCycleAction("start")}
+            onClick={() =>
+              callCycleAction("start", {
+                difficulty: selectedDifficulty ?? cyclesData?.suggestedDifficulty ?? "normal",
+              })
+            }
             disabled={actioning}
             className="w-full rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-60"
             style={{ backgroundColor: "#639922" }}
           >
-            {actioning ? "..." : `Comecar Ciclo ${(cycle?.cycleNumber ?? 0) + 1}`}
+            {actioning ? "..." : cycle ? `Comecar Ciclo ${(cycle.cycleNumber ?? 0) + 1}` : "Comecar primeira jornada"}
           </button>
+        </div>
+      )}
+
+      {/* Tarja info: como avancar */}
+      {cycle && cycle.status === "active" && !needsNewCycle && (
+        <div
+          className="mb-4 rounded-xl p-3 text-xs"
+          style={{ backgroundColor: "#F0F7FF", border: "1px dashed #d4e8fc", color: "#1e3a5f" }}
+        >
+          <strong>Dica:</strong> marque 5+ habitos no checkin de hoje e o dia do desafio avanca automatico.
+          {cycle.difficulty && DIFFICULTY_META[cycle.difficulty] && (
+            <span className="ml-1">
+              Dificuldade atual:{" "}
+              <span style={{ color: DIFFICULTY_META[cycle.difficulty].color, fontWeight: 700 }}>
+                {DIFFICULTY_META[cycle.difficulty].icon} {DIFFICULTY_META[cycle.difficulty].label}
+              </span>
+            </span>
+          )}
         </div>
       )}
 

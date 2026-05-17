@@ -3,10 +3,12 @@ import { prisma } from "./prisma";
 export const CYCLE_LENGTH_DAYS = 21;
 
 export type CycleStatus = "active" | "paused" | "completed";
+export type CycleDifficulty = "easy" | "normal" | "hard";
 
 export type CycleSummary = {
   id: string;
   cycleNumber: number;
+  difficulty: CycleDifficulty;
   status: CycleStatus;
   startDate: Date;
   endDate: Date | null;
@@ -21,6 +23,7 @@ export type CycleSummary = {
 function toSummary(c: {
   id: string;
   cycleNumber: number;
+  difficulty?: string | null;
   status: string;
   startDate: Date;
   endDate: Date | null;
@@ -29,9 +32,11 @@ function toSummary(c: {
   resumedAt: Date | null;
   completedAt: Date | null;
 }): CycleSummary {
+  const diff = (c.difficulty ?? "normal") as CycleDifficulty;
   return {
     id: c.id,
     cycleNumber: c.cycleNumber,
+    difficulty: ["easy", "normal", "hard"].includes(diff) ? diff : "normal",
     status: c.status as CycleStatus,
     startDate: c.startDate,
     endDate: c.endDate,
@@ -42,6 +47,25 @@ function toSummary(c: {
     resumedAt: c.resumedAt,
     completedAt: c.completedAt,
   };
+}
+
+// Sugere dificuldade pro proximo ciclo baseado em historico:
+// - Sem ciclos: easy (primeira jornada, foco em criar habito)
+// - Ultimo concluido em easy: sugere normal (subir 1 degrau)
+// - Ultimo concluido em normal: sugere hard
+// - Ultimo concluido em hard: sugere hard (mestria)
+// - Ultimo pausado/incompleto: sugere mesma dificuldade (consolidar)
+export async function suggestNextDifficulty(userId: string): Promise<CycleDifficulty> {
+  const last = await prisma.appCycle.findFirst({
+    where: { userId },
+    orderBy: { cycleNumber: "desc" },
+  });
+  if (!last) return "easy";
+  const lastDiff = ((last.difficulty ?? "normal") as CycleDifficulty);
+  if (last.status !== "completed") return lastDiff; // consolida o mesmo
+  if (lastDiff === "easy") return "normal";
+  if (lastDiff === "normal") return "hard";
+  return "hard"; // mestria continua hard
 }
 
 // Garante que o user tem um ciclo "vivo" (active ou paused) e migra
@@ -84,6 +108,7 @@ export async function ensureActiveCycle(userId: string) {
     data: {
       userId,
       cycleNumber: 1,
+      difficulty: "easy", // Ciclo 1 retroativo eh sempre easy (entrada gentil)
       startDate,
       status: legacyCount >= CYCLE_LENGTH_DAYS ? "completed" : "active",
       daysCompleted: Math.min(CYCLE_LENGTH_DAYS, legacyCount),
@@ -184,8 +209,8 @@ export async function resumeCycle(userId: string) {
 }
 
 // Comeca o proximo ciclo (cycleNumber = max+1). Exige que nao haja ciclo
-// active/paused pendente.
-export async function startNewCycle(userId: string) {
+// active/paused pendente. Se difficulty nao passada, usa suggestNextDifficulty.
+export async function startNewCycle(userId: string, difficulty?: CycleDifficulty) {
   const blocking = await prisma.appCycle.findFirst({
     where: { userId, status: { in: ["active", "paused"] } },
   });
@@ -200,11 +225,16 @@ export async function startNewCycle(userId: string) {
     orderBy: { cycleNumber: "desc" },
   });
   const nextNumber = (last?.cycleNumber ?? 0) + 1;
+  const chosen: CycleDifficulty =
+    difficulty && ["easy", "normal", "hard"].includes(difficulty)
+      ? difficulty
+      : await suggestNextDifficulty(userId);
 
   const created = await prisma.appCycle.create({
     data: {
       userId,
       cycleNumber: nextNumber,
+      difficulty: chosen,
       startDate: new Date(),
       status: "active",
     },
