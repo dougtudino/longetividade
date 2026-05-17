@@ -5,68 +5,47 @@ import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 import { DateScrubber } from "@/components/app/date-scrubber";
+import { AvatarFantasy, tierLabel } from "@/components/app/avatar-fantasy";
 
 function todayIso(): string {
   return new Date().toISOString().split("T")[0];
 }
 
-type Profile = {
-  name: string;
-  createdAt: string;
+type Profile = { name: string; createdAt: string };
+type Checkin = { waterCount: number; habits: Record<string, boolean>; exerciseDone: boolean };
+type TodayMood = { mood: string; loggedAt: string } | null;
+type LevelInfo = { level: number; levelName: string; xp: number; nextLevelXp: number };
+type RecentBadge = { id: string; name: string; icon: string; earnedAt: string };
+type Quest = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  xp: number;
+  done: boolean;
+  progress?: { current: number; target: number };
+  ctaPath: string;
 };
-
-type Checkin = {
-  waterCount: number;
-  habits: Record<string, boolean>;
-  exerciseDone: boolean;
+type QuestsResponse = {
+  date: string;
+  quests: Quest[];
+  summary: { totalQuests: number; totalDone: number; allDone: boolean };
+  yesterday: {
+    date: string;
+    habitsPercent: number;
+    waterCount: number;
+    exerciseDone: boolean;
+    mood: string | null;
+  } | null;
+  recentAchievements: Array<{ name: string; icon: string; xp: number; earnedAt: string }>;
+  challengeDayToday: number | null;
 };
-
-type TodayMood = {
-  mood: string;
-  loggedAt: string;
-} | null;
-
 type ChallengeProgress = {
   completedCount: number;
   currentDay: number;
   cycleNumber: number | null;
   cycleStatus: "active" | "paused" | "completed" | null;
   needsNewCycle: boolean;
-};
-
-type RecipeSuggestion = {
-  id: string;
-  name: string;
-  category: string;
-  prepTime: number;
-  pillar: string;
-};
-
-type LevelInfo = {
-  level: number;
-  levelName: string;
-  xp: number;
-  nextLevelXp: number;
-};
-
-type RecentBadge = {
-  id: string;
-  name: string;
-  icon: string;
-  earnedAt: string;
-};
-
-const LEVEL_COLORS: Record<number, string> = {
-  1: "#9EBF9E",
-  2: "#9EBF9E",
-  3: "#7A9E7E",
-  4: "#7A9E7E",
-  5: "#639922",
-  6: "#639922",
-  7: "#3D5A3E",
-  8: "#3D5A3E",
-  9: "#1A3A1C",
-  10: "#1A3A1C",
 };
 
 const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
@@ -77,52 +56,17 @@ const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> 
   dificil: { emoji: "😢", label: "Dificil", color: "#F44336" },
 };
 
-function ProgressRing({ percent, size = 80, strokeWidth = 7, color = "#639922" }: {
-  percent: number; size?: number; strokeWidth?: number; color?: string;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (percent / 100) * circumference;
-
-  return (
-    <svg width={size} height={size} className="transform -rotate-90">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke="#f3f4f6"
-        strokeWidth={strokeWidth}
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        fill="none"
-        stroke={color}
-        strokeWidth={strokeWidth}
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        strokeLinecap="round"
-        className="transition-all duration-700 ease-out"
-      />
-    </svg>
-  );
-}
-
 export default function AppHome() {
   const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [quote, setQuote] = useState("");
   const [checkin, setCheckin] = useState<Checkin | null>(null);
-  const [streak7, setStreak7] = useState<boolean[]>([]);
-  const [streakCount, setStreakCount] = useState(0);
   const [todayMood, setTodayMood] = useState<TodayMood>(null);
   const [moodChecked, setMoodChecked] = useState(false);
-  const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
-  const [recipeSuggestion, setRecipeSuggestion] = useState<RecipeSuggestion | null>(null);
   const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
   const [recentBadges, setRecentBadges] = useState<RecentBadge[]>([]);
+  const [questsData, setQuestsData] = useState<QuestsResponse | null>(null);
+  const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
+  const [streakCount, setStreakCount] = useState(0);
   const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
     show: false,
     title: "",
@@ -137,37 +81,37 @@ export default function AppHome() {
   const [selectedDate, setSelectedDate] = useState<string>(todayIso());
   const isToday = selectedDate === todayIso();
 
-  // Re-fetch dados que sao "do dia" quando muda selectedDate. O resto
-  // (profile, quote, achievements, challenge, recipe, streak) eh "global"
-  // e fica num useEffect com [] separado mais abaixo.
+  // Refetch dados do "dia" quando muda selectedDate
   useEffect(() => {
     const dateQuery = isToday ? "" : `?date=${selectedDate}`;
-
     fetch(`/api/app/checkin${dateQuery}`)
       .then((r) => r.json())
       .then((d) => setCheckin(d.checkin));
-
-    // Mood: pra hoje usamos days=1 (logica antiga); pra dia passado, ?date=
     const moodUrl = isToday ? "/api/app/mood?days=1" : `/api/app/mood?date=${selectedDate}`;
     fetch(moodUrl)
       .then((r) => r.json())
       .then((d) => {
-        // Em modo passado, todayLog nao se aplica — usa primeiro mood do dia
         const dayLog = isToday ? d.todayLog : d.logs?.[0] ?? null;
         setTodayMood(dayLog);
         setMoodChecked(true);
       });
+
+    // Quests + recap so faz sentido pra hoje
+    if (isToday) {
+      fetch("/api/app/daily-quests")
+        .then((r) => r.json())
+        .then(setQuestsData)
+        .catch(() => {});
+    }
   }, [selectedDate, isToday]);
 
-  // Dados "globais" + auth — carregam uma vez
+  // Dados "globais" + auth
   useEffect(() => {
     fetch("/api/app/profile").then((r) => {
       if (r.status === 401) { window.location.href = "/app/login"; return null; }
       return r.json();
     }).then((d) => { if (d) setProfile(d.profile); });
-    fetch("/api/app/quote").then((r) => r.json()).then((d) => setQuote(d.quote));
 
-    // Fetch level + achievements
     fetch("/api/app/achievements")
       .then((r) => r.json())
       .then((d) => {
@@ -192,7 +136,6 @@ export default function AppHome() {
       })
       .catch(() => {});
 
-    // Fetch challenge progress
     fetch("/api/app/challenge")
       .then((r) => r.json())
       .then((d) => {
@@ -208,39 +151,17 @@ export default function AppHome() {
       })
       .catch(() => {});
 
-    // Fetch a random recipe suggestion
-    fetch("/api/app/recipes")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.recipes && d.recipes.length > 0) {
-          const idx = Math.floor(Math.random() * d.recipes.length);
-          const r = d.recipes[idx];
-          setRecipeSuggestion({
-            id: r.id,
-            name: r.name,
-            category: r.category,
-            prepTime: r.prepTime,
-            pillar: r.pillar,
-          });
-        }
-      })
-      .catch(() => {});
-
-    // Fetch last 7 days streak + calculate consecutive streak
+    // Streak: contar dias consecutivos com checkin (max 30d lookback) feito client-side
     const days: Promise<boolean>[] = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split("T")[0];
       days.push(
-        fetch(`/api/app/checkin?date=${dateStr}`)
-          .then((r) => r.json())
-          .then((data) => !!data.checkin)
+        fetch(`/api/app/checkin?date=${dateStr}`).then((r) => r.json()).then((data) => !!data.checkin)
       );
     }
     Promise.all(days).then((results) => {
-      setStreak7(results);
-      // Count consecutive days from today backwards
       let count = 0;
       for (let i = results.length - 1; i >= 0; i--) {
         if (results[i]) count++;
@@ -250,16 +171,6 @@ export default function AppHome() {
     });
   }, []);
 
-  const habitsTotal = 10;
-  const habitsCount = checkin?.habits ? Object.values(checkin.habits).filter(Boolean).length : 0;
-  const waterCount = checkin?.waterCount ?? 0;
-  const habitsPercent = Math.round((habitsCount / habitsTotal) * 100);
-
-  // Days in the method
-  const daysInMethod = profile?.createdAt
-    ? Math.max(1, Math.floor((Date.now() - new Date(profile.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
-    : 0;
-
   const greeting = () => {
     const h = new Date().getHours();
     if (h < 12) return "Bom dia";
@@ -268,18 +179,24 @@ export default function AppHome() {
   };
 
   const firstName = profile?.name ? profile.name.split(" ")[0] : "";
+  const daysInMethod = profile?.createdAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(profile.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
-  const today = new Date().toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  const level = levelInfo?.level ?? 1;
+  const xp = levelInfo?.xp ?? 0;
+  const nextLevelXp = levelInfo?.nextLevelXp ?? 100;
+  const currentLevelXp = (level - 1) * (level - 1) * 100;
+  const xpInLevel = xp - currentLevelXp;
+  const xpNeeded = nextLevelXp - currentLevelXp;
+  const xpPercent = xpNeeded > 0 ? Math.round((xpInLevel / xpNeeded) * 100) : 100;
 
-  const levelColor = LEVEL_COLORS[levelInfo?.level ?? 1] ?? "#639922";
+  const habitsTotal = 10;
+  const habitsCount = checkin?.habits ? Object.values(checkin.habits).filter(Boolean).length : 0;
+  const waterCount = checkin?.waterCount ?? 0;
 
   return (
-    <div className="px-5 pb-24 pt-6">
-      {/* Celebration overlay */}
+    <div className="px-5 pb-24 pt-5">
       <CelebrationOverlay
         show={celebration.show}
         title={celebration.title}
@@ -288,77 +205,204 @@ export default function AppHome() {
         onClose={closeCelebration}
       />
 
-      {/* Header greeting */}
-      <div className="mb-5">
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {greeting()}, {firstName} 👋
-          </h1>
-          {levelInfo && (
-            <span
-              className="rounded-full px-2.5 py-0.5 text-[10px] font-bold text-white"
-              style={{ backgroundColor: levelColor }}
-            >
-              Nv.{levelInfo.level}
-            </span>
-          )}
-        </div>
-        <p className="text-sm text-gray-400 capitalize">{today}</p>
+      {/* Greeting compacto */}
+      <div className="mb-3">
+        <h1 className="text-xl font-bold text-gray-900">
+          {greeting()}, {firstName} 👋
+        </h1>
         {daysInMethod > 0 && (
-          <p className="text-xs mt-1" style={{ color: "#639922" }}>
+          <p className="text-xs" style={{ color: "#639922" }}>
             Dia {daysInMethod} no Metodo S.E.M
-            {levelInfo && (
-              <span className="ml-2" style={{ color: levelColor }}>
-                — {levelInfo.levelName}
-              </span>
-            )}
           </p>
         )}
       </div>
 
-      {/* DateScrubber: navegacao entre os ultimos 7 dias */}
-      <DateScrubber selectedDate={selectedDate} onSelect={setSelectedDate} />
-
-      {/* Streak badge + Progress ring */}
-      <div className="mb-5 flex items-center gap-5">
-        {/* Streak count */}
-        <div className="flex items-center gap-2 rounded-2xl px-4 py-3 border border-gray-100">
-          <span className="text-2xl">🔥</span>
-          <div>
-            <p className="text-xl font-black" style={{ color: "#BA7517" }}>{streakCount}</p>
-            <p className="text-[10px] text-gray-400">dias seguidos</p>
+      {/* ─── HERO: Avatar + Level + XP bar ─── */}
+      <div
+        className="mb-5 rounded-3xl p-5"
+        style={{
+          background: "linear-gradient(135deg, #1A2E1B 0%, #2D4A2E 50%, #3D5A3E 100%)",
+          color: "white",
+          boxShadow: "0 8px 24px rgba(99, 153, 34, 0.25)",
+        }}
+      >
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className="flex-shrink-0">
+            <AvatarFantasy level={level} size={100} />
           </div>
-        </div>
-
-        {/* Progress ring - today's habits */}
-        <div className="flex-1 flex items-center justify-center gap-3">
-          <div className="relative">
-            <ProgressRing percent={habitsPercent} size={72} strokeWidth={6} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-sm font-bold" style={{ color: "#639922" }}>{habitsPercent}%</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] uppercase tracking-wider opacity-70 font-bold">Nivel {level}</p>
+            <p className="text-lg font-black truncate">{tierLabel(level)}</p>
+            <p className="text-[11px] opacity-80">{levelInfo?.levelName ?? "..."}</p>
+            {/* XP bar */}
+            <div className="mt-2">
+              <div className="flex items-center justify-between text-[10px] mb-1 opacity-90">
+                <span>{xpInLevel} XP</span>
+                <span>{xpNeeded} pro Nv. {level + 1}</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${xpPercent}%`,
+                    background: "linear-gradient(90deg, #FDE047, #FACC15)",
+                    boxShadow: "0 0 8px rgba(250, 204, 21, 0.5)",
+                  }}
+                />
+              </div>
             </div>
           </div>
-          <div>
-            <p className="text-sm font-bold text-gray-700">Hoje</p>
-            <p className="text-xs text-gray-400">{habitsCount}/{habitsTotal} habitos</p>
-          </div>
         </div>
+
+        {/* Streak no canto */}
+        {streakCount > 0 && (
+          <div className="mt-3 flex items-center justify-between rounded-xl px-3 py-2" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🔥</span>
+              <span className="text-sm font-bold">{streakCount} dias seguidos</span>
+            </div>
+            {challengeProgress?.cycleNumber && (
+              <Link href="/app/desafio" className="text-[11px] underline opacity-90">
+                Ciclo {challengeProgress.cycleNumber} → {challengeProgress.completedCount}/21
+              </Link>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Recent achievements */}
+      <DateScrubber selectedDate={selectedDate} onSelect={setSelectedDate} />
+
+      {/* ─── OBJETIVOS DO DIA (Daily Quests) ─── */}
+      {isToday && questsData && (
+        <div className="mb-5 rounded-2xl border border-gray-100 p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-bold text-gray-700">Objetivos de hoje</h2>
+            <span className="text-xs font-bold" style={{ color: questsData.summary.allDone ? "#639922" : "#9ca3af" }}>
+              {questsData.summary.totalDone}/{questsData.summary.totalQuests}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2">
+            {questsData.quests.map((q) => (
+              <button
+                key={q.id}
+                onClick={() => router.push(q.ctaPath)}
+                className="flex items-center gap-3 rounded-xl p-3 text-left transition-all active:scale-[0.98]"
+                style={{
+                  backgroundColor: q.done ? "#EAF3DE" : "#FAFAF7",
+                  border: `1px solid ${q.done ? "#9EBF9E" : "#e5e7eb"}`,
+                  opacity: q.done ? 0.85 : 1,
+                }}
+              >
+                <div
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-lg"
+                  style={{
+                    backgroundColor: q.done ? "#639922" : "white",
+                    border: q.done ? "none" : "1px solid #e5e7eb",
+                  }}
+                >
+                  {q.done ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    q.icon
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p
+                    className="text-sm font-bold"
+                    style={{
+                      color: q.done ? "#3B6D11" : "#1f2937",
+                      textDecoration: q.done ? "line-through" : "none",
+                    }}
+                  >
+                    {q.title}
+                  </p>
+                  {q.progress && !q.done && (
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${Math.min(100, (q.progress.current / q.progress.target) * 100)}%`,
+                            backgroundColor: "#639922",
+                          }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-gray-500">
+                        {q.progress.current}/{q.progress.target}
+                      </span>
+                    </div>
+                  )}
+                  {!q.progress && (
+                    <p className="text-[11px] text-gray-500">{q.description}</p>
+                  )}
+                </div>
+                <span className="text-[10px] font-bold text-gray-400">+{q.xp} XP</span>
+              </button>
+            ))}
+          </div>
+          {questsData.summary.allDone && (
+            <div className="mt-3 rounded-xl bg-gradient-to-r from-yellow-100 to-amber-100 p-3 text-center">
+              <p className="text-sm font-bold" style={{ color: "#7A5712" }}>
+                🏆 Voce completou tudo hoje! Heroina do dia!
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ─── RECAP DE ONTEM ─── */}
+      {isToday && questsData?.yesterday && (
+        <div className="mb-5 rounded-2xl p-4" style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc" }}>
+          <h2 className="mb-2 text-xs font-bold uppercase tracking-wider" style={{ color: "#1e3a5f" }}>
+            Ontem
+          </h2>
+          <div className="flex items-center gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-xl" style={{ backgroundColor: "white" }}>
+              {questsData.yesterday.mood ? MOOD_MAP[questsData.yesterday.mood]?.emoji ?? "💚" : "📊"}
+            </div>
+            <div className="flex-1 grid grid-cols-3 gap-2 text-center">
+              <div>
+                <p className="text-base font-bold" style={{ color: "#378ADD" }}>{questsData.yesterday.habitsPercent}%</p>
+                <p className="text-[10px] text-gray-500">habitos</p>
+              </div>
+              <div>
+                <p className="text-base font-bold" style={{ color: "#378ADD" }}>{questsData.yesterday.waterCount}</p>
+                <p className="text-[10px] text-gray-500">copos</p>
+              </div>
+              <div>
+                <p className="text-base font-bold" style={{ color: questsData.yesterday.exerciseDone ? "#639922" : "#9ca3af" }}>
+                  {questsData.yesterday.exerciseDone ? "✓" : "—"}
+                </p>
+                <p className="text-[10px] text-gray-500">movimento</p>
+              </div>
+            </div>
+          </div>
+          {questsData.recentAchievements.length > 0 && (
+            <div className="mt-3 flex items-center gap-1 text-[11px] text-gray-600">
+              <span>Ganhou:</span>
+              {questsData.recentAchievements.slice(0, 3).map((a, i) => (
+                <span key={i} className="rounded-full bg-white px-2 py-0.5">
+                  {a.icon} {a.name}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Conquistas recentes (cards horizontais — pra incentivar) */}
       {recentBadges.length > 0 && (
         <div className="mb-5 rounded-2xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-gray-700">Conquistas recentes</h3>
-            <Link
-              href="/app/conquistas"
-              className="text-xs font-medium"
-              style={{ color: "#639922" }}
-            >
-              Ver todas &rarr;
+            <Link href="/app/conquistas" className="text-xs font-medium" style={{ color: "#639922" }}>
+              Ver todas →
             </Link>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 overflow-x-auto">
             {recentBadges.map((badge) => (
               <div
                 key={badge.id}
@@ -379,7 +423,7 @@ export default function AppHome() {
         </div>
       )}
 
-      {/* Mood quick action — disabled em modo passado (so leitura) */}
+      {/* Mood quick action (so em hoje, ou read-only em passado) */}
       {moodChecked && (
         <button
           onClick={() => isToday && router.push("/app/emocional")}
@@ -416,220 +460,57 @@ export default function AppHome() {
         </button>
       )}
 
-      {/* Quote */}
-      {quote && (
-        <div className="mb-5 rounded-2xl p-4" style={{ backgroundColor: "#EAF3DE" }}>
-          <p className="text-sm font-medium italic" style={{ color: "#3B6D11" }}>
-            &ldquo;{quote}&rdquo;
-          </p>
-        </div>
-      )}
-
-      {/* Quick action buttons — escondidos em modo passado (sao acoes/edit) */}
+      {/* Atalhos rapidos — so em hoje */}
       {isToday && (
-      <div className="mb-5 grid grid-cols-4 gap-2">
-        <button
-          onClick={() => router.push("/app/agua")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
-          style={{ backgroundColor: "#EBF5FF", border: "1px solid #d4e8fc" }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#378ADD" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
-          </svg>
-          <span className="text-[10px] font-bold" style={{ color: "#378ADD" }}>Agua</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/app/habitos")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
-          style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#639922" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 11l3 3L22 4" />
-            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-          </svg>
-          <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Habitos</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/app/progresso")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
-          style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc" }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#BA7517" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" />
-          </svg>
-          <span className="text-[10px] font-bold" style={{ color: "#BA7517" }}>Progresso</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/app/emocional")}
-          className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-transform active:scale-95"
-          style={{ backgroundColor: "#FFF0F0", border: "1px solid #fcd4d4" }}
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E53935" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-          </svg>
-          <span className="text-[10px] font-bold" style={{ color: "#E53935" }}>Emocional</span>
-        </button>
-      </div>
+        <div className="mb-5 grid grid-cols-4 gap-2">
+          {[
+            { label: "Agua", color: "#378ADD", bg: "#EBF5FF", path: "/app/agua", icon: "💧" },
+            { label: "Habitos", color: "#639922", bg: "#EAF3DE", path: "/app/habitos", icon: "✓" },
+            { label: "Progresso", color: "#BA7517", bg: "#FFF8EE", path: "/app/progresso", icon: "📊" },
+            { label: "Emocional", color: "#E53935", bg: "#FFF0F0", path: "/app/emocional", icon: "💚" },
+          ].map((b) => (
+            <button
+              key={b.label}
+              onClick={() => router.push(b.path)}
+              className="flex flex-col items-center gap-1 rounded-2xl p-3 transition-transform active:scale-95"
+              style={{ backgroundColor: b.bg, border: `1px solid ${b.color}30` }}
+            >
+              <span className="text-lg">{b.icon}</span>
+              <span className="text-[10px] font-bold" style={{ color: b.color }}>{b.label}</span>
+            </button>
+          ))}
+        </div>
       )}
 
-      {/* Progress cards */}
+      {/* Stats compactos do dia */}
       <div className="mb-5 grid grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold" style={{ color: "#378ADD" }}>
-            {waterCount}
-          </p>
-          <p className="text-xs text-gray-500">/ 8 copos</p>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${Math.min((waterCount / 8) * 100, 100)}%`,
-                backgroundColor: "#378ADD",
-              }}
-            />
-          </div>
+        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+          <p className="text-xl font-bold" style={{ color: "#378ADD" }}>{waterCount}</p>
+          <p className="text-[10px] text-gray-500">/ 8 copos</p>
         </div>
-        <div className="rounded-2xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold" style={{ color: "#639922" }}>
-            {habitsCount}
-          </p>
-          <p className="text-xs text-gray-500">/ 10 habitos</p>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${(habitsCount / 10) * 100}%`,
-                backgroundColor: "#639922",
-              }}
-            />
-          </div>
+        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+          <p className="text-xl font-bold" style={{ color: "#639922" }}>{habitsCount}</p>
+          <p className="text-[10px] text-gray-500">/ {habitsTotal} habitos</p>
         </div>
-        <div className="rounded-2xl border border-gray-100 p-4 text-center">
-          <p className="text-2xl font-bold" style={{ color: checkin?.exerciseDone ? "#639922" : "#d1d5db" }}>
-            {checkin?.exerciseDone ? "Sim" : "Nao"}
+        <div className="rounded-2xl border border-gray-100 p-3 text-center">
+          <p className="text-xl font-bold" style={{ color: checkin?.exerciseDone ? "#639922" : "#d1d5db" }}>
+            {checkin?.exerciseDone ? "✓" : "—"}
           </p>
-          <p className="text-xs text-gray-500">Movimento</p>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: checkin?.exerciseDone ? "100%" : "0%",
-                backgroundColor: "#639922",
-              }}
-            />
-          </div>
+          <p className="text-[10px] text-gray-500">movimento</p>
         </div>
       </div>
 
-      {/* Desafio 21 Dias + Receita do dia */}
-      <div className="mb-5 grid grid-cols-2 gap-3">
-        {/* Desafio 21 Dias card */}
-        <button
-          onClick={() => router.push("/app/desafio")}
-          className="rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
-          style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc" }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-lg">🎯</span>
-              <span className="text-xs font-bold" style={{ color: "#378ADD" }}>
-                {challengeProgress?.cycleNumber
-                  ? `Ciclo ${challengeProgress.cycleNumber}`
-                  : "Desafio 21 Dias"}
-              </span>
-            </div>
-            {challengeProgress?.cycleStatus === "paused" && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-bold text-amber-700">
-                PAUSADO
-              </span>
-            )}
-            {challengeProgress?.needsNewCycle && (
-              <span className="rounded-full bg-green-100 px-2 py-0.5 text-[9px] font-bold text-green-700">
-                COMPLETO
-              </span>
-            )}
-          </div>
-          {challengeProgress ? (
-            <>
-              <p className="text-xl font-black" style={{ color: "#378ADD" }}>
-                {challengeProgress.completedCount}/21
-              </p>
-              <div className="mt-1.5 h-1.5 w-full rounded-full bg-blue-100">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${Math.round((challengeProgress.completedCount / 21) * 100)}%`,
-                    backgroundColor: "#378ADD",
-                  }}
-                />
-              </div>
-              <p className="mt-1 text-[10px] text-gray-400">
-                {challengeProgress.needsNewCycle
-                  ? "Comece o proximo →"
-                  : challengeProgress.cycleStatus === "paused"
-                    ? "Toque pra retomar"
-                    : challengeProgress.completedCount >= 21
-                      ? "Completo!"
-                      : `Dia ${challengeProgress.currentDay} hoje`}
-              </p>
-            </>
-          ) : (
-            <p className="text-xs text-gray-400">Carregando...</p>
-          )}
-        </button>
-
-        {/* Receita do dia card */}
-        <button
-          onClick={() => router.push("/app/receitas")}
-          className="rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
-          style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc" }}
-        >
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">🍳</span>
-            <span className="text-xs font-bold" style={{ color: "#BA7517" }}>Receita do dia</span>
-          </div>
-          {recipeSuggestion ? (
-            <>
-              <p className="text-xs font-bold text-gray-700 line-clamp-2">{recipeSuggestion.name}</p>
-              <p className="mt-1 text-[10px] text-gray-400">{recipeSuggestion.prepTime} min</p>
-            </>
-          ) : (
-            <p className="text-xs text-gray-400">Carregando...</p>
-          )}
-        </button>
-      </div>
-
-      {/* 7-day streak visual */}
-      <div className="rounded-2xl border border-gray-100 p-5">
-        <h3 className="mb-3 text-sm font-bold text-gray-700">Ultimos 7 dias</h3>
-        <div className="flex justify-between">
-          {streak7.map((done, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - (6 - i));
-            const dayName = d.toLocaleDateString("pt-BR", { weekday: "short" }).slice(0, 3);
-            return (
-              <div key={i} className="flex flex-col items-center gap-1">
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300"
-                  style={{
-                    backgroundColor: done ? "#639922" : "#f3f4f6",
-                    color: done ? "white" : "#9ca3af",
-                    boxShadow: done ? "0 2px 8px rgba(99,153,34,0.3)" : "none",
-                  }}
-                >
-                  {done ? "✓" : "·"}
-                </div>
-                <span className="text-[10px] text-gray-400">{dayName}</span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      {/* Help/Tutorial CTA */}
+      <Link
+        href="/app/como-usar"
+        className="mb-5 flex items-center justify-between rounded-2xl border border-dashed border-gray-200 p-4 text-sm text-gray-600 transition-colors hover:bg-gray-50"
+      >
+        <span className="flex items-center gap-2">
+          <span className="text-lg">📖</span>
+          <span>Como usar o app</span>
+        </span>
+        <span className="text-gray-400">→</span>
+      </Link>
 
       <AppNav />
     </div>
