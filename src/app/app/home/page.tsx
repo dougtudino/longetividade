@@ -6,6 +6,7 @@ import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 import { AvatarFantasy, tierLabel } from "@/components/app/avatar-fantasy";
 import { InstallPwaButton } from "@/components/app/install-pwa-button";
+import { ActivitiesSection } from "@/components/app/activities-section";
 
 // ─── Tipos ─────────────────────────────────────────────────
 type Profile = { name: string; createdAt: string };
@@ -443,6 +444,9 @@ export default function AppHome() {
               : `Marcar meu dia (${habitsDoneLocal}/5 hábitos)`}
         </button>
       </div>
+
+      {/* ─── Atividades extras (desbloqueadas por nivel) ─── */}
+      <ActivitiesSection onRegistered={() => fetchAll()} />
 
       {/* ─── Humor inline ─── */}
       <div className="mb-4 rounded-2xl bg-white p-4 border border-gray-100">

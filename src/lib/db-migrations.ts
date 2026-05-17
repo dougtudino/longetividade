@@ -797,6 +797,46 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppNotificationLog userId+category+sentAt index",
     sql: `CREATE INDEX IF NOT EXISTS "AppNotificationLog_userId_category_sentAt_idx" ON "AppNotificationLog"("userId", "category", "sentAt")`,
   },
+
+  // ─── Atividades extras (caminhada, yoga, ciclismo, etc) ─────
+  {
+    label: "AppActivityLog table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppActivityLog" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "activityId" TEXT NOT NULL,
+        "minutes" INTEGER NOT NULL,
+        "xpAwarded" INTEGER NOT NULL,
+        "loggedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppActivityLog_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppActivityLog userId+loggedAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppActivityLog_userId_loggedAt_idx" ON "AppActivityLog"("userId", "loggedAt")`,
+  },
+  {
+    label: "AppActivityLog userId+activityId index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppActivityLog_userId_activityId_idx" ON "AppActivityLog"("userId", "activityId")`,
+  },
+  {
+    label: "AppActivityLog FK to AppUser",
+    sql: `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'AppActivityLog_userId_fkey' AND table_name = 'AppActivityLog'
+        ) THEN
+          ALTER TABLE "AppActivityLog"
+            ADD CONSTRAINT "AppActivityLog_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "AppUser"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+        END IF;
+      END $$
+    `,
+  },
 ];
 
 export type MigrationResult = {

@@ -444,10 +444,29 @@ model AppUser {
   challenges        AppChallenge[]
   measurements      AppMeasurement[]
   cycles            AppCycle[]
+  activityLogs      AppActivityLog[]
   pushSubscriptions AppPushSubscription[]
   notificationPrefs AppNotificationPref?
 
   @@index([email])
+}
+
+// Log de atividades extras desbloqueadas por nível (caminhada, yoga,
+// bicicleta, família, criativo, etc). Cada registro tem o tempo
+// declarado pela usuária + XP creditado proporcional. Catálogo
+// estático em data/activities.ts; aqui só guardamos referência por
+// id + tempo.
+model AppActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  activityId String // referencia ACTIVITIES[].id em data/activities.ts
+  minutes    Int
+  xpAwarded  Int
+  loggedAt   DateTime @default(now())
+  user       AppUser  @relation(fields: [userId], references: [id])
+
+  @@index([userId, loggedAt])
+  @@index([userId, activityId])
 }
 
 // Subscription de Web Push do navegador da usuaria. Cada navegador/dispositivo
