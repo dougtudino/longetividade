@@ -441,11 +441,52 @@ model AppUser {
   achievements    AppUserAchievement[]
   level           AppUserLevel?
   favoriteRecipes AppFavoriteRecipe[]
-  challenges      AppChallenge[]
-  measurements    AppMeasurement[]
-  cycles          AppCycle[]
+  challenges        AppChallenge[]
+  measurements      AppMeasurement[]
+  cycles            AppCycle[]
+  pushSubscriptions AppPushSubscription[]
+  notificationPrefs AppNotificationPref?
 
   @@index([email])
+}
+
+// Subscription de Web Push do navegador da usuaria. Cada navegador/dispositivo
+// gera uma subscription unica (endpoint + p256dh + auth). Uma user pode ter
+// varias (celular + desktop, por exemplo). Eh efetivamente uma "credencial"
+// pro servidor da plataforma (FCM/Mozilla/Apple) entregar push pra aquele
+// device.
+model AppPushSubscription {
+  id          String   @id @default(uuid())
+  userId      String
+  endpoint    String   @unique
+  p256dh      String
+  auth        String
+  deviceLabel String? // user-agent simplificado pra reconhecer
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+  user        AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([active])
+}
+
+// Preferencias granulares por categoria. 1 row por user (singleton).
+// Default: tudo true se a user deu permissao geral, mas pode desligar uma
+// categoria especifica.
+model AppNotificationPref {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  water            Boolean  @default(true)   // lembrete agua se nao bateu meta
+  challenge        Boolean  @default(true)   // lembrete dia desafio nao marcado
+  cycle            Boolean  @default(true)   // ciclo proximo de fechar / abandonado
+  weeklyRecap      Boolean  @default(true)   // recap semanal domingo
+  generalMessages  Boolean  @default(true)   // mensagens motivacionais avulsas
+  quietHoursStart  Int?     // hora (0-23) que NAO manda push (ex: 22 = 22h)
+  quietHoursEnd    Int?     // hora (0-23) que volta a mandar (ex: 7 = 7h)
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  user             AppUser  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AppProfile {

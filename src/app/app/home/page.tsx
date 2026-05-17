@@ -605,6 +605,19 @@ export default function AppHome() {
         </div>
       </div>
 
+      {/* Notification opt-in CTA */}
+      <Link
+        href="/app/notificacoes"
+        className="mb-3 flex items-center justify-between rounded-2xl p-4 text-sm transition-colors"
+        style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc", color: "#8B5A0F" }}
+      >
+        <span className="flex items-center gap-2">
+          <span className="text-lg">🔔</span>
+          <span className="font-bold">Ative os lembretes</span>
+        </span>
+        <span style={{ color: "#BA7517" }}>→</span>
+      </Link>
+
       {/* Help/Tutorial CTA */}
       <Link
         href="/app/como-usar"

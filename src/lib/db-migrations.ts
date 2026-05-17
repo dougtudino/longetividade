@@ -689,6 +689,92 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppCycle difficulty column",
     sql: `ALTER TABLE "AppCycle" ADD COLUMN IF NOT EXISTS "difficulty" TEXT NOT NULL DEFAULT 'normal'`,
   },
+
+  // ─── S6: Web Push notifications ─────────────────────────
+  {
+    label: "AppPushSubscription table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppPushSubscription" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "endpoint" TEXT NOT NULL,
+        "p256dh" TEXT NOT NULL,
+        "auth" TEXT NOT NULL,
+        "deviceLabel" TEXT,
+        "active" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "lastUsedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppPushSubscription_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppPushSubscription endpoint unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppPushSubscription_endpoint_key" ON "AppPushSubscription"("endpoint")`,
+  },
+  {
+    label: "AppPushSubscription userId index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppPushSubscription_userId_idx" ON "AppPushSubscription"("userId")`,
+  },
+  {
+    label: "AppPushSubscription active index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppPushSubscription_active_idx" ON "AppPushSubscription"("active")`,
+  },
+  {
+    label: "AppPushSubscription FK to AppUser",
+    sql: `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'AppPushSubscription_userId_fkey' AND table_name = 'AppPushSubscription'
+        ) THEN
+          ALTER TABLE "AppPushSubscription"
+            ADD CONSTRAINT "AppPushSubscription_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "AppUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$
+    `,
+  },
+  {
+    label: "AppNotificationPref table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppNotificationPref" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "water" BOOLEAN NOT NULL DEFAULT true,
+        "challenge" BOOLEAN NOT NULL DEFAULT true,
+        "cycle" BOOLEAN NOT NULL DEFAULT true,
+        "weeklyRecap" BOOLEAN NOT NULL DEFAULT true,
+        "generalMessages" BOOLEAN NOT NULL DEFAULT true,
+        "quietHoursStart" INTEGER,
+        "quietHoursEnd" INTEGER,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppNotificationPref_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppNotificationPref userId unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "AppNotificationPref_userId_key" ON "AppNotificationPref"("userId")`,
+  },
+  {
+    label: "AppNotificationPref FK to AppUser",
+    sql: `
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'AppNotificationPref_userId_fkey' AND table_name = 'AppNotificationPref'
+        ) THEN
+          ALTER TABLE "AppNotificationPref"
+            ADD CONSTRAINT "AppNotificationPref_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "AppUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$
+    `,
+  },
 ];
 
 export type MigrationResult = {
