@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AppNav } from "@/components/app/app-nav";
 
+// ─── Tipos ────────────────────────────────────────────────
 type ChallengeDay = {
   day: number;
   pillar: "S" | "E" | "M";
@@ -19,7 +20,7 @@ type CycleSummary = {
   id: string;
   cycleNumber: number;
   difficulty: CycleDifficulty;
-  status: "active" | "paused" | "completed";
+  status: "active" | "paused" | "completed" | "abandoned";
   startDate: string;
   endDate: string | null;
   daysCompleted: number;
@@ -44,27 +45,6 @@ type CyclesResponse = {
   };
 };
 
-const DIFFICULTY_META: Record<CycleDifficulty, { label: string; subtitle: string; color: string; icon: string }> = {
-  easy: {
-    label: "Suave",
-    subtitle: "Entrada gentil. Pequenos passos diarios.",
-    color: "#8BC34A",
-    icon: "🌱",
-  },
-  normal: {
-    label: "Constante",
-    subtitle: "Ritmo equilibrado. Habitos firmando.",
-    color: "#639922",
-    icon: "🌿",
-  },
-  hard: {
-    label: "Intenso",
-    subtitle: "Pra quem ja consolidou e quer subir.",
-    color: "#BA7517",
-    icon: "🌳",
-  },
-};
-
 type ChallengeResponse = {
   days: ChallengeDay[];
   progress: number[];
@@ -83,28 +63,30 @@ type ChallengeResponse = {
   needsNewCycle: boolean;
 };
 
-const WEEKS = [
-  { label: "Semana 1: Simplicidade", pillar: "S", color: "#639922", days: [1, 2, 3, 4, 5, 6, 7] },
-  { label: "Semana 2: Equilibrio", pillar: "E", color: "#FFC107", days: [8, 9, 10, 11, 12, 13, 14] },
-  { label: "Semana 3: Movimento", pillar: "M", color: "#378ADD", days: [15, 16, 17, 18, 19, 20, 21] },
-];
-
-const MILESTONE_MESSAGES: Record<number, string> = {
-  7: "Primeira semana completa! Voce esta construindo habitos de verdade.",
-  14: "Duas semanas! Metade do desafio. Voce e incrivel!",
-  21: "PARABENS! Voce fechou mais um ciclo do Desafio 21 Dias S.E.M! Cada ciclo solidifica o caminho que respeita quem voce e.",
+// ─── Constantes ───────────────────────────────────────────
+const DIFFICULTY_META: Record<CycleDifficulty, { label: string; subtitle: string; color: string; icon: string }> = {
+  easy: { label: "Suave", subtitle: "Entrada gentil. Pequenos passos.", color: "#8BC34A", icon: "🌱" },
+  normal: { label: "Constante", subtitle: "Ritmo equilibrado. Hábitos firmando.", color: "#639922", icon: "🌿" },
+  hard: { label: "Intenso", subtitle: "Pra quem já consolidou e quer subir.", color: "#BA7517", icon: "🌳" },
 };
 
+const PILLAR_META: Record<string, { label: string; color: string }> = {
+  S: { label: "Simplicidade", color: "#639922" },
+  E: { label: "Equilíbrio", color: "#FFC107" },
+  M: { label: "Movimento", color: "#378ADD" },
+};
+
+// ─── Componente ───────────────────────────────────────────
 export default function DesafioPage() {
   const router = useRouter();
   const [data, setData] = useState<ChallengeResponse | null>(null);
   const [cyclesData, setCyclesData] = useState<CyclesResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [completing, setCompleting] = useState(false);
   const [actioning, setActioning] = useState(false);
-  const [celebration, setCelebration] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedDifficulty, setSelectedDifficulty] = useState<CycleDifficulty | null>(null);
+  const [expandedDay, setExpandedDay] = useState<number | null>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -115,7 +97,7 @@ export default function DesafioPage() {
       if (chRes.ok) setData(await chRes.json());
       if (cyRes.ok) setCyclesData(await cyRes.json());
     } catch {
-      // silencioso — UI mostra fallback
+      // silent
     }
     setLoading(false);
   }, []);
@@ -124,22 +106,26 @@ export default function DesafioPage() {
     fetchAll();
   }, [fetchAll]);
 
-  const completeDay = async (day: number) => {
-    if (completing) return;
-    setCompleting(true);
-    const res = await fetch("/api/app/challenge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ day }),
-    });
-    if (res.ok) {
-      const payload = await res.json();
-      if (MILESTONE_MESSAGES[day]) setCelebration(MILESTONE_MESSAGES[day]);
-      if (payload.justCompleted) setCelebration(MILESTONE_MESSAGES[21]);
-      await fetchAll();
+  // Scrolla pro dia atual quando data carrega
+  useEffect(() => {
+    if (data?.currentDay && scrollerRef.current) {
+      const card = scrollerRef.current.querySelector<HTMLElement>(
+        `[data-day="${Math.min(21, data.currentDay)}"]`
+      );
+      if (card) {
+        // Centraliza o card de hoje na viewport horizontal
+        const containerWidth = scrollerRef.current.clientWidth;
+        const cardLeft = card.offsetLeft;
+        const cardWidth = card.clientWidth;
+        scrollerRef.current.scrollTo({
+          left: cardLeft - containerWidth / 2 + cardWidth / 2,
+          behavior: "smooth",
+        });
+        // Expande o dia atual por default
+        setExpandedDay(data.currentDay);
+      }
     }
-    setCompleting(false);
-  };
+  }, [data?.currentDay]);
 
   const callCycleAction = async (path: string, body?: Record<string, unknown>) => {
     if (actioning) return;
@@ -154,7 +140,7 @@ export default function DesafioPage() {
   };
 
   const handleReset = async () => {
-    if (!confirm("Reiniciar o ciclo? O atual sera arquivado e voce comeca um novo do zero. Seu historico fica salvo.")) return;
+    if (!confirm("Reiniciar o ciclo? O atual será arquivado e você começa um novo do zero. Seu histórico fica salvo.")) return;
     await callCycleAction("reset", {});
   };
 
@@ -170,71 +156,70 @@ export default function DesafioPage() {
   const cycle = data?.cycle;
   const days = data?.days ?? [];
   const progress = data?.progress ?? [];
+  const failedDays = data?.failedDays ?? [];
   const currentDay = data?.currentDay ?? 1;
   const needsNewCycle = data?.needsNewCycle ?? false;
-
   const completedSet = new Set(progress);
+  const failedSet = new Set(failedDays);
   const completedCount = progress.length;
-  const progressPercent = Math.round((completedCount / 21) * 100);
-
-  const getDayForNumber = (dayNum: number): ChallengeDay | undefined =>
-    days.find((d) => d.day === dayNum);
-
-  const isPaused = cycle?.status === "paused";
   const stats = cyclesData?.stats;
+  const isPaused = cycle?.status === "paused";
 
+  const getDayData = (n: number) => days.find((d) => d.day === n);
+
+  // ─── Render ──────────────────────────────────────────────
   return (
-    <div className="px-5 pb-24 pt-6">
-      {/* Header */}
-      <div className="mb-2 flex items-start justify-between">
+    <div className="px-5 pb-24 pt-5" style={{ background: "#FAF8F5", minHeight: "100vh" }}>
+      {/* Header compacto */}
+      <div className="mb-3 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Desafio 21 Dias S.E.M</h1>
+          <h1 className="text-xl font-bold text-gray-900">Desafio 21 Dias</h1>
           {cycle ? (
-            <p className="text-sm text-gray-500">
-              Ciclo {cycle.cycleNumber} · {completedCount}/21 dias
+            <p className="text-xs text-gray-500">
+              Ciclo {cycle.cycleNumber}
+              {cycle.difficulty && DIFFICULTY_META[cycle.difficulty] && (
+                <>
+                  {" · "}
+                  <span style={{ color: DIFFICULTY_META[cycle.difficulty].color, fontWeight: 700 }}>
+                    {DIFFICULTY_META[cycle.difficulty].icon} {DIFFICULTY_META[cycle.difficulty].label}
+                  </span>
+                </>
+              )}
             </p>
           ) : (
-            <p className="text-sm text-gray-500">Nenhum ciclo ativo</p>
+            <p className="text-xs text-gray-500">Nenhum ciclo ativo</p>
           )}
         </div>
         {stats && stats.completedCycles > 0 && (
-          <div className="rounded-2xl bg-amber-50 px-3 py-2 text-right">
-            <p className="text-lg font-black" style={{ color: "#BA7517" }}>
-              🏆 {stats.completedCycles}
-            </p>
-            <p className="text-[10px] text-gray-500">ciclos completos</p>
+          <div className="rounded-xl bg-amber-50 px-3 py-2 text-right">
+            <p className="text-base font-black" style={{ color: "#BA7517" }}>🏆 {stats.completedCycles}</p>
+            <p className="text-[9px] text-gray-500">completos</p>
           </div>
         )}
       </div>
 
-      {/* Banner: pausado (botoes de controle ficam logo abaixo na progress bar) */}
+      {/* Banner pausado */}
       {isPaused && (
-        <div className="mb-4 rounded-2xl p-3 text-sm" style={{ backgroundColor: "#FFF6E7", border: "1px solid #f5e6cc" }}>
-          <p className="text-amber-800">
-            Ciclo {cycle?.cycleNumber} <strong>pausado</strong>. Use os botoes abaixo pra continuar ou reiniciar.
-          </p>
+        <div className="mb-3 rounded-2xl p-3 text-xs" style={{ backgroundColor: "#FFF6E7", border: "1px solid #f5e6cc", color: "#8B5A0F" }}>
+          Ciclo {cycle?.cycleNumber} <strong>pausado</strong>. Use os botões abaixo pra continuar ou reiniciar.
         </div>
       )}
 
-      {/* Banner: precisa comecar novo ciclo OU nao tem nenhum ciclo */}
+      {/* Banner: precisa começar novo OU nenhum ciclo */}
       {(needsNewCycle || !cycle) && (
         <div className="mb-4 rounded-2xl p-4" style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}>
           <div className="text-center mb-3">
             <p className="text-2xl">{cycle ? "🏆" : "✨"}</p>
             <p className="text-sm font-bold" style={{ color: "#3B6D11" }}>
-              {cycle ? `Ciclo ${cycle.cycleNumber} concluido!` : "Pronta pra sua primeira jornada?"}
+              {cycle ? `Ciclo ${cycle.cycleNumber} concluído!` : "Pronta pra sua primeira jornada?"}
             </p>
             <p className="mt-1 text-xs text-gray-600">
               {cycle
-                ? `Voce ja completou ${stats?.totalDaysCompleted ?? 0} dias no total.`
-                : "Escolha sua intensidade. Voce pode subir entre ciclos."}
+                ? `Você já completou ${stats?.totalDaysCompleted ?? 0} dias no total.`
+                : "Escolha sua intensidade. Você pode subir entre ciclos."}
             </p>
           </div>
-
-          {/* Seletor de dificuldade */}
-          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
-            Escolha a intensidade
-          </p>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Escolha a intensidade</p>
           <div className="mb-3 grid grid-cols-3 gap-2">
             {(["easy", "normal", "hard"] as CycleDifficulty[]).map((d) => {
               const meta = DIFFICULTY_META[d];
@@ -263,7 +248,6 @@ export default function DesafioPage() {
           <p className="mb-3 text-[11px] italic text-gray-600 text-center">
             {DIFFICULTY_META[selectedDifficulty ?? cyclesData?.suggestedDifficulty ?? "normal"].subtitle}
           </p>
-
           <button
             onClick={() =>
               callCycleAction("start", {
@@ -274,143 +258,100 @@ export default function DesafioPage() {
             className="w-full rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-60"
             style={{ backgroundColor: "#639922" }}
           >
-            {actioning ? "..." : cycle ? `Comecar Ciclo ${(cycle.cycleNumber ?? 0) + 1}` : "Comecar primeira jornada"}
+            {actioning ? "..." : cycle ? `Começar Ciclo ${(cycle.cycleNumber ?? 0) + 1}` : "Começar primeira jornada"}
           </button>
         </div>
       )}
 
-      {/* Tarja info: como avancar */}
-      {cycle && cycle.status === "active" && !needsNewCycle && (
-        <div
-          className="mb-4 rounded-xl p-3 text-xs"
-          style={{ backgroundColor: "#F0F7FF", border: "1px dashed #d4e8fc", color: "#1e3a5f" }}
-        >
-          <strong>Dica:</strong> marque 5+ habitos no checkin de hoje e o dia do desafio avanca automatico.
-          {cycle.difficulty && DIFFICULTY_META[cycle.difficulty] && (
-            <span className="ml-1">
-              Dificuldade atual:{" "}
-              <span style={{ color: DIFFICULTY_META[cycle.difficulty].color, fontWeight: 700 }}>
-                {DIFFICULTY_META[cycle.difficulty].icon} {DIFFICULTY_META[cycle.difficulty].label}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Progress bar + botoes de controle */}
+      {/* Stats compactos do ciclo ativo */}
       {cycle && cycle.status !== "completed" && !needsNewCycle && (
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold" style={{ color: "#639922" }}>{progressPercent}%</span>
-            <span className="text-xs text-gray-400">{completedCount}/21</span>
+        <div className="mb-4 grid grid-cols-3 gap-2">
+          <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
+            <p className="text-lg font-bold" style={{ color: "#639922" }}>{completedCount}</p>
+            <p className="text-[10px] text-gray-500">vitórias</p>
           </div>
-          <div className="h-3 w-full rounded-full bg-gray-100 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700 ease-out"
-              style={{
-                width: `${progressPercent}%`,
-                background: "linear-gradient(90deg, #639922, #FFC107, #378ADD)",
-              }}
-            />
+          <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
+            <p className="text-lg font-bold" style={{ color: "#C4787A" }}>{failedDays.length}</p>
+            <p className="text-[10px] text-gray-500">falhas</p>
           </div>
-
-          {/* Tres botoes de controle: Pausar / Continuar / Reiniciar */}
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {cycle.status === "active" && (
-              <button
-                onClick={() => callCycleAction("pause")}
-                disabled={actioning}
-                className="rounded-xl py-2 text-xs font-bold transition-colors disabled:opacity-60"
-                style={{ backgroundColor: "#FFF6E7", color: "#BA7517", border: "1px solid #f5e6cc" }}
-              >
-                ⏸ Pausar
-              </button>
-            )}
-            {cycle.status === "paused" && (
-              <button
-                onClick={() => callCycleAction("resume")}
-                disabled={actioning}
-                className="rounded-xl py-2 text-xs font-bold text-white transition-colors disabled:opacity-60"
-                style={{ backgroundColor: "#639922" }}
-              >
-                ▶ Continuar
-              </button>
-            )}
-            <button
-              onClick={handleReset}
-              disabled={actioning}
-              className="rounded-xl py-2 text-xs font-bold transition-colors disabled:opacity-60"
-              style={{ backgroundColor: "#FFF0F0", color: "#C4787A", border: "1px solid #fcd4d4" }}
-            >
-              ↻ Reiniciar
-            </button>
+          <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
+            <p className="text-lg font-bold" style={{ color: "#9ca3af" }}>{Math.max(0, 21 - completedCount - failedDays.length)}</p>
+            <p className="text-[10px] text-gray-500">restantes</p>
           </div>
         </div>
       )}
 
-      {/* Celebration modal */}
-      {celebration && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center">
-            <div className="mb-3 text-5xl">
-              {completedCount >= 21 ? "🏆🎉" : "🎉"}
-            </div>
-            <h2 className="mb-2 text-lg font-bold text-gray-900">
-              {completedCount >= 21 ? "VOCE CONSEGUIU!" : "Parabens!"}
-            </h2>
-            <p className="mb-4 text-sm text-gray-600">{celebration}</p>
-            <button
-              onClick={() => setCelebration(null)}
-              className="w-full rounded-xl py-3 text-sm font-bold text-white"
-              style={{ backgroundColor: "#639922" }}
-            >
-              Continuar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Week sections */}
-      {cycle && WEEKS.map((week) => (
-        <div key={week.label} className="mb-6">
-          <div className="mb-3 flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: week.color }} />
-            <h2 className="text-sm font-bold" style={{ color: week.color }}>
-              {week.label}
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            {week.days.map((dayNum) => {
-              const dayData = getDayForNumber(dayNum);
+      {/* ─── CARROSSEL HORIZONTAL DE 21 DIAS ─── */}
+      {cycle && (
+        <>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+            Os 21 dias · arraste pra ver ←→
+          </p>
+          <div
+            ref={scrollerRef}
+            className="mb-4 flex gap-3 overflow-x-auto pb-2"
+            style={{
+              scrollSnapType: "x mandatory",
+              scrollbarWidth: "none",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            <style>{`div::-webkit-scrollbar { display: none; }`}</style>
+            {Array.from({ length: 21 }, (_, i) => i + 1).map((dayNum) => {
+              const dayData = getDayData(dayNum);
               const isCompleted = completedSet.has(dayNum);
-              const failedDays = data?.failedDays ?? [];
-              const isFailed = failedDays.includes(dayNum);
+              const isFailed = failedSet.has(dayNum);
               const isCurrent = dayNum === currentDay && !isPaused && !needsNewCycle;
-              const isLocked = dayNum > currentDay || isPaused || needsNewCycle;
+              const isFuture = dayNum > currentDay;
+              const pillarColor = dayData ? PILLAR_META[dayData.pillar].color : "#9ca3af";
+              const isExpanded = expandedDay === dayNum;
+
+              const statusBg = isCompleted
+                ? "#639922"
+                : isFailed
+                  ? "#FBEDED"
+                  : isCurrent
+                    ? "white"
+                    : "#f3f4f6";
+              const statusColor = isCompleted
+                ? "white"
+                : isFailed
+                  ? "#C4787A"
+                  : isCurrent
+                    ? pillarColor
+                    : "#9ca3af";
 
               return (
-                <div key={dayNum}>
-                  <div className="flex items-center gap-3">
+                <div
+                  key={dayNum}
+                  data-day={dayNum}
+                  onClick={() => setExpandedDay(isExpanded ? null : dayNum)}
+                  className="flex-shrink-0 rounded-2xl bg-white p-3 cursor-pointer transition-all"
+                  style={{
+                    scrollSnapAlign: "center",
+                    width: isExpanded ? 280 : 140,
+                    border: isCurrent
+                      ? `2px solid ${pillarColor}`
+                      : isCompleted
+                        ? "1px solid #d4e8c4"
+                        : isFailed
+                          ? "1px solid #fcd4d4"
+                          : "1px solid #e5e7eb",
+                    boxShadow: isCurrent
+                      ? `0 4px 16px ${pillarColor}30`
+                      : isExpanded
+                        ? "0 4px 16px rgba(30,40,30,0.1)"
+                        : "none",
+                  }}
+                >
+                  {/* Header do card: status circle + dia + pilar */}
+                  <div className="flex items-center gap-2 mb-2">
                     <div
-                      className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold transition-all"
+                      className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
                       style={{
-                        backgroundColor: isCompleted
-                          ? "#639922"
-                          : isFailed
-                            ? "#FBEDED"
-                            : isCurrent
-                              ? "white"
-                              : "#e5e7eb",
-                        color: isCompleted
-                          ? "white"
-                          : isFailed
-                            ? "#C4787A"
-                            : isCurrent
-                              ? week.color
-                              : "#9ca3af",
-                        border: isCurrent ? `2px solid ${week.color}` : isFailed ? "1px solid #fcd4d4" : "none",
-                        boxShadow: isCompleted ? "0 2px 8px rgba(99,153,34,0.3)" : "none",
+                        backgroundColor: statusBg,
+                        color: statusColor,
+                        border: isCurrent ? `1px solid ${pillarColor}` : "none",
                       }}
                     >
                       {isCompleted ? (
@@ -422,106 +363,138 @@ export default function DesafioPage() {
                           <line x1="5" y1="5" x2="19" y2="19" />
                           <line x1="19" y1="5" x2="5" y2="19" />
                         </svg>
-                      ) : isLocked ? (
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
                       ) : (
                         dayNum
                       )}
                     </div>
-
-                    <p
-                      className="flex-1 text-sm"
-                      style={{
-                        color: isLocked ? "#9ca3af" : "#374151",
-                        fontWeight: isCurrent ? 700 : 400,
-                      }}
-                    >
-                      {dayData?.title ?? `Dia ${dayNum}`}
-                    </p>
-
-                    {isCompleted && (
-                      <span className="text-[10px] font-bold" style={{ color: "#639922" }}>Feito ✓</span>
-                    )}
-                    {isFailed && (
-                      <span className="text-[10px] font-bold" style={{ color: "#C4787A" }}>Falhou</span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                        Dia {dayNum}
+                      </p>
+                      {dayData && (
+                        <p className="text-[10px] font-bold" style={{ color: pillarColor }}>
+                          {PILLAR_META[dayData.pillar].label}
+                        </p>
+                      )}
+                    </div>
                     {isCurrent && (
                       <span
-                        className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                        style={{ backgroundColor: week.color }}
+                        className="rounded-full px-2 py-0.5 text-[9px] font-bold text-white"
+                        style={{ backgroundColor: pillarColor }}
                       >
                         Hoje
                       </span>
                     )}
                   </div>
 
-                  {isCurrent && dayData && (
-                    <div
-                      className="ml-10 mt-2 rounded-2xl p-4"
-                      style={{
-                        backgroundColor: "white",
-                        boxShadow: `0 2px 12px ${week.color}20`,
-                        border: `1px solid ${week.color}30`,
-                      }}
-                    >
-                      <div className="mb-3">
-                        <p className="text-xs font-bold text-gray-700 mb-1">Missao do dia</p>
-                        <p className="text-xs text-gray-600">{dayData.mission}</p>
+                  {/* Título do dia */}
+                  <p
+                    className="text-xs font-bold mb-1"
+                    style={{
+                      color: isFailed ? "#9ca3af" : isFuture ? "#9ca3af" : "#1f2937",
+                    }}
+                  >
+                    {dayData?.title ?? `Dia ${dayNum}`}
+                  </p>
+
+                  {/* Conteúdo expandido */}
+                  {isExpanded && dayData && (
+                    <div className="mt-2 space-y-2">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Missão</p>
+                        <p className="text-xs text-gray-700">{dayData.mission}</p>
                       </div>
-                      <div className="mb-3 rounded-xl p-2.5" style={{ backgroundColor: "#EAF3DE" }}>
-                        <p className="text-xs" style={{ color: "#3B6D11" }}>
-                          <span className="font-bold">Dica: </span>{dayData.tip}
+                      <div className="rounded-lg p-2" style={{ backgroundColor: "#EAF3DE" }}>
+                        <p className="text-[10px]" style={{ color: "#3B6D11" }}>
+                          <strong>Dica: </strong>{dayData.tip}
                         </p>
                       </div>
-                      <p className="mb-4 text-xs italic text-gray-500">&ldquo;{dayData.quote}&rdquo;</p>
-                      <div
-                        className="mb-3 rounded-xl p-3 text-xs"
-                        style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc", color: "#1e3a5f" }}
-                      >
-                        ℹ️ Pra fechar esse dia ✓ basta marcar 5+ hábitos na <strong>tela inicial</strong>. O ciclo avança automático.
-                      </div>
-                      <div className="flex gap-2">
+                      <p className="text-[10px] italic text-gray-500">"{dayData.quote}"</p>
+                      {isCurrent && (
                         <button
-                          onClick={() => router.push("/app/home")}
-                          className="flex-1 rounded-xl py-2.5 text-xs font-bold transition-transform active:scale-95"
-                          style={{
-                            background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)",
-                            color: "white",
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push("/app/home");
                           }}
+                          className="w-full rounded-xl py-2 text-[11px] font-bold text-white"
+                          style={{ background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)" }}
                         >
-                          Ir pra Home e marcar →
+                          Marcar 5+ hábitos na Home →
                         </button>
-                      </div>
-                      <div style={{ display: "none" }}>
-                        <button
-                          onClick={() => completeDay(dayNum)}
-                          disabled={completing}
-                          className="flex-1 rounded-xl py-2.5 text-xs font-bold text-white transition-transform active:scale-95 disabled:opacity-50"
-                          style={{ backgroundColor: "#639922" }}
-                        >
-                          {completing ? "..." : "Completar dia"}
-                        </button>
-                      </div>
+                      )}
                     </div>
+                  )}
+
+                  {/* Status badge no rodapé */}
+                  {!isExpanded && (
+                    <p
+                      className="text-[10px] font-bold"
+                      style={{
+                        color: isCompleted ? "#639922" : isFailed ? "#C4787A" : isCurrent ? pillarColor : "#9ca3af",
+                      }}
+                    >
+                      {isCompleted ? "✓ Feito" : isFailed ? "Falhou" : isCurrent ? "Toque pra ver" : "Aguarda"}
+                    </p>
                   )}
                 </div>
               );
             })}
           </div>
-        </div>
-      ))}
 
-      {/* Historico de ciclos passados */}
+          {/* Dica de fechar dia */}
+          {cycle.status === "active" && !needsNewCycle && (
+            <div
+              className="mb-3 rounded-xl p-3 text-xs"
+              style={{ backgroundColor: "#F0F7FF", border: "1px solid #d4e8fc", color: "#1e3a5f" }}
+            >
+              <strong>Dica:</strong> marque 5+ hábitos na <strong>Home</strong> antes da meia-noite pra fechar o dia ✓
+            </div>
+          )}
+
+          {/* Controles do ciclo */}
+          {cycle.status !== "completed" && !needsNewCycle && (
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              {cycle.status === "active" && (
+                <button
+                  onClick={() => callCycleAction("pause")}
+                  disabled={actioning}
+                  className="rounded-xl py-2.5 text-xs font-bold transition-colors disabled:opacity-60"
+                  style={{ backgroundColor: "#FFF6E7", color: "#BA7517", border: "1px solid #f5e6cc" }}
+                >
+                  ⏸ Pausar
+                </button>
+              )}
+              {cycle.status === "paused" && (
+                <button
+                  onClick={() => callCycleAction("resume")}
+                  disabled={actioning}
+                  className="rounded-xl py-2.5 text-xs font-bold text-white transition-colors disabled:opacity-60"
+                  style={{ backgroundColor: "#639922" }}
+                >
+                  ▶ Continuar
+                </button>
+              )}
+              <button
+                onClick={handleReset}
+                disabled={actioning}
+                className="rounded-xl py-2.5 text-xs font-bold transition-colors disabled:opacity-60"
+                style={{ backgroundColor: "#FFF0F0", color: "#C4787A", border: "1px solid #fcd4d4" }}
+              >
+                ↻ Reiniciar
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Histórico de ciclos passados */}
       {cyclesData && cyclesData.cycles.length > 1 && (
-        <div className="mt-6 rounded-2xl border border-gray-100 p-4">
+        <div className="mt-4 rounded-2xl border border-gray-100 p-4">
           <button
             onClick={() => setShowHistory((v) => !v)}
             className="flex w-full items-center justify-between text-sm font-bold text-gray-700"
           >
-            <span>Historico de ciclos ({cyclesData.cycles.length})</span>
+            <span>Histórico de ciclos ({cyclesData.cycles.length})</span>
             <span className="text-xs text-gray-400">{showHistory ? "−" : "+"}</span>
           </button>
           {showHistory && (
@@ -532,14 +505,21 @@ export default function DesafioPage() {
                   className="flex items-center justify-between rounded-xl p-3 text-xs"
                   style={{
                     backgroundColor:
-                      c.status === "completed" ? "#EAF3DE" : c.status === "paused" ? "#FFF6E7" : "#F0F7FF",
+                      c.status === "completed" ? "#EAF3DE"
+                      : c.status === "paused" ? "#FFF6E7"
+                      : c.status === "abandoned" ? "#F3F4F6"
+                      : "#F0F7FF",
                   }}
                 >
                   <div>
                     <p className="font-bold text-gray-800">Ciclo {c.cycleNumber}</p>
                     <p className="text-gray-500">
-                      {c.status === "completed" ? "Completo" : c.status === "paused" ? "Pausado" : "Em andamento"} ·{" "}
-                      {c.daysCompleted}/21 dias
+                      {c.status === "completed" ? "Completo"
+                        : c.status === "paused" ? "Pausado"
+                        : c.status === "abandoned" ? "Abandonado"
+                        : "Em andamento"} ·{" "}
+                      {c.daysCompleted}/21 dias ·{" "}
+                      {DIFFICULTY_META[c.difficulty]?.label}
                     </p>
                   </div>
                   <div className="text-right text-gray-400">
