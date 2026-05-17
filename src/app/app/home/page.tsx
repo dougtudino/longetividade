@@ -407,7 +407,12 @@ export default function AppHome() {
 
       {/* ─── BROTO — coração emocional do app ─── */}
       <div className="mb-3 flex flex-col items-center">
-        <BrotoCard state={brotoState} size={180} priority />
+        <BrotoCard
+          state={brotoState}
+          size={180}
+          priority
+          celebrating={!!growthHint}
+        />
       </div>
 
       {/* Toast de crescimento — aparece quando o Broto sobe de stage */}
