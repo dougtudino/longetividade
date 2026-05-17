@@ -33,8 +33,8 @@ function PhotoCard({ src, alt, aspect = "4/5" }: { src: string; alt: string; asp
 const EXTRAS = [
   {
     icon: "🍳",
-    label: "Receitas praticas",
-    sub: "Pratos de 15 minutos. Ingredientes que ja tem no armario.",
+    label: "Receitas práticas",
+    sub: "Pratos de 15 minutos. Ingredientes que você já tem no armário.",
   },
   {
     icon: "🛒",
@@ -43,8 +43,8 @@ const EXTRAS = [
   },
   {
     icon: "📖",
-    label: "Cartilha de habitos",
-    sub: "Pra ler quando bater a vontade de desistir. Tem resposta pronta pra cada dia dificil.",
+    label: "Cartilha de hábitos",
+    sub: "Pra ler quando bater vontade de desistir. Tem resposta pronta pra cada dia difícil.",
   },
 ];
 
@@ -58,10 +58,10 @@ export function DetoxWhatYouGet() {
 
   const items = [
     {
-      label: "Calendario A3 imprimivel",
-      sub: "Imprime, pendura na geladeira, marca com caneta. Igual quando voce era crianca.",
+      label: "Calendário A3 imprimível",
+      sub: "Imprime, pendura na geladeira, marca com caneta. Igual quando você era criança.",
       visual: kitPhotoUrl ? (
-        <PhotoCard src={kitPhotoUrl} alt="Kit Detox fisico" aspect="1/1" />
+        <PhotoCard src={kitPhotoUrl} alt="Kit Detox físico" aspect="1/1" />
       ) : (
         <MockupCalendarDetox markedDays={7} />
       ),
@@ -76,8 +76,8 @@ export function DetoxWhatYouGet() {
       ),
     },
     {
-      label: "Checklist diario",
-      sub: "4 coisinhas por dia. Marcou, ta feito.",
+      label: "Checklist diário",
+      sub: "4 coisinhas por dia. Marcou, tá feito.",
       visual: checklistPhotoUrl ? (
         <PhotoCard src={checklistPhotoUrl} alt="Checklist impresso" aspect="4/5" />
       ) : (
@@ -101,7 +101,7 @@ export function DetoxWhatYouGet() {
             className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
-            Tudo ja organizado pra voce
+            Tudo já organizado pra você
           </span>
           <h2
             className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
@@ -110,13 +110,13 @@ export function DetoxWhatYouGet() {
               letterSpacing: "-0.02em",
             }}
           >
-            O que voce abre no dia 1
+            O que você abre no dia 1
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Tudo num lugar so. Voce abre, segue, marca. Acabou.
+            Tudo num lugar só. Você abre, segue, marca. Acabou.
           </p>
         </div>
 

@@ -61,7 +61,7 @@ export function DetoxWomenGallery() {
             className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-3"
             style={{ color: "var(--accent)" }}
           >
-            Voce nao esta sozinha
+            Você não está sozinha
           </span>
           <h2
             className="font-heading font-extrabold text-3xl md:text-[2.5rem] lg:text-5xl leading-[1.1] mb-5"
@@ -70,14 +70,14 @@ export function DetoxWomenGallery() {
               letterSpacing: "-0.02em",
             }}
           >
-            Mulheres que cansaram de recomecar
+            Mulheres que cansaram de recomeçar
           </h2>
           <p
             className="font-body text-base md:text-lg leading-relaxed"
             style={{ color: "var(--text-secondary)" }}
           >
-            Comecaram num dia comum. Marcaram a primeira tarefinha. Hoje
-            contam que parecia impossivel.
+            Começaram num dia comum. Marcaram a primeira tarefinha. Hoje
+            contam que parecia impossível.
           </p>
         </div>
 
@@ -133,7 +133,7 @@ export function DetoxWomenGallery() {
           className="mt-12 text-center font-body text-xs"
           style={{ color: "var(--text-muted)" }}
         >
-          Publicado com autorizacao. Resultados variam de pessoa para pessoa.
+          Publicado com autorização. Resultados variam de pessoa para pessoa.
         </p>
       </div>
     </section>

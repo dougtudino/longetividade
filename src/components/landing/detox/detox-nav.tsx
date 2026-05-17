@@ -23,7 +23,7 @@ export function DetoxNav({ onCtaClick }: DetoxNavProps) {
           style={{ color: "var(--text-primary)" }}
         >
           <span className="text-xl">📅</span>
-          <span className="hidden sm:inline">Calendario Detox</span>
+          <span className="hidden sm:inline">Calendário Detox</span>
         </a>
 
         <div className="flex items-center gap-3">

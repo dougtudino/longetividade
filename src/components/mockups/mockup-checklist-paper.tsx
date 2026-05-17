@@ -8,10 +8,10 @@ interface MockupChecklistPaperProps {
 // Placeholder ate ter foto real impressa.
 export function MockupChecklistPaper({ className = "" }: MockupChecklistPaperProps) {
   const items = [
-    { label: "Beber 2L de agua", done: true },
-    { label: "Cafe com proteina", done: true },
+    { label: "Beber 2L de água", done: true },
+    { label: "Café com proteína", done: true },
     { label: "Caminhada 15 min", done: true },
-    { label: "Refeicao do dia", done: false },
+    { label: "Refeição do dia", done: false },
     { label: "Dormir antes das 23h", done: false },
   ];
 

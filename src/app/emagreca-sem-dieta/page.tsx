@@ -53,13 +53,13 @@ function Pill({ children }: { children: React.ReactNode }) {
 export default function EmagrecaSemDietaPage() {
   useEffect(() => {
     captureUTMs(new URLSearchParams(window.location.search));
-    trackViewContent("Calendario Detox 21 Dias", PLAN_BASICO.price);
+    trackViewContent("Calendário Detox 21 Dias", PLAN_BASICO.price);
   }, []);
 
   function handleNavCtaClick() {
     const href = appendUTMs(PLAN_BASICO.checkoutUrl);
-    trackInitiateCheckout("Calendario Detox 21 Dias", PLAN_BASICO.price);
-    trackAddToCart("Calendario Detox 21 Dias", PLAN_BASICO.price);
+    trackInitiateCheckout("Calendário Detox 21 Dias", PLAN_BASICO.price);
+    trackAddToCart("Calendário Detox 21 Dias", PLAN_BASICO.price);
     trackCtaClick({
       ctaId: "nav-detox",
       planId: "basico",
@@ -79,7 +79,7 @@ export default function EmagrecaSemDietaPage() {
       <LifestyleBlock />
       <DetoxWhatYouGet />
       <DetoxNotDiet />
-      <Pill>continuar vale mais que recomecar</Pill>
+      <Pill>continuar vale mais que recomeçar</Pill>
       <DetoxProgress />
       {/* DetoxWomenGallery: DB-driven (kind=women-gallery). So renderiza se admin
           cadastrou >=6 mulheres com nome+caption+foto. */}
@@ -90,7 +90,7 @@ export default function EmagrecaSemDietaPage() {
       {/* SocialProofBlock: DB-driven (kind=whatsapp/testimonial, row=3). Prints
           de WhatsApp. So renderiza se >=3 items ativos na row 3. */}
       <SocialProofBlock />
-      <Pill>voce so marca. a gente ja pensou.</Pill>
+      <Pill>você só marca. a gente já pensou.</Pill>
       <PricingSection />
       <DetoxFaq />
       <DetoxFinalCta />
@@ -106,16 +106,16 @@ export default function EmagrecaSemDietaPage() {
             className="font-body text-xs leading-relaxed mb-3"
             style={{ color: "var(--text-muted)" }}
           >
-            Resultados podem variar conforme adesao, rotina e historico
-            individual. Este produto nao substitui orientacao medica ou
-            nutricional. Consulte um profissional antes de mudar habitos
-            alimentares ou rotina de exercicios.
+            Resultados podem variar conforme adesão, rotina e histórico
+            individual. Este produto não substitui orientação médica ou
+            nutricional. Consulte um profissional antes de mudar hábitos
+            alimentares ou rotina de exercícios.
           </p>
           <p
             className="font-body text-xs"
             style={{ color: "var(--text-muted)" }}
           >
-            © {new Date().getFullYear()} Longetividade · Calendario Detox 21
+            © {new Date().getFullYear()} Longetividade · Calendário Detox 21
             Dias
           </p>
         </div>

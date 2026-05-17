@@ -8,8 +8,8 @@ import { PLAN_BASICO } from "@/config/plans";
 export function DetoxFinalCta() {
   function handleCtaClick() {
     const href = appendUTMs(PLAN_BASICO.checkoutUrl);
-    trackInitiateCheckout("Calendario Detox 21 Dias", PLAN_BASICO.price);
-    trackAddToCart("Calendario Detox 21 Dias", PLAN_BASICO.price);
+    trackInitiateCheckout("Calendário Detox 21 Dias", PLAN_BASICO.price);
+    trackAddToCart("Calendário Detox 21 Dias", PLAN_BASICO.price);
     trackCtaClick({
       ctaId: "final-detox",
       planId: "basico",
@@ -37,7 +37,7 @@ export function DetoxFinalCta() {
           className="inline-block font-body text-[11px] md:text-xs font-bold uppercase tracking-[0.18em] mb-4"
           style={{ color: "var(--accent)" }}
         >
-          Ultimo passo
+          Último passo
         </span>
 
         <h2
@@ -47,24 +47,24 @@ export function DetoxFinalCta() {
             letterSpacing: "-0.02em",
           }}
         >
-          Daqui 21 dias voce vai ter um calendario inteiro marcado.
+          Daqui a 21 dias, você vai ter um calendário inteiro marcado.
         </h2>
 
         <ul
           className="font-body text-base md:text-lg leading-relaxed mb-8 space-y-2 max-w-xl mx-auto"
           style={{ color: "var(--text-secondary)" }}
         >
-          <li>Da pra continuar adiando pra segunda.</li>
-          <li>Ou abrir o calendario hoje e marcar a primeira coisinha.</li>
+          <li>Dá pra continuar adiando pra segunda.</li>
+          <li>Ou abrir o calendário hoje e marcar a primeira coisinha.</li>
         </ul>
 
         <p
           className="font-body text-base md:text-lg leading-relaxed mb-10 max-w-xl mx-auto"
           style={{ color: "var(--text-secondary)" }}
         >
-          Sao 5 minutos por dia.{" "}
+          São 5 minutos por dia.{" "}
           <strong style={{ color: "var(--text-primary)" }}>R$67</strong> uma vez
-          so. Voce ja gastou mais em coisas que nem lembra mais.
+          só. Você já gastou mais do que isso em coisas que nem lembra mais.
         </p>
 
         <a
@@ -81,7 +81,7 @@ export function DetoxFinalCta() {
               "0 18px 56px -14px var(--accent-soft), 0 8px 20px -6px rgba(0,0,0,0.2)",
           }}
         >
-          Quero meu calendario detox
+          Quero meu calendário detox
           <span className="transition-transform group-hover:translate-x-1">→</span>
         </a>
 
@@ -105,8 +105,8 @@ export function DetoxFinalCta() {
           className="font-body text-sm md:text-base italic max-w-xl mx-auto"
           style={{ color: "var(--text-muted)" }}
         >
-          P.S. Se ta pensando &ldquo;comeco semana que vem&rdquo; — quantas
-          semanas que vem ja passaram?
+          P.S. Se está pensando &ldquo;começo semana que vem&rdquo; — quantas
+          semanas que vem já passaram?
         </p>
       </div>
     </section>

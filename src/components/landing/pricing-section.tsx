@@ -5,8 +5,8 @@ import { PlanCTAButton } from "./plan-cta-button";
 const ANCHOR_ITEMS = [
   { item: "Consulta com nutricionista", value: "R$ 200 - R$ 400" },
   { item: "Programa online (mensal)", value: "R$ 97 - R$ 297" },
-  { item: "Academia que voce nao vai", value: "R$ 80 - R$ 150/mes" },
-  { item: "Fast food sem planejamento", value: "R$ 300 - R$ 600/mes" },
+  { item: "Academia que você não vai", value: "R$ 80 - R$ 150/mês" },
+  { item: "Fast food sem planejamento", value: "R$ 300 - R$ 600/mês" },
 ];
 
 export function PricingSection() {
@@ -18,7 +18,7 @@ export function PricingSection() {
     >
       <div className="mx-auto max-w-5xl px-4">
         <h2 className="font-heading font-bold text-2xl md:text-4xl text-center mb-8" style={{color: 'var(--text-primary)'}}>
-          Escolha como voce quer comecar seu dia 1
+          Escolha como você quer começar seu dia 1
         </h2>
 
         <div className="mx-auto max-w-lg mb-10">
@@ -35,9 +35,9 @@ export function PricingSection() {
             ))}
           </div>
           <p className="font-body text-base md:text-lg font-medium mt-4 text-center" style={{color: 'var(--text-primary)'}}>
-            Voce ja gastou mais de{" "}
-            <strong>R$ 800 num mes</strong> tentando resolver de outras formas.
-            Essa daqui voce comeca hoje, por menos.
+            Você já gastou mais de{" "}
+            <strong>R$ 800 num mês</strong> tentando resolver de outras formas.
+            Essa daqui você começa hoje, por menos.
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export function PricingSection() {
             GARANTIA INCONDICIONAL DE 7 DIAS
           </h3>
           <p className="font-body text-sm leading-relaxed" style={{color: 'var(--text-secondary)'}}>
-            Risco zero. Se nao gostar, devolvemos 100% do seu dinheiro. Sem
+            Risco zero. Se não gostar, devolvemos 100% do seu dinheiro. Sem
             perguntas. Sem burocracia.
           </p>
         </div>
