@@ -2,8 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { addXP, XP_REWARDS } from "@/lib/gamification";
-import { CHALLENGE_DAYS } from "@/data/challenge-days";
+import { CHALLENGE_DAYS, type ChallengeDay } from "@/data/challenge-days";
+import { CHALLENGE_DAYS_EASY } from "@/data/challenge-days-easy";
+import { CHALLENGE_DAYS_HARD } from "@/data/challenge-days-hard";
 import { ensureActiveCycle, markDayCompleted, CYCLE_LENGTH_DAYS, currentDayInCycle, daysSinceStart } from "@/lib/cycles";
+
+function daysForDifficulty(difficulty: string | null | undefined): ChallengeDay[] {
+  if (difficulty === "easy") return CHALLENGE_DAYS_EASY;
+  if (difficulty === "hard") return CHALLENGE_DAYS_HARD;
+  return CHALLENGE_DAYS;
+}
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -65,7 +73,7 @@ async function getChallenge(userId: string) {
   }
 
   return NextResponse.json({
-    days: CHALLENGE_DAYS,
+    days: daysForDifficulty(targetCycle?.difficulty),
     progress,
     currentDay,
     daysElapsed,
