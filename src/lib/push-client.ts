@@ -21,6 +21,73 @@ export async function isPushSupported(): Promise<boolean> {
   return typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
 }
 
+export type PlatformCheck = {
+  supported: boolean;
+  hasServiceWorker: boolean;
+  hasPushManager: boolean;
+  hasNotification: boolean;
+  isIOS: boolean;
+  isAndroid: boolean;
+  isStandalone: boolean; // app foi instalado e aberto da tela inicial
+  isInAppBrowser: boolean; // browser embutido (Instagram, WhatsApp, Facebook)
+  reason: "ok" | "ios_needs_install" | "in_app_browser" | "no_pushmanager" | "no_serviceworker" | "unknown";
+  suggestion: string;
+};
+
+// Diagnostico detalhado pra mostrar mensagem certa pro usuario.
+// O motivo mais comum de "nao suporta" no mobile eh iOS Safari sem instalar.
+export function checkPushCapability(): PlatformCheck {
+  if (typeof window === "undefined") {
+    return {
+      supported: false, hasServiceWorker: false, hasPushManager: false, hasNotification: false,
+      isIOS: false, isAndroid: false, isStandalone: false, isInAppBrowser: false,
+      reason: "unknown", suggestion: "",
+    };
+  }
+  const ua = navigator.userAgent;
+  const hasServiceWorker = "serviceWorker" in navigator;
+  const hasPushManager = "PushManager" in window;
+  const hasNotification = "Notification" in window;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as unknown as { MSStream?: unknown }).MSStream;
+  const isAndroid = /Android/i.test(ua);
+  const isStandalone =
+    window.matchMedia?.("(display-mode: standalone)").matches ||
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+  const isInAppBrowser = /(Instagram|FBAN|FBAV|FB_IAB|FBIOS|MicroMessenger|Line\/|TikTok|musical_ly|whatsapp|WhatsApp)/i.test(ua);
+
+  const supported = hasServiceWorker && hasPushManager && hasNotification;
+
+  let reason: PlatformCheck["reason"] = "ok";
+  let suggestion = "";
+
+  if (!supported) {
+    if (isInAppBrowser) {
+      reason = "in_app_browser";
+      suggestion =
+        "Você abriu o app dentro do Instagram/Facebook/WhatsApp. Esses navegadores não suportam notificações. Toque nos três pontinhos → 'Abrir no navegador' (Safari/Chrome).";
+    } else if (isIOS && !isStandalone) {
+      reason = "ios_needs_install";
+      suggestion =
+        "No iPhone, notificações só funcionam com o app instalado na tela inicial. Toque no botão Compartilhar (□↑) do Safari → 'Adicionar à Tela de Início'. Depois abra pelo ícone novo.";
+    } else if (!hasPushManager) {
+      reason = "no_pushmanager";
+      suggestion = "Seu navegador não tem PushManager. Tente Chrome, Edge, Firefox ou Safari 16.4+.";
+    } else if (!hasServiceWorker) {
+      reason = "no_serviceworker";
+      suggestion = "Seu navegador não suporta Service Worker. Atualize ou use Chrome/Edge/Firefox.";
+    } else {
+      reason = "unknown";
+      suggestion = "Notificações não disponíveis nesse contexto.";
+    }
+  }
+
+  return {
+    supported, hasServiceWorker, hasPushManager, hasNotification,
+    isIOS, isAndroid, isStandalone, isInAppBrowser,
+    reason, suggestion,
+  };
+}
+
 export async function getCurrentPermission(): Promise<NotificationPermission | "unsupported"> {
   if (!(await isPushSupported())) return "unsupported";
   return Notification.permission;

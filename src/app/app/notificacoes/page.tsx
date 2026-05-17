@@ -2,10 +2,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { AppNav } from "@/components/app/app-nav";
 import {
-  isPushSupported,
   getCurrentPermission,
   subscribePush,
   unsubscribePush,
+  checkPushCapability,
+  type PlatformCheck,
 } from "@/lib/push-client";
 
 type Prefs = {
@@ -33,14 +34,14 @@ const CATEGORIES: Array<{ key: keyof Prefs; label: string; desc: string; icon: s
 ];
 
 export default function NotificacoesPage() {
-  const [supported, setSupported] = useState<boolean | null>(null);
+  const [capability, setCapability] = useState<PlatformCheck | null>(null);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported" | null>(null);
   const [state, setState] = useState<State | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
 
   const refresh = useCallback(async () => {
-    setSupported(await isPushSupported());
+    setCapability(checkPushCapability());
     setPermission(await getCurrentPermission());
     const r = await fetch("/api/app/push/prefs");
     if (r.ok) setState(await r.json());
@@ -108,6 +109,7 @@ export default function NotificacoesPage() {
 
   const subscribed = state.hasSubscriptions && permission === "granted";
   const blocked = permission === "denied";
+  const supported = capability?.supported ?? false;
 
   return (
     <div className="px-5 pb-24 pt-6">
@@ -128,12 +130,29 @@ export default function NotificacoesPage() {
           color: subscribed ? "white" : blocked ? "#7A2A2C" : "#8B5A0F",
         }}
       >
-        {supported === false && (
+        {!supported && capability && (
           <>
-            <p className="text-sm font-bold">Navegador não suporta</p>
-            <p className="text-xs mt-1 opacity-90">
-              Push só funciona em Chrome, Edge, Firefox e Safari 16+. Tente abrir em outro navegador.
+            <p className="text-sm font-bold">
+              {capability.reason === "ios_needs_install" && "Adicione o app à tela inicial"}
+              {capability.reason === "in_app_browser" && "Abra no navegador completo"}
+              {capability.reason === "no_pushmanager" && "Navegador não suporta push"}
+              {capability.reason === "no_serviceworker" && "Service Worker indisponível"}
+              {capability.reason === "unknown" && "Notificações não disponíveis"}
             </p>
+            <p className="text-xs mt-1 opacity-90 leading-relaxed">{capability.suggestion}</p>
+            {capability.reason === "ios_needs_install" && (
+              <div className="mt-3 rounded-xl bg-white p-3 text-[11px] text-gray-700 leading-relaxed">
+                <p className="font-bold mb-1">Passo a passo no iPhone:</p>
+                <ol className="ml-4 list-decimal space-y-0.5">
+                  <li>Use o Safari (não Chrome no iPhone)</li>
+                  <li>Toque no botão <strong>Compartilhar</strong> (□ com seta pra cima)</li>
+                  <li>Role e toque em <strong>Adicionar à Tela de Início</strong></li>
+                  <li>Toque em <strong>Adicionar</strong></li>
+                  <li>Abra o app pelo ícone novo na tela inicial</li>
+                  <li>Volte nessa tela e ative as notificações</li>
+                </ol>
+              </div>
+            )}
           </>
         )}
         {supported && blocked && (
