@@ -160,9 +160,45 @@ export const SLOTS_EMAGRECA: LpAssetSlot[] = [
   { key: "avatar.patricia", label: "Avatar — Patricia", group: "avatar", fallback: "/images/avatar-patricia.jpg", targetWidth: 400, targetHeight: 400, aspectHint: "1:1 quadrado", recommendedSize: "400×400px", minSize: "300×300px", uploadGuide: "Foto de rosto da Patricia, centralizada. Corte até ombros. Estilo selfie natural." },
 ];
 
+// App 21 Dias — icon do PWA + favicon. lpSlug="app" (mesma tabela LpAsset,
+// mesmo padrão de upload+fallback). Servem pra:
+//  - icon: PWA install (Android + iOS) e apple-touch-icon → /api/og/pwa-icons
+//  - favicon: aba do browser → /icon (route handler dinâmico)
+export const SLOTS_APP: LpAssetSlot[] = [
+  {
+    key: "icon",
+    label: "App — Ícone (instalação no celular)",
+    group: "avatar", // group="avatar" só pra UI renderizar com aspect 1:1
+    fallback: "", // sem fallback estático — rota /api/og/pwa-icons gera "L" verde
+    targetWidth: 1024,
+    targetHeight: 1024,
+    aspectHint: "1:1 quadrado (PWA Android/iOS + Play Store)",
+    recommendedSize: "1024×1024px",
+    minSize: "512×512px",
+    appearsIn: "Tela inicial do celular após instalar o PWA, splash screen, Play Store",
+    uploadGuide:
+      "Quadrado perfeito 1:1. Fundo SÓLIDO (sem transparência — Android corta com máscara). Mantenha o elemento principal nos 80% centrais (Android pode aplicar máscara circular/squircle). Cores fortes funcionam melhor que pastel.",
+  },
+  {
+    key: "favicon",
+    label: "App — Favicon (aba do navegador)",
+    group: "avatar",
+    fallback: "", // fallback é o SVG hardcoded em src/app/icon.svg
+    targetWidth: 256,
+    targetHeight: 256,
+    aspectHint: "1:1 quadrado (aba do browser, bookmarks)",
+    recommendedSize: "256×256px",
+    minSize: "128×128px",
+    appearsIn: "Aba do navegador (chrome.exe / safari) e favoritos",
+    uploadGuide:
+      "Versão simplificada do ícone. Aparece bem pequeno (16-32px reais), então use pouco detalhe. Pode ser igual ao ícone do app — se vazio, usa o SVG verde padrão.",
+  },
+];
+
 // Mapeamento de LPs → slots (expandir quando migrar outras)
 export const LP_SLOTS: Record<string, LpAssetSlot[]> = {
   "emagreca-sem-dieta": SLOTS_EMAGRECA,
+  app: SLOTS_APP,
 };
 
 // Helper: resolve URL da imagem (DB > fallback)

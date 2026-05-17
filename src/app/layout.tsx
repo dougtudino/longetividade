@@ -50,6 +50,21 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Icons dinamicos: a rota /api/og/pwa-icons busca o asset no banco
+  // (LpAsset lpSlug="app" key="icon") e devolve PNG no tamanho pedido.
+  // Sem asset cadastrado, gera o quadrado verde com "L" como fallback.
+  // Configurado aqui em vez de src/app/icon.tsx pra evitar runtime split
+  // (icon.tsx do Next eh edge por default, sharp+prisma exigem node).
+  icons: {
+    icon: [
+      { url: "/api/og/pwa-icons?size=32", sizes: "32x32", type: "image/png" },
+      { url: "/api/og/pwa-icons?size=192", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/api/og/pwa-icons?size=180", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/api/og/pwa-icons?size=192",
+  },
 };
 
 export default function RootLayout({
