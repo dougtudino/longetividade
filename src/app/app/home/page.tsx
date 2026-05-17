@@ -174,23 +174,18 @@ export default function AppHome() {
       setTodayMood(m.todayLog?.mood ?? null);
     }
 
-    // Streak (últimos 7 dias)
-    const days: Promise<boolean>[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const dt = new Date();
-      dt.setDate(dt.getDate() - i);
-      const dateStr = dt.toISOString().split("T")[0];
-      days.push(
-        fetch(`/api/app/checkin?date=${dateStr}`).then((r) => r.json()).then((data) => !!data.checkin)
-      );
+    // Streak via endpoint agregado (server calcula em BR com lib/streaks).
+    // Antes eram 7 fetchs sequenciais que usavam UTC e podiam divergir
+    // do streak do server. Agora uma fonte unica.
+    try {
+      const sRes = await fetch("/api/app/stats");
+      if (sRes.ok) {
+        const sd = await sRes.json();
+        if (typeof sd.streak === "number") setStreakCount(sd.streak);
+      }
+    } catch {
+      /* silent */
     }
-    const streakArr = await Promise.all(days);
-    let count = 0;
-    for (let i = streakArr.length - 1; i >= 0; i--) {
-      if (streakArr[i]) count++;
-      else break;
-    }
-    setStreakCount(count);
   }, []);
 
   useEffect(() => {
@@ -390,14 +385,16 @@ export default function AppHome() {
               >
                 <button
                   onClick={() => toggleHabit(h.key)}
-                  className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md transition-colors"
+                  aria-label={done ? `Desmarcar ${h.label}` : `Marcar ${h.label}`}
+                  aria-pressed={done}
+                  className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md transition-colors"
                   style={{
                     backgroundColor: done ? "#639922" : "white",
                     border: done ? "none" : "2px solid #d1d5db",
                   }}
                 >
                   {done && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
@@ -416,8 +413,9 @@ export default function AppHome() {
                     <span className="text-[11px] font-bold text-gray-600">{waterCount}/8</span>
                     <button
                       onClick={addWater}
-                      className="flex h-7 w-7 items-center justify-center rounded-full font-bold text-white"
-                      style={{ backgroundColor: "#378ADD", fontSize: 14 }}
+                      aria-label="Adicionar 1 copo de água"
+                      className="flex h-10 w-10 items-center justify-center rounded-full font-bold text-white"
+                      style={{ backgroundColor: "#378ADD", fontSize: 18 }}
                     >
                       +
                     </button>

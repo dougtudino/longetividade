@@ -141,7 +141,11 @@ export function InstallPwaButton({
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-lg font-bold text-gray-900">Instalar no iPhone</h3>
-              <button onClick={() => setShowIosModal(false)} className="text-xl text-gray-400">
+              <button
+                onClick={() => setShowIosModal(false)}
+                aria-label="Fechar"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400"
+              >
                 ×
               </button>
             </div>

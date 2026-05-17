@@ -51,6 +51,19 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+  // Range plausivel: 30-250 cm. Fora disso eh erro de digitacao.
+  if (typeof body.waist === "number" && (body.waist < 30 || body.waist > 250)) {
+    return NextResponse.json(
+      { ok: false, error: "Cintura fora do intervalo plausivel (30-250 cm)" },
+      { status: 400 }
+    );
+  }
+  if (typeof body.hip === "number" && (body.hip < 30 || body.hip > 250)) {
+    return NextResponse.json(
+      { ok: false, error: "Quadril fora do intervalo plausivel (30-250 cm)" },
+      { status: 400 }
+    );
+  }
 
   try {
     const measurement = await prisma.appMeasurement.create({

@@ -170,7 +170,8 @@ export function ActivitiesSection({ onRegistered }: { onRegistered?: () => void 
               </div>
               <button
                 onClick={() => setSelectedActivity(null)}
-                className="text-xl text-gray-400"
+                aria-label="Fechar"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400"
               >
                 ×
               </button>

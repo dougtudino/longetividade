@@ -11,6 +11,14 @@ export async function POST(req: NextRequest) {
   if (!body.weight || typeof body.weight !== "number") {
     return NextResponse.json({ error: "Peso obrigatorio" }, { status: 400 });
   }
+  // Range plausivel: 20-400 kg. Fora disso eh quase certo erro de digitacao
+  // (ex: 725 quer dizer 72.5) ou troll. Bloquear evita lixo no historico.
+  if (body.weight < 20 || body.weight > 400) {
+    return NextResponse.json(
+      { error: "Peso fora do intervalo plausivel (20-400 kg)" },
+      { status: 400 }
+    );
+  }
 
   const log = await prisma.appWeightLog.create({
     data: {
