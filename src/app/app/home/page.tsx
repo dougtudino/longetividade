@@ -198,19 +198,37 @@ export default function AppHome() {
   }, [fetchAll]);
 
   // ─── Ações ──────────────────────────────────────────────
+  // Toggle persiste imediatamente no backend (autosave). Sem o "Marcar
+  // meu dia", a usuária poderia perder tudo trocando de aba. /api/app/checkin
+  // POST eh upsert idempotente — chamar com habits parciais eh seguro.
   function toggleHabit(key: string) {
-    setLocalHabits((prev) => ({ ...prev, [key]: !prev[key] }));
+    setLocalHabits((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      // Fire-and-forget autosave (sem await pra UI nao travar)
+      fetch("/api/app/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habits: next }),
+      }).catch(() => {
+        /* silencioso; usuaria ainda pode tocar "Marcar meu dia" depois */
+      });
+      return next;
+    });
   }
 
   async function addWater() {
     // optimistic
     setCheckin((prev) => (prev ? { ...prev, waterCount: prev.waterCount + 1 } : prev));
     try {
-      await fetch("/api/app/water", {
+      const r = await fetch("/api/app/water", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cups: 1 }),
       });
+      // Rollback em qualquer status != 2xx (nao so erro de rede)
+      if (!r.ok) {
+        setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
+      }
     } catch {
       setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
     }

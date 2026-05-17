@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
+import { brasilStartOfDay } from "@/lib/tz";
 
 // GET /api/app/wellbeing-week
 // Agrega ultima semana pra widget "Sua semana" na home:
@@ -16,11 +17,10 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
   try {
-    const now = new Date();
-    const sevenDaysAgo = new Date(now);
-    sevenDaysAgo.setDate(now.getDate() - 7);
-    const fourteenDaysAgo = new Date(now);
-    fourteenDaysAgo.setDate(now.getDate() - 14);
+    // Tudo em BR (servidor eh UTC)
+    const todayStart = brasilStartOfDay();
+    const sevenDaysAgo = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const fourteenDaysAgo = new Date(todayStart.getTime() - 14 * 24 * 60 * 60 * 1000);
 
     const [allWeights, lastWeight, prevWeight, moods, checkins] = await Promise.all([
       prisma.appWeightLog.count({ where: { userId: user.id } }),
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     const weightDelta =
       lastWeight && prevWeight ? Number((lastWeight.weight - prevWeight.weight).toFixed(2)) : null;
     const daysSinceLastWeight = lastWeight
-      ? Math.floor((now.getTime() - new Date(lastWeight.loggedAt).getTime()) / (1000 * 60 * 60 * 24))
+      ? Math.floor((todayStart.getTime() - new Date(lastWeight.loggedAt).getTime()) / (1000 * 60 * 60 * 24))
       : null;
 
     // Mood dominante

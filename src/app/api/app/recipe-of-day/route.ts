@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentCycle } from "@/lib/cycles";
 import { RECIPES } from "@/data/recipes";
 import { CHALLENGE_DAYS } from "@/data/challenge-days";
+import { brasilToday } from "@/lib/tz";
 
 // GET /api/app/recipe-of-day
 // Sugere UMA receita alinhada ao pilar (S/E/M) do dia atual do desafio.
@@ -39,8 +40,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ recipe: any, pillar, dayNumber });
     }
 
-    // Seed deterministico: mesmo dia + mesmo user = mesma receita
-    const today = new Date().toISOString().slice(0, 10);
+    // Seed deterministico em BR: mesmo dia BR + mesmo user = mesma receita
+    const today = brasilToday();
     let hash = 0;
     const seed = `${user.id}-${today}`;
     for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;

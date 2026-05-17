@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppUser } from "@/lib/app-auth";
 import { prisma } from "@/lib/prisma";
 import { listCycles, getCycleStats } from "@/lib/cycles";
+import { brasilStartOfDay } from "@/lib/tz";
 
 // GET /api/app/progress?days=30
 // Agrega series temporais pra dashboard de evolucao em /app/progresso.
@@ -13,9 +14,9 @@ export async function GET(req: NextRequest) {
   const daysParam = req.nextUrl.searchParams.get("days");
   const days = Math.min(Math.max(parseInt(daysParam ?? "30", 10), 7), 365);
 
-  const since = new Date();
-  since.setUTCDate(since.getUTCDate() - days);
-  since.setUTCHours(0, 0, 0, 0);
+  // Janela em BR (servidor eh UTC)
+  const today = brasilStartOfDay();
+  const since = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
 
   try {
     const [profile, weightLogs, measurements, moodLogs, checkins, cycles, cycleStats] =

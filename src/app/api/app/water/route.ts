@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
+import { brasilStartOfDay, brasilEndOfDay } from "@/lib/tz";
 
 export async function POST(req: NextRequest) {
   const user = await getAppUser(req);
@@ -14,8 +15,8 @@ export async function POST(req: NextRequest) {
     data: { userId: user.id, cups },
   });
 
-  // Atualizar checkin do dia tambem
-  const today = new Date(new Date().toISOString().split("T")[0] + "T00:00:00Z");
+  // Atualizar checkin do dia tambem (em BR, nao UTC)
+  const today = brasilStartOfDay();
   const checkin = await prisma.appCheckin.findUnique({
     where: { userId_date: { userId: user.id, date: today } },
   });
@@ -57,10 +58,9 @@ export async function GET(req: NextRequest) {
   const dateParam = req.nextUrl.searchParams.get("date");
 
   if (dateParam) {
-    // Modo "ver dia passado": apenas logs do dia informado (UTC bound)
-    const dayStart = new Date(dateParam + "T00:00:00Z");
-    const dayEnd = new Date(dayStart);
-    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+    // Modo "ver dia passado": apenas logs do dia informado (em BR)
+    const dayStart = brasilStartOfDay(dateParam);
+    const dayEnd = brasilEndOfDay(dateParam);
 
     const logs = await prisma.appWaterLog.findMany({
       where: { userId: user.id, loggedAt: { gte: dayStart, lt: dayEnd } },

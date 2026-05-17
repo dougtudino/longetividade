@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { sendPushToUser, type NotificationCategory, type PushPayload } from "./push";
+import { brasilHour, brasilDayOfWeek, brasilStartOfDay, brasilEndOfDay } from "./tz";
 
 // ─── Engine de notificacoes personalizadas ─────────────────
 // Decide o que mandar pra CADA usuaria individualmente baseado em:
@@ -142,12 +143,10 @@ const RULES: Rule[] = [
   },
 ];
 
-// Verifica se ja enviou essa categoria hoje (pra essa user)
+// Verifica se ja enviou essa categoria hoje (em BR, nao UTC)
 async function alreadySentToday(userId: string, category: string): Promise<boolean> {
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
   const count = await prisma.appNotificationLog.count({
-    where: { userId, category, sentAt: { gte: startOfDay } },
+    where: { userId, category, sentAt: { gte: brasilStartOfDay() } },
   });
   return count > 0;
 }
@@ -157,11 +156,10 @@ async function buildContext(userId: string, hour: number): Promise<UserContext |
   const profile = await prisma.appProfile.findUnique({ where: { userId } });
   if (!profile) return null;
 
-  const today = new Date(new Date().toISOString().split("T")[0] + "T00:00:00Z");
-  const todayEnd = new Date(today);
-  todayEnd.setUTCDate(todayEnd.getUTCDate() + 1);
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  // Tudo em BR — servidor Railway eh UTC mas o app eh 100% BR
+  const today = brasilStartOfDay();
+  const todayEnd = brasilEndOfDay();
+  const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
   const [checkin, moodToday, lastWeight, cycle, weekCheckins] = await Promise.all([
     prisma.appCheckin.findUnique({ where: { userId_date: { userId, date: today } } }),
@@ -232,9 +230,9 @@ export async function evaluateAndSendUserNotifications(userId: string): Promise<
   sent: number;
   rules: Array<{ category: string; tag: string }>;
 }> {
-  const now = new Date();
-  const hour = now.getHours();
-  const dayOfWeek = now.getDay();
+  // Hora e dia da semana em BR (servidor eh UTC)
+  const hour = brasilHour();
+  const dayOfWeek = brasilDayOfWeek();
 
   const ctx = await buildContext(userId, hour);
   if (!ctx) return { sent: 0, rules: [] };

@@ -1,7 +1,27 @@
 import { prisma } from "./prisma";
+import { brasilToday, brasilStartOfDay } from "./tz";
+
+// AppCheckin.date eh @db.Date (sem hora). Quando salvamos com
+// brasilStartOfDay(), Postgres armazena apenas YYYY-MM-DD em UTC.
+// Comparamos no streak usando strings YYYY-MM-DD (BR) pra consistencia.
+
+function dateToBrDayString(d: Date): string {
+  // Date eh UTC. Pra obter o "dia BR" desse Date, subtrai 3h e pega YYYY-MM-DD.
+  // Como o checkin foi salvo com brasilStartOfDay() (= 03h UTC = 00h BR), o
+  // resultado eh idempotente em ambas direcoes.
+  const br = new Date(d.getTime() - 3 * 60 * 60 * 1000);
+  return br.toISOString().split("T")[0];
+}
+
+function shiftBrDay(yyyyMmDd: string, days: number): string {
+  const d = brasilStartOfDay(yyyyMmDd);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().split("T")[0];
+}
 
 /**
- * Count consecutive days with at least 1 checkin (from today backwards)
+ * Conta dias consecutivos com pelo menos 1 checkin (de hoje BR pra tras).
+ * Permite que ontem conte como inicio do streak se hoje ainda nao teve checkin.
  */
 export async function getStreak(userId: string): Promise<number> {
   const checkins = await prisma.appCheckin.findMany({
@@ -12,41 +32,23 @@ export async function getStreak(userId: string): Promise<number> {
 
   if (checkins.length === 0) return 0;
 
-  let streak = 0;
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-
-  // Build a Set of date strings for O(1) lookup
   const dateSet = new Set<string>();
-  for (const c of checkins) {
-    const d = new Date(c.date);
-    d.setUTCHours(0, 0, 0, 0);
-    dateSet.add(d.toISOString().split("T")[0]);
-  }
+  for (const c of checkins) dateSet.add(dateToBrDayString(c.date));
 
-  // Walk backwards from today
-  const cursor = new Date(today);
-  // Allow starting from today or yesterday (if user hasn't checked in today yet)
-  const todayStr = cursor.toISOString().split("T")[0];
-  if (!dateSet.has(todayStr)) {
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-  }
+  // Comeca em hoje BR. Se nao tem hoje, comeca em ontem (gentil).
+  let cursor = brasilToday();
+  if (!dateSet.has(cursor)) cursor = shiftBrDay(cursor, -1);
 
-  while (true) {
-    const key = cursor.toISOString().split("T")[0];
-    if (dateSet.has(key)) {
-      streak++;
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
-    } else {
-      break;
-    }
+  let streak = 0;
+  while (dateSet.has(cursor)) {
+    streak++;
+    cursor = shiftBrDay(cursor, -1);
   }
-
   return streak;
 }
 
 /**
- * Count consecutive days with ALL 10 habits checked
+ * Conta dias consecutivos com TODOS os habitos do dia marcados (>=10 keys, todas true).
  */
 export async function getHabitStreak(userId: string): Promise<number> {
   const checkins = await prisma.appCheckin.findMany({
@@ -57,46 +59,31 @@ export async function getHabitStreak(userId: string): Promise<number> {
 
   if (checkins.length === 0) return 0;
 
-  // Build map of date -> allHabitsDone
   const perfectDays = new Set<string>();
   for (const c of checkins) {
     const habits = c.habits as Record<string, boolean> | null;
-    if (habits) {
-      const values = Object.values(habits);
-      if (values.length >= 10 && values.every(Boolean)) {
-        const d = new Date(c.date);
-        d.setUTCHours(0, 0, 0, 0);
-        perfectDays.add(d.toISOString().split("T")[0]);
-      }
+    if (!habits) continue;
+    const values = Object.values(habits);
+    if (values.length >= 10 && values.every(Boolean)) {
+      perfectDays.add(dateToBrDayString(c.date));
     }
   }
 
   if (perfectDays.size === 0) return 0;
 
+  let cursor = brasilToday();
+  if (!perfectDays.has(cursor)) cursor = shiftBrDay(cursor, -1);
+
   let streak = 0;
-  const cursor = new Date();
-  cursor.setUTCHours(0, 0, 0, 0);
-
-  const todayStr = cursor.toISOString().split("T")[0];
-  if (!perfectDays.has(todayStr)) {
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  while (perfectDays.has(cursor)) {
+    streak++;
+    cursor = shiftBrDay(cursor, -1);
   }
-
-  while (true) {
-    const key = cursor.toISOString().split("T")[0];
-    if (perfectDays.has(key)) {
-      streak++;
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
-    } else {
-      break;
-    }
-  }
-
   return streak;
 }
 
 /**
- * Get the longest streak ever for a user
+ * Maior streak alguma vez (longest run consecutivo no historico).
  */
 export async function getLongestStreak(userId: string): Promise<number> {
   const checkins = await prisma.appCheckin.findMany({
@@ -107,21 +94,23 @@ export async function getLongestStreak(userId: string): Promise<number> {
 
   if (checkins.length === 0) return 0;
 
-  let longest = 1;
-  let current = 1;
+  const dateSet = new Set<string>();
+  for (const c of checkins) dateSet.add(dateToBrDayString(c.date));
 
-  for (let i = 1; i < checkins.length; i++) {
-    const prev = new Date(checkins[i - 1].date);
-    const curr = new Date(checkins[i].date);
-    const diffDays = Math.round((curr.getTime() - prev.getTime()) / (1000 * 60 * 60 * 24));
+  let longest = 0;
+  let current = 0;
+  let prev: string | null = null;
 
-    if (diffDays === 1) {
+  // Iterar em ordem (set nao garante ordem; ordenar)
+  const sorted = Array.from(dateSet).sort();
+  for (const day of sorted) {
+    if (prev === null || day === shiftBrDay(prev, 1)) {
       current++;
-      if (current > longest) longest = current;
-    } else if (diffDays > 1) {
+    } else {
       current = 1;
     }
-    // diffDays === 0 means same day, skip
+    if (current > longest) longest = current;
+    prev = day;
   }
 
   return longest;

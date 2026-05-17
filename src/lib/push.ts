@@ -1,5 +1,6 @@
 import webpush from "web-push";
 import { prisma } from "./prisma";
+import { brasilHour, brasilStartOfDay } from "./tz";
 
 // Public key vai pro client (NEXT_PUBLIC_VAPID_PUBLIC_KEY) com fallback
 // hardcoded porque o Railway/Nixpacks/Turbopack tem bug que NAO injeta
@@ -49,7 +50,8 @@ export async function sendPushToUser(
     if (!enabled) return { sent: 0, failed: 0, skipped: true };
 
     if (pref.quietHoursStart != null && pref.quietHoursEnd != null) {
-      const nowHour = new Date().getHours();
+      // brasilHour pra respeitar configuracao da usuaria em hora BR (server eh UTC)
+      const nowHour = brasilHour();
       const start = pref.quietHoursStart;
       const end = pref.quietHoursEnd;
       // quiet hours pode atravessar meia-noite (ex: 22h-7h)

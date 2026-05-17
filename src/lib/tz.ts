@@ -56,12 +56,16 @@ export function brasilAddDays(yyyyMmDd: string, days: number): string {
   return d.toISOString().split("T")[0];
 }
 
-// Diferenca em dias entre duas datas (todayBR - otherDate)
+// Diferenca em dias BR entre uma data passada e hoje.
+// Aceita Date ou "YYYY-MM-DD". Retorna inteiro >= 0 quando other esta no passado.
 export function brasilDaysSince(other: Date | string): number {
-  const otherStart = typeof other === "string"
-    ? brasilStartOfDay(other)
-    : brasilStartOfDay(brasilNow().toISOString().split("T")[0]); // sanitize
+  const otherStr =
+    typeof other === "string"
+      ? other
+      : new Date(other.getTime() - BR_OFFSET_MS).toISOString().split("T")[0];
+  const otherStart = brasilStartOfDay(otherStr);
   const todayStart = brasilStartOfDay();
-  const diffMs = todayStart.getTime() - (typeof other === "string" ? otherStart.getTime() : (other instanceof Date ? other.getTime() : 0));
-  return Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  return Math.floor(
+    (todayStart.getTime() - otherStart.getTime()) / (24 * 60 * 60 * 1000)
+  );
 }

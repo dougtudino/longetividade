@@ -147,7 +147,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Caminhe 15 minutos depois do almoco. Pode ser no quarteirao, no estacionamento, no corredor do predio. Sem pressa. Sem meta de distancia. So ande.",
     tip: "Caminhada apos a refeicao ajuda na digestao, estabiliza o acucar no sangue e melhora seu humor. 15 minutos.",
     quote: "Nao precisa correr. So precisa nao ficar parada.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 16,
@@ -156,7 +156,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Alongue-se por 5 minutos assim que acordar. Estique os bracos. Gire o pescoco. Toque os pes. Abra o peito. Respire fundo.",
     tip: "Pode fazer na cama mesmo. Espreguice com intencao. 5 minutos de alongamento de manha diminuem dor e tensao.",
     quote: "Cuide do seu corpo de manha. Ele cuida de voce o dia inteiro.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 17,
@@ -165,7 +165,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Escolha as escadas pelo menos uma vez hoje. No trabalho, no shopping, no predio. Se for muito alto, suba metade de escada e pegue o elevador no resto.",
     tip: "Subir escada ativa pernas, gluteos e coracao em poucos minutos. E o exercicio mais subestimado que existe.",
     quote: "Movimento nao e evento. E escolha.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 18,
@@ -174,7 +174,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Coloque sua musica favorita e dance por 10 minutos. Na sala, na cozinha, no quarto. Sozinha ou com as criancas. Sem coreografia. Sem vergonha. So movimento e alegria.",
     tip: "Dancar libera endorfina, melhora o humor e queima energia — tudo ao mesmo tempo. 3 musicas animadas = uns 10 minutos.",
     quote: "Se mexer nao precisa doer. Pode ser divertido.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 19,
@@ -183,7 +183,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Faca algo ativo com sua familia ou amigos hoje. Uma caminhada no parque, brincar com as criancas no quintal, passear com o cachorro, andar de bicicleta.",
     tip: "Quando o movimento vira programa familiar, deixa de ser exercicio e vira memoria.",
     quote: "Saude nao e destino solo. E viagem compartilhada.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 20,
@@ -192,7 +192,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Monte sua rotina pessoal de 15 minutos de movimento. Escolha o que mais gostou nesta semana: caminhada, alongamento, escada, danca. Combine 2 ou 3 deles. Esse e SEU plano.",
     tip: "Escreva no papel ou no celular. Quando esta escrito, vira compromisso.",
     quote: "Consistencia vence intensidade. Sempre.",
-    ctaPath: "/app/movimento",
+    ctaPath: "/app/home",
   },
   {
     day: 21,

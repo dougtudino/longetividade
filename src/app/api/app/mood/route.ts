@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAppUser } from "@/lib/app-auth";
 import { addXP, evaluateAchievements, XP_REWARDS } from "@/lib/gamification";
+import { brasilStartOfDay, brasilEndOfDay } from "@/lib/tz";
 
 export async function GET(req: NextRequest) {
   const user = await getAppUser(req);
@@ -12,16 +13,12 @@ export async function GET(req: NextRequest) {
 
   let whereLogged: { gte: Date; lt?: Date };
   if (dateParam) {
-    // Modo dia especifico (UTC bounds)
-    const dayStart = new Date(dateParam + "T00:00:00Z");
-    const dayEnd = new Date(dayStart);
-    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
-    whereLogged = { gte: dayStart, lt: dayEnd };
+    // Modo dia especifico em BR (servidor eh UTC)
+    whereLogged = { gte: brasilStartOfDay(dateParam), lt: brasilEndOfDay(dateParam) };
   } else {
     const days = daysParam ? parseInt(daysParam, 10) : 7;
-    const since = new Date();
-    since.setDate(since.getDate() - days);
-    since.setHours(0, 0, 0, 0);
+    const today = brasilStartOfDay();
+    const since = new Date(today.getTime() - days * 24 * 60 * 60 * 1000);
     whereLogged = { gte: since };
   }
 
@@ -33,9 +30,8 @@ export async function GET(req: NextRequest) {
     orderBy: { loggedAt: "desc" },
   });
 
-  // Today's log
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  // Today's log em BR (servidor eh UTC)
+  const todayStart = brasilStartOfDay();
   const todayLog = logs.find((l) => new Date(l.loggedAt) >= todayStart);
 
   // Most common mood this week

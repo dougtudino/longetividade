@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { ACHIEVEMENTS } from "@/data/achievements";
 import { getStreak, getHabitStreak } from "./streaks";
+import { brasilStartOfDay } from "./tz";
 
 // ─── Level Names ─────────────────────────────────
 const LEVEL_NAMES: Record<number, string> = {
@@ -118,8 +119,8 @@ export async function evaluateAchievements(userId: string) {
 
 // ─── Gather Stats ────────────────────────────────
 async function gatherStats(userId: string) {
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  // Hoje em BR (servidor eh UTC). Checkin foi salvo com brasilStartOfDay.
+  const today = brasilStartOfDay();
 
   const [
     totalCheckins,
@@ -226,7 +227,7 @@ async function gatherStats(userId: string) {
 }
 
 async function countWaterStreakDays(userId: string): Promise<number> {
-  // Count consecutive days with waterCount >= 8
+  // Dias consecutivos com waterCount >= 8 (em BR)
   const checkins = await prisma.appCheckin.findMany({
     where: { userId },
     orderBy: { date: "desc" },
@@ -236,31 +237,29 @@ async function countWaterStreakDays(userId: string): Promise<number> {
   const waterDays = new Set<string>();
   for (const c of checkins) {
     if (c.waterCount >= 8) {
-      const d = new Date(c.date);
-      d.setUTCHours(0, 0, 0, 0);
-      waterDays.add(d.toISOString().split("T")[0]);
+      // Date eh @db.Date; converte pra YYYY-MM-DD BR
+      const br = new Date(c.date.getTime() - 3 * 60 * 60 * 1000);
+      waterDays.add(br.toISOString().split("T")[0]);
     }
   }
 
   if (waterDays.size === 0) return 0;
 
-  let streak = 0;
-  const cursor = new Date();
-  cursor.setUTCHours(0, 0, 0, 0);
-
-  const todayStr = cursor.toISOString().split("T")[0];
-  if (!waterDays.has(todayStr)) {
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  // Importacao tardia pra evitar circular se necessario
+  const { brasilToday, brasilStartOfDay: brStart } = await import("./tz");
+  let cursorStr = brasilToday();
+  if (!waterDays.has(cursorStr)) {
+    const d = brStart(cursorStr);
+    d.setUTCDate(d.getUTCDate() - 1);
+    cursorStr = d.toISOString().split("T")[0];
   }
 
-  while (true) {
-    const key = cursor.toISOString().split("T")[0];
-    if (waterDays.has(key)) {
-      streak++;
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
-    } else {
-      break;
-    }
+  let streak = 0;
+  while (waterDays.has(cursorStr)) {
+    streak++;
+    const d = brStart(cursorStr);
+    d.setUTCDate(d.getUTCDate() - 1);
+    cursorStr = d.toISOString().split("T")[0];
   }
 
   return streak;

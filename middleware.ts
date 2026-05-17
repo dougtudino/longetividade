@@ -22,15 +22,13 @@ async function isAdminAuthenticated(request: NextRequest): Promise<boolean> {
 }
 
 async function isAppAuthenticated(request: NextRequest): Promise<boolean> {
-  // Check signed token first, fallback to legacy app_email cookie
+  // Sempre valida o app_token (HMAC). O cookie `app_email` legacy foi
+  // removido em 2026-05-17 — era vetor de auth bypass (qualquer pessoa
+  // podia setar via document.cookie e logar como qualquer email).
   const token = request.cookies.get(APP_TOKEN_COOKIE)?.value;
-  if (token) {
-    const payload = await verifyAppToken(token);
-    if (payload) return true;
-  }
-  // Legacy: unsigned app_email cookie (existing sessions before token signing)
-  const email = request.cookies.get("app_email")?.value;
-  return !!email;
+  if (!token) return false;
+  const payload = await verifyAppToken(token);
+  return payload !== null;
 }
 
 export async function middleware(request: NextRequest) {
