@@ -385,6 +385,26 @@ export default function AppHome() {
         )}
       </div>
 
+      {/* Banner de retorno — só aparece se Broto está saudoso (3+ dias ausente).
+          Vem ANTES do Broto pra acolher antes do contato visual. */}
+      {brotoState?.mood === "saudoso" && (
+        <div
+          className="mb-3 rounded-2xl p-3 text-center"
+          style={{
+            background: "linear-gradient(135deg, #FFF6E7 0%, #FCEFD0 100%)",
+            border: "1px solid #f5e6cc",
+          }}
+          role="status"
+        >
+          <p className="text-sm font-bold" style={{ color: "#8B5A0F" }}>
+            🌱 Que bom te ver de novo.
+          </p>
+          <p className="mt-1 text-[11px]" style={{ color: "#8B5A0F", opacity: 0.85 }}>
+            Sem pressão. Hoje é um bom dia pra recomeçar — do seu jeito.
+          </p>
+        </div>
+      )}
+
       {/* ─── BROTO — coração emocional do app ─── */}
       <div className="mb-3 flex flex-col items-center">
         <BrotoCard state={brotoState} size={180} priority />

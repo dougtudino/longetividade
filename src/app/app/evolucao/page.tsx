@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
+import { BrotoAvatar, useBrotoState } from "@/components/app/broto-avatar";
 
 // /app/evolucao — view consolidada de histórico (progresso + conquistas + ciclos).
 // Substitui /app/progresso e /app/conquistas como destino primário.
@@ -44,6 +45,7 @@ export default function EvolucaoPage() {
   const [weightNote, setWeightNote] = useState("");
   const [weightSaving, setWeightSaving] = useState(false);
   const [weightSaved, setWeightSaved] = useState(false);
+  const brotoState = useBrotoState(cycleStats?.totalDaysCompleted);
 
   const fetchAll = useCallback(() => {
     fetch("/api/app/wellbeing-week").then((r) => r.json()).then(setWellbeing);
@@ -88,10 +90,39 @@ export default function EvolucaoPage() {
     }
   }
 
+  // Empty state: nunca teve ciclo, nenhuma conquista, nenhum peso registrado
+  const isEmpty =
+    (!cycleStats || cycleStats.totalCycles === 0) &&
+    earned.length === 0 &&
+    weightLogs.length === 0;
+
   return (
     <div className="px-5 pb-24 pt-6" style={{ background: "#FAF8F5", minHeight: "100vh" }}>
       <h1 className="mb-1 text-2xl font-bold text-gray-900">Sua evolução</h1>
       <p className="mb-5 text-sm text-gray-500">Onde você chegou, ciclo por ciclo, semana por semana.</p>
+
+      {/* ─── Empty state com Broto ─── */}
+      {isEmpty && (
+        <div
+          className="mb-5 rounded-2xl p-6 text-center flex flex-col items-center"
+          style={{ background: "white", border: "1px solid #f3f4f6" }}
+        >
+          <BrotoAvatar state={brotoState} size={140} />
+          <p className="mt-3 text-base font-bold" style={{ color: "#3B6D11" }}>
+            Sua jornada está começando.
+          </p>
+          <p className="mt-1 text-xs text-gray-500 max-w-xs">
+            Cada cuidado seu vai aparecer aqui. Seu Broto vai crescer junto.
+          </p>
+          <Link
+            href="/app/desafio"
+            className="mt-4 rounded-xl px-5 py-2.5 text-sm font-bold text-white"
+            style={{ backgroundColor: "#639922" }}
+          >
+            Começar primeira jornada →
+          </Link>
+        </div>
+      )}
 
       {/* ─── Nível atual ─── */}
       {level && (

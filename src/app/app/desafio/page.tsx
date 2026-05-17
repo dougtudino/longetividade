@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AppNav } from "@/components/app/app-nav";
+import { BrotoAvatar, useBrotoState } from "@/components/app/broto-avatar";
 
 // ─── Tipos ────────────────────────────────────────────────
 type ChallengeDay = {
@@ -87,6 +88,7 @@ export default function DesafioPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<CycleDifficulty | null>(null);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const brotoState = useBrotoState(data?.cycle?.daysCompleted);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -208,15 +210,15 @@ export default function DesafioPage() {
       {/* Banner: precisa começar novo OU nenhum ciclo */}
       {(needsNewCycle || !cycle) && (
         <div className="mb-4 rounded-2xl p-4" style={{ backgroundColor: "#EAF3DE", border: "1px solid #d4e8c4" }}>
-          <div className="text-center mb-3">
-            <p className="text-2xl">{cycle ? "🏆" : "✨"}</p>
-            <p className="text-sm font-bold" style={{ color: "#3B6D11" }}>
+          <div className="text-center mb-3 flex flex-col items-center">
+            <BrotoAvatar state={brotoState} size={120} />
+            <p className="mt-2 text-sm font-bold" style={{ color: "#3B6D11" }}>
               {cycle ? `Ciclo ${cycle.cycleNumber} concluído!` : "Pronta pra sua primeira jornada?"}
             </p>
             <p className="mt-1 text-xs text-gray-600">
               {cycle
-                ? `Você já completou ${stats?.totalDaysCompleted ?? 0} dias no total.`
-                : "Escolha sua intensidade. Você pode subir entre ciclos."}
+                ? `Você já completou ${stats?.totalDaysCompleted ?? 0} dias no total. Seu Broto está orgulhoso 🌸`
+                : "Escolha sua intensidade. Seu Broto vai crescer com você."}
             </p>
           </div>
           <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-gray-500">Escolha a intensidade</p>
