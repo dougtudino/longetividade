@@ -21,27 +21,45 @@ export async function POST(req: NextRequest) {
     where: { userId_date: { userId: user.id, date: today } },
   });
 
+  // Meta de agua do user (default 8 se o profile nao tiver waterGoal seteado).
+  const profile = await prisma.appProfile.findUnique({
+    where: { userId: user.id },
+    select: { waterGoal: true },
+  });
+  const waterGoal = profile?.waterGoal ?? 8;
+
   if (checkin) {
+    const newWaterCount = checkin.waterCount + cups;
+    // Se bateu a meta, marca o habit "agua" automaticamente no checkin do dia.
+    // Mantemos o que ja estava em habits e so adicionamos agua=true (merge).
+    const prevHabits = (checkin.habits as Record<string, boolean>) ?? {};
+    const newHabits =
+      newWaterCount >= waterGoal && !prevHabits.agua
+        ? { ...prevHabits, agua: true }
+        : prevHabits;
     await prisma.appCheckin.update({
       where: { id: checkin.id },
-      data: { waterCount: { increment: cups } },
+      data: {
+        waterCount: { increment: cups },
+        habits: newHabits,
+      },
     });
   } else {
     await prisma.appCheckin.create({
       data: {
         userId: user.id,
         date: today,
-        habits: {},
+        habits: cups >= waterGoal ? { agua: true } : {},
         waterCount: cups,
       },
     });
   }
 
-  // Check if daily water goal met (8+ cups)
+  // Check if daily water goal met
   const updatedCheckin = await prisma.appCheckin.findUnique({
     where: { userId_date: { userId: user.id, date: today } },
   });
-  if (updatedCheckin && updatedCheckin.waterCount >= 8) {
+  if (updatedCheckin && updatedCheckin.waterCount >= waterGoal) {
     await addXP(user.id, XP_REWARDS.water_goal);
   }
 

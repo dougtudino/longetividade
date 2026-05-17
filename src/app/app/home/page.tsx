@@ -9,7 +9,7 @@ import { InstallPwaButton } from "@/components/app/install-pwa-button";
 import { ActivitiesSection } from "@/components/app/activities-section";
 
 // ─── Tipos ─────────────────────────────────────────────────
-type Profile = { name: string; createdAt: string };
+type Profile = { name: string; createdAt: string; waterGoal?: number };
 type Checkin = {
   habits: Record<string, boolean>;
   waterCount: number;
@@ -131,7 +131,16 @@ export default function AppHome() {
     if (chRes.ok) {
       const c = await chRes.json();
       setCheckin(c.checkin);
-      setLocalHabits((c.checkin?.habits as Record<string, boolean>) ?? {});
+      // Hidrata habits. Se waterCount ja atingiu a meta mas o habit agua nao
+      // estiver marcado (dado legado antes do fix de auto-marcar), forca true
+      // pra UI ficar consistente com "ja bateu meta = habit feito".
+      const habits = (c.checkin?.habits as Record<string, boolean>) ?? {};
+      const waterCount = c.checkin?.waterCount ?? 0;
+      const goal = d.profile?.waterGoal ?? 8;
+      if (waterCount >= goal && !habits.agua) {
+        habits.agua = true;
+      }
+      setLocalHabits(habits);
     }
     if (achRes.ok) {
       const a = await achRes.json();
@@ -212,8 +221,18 @@ export default function AppHome() {
   }
 
   async function addWater() {
-    // optimistic
+    const goal = profile?.waterGoal ?? 8;
+    // optimistic: incrementa waterCount + auto-marca habit "agua" quando bate meta.
+    // O backend faz a mesma logica na rota /api/app/water, isso aqui eh so
+    // pra UI refletir na hora sem esperar reload.
     setCheckin((prev) => (prev ? { ...prev, waterCount: prev.waterCount + 1 } : prev));
+    setLocalHabits((prev) => {
+      const newCount = (checkin?.waterCount ?? 0) + 1;
+      if (newCount >= goal && !prev.agua) {
+        return { ...prev, agua: true };
+      }
+      return prev;
+    });
     try {
       const r = await fetch("/api/app/water", {
         method: "POST",
@@ -223,6 +242,7 @@ export default function AppHome() {
       // Rollback em qualquer status != 2xx (nao so erro de rede)
       if (!r.ok) {
         setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
+        // Nao rollback do habit — se a user ja tinha marcado manual antes, mantem.
       }
     } catch {
       setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
@@ -406,11 +426,15 @@ export default function AppHome() {
                     textDecoration: done ? "line-through" : "none",
                   }}
                 >
-                  {h.label}
+                  {isWater
+                    ? `Beber ${profile?.waterGoal ?? 8} copos de água`
+                    : h.label}
                 </span>
                 {isWater && (
                   <span className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-gray-600">{waterCount}/8</span>
+                    <span className="text-[11px] font-bold text-gray-600">
+                      {waterCount}/{profile?.waterGoal ?? 8}
+                    </span>
                     <button
                       onClick={addWater}
                       aria-label="Adicionar 1 copo de água"
