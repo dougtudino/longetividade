@@ -2,7 +2,7 @@ import { prisma } from "./prisma";
 
 export const CYCLE_LENGTH_DAYS = 21;
 
-export type CycleStatus = "active" | "paused" | "completed";
+export type CycleStatus = "active" | "paused" | "completed" | "abandoned";
 export type CycleDifficulty = "easy" | "normal" | "hard";
 
 export type CycleSummary = {
@@ -206,6 +206,40 @@ export async function resumeCycle(userId: string) {
     data: { status: "active", resumedAt: new Date() },
   });
   return toSummary(updated);
+}
+
+// Abandona ciclo ativo/pausado e cria um novo zerado.
+// Mantem mesma difficulty por default (pessoa quer recomecar do zero
+// pra consolidar), mas pode passar uma nova explicita.
+export async function resetCycle(userId: string, newDifficulty?: CycleDifficulty) {
+  const current = await prisma.appCycle.findFirst({
+    where: { userId, status: { in: ["active", "paused"] } },
+    orderBy: { cycleNumber: "desc" },
+  });
+  if (!current) {
+    // Sem ciclo ativo — apenas comeca um novo
+    return startNewCycle(userId, newDifficulty);
+  }
+  const inheritDifficulty = (current.difficulty as CycleDifficulty) ?? "normal";
+  const chosen = newDifficulty ?? inheritDifficulty;
+
+  // Marca atual como abandoned (preserva historico, nao apaga challenges)
+  await prisma.appCycle.update({
+    where: { id: current.id },
+    data: { status: "abandoned", endDate: new Date() },
+  });
+
+  // Cria novo logo apos (cycleNumber + 1)
+  const created = await prisma.appCycle.create({
+    data: {
+      userId,
+      cycleNumber: current.cycleNumber + 1,
+      difficulty: chosen,
+      startDate: new Date(),
+      status: "active",
+    },
+  });
+  return toSummary(created);
 }
 
 // Comeca o proximo ciclo (cycleNumber = max+1). Exige que nao haja ciclo

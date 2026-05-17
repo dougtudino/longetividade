@@ -151,6 +151,11 @@ export default function DesafioPage() {
     setActioning(false);
   };
 
+  const handleReset = async () => {
+    if (!confirm("Reiniciar o ciclo? O atual sera arquivado e voce comeca um novo do zero. Seu historico fica salvo.")) return;
+    await callCycleAction("reset", {});
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -200,22 +205,12 @@ export default function DesafioPage() {
         )}
       </div>
 
-      {/* Banner: pausado */}
+      {/* Banner: pausado (botoes de controle ficam logo abaixo na progress bar) */}
       {isPaused && (
         <div className="mb-4 rounded-2xl p-3 text-sm" style={{ backgroundColor: "#FFF6E7", border: "1px solid #f5e6cc" }}>
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-amber-800">
-              Ciclo {cycle?.cycleNumber} <strong>pausado</strong>. Retome quando quiser.
-            </p>
-            <button
-              onClick={() => callCycleAction("resume")}
-              disabled={actioning}
-              className="rounded-xl px-3 py-1.5 text-xs font-bold text-white"
-              style={{ backgroundColor: "#BA7517" }}
-            >
-              Retomar
-            </button>
-          </div>
+          <p className="text-amber-800">
+            Ciclo {cycle?.cycleNumber} <strong>pausado</strong>. Use os botoes abaixo pra continuar ou reiniciar.
+          </p>
         </div>
       )}
 
@@ -300,8 +295,8 @@ export default function DesafioPage() {
         </div>
       )}
 
-      {/* Progress bar */}
-      {cycle && cycle.status !== "completed" && (
+      {/* Progress bar + botoes de controle */}
+      {cycle && cycle.status !== "completed" && !needsNewCycle && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-bold" style={{ color: "#639922" }}>{progressPercent}%</span>
@@ -316,18 +311,38 @@ export default function DesafioPage() {
               }}
             />
           </div>
-          {!isPaused && cycle.status === "active" && (
-            <div className="mt-2 text-right">
+
+          {/* Tres botoes de controle: Pausar / Continuar / Reiniciar */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {cycle.status === "active" && (
               <button
                 onClick={() => callCycleAction("pause")}
                 disabled={actioning}
-                className="text-[11px] font-semibold underline"
-                style={{ color: "#BA7517" }}
+                className="rounded-xl py-2 text-xs font-bold transition-colors disabled:opacity-60"
+                style={{ backgroundColor: "#FFF6E7", color: "#BA7517", border: "1px solid #f5e6cc" }}
               >
-                Pausar ciclo
+                ⏸ Pausar
               </button>
-            </div>
-          )}
+            )}
+            {cycle.status === "paused" && (
+              <button
+                onClick={() => callCycleAction("resume")}
+                disabled={actioning}
+                className="rounded-xl py-2 text-xs font-bold text-white transition-colors disabled:opacity-60"
+                style={{ backgroundColor: "#639922" }}
+              >
+                ▶ Continuar
+              </button>
+            )}
+            <button
+              onClick={handleReset}
+              disabled={actioning}
+              className="rounded-xl py-2 text-xs font-bold transition-colors disabled:opacity-60"
+              style={{ backgroundColor: "#FFF0F0", color: "#C4787A", border: "1px solid #fcd4d4" }}
+            >
+              ↻ Reiniciar
+            </button>
+          </div>
         </div>
       )}
 

@@ -48,6 +48,19 @@ type ChallengeProgress = {
   needsNewCycle: boolean;
 };
 
+type Wellbeing = {
+  currentWeight: number | null;
+  weightDelta: number | null;
+  daysSinceLastWeight: number | null;
+  needsWeighIn: boolean;
+  totalWeightLogs: number;
+  dominantMood: string | null;
+  moodLogsCount: number;
+  avgHabitsPercent: number;
+  exerciseDays: number;
+  checkinDays: number;
+};
+
 const MOOD_MAP: Record<string, { emoji: string; label: string; color: string }> = {
   otima: { emoji: "😊", label: "Otima", color: "#639922" },
   bem: { emoji: "🙂", label: "Bem", color: "#8BC34A" },
@@ -67,6 +80,7 @@ export default function AppHome() {
   const [questsData, setQuestsData] = useState<QuestsResponse | null>(null);
   const [challengeProgress, setChallengeProgress] = useState<ChallengeProgress | null>(null);
   const [streakCount, setStreakCount] = useState(0);
+  const [wellbeing, setWellbeing] = useState<Wellbeing | null>(null);
   const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
     show: false,
     title: "",
@@ -149,6 +163,12 @@ export default function AppHome() {
           });
         }
       })
+      .catch(() => {});
+
+    // Wellbeing da semana (peso delta, humor dominante, habitos% media)
+    fetch("/api/app/wellbeing-week")
+      .then((r) => r.json())
+      .then(setWellbeing)
       .catch(() => {});
 
     // Streak: contar dias consecutivos com checkin (max 30d lookback) feito client-side
@@ -350,6 +370,91 @@ export default function AppHome() {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ─── PESAGEM SEMANAL (so se passaram 7+ dias ou nunca pesou) ─── */}
+      {isToday && wellbeing?.needsWeighIn && (
+        <button
+          onClick={() => router.push("/app/progresso")}
+          className="mb-5 w-full rounded-2xl p-4 text-left transition-transform active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, #FFF8EE 0%, #FFE8C6 100%)",
+            border: "1px solid #f5e6cc",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-2xl"
+              style={{ backgroundColor: "white" }}
+            >
+              ⚖️
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-bold" style={{ color: "#8B5A0F" }}>
+                {wellbeing.totalWeightLogs === 0
+                  ? "Registre seu peso inicial"
+                  : `Pesagem da semana (${wellbeing.daysSinceLastWeight}d sem pesar)`}
+              </p>
+              <p className="text-[11px] mt-0.5" style={{ color: "#8B5A0F", opacity: 0.85 }}>
+                Toque pra registrar →
+              </p>
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* ─── SUA SEMANA (widget bem-estar) ─── */}
+      {isToday && wellbeing && (wellbeing.checkinDays > 0 || wellbeing.totalWeightLogs > 0) && (
+        <div className="mb-5 rounded-2xl border border-gray-100 p-4">
+          <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
+            Sua semana
+          </h2>
+          <div className="grid grid-cols-3 gap-2">
+            {/* Peso */}
+            <div className="text-center">
+              <p className="text-xs text-gray-400">Peso</p>
+              {wellbeing.currentWeight != null ? (
+                <>
+                  <p className="text-lg font-bold text-gray-800">{wellbeing.currentWeight}</p>
+                  {wellbeing.weightDelta != null && wellbeing.weightDelta !== 0 ? (
+                    <p
+                      className="text-[10px] font-bold"
+                      style={{ color: wellbeing.weightDelta < 0 ? "#639922" : "#C4787A" }}
+                    >
+                      {wellbeing.weightDelta < 0 ? "↓" : "↑"} {Math.abs(wellbeing.weightDelta).toFixed(1)}kg
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-gray-400">7d estavel</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-base text-gray-400">—</p>
+              )}
+            </div>
+            {/* Humor */}
+            <div className="text-center">
+              <p className="text-xs text-gray-400">Humor</p>
+              {wellbeing.dominantMood ? (
+                <>
+                  <p className="text-2xl">{MOOD_MAP[wellbeing.dominantMood]?.emoji ?? "💚"}</p>
+                  <p className="text-[10px] text-gray-500">
+                    {MOOD_MAP[wellbeing.dominantMood]?.label ?? wellbeing.dominantMood} predominante
+                  </p>
+                </>
+              ) : (
+                <p className="text-base text-gray-400">—</p>
+              )}
+            </div>
+            {/* Habitos */}
+            <div className="text-center">
+              <p className="text-xs text-gray-400">Habitos</p>
+              <p className="text-lg font-bold" style={{ color: "#639922" }}>
+                {wellbeing.avgHabitsPercent}%
+              </p>
+              <p className="text-[10px] text-gray-500">{wellbeing.checkinDays}d checkin</p>
+            </div>
+          </div>
         </div>
       )}
 
