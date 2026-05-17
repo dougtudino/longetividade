@@ -47,31 +47,24 @@ export function DetoxFinalCta() {
             letterSpacing: "-0.02em",
           }}
         >
-          Voce tem 21 dias pela frente.
+          Daqui 21 dias voce vai ter um calendario inteiro marcado.
         </h2>
-
-        <p
-          className="font-body text-base md:text-lg leading-relaxed mb-4"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          A escolha e simples:
-        </p>
 
         <ul
           className="font-body text-base md:text-lg leading-relaxed mb-8 space-y-2 max-w-xl mx-auto"
           style={{ color: "var(--text-secondary)" }}
         >
-          <li>Continuar comecando segunda-feira que nunca termina,</li>
-          <li>ou abrir o calendario no dia 1 e marcar a primeira tarefa.</li>
+          <li>Da pra continuar adiando pra segunda.</li>
+          <li>Ou abrir o calendario hoje e marcar a primeira coisinha.</li>
         </ul>
 
         <p
           className="font-body text-base md:text-lg leading-relaxed mb-10 max-w-xl mx-auto"
           style={{ color: "var(--text-secondary)" }}
         >
-          Custa <strong style={{ color: "var(--text-primary)" }}>R$67</strong>.
-          Demora 5 minutos por dia. Voce ja gastou mais que isso em coisas que
-          nao funcionaram.
+          Sao 5 minutos por dia.{" "}
+          <strong style={{ color: "var(--text-primary)" }}>R$67</strong> uma vez
+          so. Voce ja gastou mais em coisas que nem lembra mais.
         </p>
 
         <a
@@ -112,8 +105,8 @@ export function DetoxFinalCta() {
           className="font-body text-sm md:text-base italic max-w-xl mx-auto"
           style={{ color: "var(--text-muted)" }}
         >
-          P.S. Se voce esta pensando &ldquo;talvez depois&rdquo; — quantas
-          segundas-feiras voce ja adiou?
+          P.S. Se ta pensando &ldquo;comeco semana que vem&rdquo; — quantas
+          semanas que vem ja passaram?
         </p>
       </div>
     </section>

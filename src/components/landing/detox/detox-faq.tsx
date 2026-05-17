@@ -16,8 +16,8 @@ const FAQ = [
     a: "Nao. O movimento do calendario cabe em 15 minutos por dia, em casa, sem trocar de roupa.",
   },
   {
-    q: "E se eu errar 1 dia?",
-    a: "Marca o proximo. O calendario nao e prova de moral, e guia. Errar 1 dia nao desfaz os 20 outros.",
+    q: "E se eu errar um dia?",
+    a: "Voce nao errou. So nao marcou. No dia seguinte voce abre o calendario e continua de onde parou. A regra aqui e: continuar vale mais que recomecar.",
   },
   {
     q: "Isso e dieta?",
