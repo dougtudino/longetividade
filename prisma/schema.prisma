@@ -471,6 +471,18 @@ model AppPushSubscription {
   @@index([active])
 }
 
+// Log de push enviados pra anti-spam: não enviar mesma categoria duas vezes
+// no mesmo dia. Engine de notificacoes checa esta tabela antes de disparar.
+model AppNotificationLog {
+  id        String   @id @default(uuid())
+  userId    String
+  category  String // "water" | "challenge" | "cycle" | "weeklyRecap" | "generalMessages" | "weight" | "mood"
+  sentAt    DateTime @default(now())
+
+  @@index([userId, sentAt])
+  @@index([userId, category, sentAt])
+}
+
 // Preferencias granulares por categoria. 1 row por user (singleton).
 // Default: tudo true se a user deu permissao geral, mas pode desligar uma
 // categoria especifica.

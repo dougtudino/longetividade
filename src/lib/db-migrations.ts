@@ -775,6 +775,28 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
       END $$
     `,
   },
+
+  // ─── R-notif: Log anti-spam de push enviados ───────────
+  {
+    label: "AppNotificationLog table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppNotificationLog" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "category" TEXT NOT NULL,
+        "sentAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppNotificationLog_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppNotificationLog userId+sentAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppNotificationLog_userId_sentAt_idx" ON "AppNotificationLog"("userId", "sentAt")`,
+  },
+  {
+    label: "AppNotificationLog userId+category+sentAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppNotificationLog_userId_category_sentAt_idx" ON "AppNotificationLog"("userId", "category", "sentAt")`,
+  },
 ];
 
 export type MigrationResult = {
