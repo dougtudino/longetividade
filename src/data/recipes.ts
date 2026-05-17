@@ -8,6 +8,9 @@ export interface RecipeData {
   ingredients: string[];
   steps: string[];
   tip: string;
+  // Premio extra: receitas com requiredLevel > 1 sao "trancadas" e
+  // desbloqueiam conforme a usuaria sobe de nivel. Default 1.
+  requiredLevel?: number;
 }
 
 export const RECIPES: RecipeData[] = [

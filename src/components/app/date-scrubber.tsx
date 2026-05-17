@@ -44,7 +44,7 @@ export function DateScrubber({ selectedDate, onSelect, daysVisible = 7 }: DateSc
     <div className="mb-4">
       <div className="flex items-center justify-between mb-2">
         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-          {isPast ? "Vendo passado" : "Hoje"}
+          {isPast ? "Vendo dia passado" : "Hoje"}
         </p>
         {isPast && (
           <button
@@ -52,7 +52,7 @@ export function DateScrubber({ selectedDate, onSelect, daysVisible = 7 }: DateSc
             className="rounded-full px-3 py-1 text-[10px] font-bold text-white"
             style={{ backgroundColor: "#639922" }}
           >
-            Voltar pra hoje
+            Voltar para hoje
           </button>
         )}
       </div>

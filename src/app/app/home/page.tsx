@@ -232,7 +232,7 @@ export default function AppHome() {
         </h1>
         {daysInMethod > 0 && (
           <p className="text-xs" style={{ color: "#639922" }}>
-            Dia {daysInMethod} no Metodo S.E.M
+            Dia {daysInMethod} da sua rotina
           </p>
         )}
       </div>
@@ -252,14 +252,14 @@ export default function AppHome() {
             <AvatarFantasy level={level} size={100} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] uppercase tracking-wider opacity-70 font-bold">Nivel {level}</p>
+            <p className="text-[10px] uppercase tracking-wider opacity-70 font-bold">Nível {level}</p>
             <p className="text-lg font-black truncate">{tierLabel(level)}</p>
             <p className="text-[11px] opacity-80">{levelInfo?.levelName ?? "..."}</p>
             {/* XP bar */}
             <div className="mt-2">
               <div className="flex items-center justify-between text-[10px] mb-1 opacity-90">
                 <span>{xpInLevel} XP</span>
-                <span>{xpNeeded} pro Nv. {level + 1}</span>
+                <span>{xpNeeded} para o Nv. {level + 1}</span>
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
                 <div
@@ -299,7 +299,7 @@ export default function AppHome() {
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-bold text-gray-700">Objetivos de hoje</h2>
             <span className="text-xs font-bold" style={{ color: questsData.summary.allDone ? "#639922" : "#9ca3af" }}>
-              {questsData.summary.totalDone}/{questsData.summary.totalQuests}
+              {questsData.summary.totalDone}/{questsData.summary.totalQuests} ✓
             </span>
           </div>
           <div className="flex flex-col gap-2">
@@ -366,7 +366,7 @@ export default function AppHome() {
           {questsData.summary.allDone && (
             <div className="mt-3 rounded-xl bg-gradient-to-r from-yellow-100 to-amber-100 p-3 text-center">
               <p className="text-sm font-bold" style={{ color: "#7A5712" }}>
-                🏆 Voce completou tudo hoje! Heroina do dia!
+                🏆 Você completou tudo hoje! Heroína do dia!
               </p>
             </div>
           )}
@@ -616,6 +616,44 @@ export default function AppHome() {
         </span>
         <span className="text-gray-400">→</span>
       </Link>
+
+      {/* Botão flutuante de água — quick action global, persistente */}
+      {isToday && (
+        <button
+          onClick={async () => {
+            // Optimistic update
+            setCheckin((prev) => prev ? { ...prev, waterCount: prev.waterCount + 1 } : prev);
+            try {
+              await fetch("/api/app/water", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ cups: 1 }),
+              });
+            } catch {
+              // rollback em caso de erro
+              setCheckin((prev) => prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev);
+            }
+          }}
+          className="fixed z-40 flex items-center justify-center rounded-full shadow-lg transition-transform active:scale-95"
+          style={{
+            bottom: 90,
+            right: 16,
+            width: 56,
+            height: 56,
+            background: "linear-gradient(135deg, #5BB0FF 0%, #378ADD 100%)",
+            boxShadow: "0 6px 16px rgba(55, 138, 221, 0.4)",
+          }}
+          title="Adicionar 1 copo de água"
+        >
+          <span className="text-2xl">💧</span>
+          <span
+            className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black text-white"
+            style={{ backgroundColor: "#1565C0", border: "2px solid white" }}
+          >
+            +1
+          </span>
+        </button>
+      )}
 
       <AppNav />
     </div>

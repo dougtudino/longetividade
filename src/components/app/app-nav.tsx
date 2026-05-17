@@ -54,11 +54,11 @@ function IconEmocional({ active }: { active: boolean }) {
 }
 
 const NAV_ITEMS = [
-  { href: "/app/home", label: "Inicio", Icon: IconHome },
-  { href: "/app/habitos", label: "Habitos", Icon: IconHabits },
-  { href: "/app/desafio", label: "Desafio", Icon: IconDesafio },
-  { href: "/app/receitas", label: "Receitas", Icon: IconReceitas },
-  { href: "/app/emocional", label: "Emocional", Icon: IconEmocional },
+  { href: "/app/habitos", label: "Hábitos", Icon: IconHabits, isHero: false },
+  { href: "/app/desafio", label: "Desafio", Icon: IconDesafio, isHero: false },
+  { href: "/app/home", label: "Jogo", Icon: IconHome, isHero: true },
+  { href: "/app/receitas", label: "Receitas", Icon: IconReceitas, isHero: false },
+  { href: "/app/emocional", label: "Emocional", Icon: IconEmocional, isHero: false },
 ];
 
 export function AppNav() {
@@ -69,9 +69,52 @@ export function AppNav() {
       className="fixed bottom-0 left-1/2 z-50 w-full -translate-x-1/2 border-t border-gray-100 bg-white/95 backdrop-blur-sm"
       style={{ maxWidth: 430 }}
     >
-      <div className="flex items-center justify-around">
+      <style>{`
+        @keyframes pulseHero {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(99,153,34,0.45); }
+          50% { box-shadow: 0 0 0 8px rgba(99,153,34,0); }
+        }
+      `}</style>
+      <div className="flex items-end justify-around pb-1">
         {NAV_ITEMS.map((item) => {
           const active = pathname === item.href;
+          // O botao Jogo (centro) eh destacado como hero: maior, elevado,
+          // gradiente e pulse pra puxar o olho — onde a usuaria registra.
+          if (item.isHero) {
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="relative flex flex-col items-center"
+                style={{ WebkitTapHighlightColor: "transparent", marginTop: -18 }}
+              >
+                <div
+                  className="flex items-center justify-center rounded-full"
+                  style={{
+                    width: 56,
+                    height: 56,
+                    background: "linear-gradient(135deg, #7BC34A 0%, #639922 50%, #3D5A3E 100%)",
+                    boxShadow: "0 6px 16px rgba(99,153,34,0.4)",
+                    animation: !active ? "pulseHero 2.4s ease-in-out infinite" : "none",
+                    border: "3px solid white",
+                  }}
+                >
+                  {/* Icone fica branco em hero */}
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+                <span
+                  className="mt-1 text-[10px] font-black uppercase tracking-wider"
+                  style={{ color: active ? "#3D5A3E" : "#639922" }}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          }
+
           return (
             <Link
               key={item.href}
@@ -79,15 +122,12 @@ export function AppNav() {
               className="relative flex flex-col items-center gap-0.5 px-2 py-2"
               style={{ WebkitTapHighlightColor: "transparent" }}
             >
-              {/* Active top bar indicator */}
               {active && (
                 <div
                   className="absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-b-full"
                   style={{ width: 24, backgroundColor: "#639922" }}
                 />
               )}
-
-              {/* Tap feedback circle */}
               <div
                 className="flex items-center justify-center rounded-full transition-colors"
                 style={{
@@ -98,7 +138,6 @@ export function AppNav() {
               >
                 <item.Icon active={active} />
               </div>
-
               <span
                 className="text-[10px] font-medium"
                 style={{ color: active ? "#639922" : "#9ca3af" }}

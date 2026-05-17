@@ -13,6 +13,8 @@ type Recipe = {
   steps: string[];
   tip: string;
   isFavorite: boolean;
+  requiredLevel: number;
+  locked: boolean;
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -58,9 +60,11 @@ const PILLAR_CHIPS = [
 
 export default function ReceitasPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [userLevel, setUserLevel] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState("todas");
   const [pillarFilter, setPillarFilter] = useState("todas");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showLockedOnly, setShowLockedOnly] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -72,6 +76,7 @@ export default function ReceitasPage() {
     const res = await fetch(`/api/app/recipes?${params.toString()}`);
     const data = await res.json();
     setRecipes(data.recipes ?? []);
+    setUserLevel(data.userLevel ?? 1);
     setLoading(false);
   }, [categoryFilter, pillarFilter]);
 
@@ -94,16 +99,32 @@ export default function ReceitasPage() {
     }
   };
 
-  const displayed = showFavoritesOnly
-    ? recipes.filter((r) => r.isFavorite)
-    : recipes;
+  let displayed = recipes;
+  if (showFavoritesOnly) displayed = displayed.filter((r) => r.isFavorite);
+  if (showLockedOnly) displayed = displayed.filter((r) => r.locked);
+  // Receitas trancadas vao pro fim (mostrar como "preview" do que vem)
+  displayed = [...displayed].sort((a, b) => Number(a.locked) - Number(b.locked));
+  const lockedCount = recipes.filter((r) => r.locked).length;
 
   return (
     <div className="px-5 pb-24 pt-6">
       {/* Header */}
-      <div className="mb-4">
-        <h1 className="text-2xl font-bold text-gray-900">Receitas S.E.M</h1>
-        <p className="text-sm text-gray-400">30 receitas praticas para o dia a dia</p>
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Receitas</h1>
+          <p className="text-sm text-gray-400">
+            {recipes.length} receitas
+            {lockedCount > 0 && (
+              <span> · {lockedCount} bloqueada{lockedCount > 1 ? "s" : ""} 🔒</span>
+            )}
+          </p>
+        </div>
+        <div
+          className="rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider"
+          style={{ backgroundColor: "#EAF3DE", color: "#3B6D11" }}
+        >
+          Nv {userLevel}
+        </div>
       </div>
 
       {/* Category tabs */}
@@ -145,7 +166,7 @@ export default function ReceitasPage() {
         ))}
         <div className="flex-1" />
         <button
-          onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          onClick={() => { setShowFavoritesOnly(!showFavoritesOnly); setShowLockedOnly(false); }}
           className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-all"
           style={{
             backgroundColor: showFavoritesOnly ? "#FFF0F0" : "#f3f4f6",
@@ -158,6 +179,19 @@ export default function ReceitasPage() {
           </svg>
           Favoritas
         </button>
+        {lockedCount > 0 && (
+          <button
+            onClick={() => { setShowLockedOnly(!showLockedOnly); setShowFavoritesOnly(false); }}
+            className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition-all"
+            style={{
+              backgroundColor: showLockedOnly ? "#FFF6E7" : "#f3f4f6",
+              color: showLockedOnly ? "#BA7517" : "#6b7280",
+              border: showLockedOnly ? "1px solid #f5e6cc" : "1px solid transparent",
+            }}
+          >
+            🔒 Bloqueadas
+          </button>
+        )}
       </div>
 
       {/* Loading */}
@@ -184,35 +218,62 @@ export default function ReceitasPage() {
             <div
               key={recipe.id}
               className="overflow-hidden rounded-2xl bg-white transition-all"
-              style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.06)" }}
+              style={{
+                boxShadow: "0 1px 6px rgba(0,0,0,0.06)",
+                opacity: recipe.locked ? 0.75 : 1,
+                position: "relative",
+              }}
             >
-              {/* Card header (clickable) */}
+              {/* Card header (clickable, exceto se locked) */}
               <button
-                onClick={() => setExpandedId(isExpanded ? null : recipe.id)}
-                className="flex w-full items-start gap-3 p-4 text-left"
+                onClick={() => !recipe.locked && setExpandedId(isExpanded ? null : recipe.id)}
+                disabled={recipe.locked}
+                className="flex w-full items-start gap-3 p-4 text-left disabled:cursor-not-allowed"
               >
-                {/* Pillar dot */}
-                <div
-                  className="mt-1 h-3 w-3 flex-shrink-0 rounded-full"
-                  style={{ backgroundColor: PILLAR_COLORS[recipe.pillar] }}
-                  title={PILLAR_LABELS[recipe.pillar]}
-                />
+                {/* Pillar dot ou cadeado */}
+                {recipe.locked ? (
+                  <div
+                    className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs"
+                    style={{ backgroundColor: "#FFF6E7" }}
+                  >
+                    🔒
+                  </div>
+                ) : (
+                  <div
+                    className="mt-1 h-3 w-3 flex-shrink-0 rounded-full"
+                    style={{ backgroundColor: PILLAR_COLORS[recipe.pillar] }}
+                    title={PILLAR_LABELS[recipe.pillar]}
+                  />
+                )}
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-gray-900">{recipe.name}</p>
-                  <div className="mt-1 flex items-center gap-2">
-                    <span
-                      className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
-                      style={{ backgroundColor: CATEGORY_COLORS[recipe.category] }}
-                    >
-                      {CATEGORY_LABELS[recipe.category]}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {recipe.prepTime} min
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {recipe.serves} {recipe.serves === 1 ? "porcao" : "porcoes"}
-                    </span>
+                  <p className="text-sm font-bold" style={{ color: recipe.locked ? "#9ca3af" : "#111827" }}>
+                    {recipe.name}
+                  </p>
+                  <div className="mt-1 flex items-center gap-2 flex-wrap">
+                    {recipe.locked ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                        style={{ backgroundColor: "#FFF6E7", color: "#BA7517" }}
+                      >
+                        Desbloqueia no Nv {recipe.requiredLevel}
+                      </span>
+                    ) : (
+                      <>
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-bold text-white"
+                          style={{ backgroundColor: CATEGORY_COLORS[recipe.category] }}
+                        >
+                          {CATEGORY_LABELS[recipe.category]}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {recipe.prepTime} min
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {recipe.serves} {recipe.serves === 1 ? "porção" : "porções"}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
 
