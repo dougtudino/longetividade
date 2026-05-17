@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
         icon: "✅",
         xp: 10,
         done: !!checkin,
-        ctaPath: "/app/habitos",
+        ctaPath: "/app/home",
       },
       {
         id: "water",
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
         xp: 15,
         done: waterCount >= 8,
         progress: { current: waterCount, target: 8 },
-        ctaPath: "/app/agua",
+        ctaPath: "/app/home",
       },
       {
         id: "habits",
@@ -92,7 +92,7 @@ export async function GET(req: NextRequest) {
         xp: 25,
         done: habitsDone >= 5,
         progress: { current: habitsDone, target: 5 },
-        ctaPath: "/app/habitos",
+        ctaPath: "/app/home",
       },
       {
         id: "mood",

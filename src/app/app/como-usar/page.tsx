@@ -9,14 +9,14 @@ const STEPS = [
     title: "1. Faca check-in todo dia",
     text: "Marque os habitos do dia (agua, refeicoes, fruta, movimento, sono...). Quanto mais dias seguidos, maior seu streak (🔥) e mais XP.",
     cta: "Ir pra Habitos",
-    path: "/app/habitos",
+    path: "/app/home",
   },
   {
     icon: "💧",
     title: "2. Beba 8 copos de agua",
     text: "Cada copo conta. Toque + na tela de Agua. Bater 8 = bonus de XP.",
     cta: "Ir pra Agua",
-    path: "/app/agua",
+    path: "/app/home",
   },
   {
     icon: "⚖️",

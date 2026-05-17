@@ -17,7 +17,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Beba 8 copos de agua hoje. Pode ser aos poucos — um copo a cada hora. Deixe uma garrafa do seu lado como lembrete.",
     tip: "Coloque um alarme no celular a cada 1h30. Quando tocar, beba um copo. Simples assim.",
     quote: "Toda grande mudanca comeca com um gesto pequeno.",
-    ctaPath: "/app/agua",
+    ctaPath: "/app/home",
   },
   {
     day: 2,
@@ -26,7 +26,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Tome um cafe da manha com comida de verdade. Ovo, pao, fruta, queijo, cafe com leite. Nada de pular essa refeicao e nada de ultraprocessado.",
     tip: "Nao tem tempo? Iogurte natural + banana + aveia leva 2 minutos. Come no caminho. Sem julgamento.",
     quote: "Cuidar de voce de manha e dizer pro dia que voce importa.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 3,
@@ -35,7 +35,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "No almoco, mastigue cada garfada pelo menos 20 vezes. Apoie o talher no prato entre uma garfada e outra.",
     tip: "Seu cerebro leva 20 minutos pra registrar saciedade. Quando voce come devagar, percebe que precisa de menos comida pra se sentir satisfeita.",
     quote: "Comer devagar nao e perder tempo. E ganhar presenca.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 4,
@@ -44,7 +44,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Faca uma troca simples hoje. Uma so. Refrigerante por agua com limao, pao branco por integral, biscoito recheado por fruta com castanha, fritura por versao assada.",
     tip: "A troca nao precisa ser perfeita. Se voce trocou o refri por suco natural, ja conta. Progresso, nao perfeicao.",
     quote: "Pequenas trocas, feitas com constancia, mudam tudo.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 5,
@@ -53,7 +53,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Cozinhe uma refeicao hoje. Pode ser simples: arroz, feijao, frango e salada. Comida da sua mae. Comida de verdade.",
     tip: "Envolva a familia. Peca pra alguem picar a salada, por a mesa. Cozinhar junto cria conexao — e divide o trabalho.",
     quote: "A melhor dieta do mundo e comida de verdade feita em casa.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 6,
@@ -62,7 +62,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "No almoco e no jantar, coma a salada ANTES do prato principal. Comece pelos vegetais. Depois va pra proteina. Por ultimo, o carboidrato.",
     tip: "Quando voce comeca pela salada, chega no arroz ja parcialmente satisfeita. Naturalmente coloca menos — sem se forcar.",
     quote: "Nao e comer menos. E comer na ordem certa.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 7,
@@ -82,7 +82,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Antes de cada refeicao ou lanche, pare 10 segundos e pergunte: Estou com fome de verdade ou quero comer por ansiedade, tedio ou cansaco? Se for fome real: coma. Se for emocional: espere 5 minutos.",
     tip: "Fome real cresce devagar e aceita qualquer comida. Fome emocional aparece de repente e pede algo especifico.",
     quote: "Quando voce entende sua fome, para de brigar com ela.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 9,
@@ -91,7 +91,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Quando bater um desejo repentino, espere 10 minutos. Beba um copo de agua, saia do ambiente ou mande uma mensagem pra alguem. Se depois de 10 minutos a vontade continuar, coma — sem culpa.",
     tip: "Na maioria das vezes, a vontade passa nos primeiros 5 minutos. E uma onda: sobe, chega no pico e desce.",
     quote: "Voce nao precisa vencer a vontade. So precisa esperar ela passar.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 10,
@@ -100,7 +100,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Hoje, nao pule nenhuma refeicao. Cafe, almoco, lanche e jantar. Mesmo que simples, mesmo que rapido. Coma.",
     tip: "Quando voce pula uma refeicao, chega na proxima com tanta fome que come mais do que comeria nas duas juntas.",
     quote: "Comer com regularidade e um ato de cuidado, nao de indulgencia.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 11,
@@ -109,7 +109,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Identifique um momento do dia em que voce come sem fome. Pode ser a noite no sofa, depois de uma discussao, quando o tedio bate. Anote: o que aconteceu antes? Como voce estava se sentindo?",
     tip: "Nao precisa resolver hoje. So perceber. A consciencia e o primeiro passo.",
     quote: "Voce nao e fraca. Voce so ainda nao conhecia o padrao.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 12,
@@ -118,7 +118,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Hoje, se voce comer algo que nao estava nos planos, diga pra si mesma: Tudo bem. Uma refeicao nao define meu caminho. E siga em frente. Sem compensacao. Sem punicao.",
     tip: "Pense em como voce falaria com uma amiga na mesma situacao. Fale consigo mesma do mesmo jeito.",
     quote: "Voce merece gentileza — especialmente de voce mesma.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 13,
@@ -127,7 +127,7 @@ export const CHALLENGE_DAYS: ChallengeDay[] = [
     mission: "Durma pelo menos 7 horas esta noite. Calcule o horario de ir pra cama a partir do horario que precisa acordar.",
     tip: "30 minutos antes de dormir: largue o celular. Faca algo calmo — um cha, uma leitura, um alongamento leve.",
     quote: "Descansar nao e preguica. E a base de tudo.",
-    ctaPath: "/app/habitos",
+    ctaPath: "/app/home",
   },
   {
     day: 14,

@@ -32,13 +32,15 @@ const LEVEL_COLORS: Record<number, string> = {
   10: "#1A3A1C",
 };
 
+// Drawer legado — preserve apenas links que ainda existem.
+// /app/agua, /app/habitos e /app/movimento foram removidos no R3
+// e suas funcionalidades vivem inline na home.
 const MENU_ITEMS = [
-  { href: "/app/agua", icon: "💧", label: "Agua" },
-  { href: "/app/movimento", icon: "🏃‍♀️", label: "Movimento" },
-  { href: "/app/progresso", icon: "📊", label: "Progresso" },
+  { href: "/app/evolucao", icon: "📊", label: "Evolução" },
   { href: "/app/conquistas", icon: "🏆", label: "Conquistas" },
   { href: "/app/perfil", icon: "👤", label: "Meu Perfil" },
   { href: "/app/desafio", icon: "🎯", label: "Desafio 21 Dias" },
+  { href: "/app/mais", icon: "⋯", label: "Mais opções" },
 ];
 
 export function AppDrawer({ open, onClose }: DrawerProps) {

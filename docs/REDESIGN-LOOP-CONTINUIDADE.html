@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Redesign — App de menu pra loop de continuidade</title>
+<style>
+  :root {
+    --bg: #FAF8F5;
+    --panel: #FFFFFF;
+    --ink: #1B2A1C;
+    --ink-2: #3D5A3E;
+    --muted: #6B7280;
+    --line: #E5E5E5;
+    --accent: #639922;
+    --accent-2: #3D5A3E;
+    --bad:  #C4787A;
+    --good: #6B9E6B;
+    --warn: #BA7517;
+    --code-bg: #F3F1EC;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 -apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+  header{
+    background:linear-gradient(135deg,#1A2E1B,#2D4A2E 50%,#3D5A3E);
+    color:#fff;padding:36px 28px;border-bottom:4px solid var(--accent);
+  }
+  header h1{margin:0 0 6px;font-size:30px;letter-spacing:-.02em}
+  header .sub{opacity:.85;font-size:13px;text-transform:uppercase;letter-spacing:.12em}
+  header .meta{margin-top:14px;font-size:13px;opacity:.9}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+  nav.toc{
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:18px 22px;margin:-28px auto 28px;max-width:1132px;position:relative;z-index:2;
+    box-shadow:0 6px 26px rgba(30,40,30,.06);
+  }
+  nav.toc h3{margin:0 0 10px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+  nav.toc ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px 18px;margin:0;padding:0 0 0 18px}
+  nav.toc li{font-size:13.5px}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 28px;margin:0 0 22px}
+  section > h2{margin:0 0 6px;font-size:22px;color:var(--ink-2);letter-spacing:-.01em}
+  section > h2 .num{
+    display:inline-block;min-width:30px;height:30px;border-radius:50%;
+    background:var(--accent);color:#fff;font-size:13px;line-height:30px;text-align:center;
+    margin-right:10px;vertical-align:2px;
+  }
+  section > .lead{margin:0 0 18px;color:var(--muted)}
+  h3{font-size:16px;color:var(--ink-2);margin:22px 0 8px}
+  h4{font-size:14px;color:var(--ink);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px}
+  code{background:var(--code-bg);padding:1px 6px;border-radius:6px}
+  pre{background:#0f1523;color:#e5e7eb;padding:14px 16px;border-radius:10px;overflow:auto;line-height:1.55}
+  pre code{background:transparent;color:inherit;padding:0}
+  table{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:13.5px}
+  th,td{border-bottom:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}
+  th{background:#F0EDE5;color:var(--ink-2);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  ul.clean{padding-left:18px;margin:6px 0 14px}
+  ul.clean li{margin:4px 0}
+  .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.04em}
+  .tag.ok{background:rgba(107,158,107,.15);color:#3D5A3E}
+  .tag.warn{background:rgba(186,117,23,.15);color:#7A4A11}
+  .tag.bad{background:rgba(196,120,122,.15);color:#7A2E30}
+  .tag.info{background:rgba(99,153,34,.12);color:#3D5A3E}
+  .callout{
+    border-left:4px solid var(--accent);background:#F4F8EC;border-radius:8px;padding:12px 14px;margin:10px 0 14px;font-size:13.5px
+  }
+  .callout.warn{border-left-color:var(--warn);background:#FFF6E7}
+  .callout.bad{border-left-color:var(--bad);background:#FBEDED}
+  .callout.dark{border-left-color:#1A2E1B;background:#F0F4ED}
+  .mock {
+    background:#fff;border:2px solid #1A2E1B;border-radius:24px;padding:0;
+    max-width:380px;margin:14px auto;overflow:hidden;font-family:Inter,system-ui,sans-serif;
+    box-shadow:0 16px 40px rgba(30,40,30,0.18);
+  }
+  .mock .bar { background:#1A2E1B; color:#fff; padding:8px 16px; font-size:11px; display:flex; justify-content:space-between }
+  .mock .content { padding:16px }
+  .mock h5 { font-size:13px; margin:8px 0 4px; color:var(--ink-2) }
+  .mock .card {
+    background:#FAFAF7;border:1px solid #e5e7eb;border-radius:14px;padding:12px;margin:8px 0;
+    font-size:12px
+  }
+  .mock .card.hero {
+    background:linear-gradient(135deg,#1A2E1B,#3D5A3E);color:#fff;border:none;
+  }
+  .mock .quest-row { display:flex;align-items:center;gap:8px;padding:6px 0;font-size:12.5px }
+  .mock .quest-row .box { display:inline-block;width:18px;height:18px;border:2px solid #639922;border-radius:5px;flex-shrink:0 }
+  .mock .quest-row .box.done { background:#639922;color:white;line-height:14px;text-align:center;font-size:11px }
+  .mock .quest-row .box.done::after { content:"✓" }
+  .mock .ribbon { display:flex;gap:6px;overflow-x:auto;padding:6px 0 }
+  .mock .ribbon .b { background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:6px 8px;font-size:10px;text-align:center;min-width:55px }
+  .mock .nav { background:#fff;border-top:1px solid #e5e7eb;padding:8px;display:flex;justify-content:space-around;font-size:10px }
+  .mock .nav span { color:#9ca3af }
+  .mock .nav span.active { color:#639922; font-weight:700 }
+  .grid2 { display:grid;grid-template-columns:1fr 1fr;gap:16px }
+  @media (max-width:780px){.grid2{grid-template-columns:1fr}}
+  .pill{display:inline-block;font-size:11px;padding:3px 10px;border-radius:999px;font-weight:700;letter-spacing:.04em}
+  .pill.consolida{background:#EAF3DE;color:#3B6D11}
+  .pill.secundaria{background:#FFF6E7;color:#7A4A11}
+  .pill.deletar{background:#FBEDED;color:#7A2A2C}
+  .pill.manter{background:#F0F7FF;color:#1e3a5f}
+  footer{padding:30px 24px;color:var(--muted);font-size:12.5px;text-align:center}
+  hr{border:none;border-top:1px solid var(--line);margin:18px 0}
+  .principio{
+    background:linear-gradient(135deg,#1A2E1B 0%, #2D4A2E 50%, #3D5A3E 100%);
+    color:white;border-radius:18px;padding:28px;margin:18px 0;text-align:center;
+  }
+  .principio h2{color:white;margin:0 0 8px;font-size:22px}
+  .principio p{opacity:0.9;margin:6px 0;font-size:14px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="sub">Longetividade · Método S.E.M</div>
+    <h1>Redesign: de menu de ferramentas para loop de continuidade</h1>
+    <div class="meta">
+      Diagnóstico de arquitetura · Antes de qualquer mudança no código · 2026-05-17
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <h3>Índice</h3>
+  <ol>
+    <li><a href="#problema">O problema central</a></li>
+    <li><a href="#arvore">1. Árvore atual de rotas</a></li>
+    <li><a href="#duplicadas">2. Funcionalidades duplicadas</a></li>
+    <li><a href="#perdidas">3. Páginas perdidas</a></li>
+    <li><a href="#virar-cards">4. Páginas que viram cards da Home</a></li>
+    <li><a href="#secundarias">5. Páginas que viram secundárias</a></li>
+    <li><a href="#essenciais">6. Ações essenciais</a></li>
+    <li><a href="#proposta">7. Nova arquitetura</a></li>
+    <li><a href="#mockup">Mockup da nova Home</a></li>
+    <li><a href="#plano">Plano de execução</a></li>
+  </ol>
+</nav>
+
+<!-- ─────────────────────────── -->
+<section id="problema">
+  <h2><span class="num">0</span>O problema central — o que vocês detectaram</h2>
+  <p class="lead">A fragmentação da jornada quebra o loop emocional. O usuário pensa, navega, procura, se perde, sai.</p>
+
+  <div class="principio">
+    <h2>O app virou um menu de ferramentas.</h2>
+    <p>Precisa virar um <b>jogo de continuidade</b>.</p>
+    <p style="margin-top:14px;font-size:13px;opacity:0.8">A usuária não deve "explorar funcionalidades". Ela deve "continuar sua jornada".</p>
+  </div>
+
+  <h3>O que acontece hoje quando ela abre</h3>
+  <ul class="clean">
+    <li>Vê a Home com hero card + scrubber + quests + recap + atalhos + ring + 3 cards de stats + desafio + conquistas + botão de água + banner notificações + banner como usar → <b>14+ blocos competindo pela atenção</b></li>
+    <li>Pra marcar 1 hábito, ela <i>pode</i>: 1) tocar atalho → /app/habitos, 2) tocar quest "Marcar hábitos" → /app/habitos. <b>Caminhos duplicados</b>.</li>
+    <li>Pra registrar peso, ela <i>precisa</i>: 1) navegar Progresso → 2) tab Peso → 3) input → 4) salvar → 5) voltar. <b>5 toques pra 1 ação semanal essencial</b>.</li>
+    <li>Pra ver o desafio do dia, ela <i>precisa</i> ir em /app/desafio. Na Home só vê "Ciclo 1 · 2/21" sem a missão concreta do dia.</li>
+    <li>A daily quest "Avance no Ciclo (dia X)" virou ✓ automaticamente quando ela marca hábitos → <b>mas ela não percebe a conexão</b> porque tá em outro card.</li>
+  </ul>
+
+  <div class="callout warn">
+    <b>Diagnóstico:</b> o produto tem todas as features certas, mas espalhadas. O usuário precisa <i>orquestrar</i> as features ao invés de o app fazer isso por ela.
+  </div>
+</section>
+
+<!-- ─────────────────────────── 1. ÁRVORE ATUAL ─────────── -->
+<section id="arvore">
+  <h2><span class="num">1</span>Árvore atual de rotas</h2>
+  <p class="lead">17 rotas no app + 21 APIs. Toda essa superfície é exposta na navegação.</p>
+
+  <h3>Rotas de tela (`/app/*`)</h3>
+  <table>
+    <tr><th>Rota</th><th>Função</th><th>Acesso atual</th></tr>
+    <tr><td><code>/app/login</code></td><td>Login email-only ou Google OAuth</td><td>Fluxo de entrada</td></tr>
+    <tr><td><code>/app/cadastro</code></td><td>Criar senha</td><td>Fluxo de entrada</td></tr>
+    <tr><td><code>/app/onboarding</code></td><td>5 passos: nome, objetivo, dados, meta, desafios</td><td>Primeira vez</td></tr>
+    <tr><td><code>/app/home</code></td><td>Hub central</td><td><b>AppNav (destaque)</b></td></tr>
+    <tr><td><code>/app/habitos</code></td><td>Check-in diário (10 toggles + nota)</td><td>AppNav</td></tr>
+    <tr><td><code>/app/desafio</code></td><td>Ciclos 21d com 3 níveis, pausar/retomar/reiniciar</td><td>AppNav</td></tr>
+    <tr><td><code>/app/receitas</code></td><td>Catálogo de 39 receitas (9 trancadas)</td><td>AppNav</td></tr>
+    <tr><td><code>/app/emocional</code></td><td>Humor + triggers + respiração</td><td>AppNav</td></tr>
+    <tr><td><code>/app/agua</code></td><td>+1 copo, histórico</td><td>Atalho na Home</td></tr>
+    <tr><td><code>/app/progresso</code></td><td>6 tabs: peso · medidas · hábitos · humor · calendário · ciclos</td><td>Atalho na Home + link</td></tr>
+    <tr><td><code>/app/conquistas</code></td><td>Galeria de badges + XP + level</td><td>Link "Ver todas" no card</td></tr>
+    <tr><td><code>/app/movimento</code></td><td>Tela antiga (parece deprecated)</td><td><b>Sem CTA visível</b></td></tr>
+    <tr><td><code>/app/perfil</code></td><td>Editar dados, sair</td><td><b>Sem CTA na nav</b></td></tr>
+    <tr><td><code>/app/como-usar</code></td><td>Tutorial 7 passos + sistema de pontos + benefícios científicos</td><td>Link discreto na Home</td></tr>
+    <tr><td><code>/app/notificacoes</code></td><td>Toggles push + opt-in + quiet hours</td><td>Banner na Home</td></tr>
+  </table>
+
+  <h3>APIs (`/api/app/*`)</h3>
+  <pre><code>auth · register · logout · me · profile
+checkin · habitos (via checkin) · water · weight · measurements · mood
+challenge · cycles (list/start/pause/resume/reset)
+recipes · achievements · daily-quests · progress · wellbeing-week
+quote · stats · slots
+push (subscribe/prefs/test) · demo-login</code></pre>
+</section>
+
+<!-- ─────────────────────────── 2. DUPLICAÇÕES ───────────── -->
+<section id="duplicadas">
+  <h2><span class="num">2</span>Funcionalidades duplicadas e fragmentadas</h2>
+
+  <table>
+    <tr><th>Conceito</th><th>Aparece em</th><th>Problema</th></tr>
+    <tr>
+      <td><b>Água</b></td>
+      <td>Home: stats compactos + botão flutuante 💧 +1<br/>
+          Daily quest "Beba 8 copos"<br/>
+          Tela inteira <code>/app/agua</code></td>
+      <td>3 lugares pra mesma ação. Tela dedicada poderia ser inline na Home.</td>
+    </tr>
+    <tr>
+      <td><b>Hábitos</b></td>
+      <td>Home: atalho + stats (X/10) + ring + quest "Complete 5+"<br/>
+          Tela inteira <code>/app/habitos</code></td>
+      <td>4 visualizações redundantes do mesmo conceito.</td>
+    </tr>
+    <tr>
+      <td><b>Humor</b></td>
+      <td>Home: mood quick action card<br/>
+          Daily quest "Registre humor"<br/>
+          <code>/app/emocional</code> tela com 5 emojis + triggers<br/>
+          <code>/app/progresso</code> aba Humor (gráfico)<br/>
+          Recap ontem mostra mood<br/>
+          Widget "Sua semana" mostra humor dominante</td>
+      <td>6 lugares pra humor. <b>Pior caso</b> de fragmentação.</td>
+    </tr>
+    <tr>
+      <td><b>Peso</b></td>
+      <td>Home: widget "Sua semana" mostra peso atual + delta<br/>
+          Card "Pesagem semanal" se passou 7+ dias<br/>
+          <code>/app/progresso</code> aba Peso (input + gráfico + meta)</td>
+      <td>Input <b>3 toques</b> distantes. Deveria ser inline na Home (1 toque).</td>
+    </tr>
+    <tr>
+      <td><b>Desafio / Ciclo</b></td>
+      <td>Home: dentro do hero "Ciclo 1 → 2/21"<br/>
+          Card "Desafio 21 Dias" entre cards<br/>
+          Daily quest "Avance no Ciclo"<br/>
+          Tela inteira <code>/app/desafio</code> com botões controle</td>
+      <td>4 entradas distintas. <b>A missão concreta do dia não aparece na Home</b> — usuária precisa navegar pra saber o que fazer.</td>
+    </tr>
+    <tr>
+      <td><b>Conquistas/XP</b></td>
+      <td>Hero card mostra XP + level<br/>
+          Card "Conquistas recentes" com 3 badges<br/>
+          Recap ontem mostra badges ganhas<br/>
+          Tela inteira <code>/app/conquistas</code></td>
+      <td>4 visualizações. Tela inteira pouco visitada.</td>
+    </tr>
+    <tr>
+      <td><b>Daily quests</b></td>
+      <td>Card "Objetivos de hoje" (5 quests)<br/>
+          Mas <b>cada quest replica</b> uma das ações já presentes em outros cards/atalhos</td>
+      <td>Em vez de duplicar, deveria <b>SER</b> a Home.</td>
+    </tr>
+    <tr>
+      <td><b>Recap / Semana</b></td>
+      <td>Card "Ontem" com habitos+water+mood<br/>
+          Card "Sua semana" com peso+humor+habitos%<br/>
+          <code>/app/progresso</code> 6 tabs com gráficos</td>
+      <td>3 visões temporais sem hierarquia clara.</td>
+    </tr>
+  </table>
+
+  <div class="callout bad">
+    <b>Conclusão dura:</b> existe uma única "ação real" (marcar o dia) que está espalhada em <b>~7 representações visuais</b> diferentes na Home.
+  </div>
+</section>
+
+<!-- ─────────────────────────── 3. PERDIDAS ─────────────── -->
+<section id="perdidas">
+  <h2><span class="num">3</span>Páginas perdidas (acessadas raramente ou nunca)</h2>
+
+  <table>
+    <tr><th>Página</th><th>Caminho atual</th><th>Status</th></tr>
+    <tr><td><code>/app/movimento</code></td><td>Nenhum CTA</td><td><span class="tag bad">deletar</span> Tela legada não-referenciada</td></tr>
+    <tr><td><code>/app/perfil</code></td><td>Nenhum CTA na nav</td><td><span class="tag warn">esconder em "Mais"</span></td></tr>
+    <tr><td><code>/app/como-usar</code></td><td>Link discreto na home</td><td><span class="tag warn">esconder em "Mais"</span></td></tr>
+    <tr><td><code>/app/notificacoes</code></td><td>Banner ignorável na home</td><td><span class="tag warn">esconder em "Mais"</span></td></tr>
+    <tr><td><code>/app/conquistas</code></td><td>Link "Ver todas" pequeno</td><td><span class="tag warn">esconder em "Mais"</span></td></tr>
+    <tr><td><code>/app/progresso</code></td><td>Atalho na home, mas com 6 tabs internas</td><td><span class="tag warn">consolidar 6 tabs em 1 view</span></td></tr>
+  </table>
+</section>
+
+<!-- ─────────────────────────── 4. VIRAR CARDS HOME ─────── -->
+<section id="virar-cards">
+  <h2><span class="num">4</span>Páginas que devem virar <b>cards da Home</b></h2>
+  <p class="lead">Inline, sem precisar navegar. A ação acontece no mesmo lugar onde a usuária vê o estado.</p>
+
+  <table>
+    <tr><th>Função hoje</th><th>Vira na Home</th><th>Toques pra ação</th></tr>
+    <tr>
+      <td><b>Hábitos</b><br/><code>/app/habitos</code></td>
+      <td>Card "Seu próximo passo" com <b>checklist inline</b> das 5 ações do dia (água, refeições, fruta, movimento, sono...). Toggle direto na lista.</td>
+      <td>De 2 → <b>1 toque</b></td>
+    </tr>
+    <tr>
+      <td><b>Água</b><br/><code>/app/agua</code></td>
+      <td>Embutido no card de hábitos como linha "💧 6/8 copos" com botão <b>+1</b> inline.</td>
+      <td>De 2 → <b>1 toque</b></td>
+    </tr>
+    <tr>
+      <td><b>Humor</b><br/><code>/app/emocional</code></td>
+      <td>Linha "Como você está?" com 5 emojis tap-to-select. Triggers/nota opcionais aparecem só se ela tocar.</td>
+      <td>De 3 → <b>1 toque</b></td>
+    </tr>
+    <tr>
+      <td><b>Peso</b><br/><code>/app/progresso</code> > tab Peso</td>
+      <td>Linha "⚖️ Pesar" com input rápido (visível só se passaram 7+ dias). Salva inline.</td>
+      <td>De 5 → <b>2 toques</b> (input + enter)</td>
+    </tr>
+    <tr>
+      <td><b>Desafio</b><br/><code>/app/desafio</code></td>
+      <td>Header da Home mostra "Dia 7 do Ciclo 1" com a <b>missão concreta do dia</b> (vinda de challenge-days). Marcar inline.</td>
+      <td>De 3 → <b>integrado</b> ao checkin</td>
+    </tr>
+    <tr>
+      <td><b>Receita</b><br/><code>/app/receitas</code></td>
+      <td>Card "Receita rápida pra hoje" com 1 sugestão alinhada ao pilar do dia do desafio.</td>
+      <td>De 2 → <b>1 toque</b> (vê) ou expande inline</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ─────────────────────────── 5. SECUNDÁRIAS ──────────── -->
+<section id="secundarias">
+  <h2><span class="num">5</span>Páginas que viram secundárias (acessadas só por exceção)</h2>
+  <p class="lead">Continuam existindo, mas só pra quem quer ver detalhe. Não competem pela atenção principal.</p>
+
+  <table>
+    <tr><th>Página</th><th>Quando ela acessa</th><th>Onde colocar</th></tr>
+    <tr><td><code>/app/progresso</code></td><td>"Quero ver gráficos da minha evolução"</td><td>Link "Ver minha evolução" abaixo do recap</td></tr>
+    <tr><td><code>/app/desafio</code></td><td>"Quero ver os 21 dias do ciclo / pausar / reiniciar"</td><td>Toque no header "Dia 7 do Ciclo 1"</td></tr>
+    <tr><td><code>/app/conquistas</code></td><td>"Quero ver todas as badges"</td><td>Aba "Mais" + toque no ribbon de conquistas</td></tr>
+    <tr><td><code>/app/receitas</code></td><td>"Quero buscar uma receita específica"</td><td>Link no card "Receita do dia"</td></tr>
+    <tr><td><code>/app/perfil</code></td><td>"Quero editar meta / sair"</td><td>Aba "Mais"</td></tr>
+    <tr><td><code>/app/notificacoes</code></td><td>"Quero ajustar lembretes"</td><td>Aba "Mais"</td></tr>
+    <tr><td><code>/app/como-usar</code></td><td>"Como funciona isso?"</td><td>Aba "Mais"</td></tr>
+    <tr><td><code>/app/emocional</code></td><td>"Quero registrar humor + triggers + respiração guiada"</td><td>Expansão do humor inline na Home OU manter pra fluxo profundo</td></tr>
+    <tr><td><code>/app/habitos</code></td><td><b>DELETAR</b> — funcionalidade vai 100% pra Home</td><td>—</td></tr>
+    <tr><td><code>/app/agua</code></td><td><b>DELETAR</b> — funcionalidade vai 100% pra Home</td><td>—</td></tr>
+    <tr><td><code>/app/movimento</code></td><td><b>DELETAR</b> — tela legada não-referenciada</td><td>—</td></tr>
+  </table>
+</section>
+
+<!-- ─────────────────────────── 6. ESSENCIAIS ───────────── -->
+<section id="essenciais">
+  <h2><span class="num">6</span>Ações essenciais do usuário</h2>
+  <p class="lead">5 ações diárias + 1 semanal. Tudo deve caber em <b>menos de 5 toques totais</b>.</p>
+
+  <table>
+    <tr><th>Frequência</th><th>Ação</th><th>Tempo ideal</th></tr>
+    <tr><td>Diária</td><td>Marcar 5 hábitos do dia (que avança o desafio automaticamente)</td><td>10 segundos</td></tr>
+    <tr><td>Diária</td><td>Registrar copos de água (vai aumentando)</td><td>2 seg por copo</td></tr>
+    <tr><td>Diária</td><td>Registrar humor (1 emoji)</td><td>3 segundos</td></tr>
+    <tr><td>Diária</td><td>Ver o que ganhou hoje (recompensa emocional)</td><td>passivo</td></tr>
+    <tr><td>Semanal</td><td>Registrar peso (1x)</td><td>5 segundos</td></tr>
+    <tr><td>Ocasional</td><td>Ver receita do dia (escolher refeição)</td><td>30 segundos</td></tr>
+  </table>
+
+  <div class="callout">
+    <b>Tempo total da rotina diária ideal:</b> ~30 segundos da hora dela acordar até o "concluído". Hoje exige ~3 minutos navegando.
+  </div>
+</section>
+
+<!-- ─────────────────────────── 7. PROPOSTA ─────────────── -->
+<section id="proposta">
+  <h2><span class="num">7</span>Proposta: nova arquitetura</h2>
+
+  <h3>Princípio 1 — Home como HQ único</h3>
+  <p>A Home não é uma "tela inicial". É <b>o app</b>. 90% do uso diário acontece sem sair dela.</p>
+
+  <h3>Princípio 2 — Bottom Nav reduzida pra 3 abas</h3>
+  <p>De 5 abas pra 3. Menos opções = menos hesitação.</p>
+  <table>
+    <tr><th>Aba</th><th>O que tem</th></tr>
+    <tr><td>🎮 <b>Jogo</b></td><td>A Home (HQ). 90% do uso.</td></tr>
+    <tr><td>📊 <b>Evolução</b></td><td>Progresso + Conquistas + Histórico de ciclos. Uma view contínua, não tabs.</td></tr>
+    <tr><td>⚙️ <b>Mais</b></td><td>Perfil · Notificações · Como usar · Receitas (catálogo completo). Drawer ou lista.</td></tr>
+  </table>
+
+  <h3>Princípio 3 — Tudo inline na Home</h3>
+  <p>Hábitos, água, humor, peso, desafio do dia, receita, recap — <b>todos no mesmo scroll vertical</b>. Sem navegação pra ações essenciais.</p>
+
+  <h3>Princípio 4 — A Home conta uma história</h3>
+  <p>Topo: <i>"Quem você é hoje"</i> (avatar, nível, streak)<br/>
+     Meio: <i>"O que você faz hoje"</i> (próximo passo concreto)<br/>
+     Final: <i>"O que você ganhou"</i> (XP, badges, evolução)</p>
+</section>
+
+<!-- ─────────────────────────── MOCKUP ──────────────────── -->
+<section id="mockup">
+  <h2><span class="num">↪</span>Mockup ASCII da nova Home</h2>
+
+  <div class="grid2">
+
+  <div class="mock">
+    <div class="bar"><span>9:41</span><span>📶 100%</span></div>
+    <div class="content" style="background:#FAF8F5">
+
+      <p style="margin:0;font-size:18px;font-weight:800">Bom dia, Douglas 💚</p>
+      <p style="margin:2px 0 12px;font-size:11px;color:#639922">Dia 7 da sua jornada</p>
+
+      <!-- HERO compacto -->
+      <div class="card hero">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:50%;text-align:center;line-height:44px;font-size:18px">👸</div>
+          <div style="flex:1">
+            <p style="margin:0;font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.7">Nv 2 · Druida</p>
+            <div style="height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin-top:4px">
+              <div style="height:4px;background:#FDE047;width:48%;border-radius:2px"></div>
+            </div>
+          </div>
+          <div style="text-align:right;font-size:11px">🔥 7d</div>
+        </div>
+      </div>
+
+      <!-- CARD PRINCIPAL -->
+      <h5 style="margin-top:14px">Seu próximo pequeno passo</h5>
+      <p style="margin:0 0 8px;font-size:10px;color:#9ca3af">Dia 7 do Ciclo 1 · Suave</p>
+
+      <div class="card" style="background:#fff;border:2px solid #639922">
+        <div class="quest-row"><span class="box done"></span><span style="text-decoration:line-through;color:#9ca3af">Beber água — 6/8 copos</span><button style="margin-left:auto;background:#378ADD;color:#fff;border:none;padding:2px 8px;border-radius:8px;font-size:10px">+1</button></div>
+        <div class="quest-row"><span class="box"></span><span>Jantar leve hoje</span></div>
+        <div class="quest-row"><span class="box"></span><span>Caminhar 10 min</span></div>
+        <div class="quest-row"><span class="box"></span><span>Registrar humor</span></div>
+        <div class="quest-row"><span class="box"></span><span>Atualizar peso (semanal)</span></div>
+        <button style="width:100%;background:#639922;color:#fff;border:none;padding:8px;border-radius:10px;font-size:12px;font-weight:700;margin-top:6px">Marcar meu dia ✓</button>
+      </div>
+
+      <!-- HUMOR INLINE -->
+      <div class="card">
+        <p style="margin:0 0 6px;font-weight:700;font-size:12px">Como você está hoje?</p>
+        <div style="display:flex;justify-content:space-around;font-size:24px">
+          <span>😊</span><span style="opacity:.4">🙂</span><span style="opacity:.4">😐</span><span style="opacity:.4">😔</span><span style="opacity:.4">😴</span>
+        </div>
+      </div>
+
+      <!-- RECEITA -->
+      <div class="card" style="background:#FFF8EE;border-color:#f5e6cc">
+        <p style="margin:0 0 2px;font-size:10px;color:#BA7517;font-weight:700">🍳 Receita rápida pra hoje</p>
+        <p style="margin:0;font-size:12px;font-weight:700">Tapioca cremosa de banana</p>
+        <p style="margin:0;font-size:10px;color:#9ca3af">8 min · alinha com Simplicidade</p>
+      </div>
+
+      <!-- RECOMPENSA -->
+      <div class="card" style="background:#EAF3DE">
+        <p style="margin:0;font-size:11px;color:#3B6D11;font-style:italic">"Você apareceu por você hoje 💚"</p>
+      </div>
+
+      <!-- PROGRESSO COMPACTO -->
+      <h5>Sua evolução</h5>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:10px;text-align:center">
+        <div class="card" style="margin:0">🔥 <b>7d</b><br/><span style="color:#9ca3af">cuidando</span></div>
+        <div class="card" style="margin:0">⚖️ <b>-1.8kg</b><br/><span style="color:#9ca3af">desde início</span></div>
+        <div class="card" style="margin:0">✨ <b>43</b><br/><span style="color:#9ca3af">hábitos</span></div>
+      </div>
+
+      <!-- RIBBON CONQUISTAS -->
+      <h5>Suas conquistas recentes</h5>
+      <div class="ribbon">
+        <div class="b">🌱<br/>Começo</div>
+        <div class="b">💧<br/>Primeiro Copo</div>
+        <div class="b">⚖️<br/>Coragem</div>
+      </div>
+
+      <p style="text-align:center;margin-top:12px;font-size:10px;color:#9ca3af">↓ Ver minha evolução completa ↓</p>
+
+    </div>
+    <div class="nav">
+      <span class="active">🎮 Jogo</span>
+      <span>📊 Evolução</span>
+      <span>⚙️ Mais</span>
+    </div>
+  </div>
+
+  <div>
+    <h3>Decisões críticas dessa Home</h3>
+    <ul class="clean">
+      <li><b>Hero compacto</b> — avatar fica pequeno, XP bar fina. Não rouba foco do card principal.</li>
+      <li><b>Card "Seu próximo pequeno passo"</b> é o coração. Mistura desafio + hábitos + água + peso numa lista única. Toggle direto.</li>
+      <li><b>Botão único "Marcar meu dia"</b> — quando ela toca isso, marca tudo o que está ✓ no card. Senso de "concluí".</li>
+      <li><b>Humor inline</b> — 5 emojis grandes, 1 toque. Triggers/nota só se ela quiser ir mais fundo.</li>
+      <li><b>Receita de hoje</b> — 1 sugestão alinhada ao pilar do dia (S/E/M). Não 39 opções.</li>
+      <li><b>Recompensa emocional</b> sempre presente — frase curta + ribbon de conquistas.</li>
+      <li><b>"↓ Ver minha evolução completa ↓"</b> — único CTA pra navegar pra outra tela. Discreto.</li>
+      <li><b>3 abas no nav</b> — Jogo · Evolução · Mais.</li>
+    </ul>
+
+    <h3>O que sai da Home (vs. hoje)</h3>
+    <ul class="clean">
+      <li>❌ DateScrubber (navegação por dia) → vai pra Evolução</li>
+      <li>❌ Atalhos quick action (4 botões água/hábitos/progresso/emocional) → ações ficam inline</li>
+      <li>❌ Card "Ontem" → vira só uma linha "Ontem você cuidou de 4/5 ✓"</li>
+      <li>❌ Card "Sua semana" → vai pra Evolução</li>
+      <li>❌ Pesagem semanal card separado → vira linha no card principal</li>
+      <li>❌ Banner notificações → vai pra "Mais"</li>
+      <li>❌ Banner Como usar → vai pra "Mais"</li>
+      <li>❌ Stats compactos (3 cards de copos/hábitos/movimento) → vira parte do card principal</li>
+    </ul>
+  </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────── PLANO ───────────────────── -->
+<section id="plano">
+  <h2><span class="num">→</span>Plano de execução (se você aprovar)</h2>
+
+  <h3>Sprint R1 — Home unificada (~2h)</h3>
+  <ul class="clean">
+    <li>Refazer <code>/app/home</code> com a estrutura acima</li>
+    <li>Novo card "Seu próximo passo" que consome <code>/api/app/daily-quests</code> mas mostra como <b>checklist único</b> com toggles inline</li>
+    <li>POST consolidado <code>/api/app/mark-day</code> que recebe `{habits, water, mood, weight?}` e dispara checkin + water + mood + weight numa transaction. Botão "Marcar meu dia" usa isso.</li>
+    <li>Humor inline (5 emojis tap-to-select) que chama POST mood direto</li>
+    <li>Botão água +1 inline na linha de água</li>
+    <li>Input de peso inline quando aparece (1x/semana)</li>
+    <li>Receita do dia: pega 1 do catálogo alinhada ao pilar do dia atual do desafio</li>
+  </ul>
+
+  <h3>Sprint R2 — Bottom nav reduzida (~30min)</h3>
+  <ul class="clean">
+    <li>AppNav: 3 abas (Jogo · Evolução · Mais)</li>
+    <li>Mais: drawer ou tela <code>/app/mais</code> com lista (Perfil · Notificações · Como usar · Receitas · Sair)</li>
+    <li>Evolução: <code>/app/evolucao</code> = mescla de progresso + conquistas + histórico ciclos (sem tabs internas)</li>
+  </ul>
+
+  <h3>Sprint R3 — Limpeza (~30min)</h3>
+  <ul class="clean">
+    <li>Deletar <code>/app/habitos</code> (funcionalidade migrada pra Home)</li>
+    <li>Deletar <code>/app/agua</code> (idem)</li>
+    <li>Deletar <code>/app/movimento</code> (legado)</li>
+    <li>Manter <code>/app/desafio</code> só pra controle do ciclo (pausar/reiniciar/ver 21 dias) — acessado pelo header da Home</li>
+    <li>Manter <code>/app/emocional</code> só pra fluxo profundo (respiração guiada, triggers detalhados)</li>
+    <li>Manter <code>/app/progresso</code> mas simplificar — vira <code>/app/evolucao</code></li>
+  </ul>
+
+  <h3>Sprint R4 — Conteúdo (~1h)</h3>
+  <ul class="clean">
+    <li>Conteúdo das missões diárias por nível do desafio (suave/normal/intenso × 21 dias) — hoje só tem 1 conjunto genérico</li>
+    <li>Sugestão de receita por pilar do dia</li>
+    <li>Frases de recompensa rotativas</li>
+  </ul>
+
+  <h3>O que NÃO muda</h3>
+  <ul class="clean">
+    <li>Backend e schema: tudo continua funcional. Só os endpoints adicionais que precisaremos: <code>/api/app/mark-day</code> (transactional) e <code>/api/app/recipe-of-day</code> (sugestão)</li>
+    <li>Avatar fantasy, sistema de XP, ciclos com 3 níveis, conquistas, push notifications — todos preservados</li>
+    <li>Web Push (S6.1) — apenas o lugar onde se configura muda pra aba "Mais"</li>
+  </ul>
+
+  <div class="callout dark">
+    <b>Tempo total estimado:</b> ~4 horas de implementação. Pode ser feito numa sessão se você aprovar a proposta inteira, ou faseado.
+  </div>
+
+</section>
+
+<!-- ─────────────────────────── PRINCÍPIO FINAL ────────────── -->
+<div class="principio">
+  <h2>O objetivo</h2>
+  <p>A usuária abre o app e pensa:</p>
+  <p style="font-size:18px;font-weight:800;margin-top:14px">"Ahhh. Hoje eu só preciso fazer isso."</p>
+  <p style="margin-top:14px;opacity:0.8">Não navega. Não procura. Só continua.</p>
+</div>
+
+</div>
+
+<footer>
+  Documento de redesign · Antes de qualquer commit · Longetividade
+</footer>
+
+</body>
+</html>
