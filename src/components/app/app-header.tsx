@@ -2,7 +2,9 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { APP_BRAND } from "@/config/app-brand";
+import { useBrotoState } from "@/components/app/broto-avatar";
 
 type Profile = {
   name: string;
@@ -18,6 +20,10 @@ export function AppHeader() {
   const pathname = usePathname();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [streak, setStreak] = useState(0);
+  // Mini Broto no header — presença continua em todas as telas.
+  // refreshKey baseado no pathname pra revalidar quando a usuaria navega
+  // entre telas (acabou de marcar habito numa, volta pra home, Broto reage).
+  const brotoState = useBrotoState(pathname);
 
   const hiddenRoutes = ["/app/login", "/app/onboarding", "/app/cadastro"];
   const isHidden = hiddenRoutes.some((r) => pathname?.startsWith(r));
@@ -61,17 +67,54 @@ export function AppHeader() {
         </span>
       </div>
 
-      {/* Logo: 21 Dias + tagline empilhado (responde "21 dias de quê?") */}
-      <Link href="/app/home" className="flex flex-col items-center leading-none">
-        <span className="text-sm font-black" style={{ color: "#639922" }}>
-          {APP_BRAND.name}
-        </span>
-        <span
-          className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider"
-          style={{ color: "#9ca3af", letterSpacing: "0.08em" }}
-        >
-          {APP_BRAND.tagline}
-        </span>
+      {/* Logo: mini-Broto + 21 Dias + tagline empilhado.
+          O Broto aqui usa o mesmo estado emocional do app — presenca
+          continua. Tap no header inteiro leva pra home. */}
+      <Link href="/app/home" className="flex items-center gap-1.5 leading-none">
+        {brotoState && (
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              filter:
+                brotoState.mood === "animado"
+                  ? "drop-shadow(0 0 6px rgba(250, 204, 21, 0.45))"
+                  : brotoState.mood === "saudoso" || brotoState.mood === "sonolento"
+                    ? "grayscale(0.2) opacity(0.85)"
+                    : undefined,
+              flexShrink: 0,
+              animation: "headerBrotoBreath 4s ease-in-out infinite",
+              transformOrigin: "center bottom",
+            }}
+            aria-hidden="true"
+          >
+            <Image
+              src={brotoState.imageKey}
+              alt=""
+              width={32}
+              height={32}
+              unoptimized
+              style={{ objectFit: "contain", width: "100%", height: "100%" }}
+            />
+          </div>
+        )}
+        <div className="flex flex-col items-start leading-none">
+          <span className="text-sm font-black" style={{ color: "#639922" }}>
+            {APP_BRAND.name}
+          </span>
+          <span
+            className="mt-0.5 text-[9px] font-semibold uppercase"
+            style={{ color: "#9ca3af", letterSpacing: "0.08em" }}
+          >
+            {APP_BRAND.tagline}
+          </span>
+        </div>
+        <style jsx>{`
+          @keyframes headerBrotoBreath {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+          }
+        `}</style>
       </Link>
 
       {/* Right: Notif + Avatar */}
