@@ -57,17 +57,34 @@ export function useBrotoState(refreshKey?: unknown): BrotoState | null {
 // Prop `celebrating` (default false): quando true, aplica "puff" animation
 // (scale + glow forte + 8 sparkles ao redor) por 2s. Usado pra celebrar
 // stage-up sem precisar de overlay modal.
+//
+// Prop `bounceTrigger` opcional: qualquer valor — quando muda, dispara
+// "happy bounce" (scale 1 -> 1.15 -> 0.95 -> 1) em ~600ms. Pensado pra
+// reagir a acoes micro do user (marcar habit, +1 copo). Sem efeito se
+// celebrating tambem estiver true (puff domina).
 export function BrotoAvatar({
   state,
   size = 200,
   priority = false,
   celebrating = false,
+  bounceTrigger,
 }: {
   state: BrotoState | null;
   size?: number;
   priority?: boolean;
   celebrating?: boolean;
+  bounceTrigger?: unknown;
 }) {
+  // Bounce key: usamos um state interno que se reseta apos a animacao,
+  // garantindo que o keyframe rode mesmo se o trigger oscila rapido.
+  const [bouncing, setBouncing] = useState(false);
+  useEffect(() => {
+    if (bounceTrigger === undefined) return;
+    setBouncing(true);
+    const t = setTimeout(() => setBouncing(false), 650);
+    return () => clearTimeout(t);
+  }, [bounceTrigger]);
+
   if (!state) {
     // Placeholder shimmer enquanto carrega
     return (
@@ -91,15 +108,29 @@ export function BrotoAvatar({
     saudoso: "grayscale(0.25) opacity(0.80)",
   };
 
+  // Trigger key opcional pra "bounce" leve quando o user faz uma acao
+  // pequena (marcar habito, beber agua). Cada mudanca de bounceKey
+  // re-anima por ~600ms via CSS keyframe em :key prop.
+  // Default vazio = sem bounce.
+  // (Tipado no componente externo via prop bounceTrigger)
+
   // Quando celebrating, glow dourado forte SOBRESCREVE o filter de mood
   // (o momento de stage-up eh sempre festivo, independente do humor anterior).
   const activeFilter = celebrating
     ? "drop-shadow(0 0 24px rgba(250, 204, 21, 0.7)) drop-shadow(0 0 12px rgba(99, 153, 34, 0.5))"
     : filterByMood[state.mood];
 
+  // Classe escolhida em ordem de prioridade: celebrating > bouncing > breathing.
+  // Bounce eh micro-reacao (ex: marcou habit), celebrating eh macro (stage-up).
+  const animClass = celebrating
+    ? "broto-celebrating relative"
+    : bouncing
+      ? "broto-bouncing relative"
+      : "broto-breathing relative";
+
   return (
     <div
-      className={celebrating ? "broto-celebrating relative" : "broto-breathing relative"}
+      className={animClass}
       style={{
         width: size,
         height: size,
@@ -147,6 +178,16 @@ export function BrotoAvatar({
           animation: brotoPuff 1.6s ease-out;
           transform-origin: center center;
         }
+        .broto-bouncing {
+          animation: brotoBounce 0.6s ease-out;
+          transform-origin: center bottom;
+        }
+        @keyframes brotoBounce {
+          0% { transform: scale(1); }
+          30% { transform: scale(1.12); }
+          60% { transform: scale(0.95); }
+          100% { transform: scale(1); }
+        }
         .broto-sparkles {
           position: absolute;
           inset: 0;
@@ -186,21 +227,35 @@ export function BrotoCard({
   size = 180,
   priority = false,
   celebrating = false,
+  bounceTrigger,
+  overrideMessage,
 }: {
   state: BrotoState | null;
   size?: number;
   priority?: boolean;
   celebrating?: boolean;
+  bounceTrigger?: unknown;
+  // Quando preenchido, eclipsa state.message por X ms (definido pelo caller).
+  // Usado pra "Broto fala" reativo: ao marcar habit, Broto diz "Obrigada 💚"
+  // por uns 2-3s e depois volta pra mensagem default do dia.
+  overrideMessage?: string | null;
 }) {
+  const message = overrideMessage ?? state?.message;
   return (
     <div className="flex flex-col items-center text-center">
-      <BrotoAvatar state={state} size={size} priority={priority} celebrating={celebrating} />
+      <BrotoAvatar
+        state={state}
+        size={size}
+        priority={priority}
+        celebrating={celebrating}
+        bounceTrigger={bounceTrigger}
+      />
       {state && (
         <p
           className="mt-3 text-sm font-medium leading-snug"
-          style={{ color: "#3B6D11", maxWidth: 280 }}
+          style={{ color: "#3B6D11", maxWidth: 280, minHeight: 40 }}
         >
-          {state.message}
+          {message}
         </p>
       )}
     </div>

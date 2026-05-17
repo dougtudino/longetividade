@@ -117,6 +117,33 @@ export default function AppHome() {
   const brotoRefreshKey = `${habitsHash}-${waterCount}`;
   const brotoState = useBrotoState(brotoRefreshKey);
 
+  // Broto reativo: ao marcar habit/agua, Broto faz bounce + "fala" curto.
+  // bounceCounter incrementa toda vez que uma acao acontece → keyframe re-roda.
+  const [bounceCounter, setBounceCounter] = useState(0);
+  const [brotoSpeech, setBrotoSpeech] = useState<string | null>(null);
+  function brotoReact(speech?: string) {
+    setBounceCounter((c) => c + 1);
+    if (speech) {
+      setBrotoSpeech(speech);
+      // Fala dura 2.5s e volta pro message default (state.message)
+      setTimeout(() => setBrotoSpeech(null), 2500);
+    }
+  }
+
+  // Microcopy "Broto fala" curto, contextual. Pool pequeno pra nao
+  // ficar previsivel demais.
+  const HABIT_SPEECHES: Record<string, string[]> = {
+    agua: ["Obrigada pela água 💧", "Hidratada e feliz ✨"],
+    refeicoes: ["Que cuidado 💚", "Comer com calma faz bem."],
+    fruta: ["Doce ideia 🍎", "Cor no prato, vida no corpo."],
+    movimento: ["Senti seu movimento!", "Corpo solto, mente leve."],
+    sono: ["Bom descanso 😴", "Cuidar do sono é cuidar de mim."],
+  };
+  function pickHabitSpeech(key: string): string {
+    const pool = HABIT_SPEECHES[key] ?? ["Obrigada 💚"];
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+
   // Detecta stage-up comparando com localStorage. Quando sobe, mostra hint
   // ("Você cresceu uma folha nova") por alguns segundos.
   const [growthHint, setGrowthHint] = useState<string | null>(null);
@@ -245,6 +272,11 @@ export default function AppHome() {
   function toggleHabit(key: string) {
     setLocalHabits((prev) => {
       const next = { ...prev, [key]: !prev[key] };
+      // Broto reage so quando MARCA (true), nao quando desmarca — celebra
+      // cuidado, nao culpa quando desmarca.
+      if (!prev[key] && next[key]) {
+        brotoReact(pickHabitSpeech(key));
+      }
       // Fire-and-forget autosave (sem await pra UI nao travar)
       fetch("/api/app/checkin", {
         method: "POST",
@@ -259,17 +291,25 @@ export default function AppHome() {
 
   async function addWater() {
     const goal = profile?.waterGoal ?? 8;
+    const newCount = (checkin?.waterCount ?? 0) + 1;
     // optimistic: incrementa waterCount + auto-marca habit "agua" quando bate meta.
     // O backend faz a mesma logica na rota /api/app/water, isso aqui eh so
     // pra UI refletir na hora sem esperar reload.
     setCheckin((prev) => (prev ? { ...prev, waterCount: prev.waterCount + 1 } : prev));
     setLocalHabits((prev) => {
-      const newCount = (checkin?.waterCount ?? 0) + 1;
       if (newCount >= goal && !prev.agua) {
         return { ...prev, agua: true };
       }
       return prev;
     });
+    // Broto reage. Mensagem especial quando bate a meta vs copo isolado.
+    brotoReact(
+      newCount === 1
+        ? "Bom comeco 💧"
+        : newCount >= goal
+          ? "Meta de agua! 🌟"
+          : pickHabitSpeech("agua"),
+    );
     try {
       const r = await fetch("/api/app/water", {
         method: "POST",
@@ -412,6 +452,8 @@ export default function AppHome() {
           size={180}
           priority
           celebrating={!!growthHint}
+          bounceTrigger={bounceCounter}
+          overrideMessage={brotoSpeech}
         />
       </div>
 
