@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 import { AvatarFantasy, tierLabel } from "@/components/app/avatar-fantasy";
+import { InstallPwaButton } from "@/components/app/install-pwa-button";
 
 // ─── Tipos ─────────────────────────────────────────────────
 type Profile = { name: string; createdAt: string };
@@ -580,6 +581,11 @@ export default function AppHome() {
           <span style={{ color: "#BA7517" }}>→</span>
         </Link>
       )}
+
+      {/* ─── Botão Instalar como app (esconde se já instalou) ─── */}
+      <div className="mb-3">
+        <InstallPwaButton variant="secondary" hideWhenInstalled={true} label="Instalar app no celular" />
+      </div>
 
       {/* ─── CTA discreto: ver evolução completa ─── */}
       <button

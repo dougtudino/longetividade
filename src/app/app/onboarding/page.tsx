@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { InstallPwaButton } from "@/components/app/install-pwa-button";
 
 const CHALLENGES = [
   { id: "fome_emocional", label: "Fome emocional" },
@@ -310,6 +311,18 @@ export default function Onboarding() {
               ))}
             </div>
           )}
+
+          {/* CTA Instalar app — só aparece se browser suportar e nao estiver instalado */}
+          <div className="mt-6 rounded-2xl p-4" style={{ backgroundColor: "#FFF8EE", border: "1px solid #f5e6cc" }}>
+            <p className="mb-2 text-sm font-bold" style={{ color: "#8B5A0F" }}>
+              📲 Instale o app no celular
+            </p>
+            <p className="mb-3 text-xs" style={{ color: "#BA7517" }}>
+              Acessa direto da tela inicial, receba lembretes de água, humor e desafio.
+              Funciona offline.
+            </p>
+            <InstallPwaButton variant="primary" hideWhenInstalled={true} />
+          </div>
         </div>
       )}
 
