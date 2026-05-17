@@ -7,6 +7,7 @@ import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 import { AvatarFantasy, tierLabel } from "@/components/app/avatar-fantasy";
 import { InstallPwaButton } from "@/components/app/install-pwa-button";
 import { ActivitiesSection } from "@/components/app/activities-section";
+import { BrotoCard, useBrotoState } from "@/components/app/broto-avatar";
 
 // ─── Tipos ─────────────────────────────────────────────────
 type Profile = { name: string; createdAt: string; waterGoal?: number };
@@ -108,6 +109,42 @@ export default function AppHome() {
   const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
     show: false, title: "", subtitle: "", emoji: "",
   });
+
+  // Broto — busca estado emocional. refreshKey muda quando habit/water/mood
+  // mudam, forçando o hook a revalidar e o Broto a reagir.
+  const habitsHash = useMemo(() => JSON.stringify(localHabits), [localHabits]);
+  const waterCount = useMemo(() => checkin?.waterCount ?? 0, [checkin]);
+  const brotoRefreshKey = `${habitsHash}-${waterCount}`;
+  const brotoState = useBrotoState(brotoRefreshKey);
+
+  // Detecta stage-up comparando com localStorage. Quando sobe, mostra hint
+  // ("Você cresceu uma folha nova") por alguns segundos.
+  const [growthHint, setGrowthHint] = useState<string | null>(null);
+  useEffect(() => {
+    if (!brotoState) return;
+    try {
+      const lastStageStr = localStorage.getItem("broto:lastStage");
+      const lastStage = lastStageStr ? parseInt(lastStageStr, 10) : 0;
+      if (brotoState.stage > lastStage) {
+        // Pegou crescimento — mostra hint
+        const hints: Record<number, string> = {
+          2: "🌿 Seu Broto cresceu uma folha nova.",
+          3: "🪴 Seu Broto está mais firme. Vocês estão crescendo juntas.",
+          4: "🌳 Seu Broto está forte. Olha o quanto você fez.",
+          5: "🌸 Seu Broto floresceu. Esse momento é seu.",
+        };
+        const hint = hints[brotoState.stage];
+        if (hint) {
+          setGrowthHint(hint);
+          // some sozinho após 8s
+          setTimeout(() => setGrowthHint(null), 8000);
+        }
+      }
+      localStorage.setItem("broto:lastStage", String(brotoState.stage));
+    } catch {
+      /* localStorage indisponivel (private mode) — silencioso */
+    }
+  }, [brotoState]);
 
   const closeCelebration = useCallback(() => setCelebration((p) => ({ ...p, show: false })), []);
 
@@ -319,7 +356,7 @@ export default function AppHome() {
   const xpNeeded = nextLevelXp - currentLevelXp;
   const xpPercent = xpNeeded > 0 ? Math.round((xpInLevel / xpNeeded) * 100) : 100;
 
-  const waterCount = checkin?.waterCount ?? 0;
+  // waterCount agora vem do useMemo no topo — sem redeclarar aqui
   const habitsDoneLocal = Object.values(localHabits).filter(Boolean).length;
   const habitsDirty = JSON.stringify(localHabits) !== JSON.stringify(checkin?.habits ?? {});
 
@@ -347,6 +384,26 @@ export default function AppHome() {
           </p>
         )}
       </div>
+
+      {/* ─── BROTO — coração emocional do app ─── */}
+      <div className="mb-3 flex flex-col items-center">
+        <BrotoCard state={brotoState} size={180} priority />
+      </div>
+
+      {/* Toast de crescimento — aparece quando o Broto sobe de stage */}
+      {growthHint && (
+        <div
+          className="mb-3 rounded-2xl p-3 text-center"
+          style={{
+            background: "linear-gradient(135deg, #EAF3DE 0%, #D4E5BF 100%)",
+            border: "1px solid #639922",
+            color: "#3B6D11",
+          }}
+          role="status"
+        >
+          <p className="text-sm font-bold">{growthHint}</p>
+        </div>
+      )}
 
       {/* ─── HERO compacto: Avatar + Level + XP + Streak ─── */}
       <div
