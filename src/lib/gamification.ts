@@ -90,7 +90,7 @@ export async function evaluateAchievements(userId: string) {
     if (earnedIds.has(ach.id)) continue;
 
     if (checkCondition(ach.condition, stats)) {
-      // Check if achievement exists in DB, create if not
+      // Garante que AppAchievement existe (idempotente)
       await prisma.appAchievement.upsert({
         where: { id: ach.id },
         update: {},
@@ -105,12 +105,24 @@ export async function evaluateAchievements(userId: string) {
         },
       });
 
-      await prisma.appUserAchievement.create({
-        data: { userId, achievementId: ach.id },
+      // Upsert no AppUserAchievement (com @@unique([userId, achievementId])).
+      // Antes era `create` que podia falhar com P2002 em race entre 2
+      // requests simultaneos. count count antes/depois pra detectar se de
+      // fato criou (e nao foi noop) — so credita XP se foi criacao real.
+      const before = await prisma.appUserAchievement.count({
+        where: { userId, achievementId: ach.id },
       });
+      await prisma.appUserAchievement.upsert({
+        where: { userId_achievementId: { userId, achievementId: ach.id } },
+        update: {},
+        create: { userId, achievementId: ach.id },
+      });
+      const wasNew = before === 0;
 
-      await addXP(userId, ach.xp);
-      newlyEarned.push({ id: ach.id, name: ach.name, icon: ach.icon, xp: ach.xp });
+      if (wasNew) {
+        await addXP(userId, ach.xp);
+        newlyEarned.push({ id: ach.id, name: ach.name, icon: ach.icon, xp: ach.xp });
+      }
     }
   }
 
