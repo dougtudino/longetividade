@@ -97,6 +97,7 @@ export default function AppHome() {
   const [wellbeing, setWellbeing] = useState<Wellbeing | null>(null);
   const [yesterday, setYesterday] = useState<Yesterday | null>(null);
   const [streakCount, setStreakCount] = useState(0);
+  const [hasPushSubscription, setHasPushSubscription] = useState<boolean | null>(null);
 
   // Estado local do checklist (otimista) — sincroniza com checkin real
   const [localHabits, setLocalHabits] = useState<Record<string, boolean>>({});
@@ -115,13 +116,14 @@ export default function AppHome() {
     setProfile(d.profile);
 
     // tudo em paralelo
-    const [chRes, achRes, cyRes, recRes, wbRes, dqRes] = await Promise.all([
+    const [chRes, achRes, cyRes, recRes, wbRes, dqRes, pushRes] = await Promise.all([
       fetch("/api/app/checkin"),
       fetch("/api/app/achievements"),
       fetch("/api/app/cycles"),
       fetch("/api/app/recipe-of-day"),
       fetch("/api/app/wellbeing-week"),
       fetch("/api/app/daily-quests"),
+      fetch("/api/app/push/prefs"),
     ]);
 
     if (chRes.ok) {
@@ -157,6 +159,10 @@ export default function AppHome() {
     if (dqRes.ok) {
       const dq = await dqRes.json();
       setYesterday(dq.yesterday);
+    }
+    if (pushRes.ok) {
+      const p = await pushRes.json();
+      setHasPushSubscription(!!p.hasSubscriptions);
     }
 
     // Mood do dia
@@ -548,6 +554,31 @@ export default function AppHome() {
           {yesterday.waterCount} copos
           {yesterday.exerciseDone && " · 🚶"}
         </p>
+      )}
+
+      {/* ─── Banner notificações (só se ainda não ativou) ─── */}
+      {hasPushSubscription === false && (
+        <Link
+          href="/app/notificacoes"
+          className="mb-3 flex items-center gap-3 rounded-2xl p-4"
+          style={{
+            background: "linear-gradient(135deg, #FFF8EE 0%, #FFE8C6 100%)",
+            border: "1px solid #f5e6cc",
+          }}
+        >
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white text-xl">
+            🔔
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold" style={{ color: "#8B5A0F" }}>
+              Ativar lembretes
+            </p>
+            <p className="text-[11px]" style={{ color: "#BA7517" }}>
+              Te lembro de beber água, registrar humor, fechar o dia.
+            </p>
+          </div>
+          <span style={{ color: "#BA7517" }}>→</span>
+        </Link>
       )}
 
       {/* ─── CTA discreto: ver evolução completa ─── */}
