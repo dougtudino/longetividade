@@ -128,7 +128,9 @@ export default function AppHome() {
     setBounceCounter((c) => c + 1);
     if (speech) {
       setBrotoSpeech(speech);
-      setTimeout(() => setBrotoSpeech(null), 2500);
+      // 4s eh o sweet spot — tempo suficiente pra ler microcopy curta
+      // sem segurar a UI travada se a usuaria for marcando habit em rajada.
+      setTimeout(() => setBrotoSpeech(null), 4000);
     }
   }
 

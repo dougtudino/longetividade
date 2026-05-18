@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_CHECKOUT_URL: process.env.NEXT_PUBLIC_CHECKOUT_URL,
   },
+  // Redirects de URLs antigas pra evitar 404 em bookmarks/push notifs/links
+  // antigos apos a simplificacao radical de 2026-05-18 (12 paginas -> 4 abas).
+  // Mantem permanente=false porque pode mudar com nova reestruturacao.
+  async redirects() {
+    return [
+      { source: "/app/evolucao", destination: "/app/jornada", permanent: false },
+      { source: "/app/progresso", destination: "/app/jornada", permanent: false },
+      { source: "/app/mais", destination: "/app/eu", permanent: false },
+    ];
+  },
 };
 
 export default nextConfig;

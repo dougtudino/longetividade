@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { AppHeaderWrapper } from "@/components/app/app-header-wrapper";
+import { AppPageTransition } from "@/components/app/app-page-transition";
 import { APP_BRAND } from "@/config/app-brand";
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       style={{ maxWidth: 430, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <AppHeaderWrapper />
-      {children}
+      <AppPageTransition>{children}</AppPageTransition>
     </div>
   );
 }
