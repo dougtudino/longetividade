@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       const activities = await tx.appActivityLog.deleteMany({ where: { userId: user.id } });
       const notifPrefs = await tx.appNotificationPref.deleteMany({ where: { userId: user.id } });
       const notifLogs = await tx.appNotificationLog.deleteMany({ where: { userId: user.id } });
+      const milestones = await tx.appBrotoMilestone.deleteMany({ where: { userId: user.id } });
       const profile = await tx.appProfile.deleteMany({ where: { userId: user.id } });
 
       return {
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
         activities: activities.count,
         notifPrefs: notifPrefs.count,
         notifLogs: notifLogs.count,
+        milestones: milestones.count,
         profile: profile.count,
       };
     });

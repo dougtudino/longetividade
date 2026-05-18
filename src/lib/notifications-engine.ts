@@ -24,6 +24,8 @@ type Rule = {
 export type UserContext = {
   userId: string;
   firstName: string;
+  brotoName: string; // nome do Broto (default "Broto") — usado nas microcopies
+  daysSinceLastActivity: number; // dias desde qualquer atividade — pra regra "saudoso"
   hour: number; // hora atual (server)
   waterCountToday: number;
   habitsDoneToday: number;
@@ -118,6 +120,40 @@ const RULES: Rule[] = [
           }
         : null,
   },
+  // Broto saudoso: 9h-11h se ausente 3+ dias.
+  // Categoria generalMessages (toggle de "mensagens motivacionais" controla
+  // se a usuaria quer receber). Tom acolhedor, sem cobrar.
+  // Anti-spam: dedup pela categoria — so manda uma vez por dia.
+  {
+    category: "generalMessages",
+    windowStart: 9,
+    windowEnd: 11,
+    evaluate: (c) =>
+      c.daysSinceLastActivity >= 3
+        ? {
+            title: `${c.brotoName} sentiu sua falta 🌱`,
+            body: `Que bom te ver de volta, ${c.firstName}. Sem pressão — só apareceu já é cuidado.`,
+            url: "/app/home",
+            tag: "broto-saudoso",
+          }
+        : null,
+  },
+  // Broto bom dia: 7h-9h se ja apareceu nos ultimos 2 dias (ativa) — saudacao
+  // diaria amorosa. Frequente mas leve. So uma vez ao dia via dedup.
+  {
+    category: "generalMessages",
+    windowStart: 7,
+    windowEnd: 9,
+    evaluate: (c) =>
+      c.daysSinceLastActivity <= 2
+        ? {
+            title: `${c.brotoName} acordou 🌱`,
+            body: `${timePrefix(c.hour)}, ${c.firstName}. Que bom passar mais um dia com você 💚`,
+            url: "/app/home",
+            tag: "broto-bom-dia",
+          }
+        : null,
+  },
   // Recap semanal: domingo 10h-11h
   {
     category: "weeklyRecap",
@@ -161,7 +197,7 @@ async function buildContext(userId: string, hour: number): Promise<UserContext |
   const todayEnd = brasilEndOfDay();
   const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [checkin, moodToday, lastWeight, cycle, weekCheckins] = await Promise.all([
+  const [checkin, moodToday, lastWeight, cycle, weekCheckins, lastCheckin, lastWaterLog, lastMoodLog] = await Promise.all([
     prisma.appCheckin.findUnique({ where: { userId_date: { userId, date: today } } }),
     prisma.appMoodLog.findFirst({
       where: { userId, loggedAt: { gte: today, lt: todayEnd } },
@@ -178,7 +214,29 @@ async function buildContext(userId: string, hour: number): Promise<UserContext |
       where: { userId, date: { gte: sevenDaysAgo } },
       select: { habits: true, exerciseDone: true },
     }),
+    prisma.appCheckin.findFirst({ where: { userId }, orderBy: { date: "desc" }, select: { date: true } }),
+    prisma.appWaterLog.findFirst({ where: { userId }, orderBy: { loggedAt: "desc" }, select: { loggedAt: true } }),
+    prisma.appMoodLog.findFirst({ where: { userId }, orderBy: { loggedAt: "desc" }, select: { loggedAt: true } }),
   ]);
+
+  // daysSinceLastActivity: pega max das datas (checkin/water/mood) e calcula
+  // diferenca em dias BR. Usado pela regra "saudoso" do Broto.
+  const activityDates = [
+    lastCheckin?.date,
+    lastWaterLog?.loggedAt,
+    lastMoodLog?.loggedAt,
+    lastWeight?.loggedAt,
+  ].filter(Boolean) as Date[];
+  const daysSinceLastActivity =
+    activityDates.length === 0
+      ? 999
+      : Math.max(
+          0,
+          Math.floor(
+            (today.getTime() - Math.max(...activityDates.map((d) => d.getTime()))) /
+              (1000 * 60 * 60 * 24),
+          ),
+        );
 
   const habits = (checkin?.habits ?? {}) as Record<string, boolean>;
   const habitsDoneToday = Object.values(habits).filter(Boolean).length;
@@ -208,6 +266,8 @@ async function buildContext(userId: string, hour: number): Promise<UserContext |
   return {
     userId,
     firstName: profile.name?.split(" ")[0] ?? "amiga",
+    brotoName: (profile as { brotoName?: string }).brotoName?.trim() || "Broto",
+    daysSinceLastActivity,
     hour,
     waterCountToday,
     habitsDoneToday,
