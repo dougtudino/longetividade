@@ -727,6 +727,25 @@ model AppMeasurement {
   @@index([userId])
 }
 
+// Marcos do Broto. Persiste momentos especiais que valem virar memória:
+// crescimento de stage, conclusão de ciclo, primeira marca de hábito, etc.
+// Usado pra mostrar timeline em /app/evolucao ("Florescido em 17/05/2026").
+// Não é fonte de verdade do estado atual (esse continua derivado) — é só
+// histórico imutável de marcos. Pode ser apagado pelo reset.
+model AppBrotoMilestone {
+  id          String   @id @default(uuid())
+  userId      String
+  kind        String // "stage_up" | "cycle_complete" | "first_checkin" | "streak_milestone"
+  stage       Int? // stage atingido (1-5), pra kind=stage_up
+  cycleNumber Int? // numero do ciclo, pra kind=cycle_complete
+  streakDays  Int? // dias, pra kind=streak_milestone
+  message     String // mensagem persistida (ja com brotoName interpolado)
+  achievedAt  DateTime @default(now())
+
+  @@index([userId, achievedAt])
+  @@index([userId, kind])
+}
+
 // ─── Admin Multi-User ─────────────────────────────
 
 model AdminUser {

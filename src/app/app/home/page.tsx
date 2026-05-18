@@ -145,7 +145,7 @@ export default function AppHome() {
   }
 
   // Detecta stage-up comparando com localStorage. Quando sobe, mostra hint
-  // ("Você cresceu uma folha nova") por alguns segundos.
+  // ("Você cresceu uma folha nova") + registra milestone permanente no banco.
   const [growthHint, setGrowthHint] = useState<string | null>(null);
   useEffect(() => {
     if (!brotoState) return;
@@ -153,18 +153,29 @@ export default function AppHome() {
       const lastStageStr = localStorage.getItem("broto:lastStage");
       const lastStage = lastStageStr ? parseInt(lastStageStr, 10) : 0;
       if (brotoState.stage > lastStage) {
-        // Pegou crescimento — mostra hint
+        // Pegou crescimento — mostra hint + registra milestone permanente
+        const name = brotoState.brotoName;
         const hints: Record<number, string> = {
-          2: "🌿 Seu Broto cresceu uma folha nova.",
-          3: "🪴 Seu Broto está mais firme. Vocês estão crescendo juntas.",
-          4: "🌳 Seu Broto está forte. Olha o quanto você fez.",
-          5: "🌸 Seu Broto floresceu. Esse momento é seu.",
+          2: `🌿 ${name} cresceu uma folha nova.`,
+          3: `🪴 ${name} está mais firme. Vocês estão crescendo juntas.`,
+          4: `🌳 ${name} está forte. Olha o quanto você fez.`,
+          5: `🌸 ${name} floresceu. Esse momento é seu.`,
         };
         const hint = hints[brotoState.stage];
         if (hint) {
           setGrowthHint(hint);
-          // some sozinho após 8s
           setTimeout(() => setGrowthHint(null), 8000);
+          // Persistir como milestone permanente — vira "memoria" na timeline.
+          // Fire-and-forget; silencioso em erro (db pode estar pre-migration).
+          fetch("/api/app/broto/milestones", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              kind: "stage_up",
+              stage: brotoState.stage,
+              message: hint,
+            }),
+          }).catch(() => {});
         }
       }
       localStorage.setItem("broto:lastStage", String(brotoState.stage));

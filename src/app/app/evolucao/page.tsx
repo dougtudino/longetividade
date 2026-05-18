@@ -33,6 +33,13 @@ type Stats = {
 type LevelInfo = { level: number; levelName: string; xp: number; nextLevelXp: number };
 type Achievement = { id: string; name: string; icon: string; earnedAt: string };
 type WeightLog = { weight: number; loggedAt: string; note?: string | null };
+type Milestone = {
+  id: string;
+  kind: "stage_up" | "cycle_complete" | "first_checkin" | "streak_milestone";
+  stage: number | null;
+  message: string;
+  achievedAt: string;
+};
 
 export default function EvolucaoPage() {
   const [wellbeing, setWellbeing] = useState<Summary | null>(null);
@@ -45,6 +52,7 @@ export default function EvolucaoPage() {
   const [weightNote, setWeightNote] = useState("");
   const [weightSaving, setWeightSaving] = useState(false);
   const [weightSaved, setWeightSaved] = useState(false);
+  const [milestones, setMilestones] = useState<Milestone[]>([]);
   const brotoState = useBrotoState(cycleStats?.totalDaysCompleted);
 
   const fetchAll = useCallback(() => {
@@ -62,6 +70,10 @@ export default function EvolucaoPage() {
       const logs = (d.logs ?? []).slice().reverse(); // mais recente primeiro
       setWeightLogs(logs.slice(0, 10)); // ultimas 10
     });
+    fetch("/api/app/broto/milestones")
+      .then((r) => (r.ok ? r.json() : { milestones: [] }))
+      .then((d) => setMilestones(d.milestones ?? []))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -222,6 +234,51 @@ export default function EvolucaoPage() {
           </div>
         )}
       </div>
+
+      {/* ─── Linha do tempo do Broto 🌱 ─── */}
+      {milestones.length > 0 && (
+        <div className="mb-5 rounded-2xl bg-white p-4 border border-gray-100">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
+            Linha do tempo do {brotoState?.brotoName ?? "Broto"} 🌱
+          </p>
+          <div className="relative flex flex-col gap-3">
+            {/* Linha vertical conectora */}
+            <div
+              className="absolute left-2.5 top-1 bottom-1 w-0.5"
+              style={{ backgroundColor: "#EAF3DE" }}
+              aria-hidden="true"
+            />
+            {milestones.slice(0, 8).map((m) => {
+              const date = new Date(m.achievedAt).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "short",
+                year: "2-digit",
+              });
+              return (
+                <div key={m.id} className="relative flex items-start gap-3 pl-1">
+                  <div
+                    className="z-10 mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: "#639922" }}
+                  >
+                    <div className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm leading-snug" style={{ color: "#3B6D11" }}>
+                      {m.message}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-gray-400">{date}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {milestones.length > 8 && (
+            <p className="mt-3 text-center text-[10px] text-gray-400">
+              + {milestones.length - 8} marcos mais antigos
+            </p>
+          )}
+        </div>
+      )}
 
       {/* ─── Esta semana ─── */}
       {wellbeing && (

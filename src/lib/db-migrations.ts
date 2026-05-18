@@ -843,6 +843,30 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppProfile.brotoName (nome do mascote)",
     sql: `ALTER TABLE "AppProfile" ADD COLUMN IF NOT EXISTS "brotoName" TEXT NOT NULL DEFAULT 'Broto'`,
   },
+  {
+    label: "AppBrotoMilestone table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppBrotoMilestone" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "kind" TEXT NOT NULL,
+        "stage" INTEGER,
+        "cycleNumber" INTEGER,
+        "streakDays" INTEGER,
+        "message" TEXT NOT NULL,
+        "achievedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppBrotoMilestone_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppBrotoMilestone userId+achievedAt index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppBrotoMilestone_userId_achievedAt_idx" ON "AppBrotoMilestone"("userId", "achievedAt")`,
+  },
+  {
+    label: "AppBrotoMilestone userId+kind index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppBrotoMilestone_userId_kind_idx" ON "AppBrotoMilestone"("userId", "kind")`,
+  },
 ];
 
 export type MigrationResult = {
