@@ -172,7 +172,7 @@ const RULES: Rule[] = [
       return {
         title: `Sua semana, ${c.firstName} 📊`,
         body: parts.join(" · ") + ". Toque pra ver tudo.",
-        url: "/app/evolucao",
+        url: "/app/jornada",
         tag: "weekly-recap",
       };
     },

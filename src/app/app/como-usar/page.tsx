@@ -23,7 +23,7 @@ const STEPS = [
     title: "3. Registre seu peso",
     text: "Em Progresso > Peso. Grafico mostra evolucao. Linha tracejada = sua meta.",
     cta: "Registrar peso",
-    path: "/app/progresso",
+    path: "/app/jornada",
   },
   {
     icon: "💚",
