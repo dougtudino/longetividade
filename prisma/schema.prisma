@@ -727,6 +727,23 @@ model AppMeasurement {
   @@index([userId])
 }
 
+// Atividades extras criadas pela própria usuária (esporte/hobby fora do
+// catálogo built-in). Ex: "Crossfit", "Pilates", "Surf". Cada usuária
+// tem o seu set, persistido cross-device.
+// Categoria reaproveita as 4 do catalogo built-in (movimento/mental/social/criativo).
+// XP usa fórmula padrão por minutos no /api/app/activities (1 XP/min).
+model AppCustomActivity {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String // "Crossfit", "Pilates", etc — max 40 chars
+  icon        String   @default("🏃") // emoji escolhido (ou default)
+  category    String   @default("movimento") // movimento|mental|social|criativo
+  archived    Boolean  @default(false) // soft-delete pra preservar logs antigos
+  createdAt   DateTime @default(now())
+
+  @@index([userId, archived])
+}
+
 // Marcos do Broto. Persiste momentos especiais que valem virar memória:
 // crescimento de stage, conclusão de ciclo, primeira marca de hábito, etc.
 // Usado pra mostrar timeline em /app/evolucao ("Florescido em 17/05/2026").

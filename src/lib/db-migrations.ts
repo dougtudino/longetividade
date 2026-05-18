@@ -867,6 +867,27 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppBrotoMilestone userId+kind index",
     sql: `CREATE INDEX IF NOT EXISTS "AppBrotoMilestone_userId_kind_idx" ON "AppBrotoMilestone"("userId", "kind")`,
   },
+
+  // ─── Atividades custom (criadas pela usuária) ───────────────
+  {
+    label: "AppCustomActivity table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "AppCustomActivity" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "icon" TEXT NOT NULL DEFAULT '🏃',
+        "category" TEXT NOT NULL DEFAULT 'movimento',
+        "archived" BOOLEAN NOT NULL DEFAULT false,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "AppCustomActivity_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "AppCustomActivity userId+archived index",
+    sql: `CREATE INDEX IF NOT EXISTS "AppCustomActivity_userId_archived_idx" ON "AppCustomActivity"("userId", "archived")`,
+  },
 ];
 
 export type MigrationResult = {

@@ -15,6 +15,8 @@ type Activity = {
   locked: boolean;
   todayMinutes: number;
   todayXp: number;
+  isCustom?: boolean;
+  customId?: string;
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -36,6 +38,56 @@ export function ActivitiesSection({ onRegistered }: { onRegistered?: () => void 
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  // Modal "criar atividade custom"
+  const [showCreate, setShowCreate] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createIcon, setCreateIcon] = useState("🏃");
+  const [createCategory, setCreateCategory] = useState<Activity["category"]>("movimento");
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  async function createCustomActivity() {
+    if (creating) return;
+    if (createName.trim().length < 2) {
+      setCreateError("Nome muito curto");
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const r = await fetch("/api/app/activities/custom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: createName.trim(),
+          icon: createIcon,
+          category: createCategory,
+        }),
+      });
+      if (r.ok) {
+        await fetchActivities();
+        setShowCreate(false);
+        setCreateName("");
+        setCreateIcon("🏃");
+        setCreateCategory("movimento");
+      } else {
+        const d = await r.json().catch(() => ({}));
+        setCreateError(d.error ?? "Falha ao criar");
+      }
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function deleteCustomActivity(customId: string, name: string) {
+    if (!confirm(`Remover "${name}" da sua lista? Os registros antigos ficam preservados.`)) return;
+    try {
+      const r = await fetch(`/api/app/activities/custom?id=${customId}`, { method: "DELETE" });
+      if (r.ok) await fetchActivities();
+    } catch {
+      /* silent */
+    }
+  }
 
   const fetchActivities = useCallback(async () => {
     try {
@@ -135,23 +187,146 @@ export function ActivitiesSection({ onRegistered }: { onRegistered?: () => void 
                     </p>
                   </div>
                   {!a.locked && (
-                    <button
-                      onClick={() => setSelectedActivity(a)}
-                      className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white"
-                      style={{ backgroundColor: categoryColor }}
-                    >
-                      + Registrar
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setSelectedActivity(a)}
+                        className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white"
+                        style={{ backgroundColor: categoryColor }}
+                      >
+                        + Registrar
+                      </button>
+                      {a.isCustom && a.customId && (
+                        <button
+                          onClick={() => deleteCustomActivity(a.customId!, a.name)}
+                          aria-label={`Remover ${a.name}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-full text-sm text-gray-400 hover:text-red-500"
+                          title="Remover essa atividade da minha lista"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               );
             })}
+
+            {/* Botao: criar atividade custom */}
+            <button
+              onClick={() => setShowCreate(true)}
+              className="mt-2 w-full rounded-xl border-2 border-dashed border-gray-200 p-3 text-xs font-bold text-gray-500 hover:border-[#639922] hover:text-[#639922] transition-colors"
+            >
+              + Adicionar outra atividade
+            </button>
             <p className="mt-2 text-center text-[10px] text-gray-400">
-              Mais atividades desbloqueiam quando você sobe de nível
+              Mais atividades do catálogo desbloqueiam quando você sobe de nível
             </p>
           </div>
         )}
       </div>
+
+      {/* Modal: criar atividade custom */}
+      {showCreate && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60"
+          onClick={() => !creating && setShowCreate(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-6 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900">Nova atividade 💪</h3>
+              {!creating && (
+                <button
+                  onClick={() => setShowCreate(false)}
+                  aria-label="Fechar"
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            <p className="mb-4 text-xs text-gray-500">
+              Adicione qualquer exercício/atividade que você faça — ela vai aparecer aqui pra registrar.
+            </p>
+
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
+              Nome
+            </label>
+            <input
+              type="text"
+              value={createName}
+              onChange={(e) => {
+                setCreateName(e.target.value);
+                setCreateError(null);
+              }}
+              placeholder="Crossfit, Pilates, Surf..."
+              maxLength={40}
+              autoFocus
+              className="mb-4 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#639922]"
+            />
+
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
+              Emoji
+            </label>
+            <div className="mb-4 grid grid-cols-6 gap-2">
+              {["🏃", "🏋️‍♀️", "🧘‍♀️", "🚴", "🏊‍♀️", "🤸", "⛹️‍♀️", "🥊", "🤽‍♀️", "🏇", "🤺", "🚣‍♀️"].map((e) => (
+                <button
+                  key={e}
+                  onClick={() => setCreateIcon(e)}
+                  className="flex h-10 items-center justify-center rounded-lg text-xl"
+                  style={{
+                    backgroundColor: createIcon === e ? "#EAF3DE" : "#f9fafb",
+                    border: createIcon === e ? "2px solid #639922" : "2px solid transparent",
+                  }}
+                >
+                  {e}
+                </button>
+              ))}
+            </div>
+
+            <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-500">
+              Categoria
+            </label>
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              {(["movimento", "mental", "social", "criativo"] as const).map((c) => (
+                <button
+                  key={c}
+                  onClick={() => setCreateCategory(c)}
+                  className="rounded-xl py-2 text-xs font-bold capitalize transition-colors"
+                  style={{
+                    backgroundColor: createCategory === c ? CATEGORY_COLORS[c] : "#f9fafb",
+                    color: createCategory === c ? "white" : "#374151",
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+
+            {createError && (
+              <p className="mb-3 text-xs text-red-600">{createError}</p>
+            )}
+
+            <button
+              onClick={createCustomActivity}
+              disabled={creating || createName.trim().length < 2}
+              className="w-full rounded-xl py-3 text-sm font-bold text-white disabled:opacity-40"
+              style={{ backgroundColor: "#639922" }}
+            >
+              {creating ? "Criando..." : "Adicionar à minha lista"}
+            </button>
+            <button
+              onClick={() => setShowCreate(false)}
+              disabled={creating}
+              className="mt-2 w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-500"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal seletor de tempo */}
       {selectedActivity && (

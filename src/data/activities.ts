@@ -95,6 +95,21 @@ export const ACTIVITIES: Activity[] = [
     ],
     requiredLevel: 4,
   },
+  {
+    id: "musculacao",
+    name: "Musculação",
+    icon: "🏋️‍♀️",
+    category: "movimento",
+    description: "Treino de força em academia ou em casa (pesos, elásticos, peso corporal).",
+    scienceTip: "Força preserva massa muscular — fator #1 de longevidade após 40 anos (Westcott 2012).",
+    timeOptions: [
+      { minutes: 30, xp: 32 },
+      { minutes: 45, xp: 45 },
+      { minutes: 60, xp: 60 },
+      { minutes: 90, xp: 85 },
+    ],
+    requiredLevel: 4,
+  },
 
   // ─── Nv 5 ─────────────────────────────────────────────────
   {
@@ -112,6 +127,21 @@ export const ACTIVITIES: Activity[] = [
     ],
     requiredLevel: 5,
   },
+  {
+    id: "corrida",
+    name: "Corrida",
+    icon: "🏃‍♀️",
+    category: "movimento",
+    description: "Trote ou corrida — rua, parque, esteira. Comece com pouco.",
+    scienceTip: "5-10 min/dia de corrida reduz mortalidade em ~30% (Schnohr 2015, n=55k).",
+    timeOptions: [
+      { minutes: 15, xp: 18 },
+      { minutes: 30, xp: 35 },
+      { minutes: 45, xp: 50 },
+      { minutes: 60, xp: 65 },
+    ],
+    requiredLevel: 5,
+  },
 
   // ─── Nv 6 ─────────────────────────────────────────────────
   {
@@ -125,6 +155,34 @@ export const ACTIVITIES: Activity[] = [
       { minutes: 20, xp: 22 },
       { minutes: 40, xp: 42 },
       { minutes: 60, xp: 60 },
+    ],
+    requiredLevel: 6,
+  },
+  {
+    id: "tenis",
+    name: "Tênis",
+    icon: "🎾",
+    category: "movimento",
+    description: "Partida de tênis ou aula. Foco, reflexo e cardio juntos.",
+    scienceTip: "Esportes de raquete associados a -47% risco cardiovascular (BJSM 2017).",
+    timeOptions: [
+      { minutes: 45, xp: 45 },
+      { minutes: 60, xp: 60 },
+      { minutes: 90, xp: 88 },
+    ],
+    requiredLevel: 6,
+  },
+  {
+    id: "padel",
+    name: "Padel",
+    icon: "🎾",
+    category: "movimento",
+    description: "Partida de padel — esporte social, em dupla, ritmo intenso.",
+    scienceTip: "Padel combina cardio + força + coordenação + socialização em ~1h.",
+    timeOptions: [
+      { minutes: 60, xp: 60 },
+      { minutes: 90, xp: 88 },
+      { minutes: 120, xp: 115 },
     ],
     requiredLevel: 6,
   },

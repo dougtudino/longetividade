@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: "Nao autenticado" }, { status: 401 });
 
   try {
-    const [level, todayLogs] = await Promise.all([
+    const [level, todayLogs, customActivities] = await Promise.all([
       prisma.appUserLevel.findUnique({ where: { userId: user.id } }),
       prisma.appActivityLog.findMany({
         where: {
@@ -21,6 +21,10 @@ export async function GET(req: NextRequest) {
           loggedAt: { gte: brasilStartOfDay(), lt: brasilEndOfDay() },
         },
         select: { activityId: true, minutes: true, xpAwarded: true },
+      }),
+      prisma.appCustomActivity.findMany({
+        where: { userId: user.id, archived: false },
+        orderBy: { createdAt: "asc" },
       }),
     ]);
 
@@ -36,11 +40,48 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const activities = ACTIVITIES.map((a: Activity) => {
+    const builtIn = ACTIVITIES.map((a: Activity) => {
       const locked = userLevel < a.requiredLevel;
       const today = todayByActivity.get(a.id) ?? null;
-      return { ...a, locked, todayMinutes: today?.minutes ?? 0, todayXp: today?.xpAwarded ?? 0 };
+      return {
+        ...a,
+        locked,
+        todayMinutes: today?.minutes ?? 0,
+        todayXp: today?.xpAwarded ?? 0,
+        isCustom: false,
+      };
     });
+
+    // Custom activities: ID interno usa prefixo "custom:" pra evitar
+    // colisao com IDs built-in. Sempre desbloqueadas (a usuaria criou).
+    // XP: 1 XP/min ate 60min, depois 0.8 XP/min — formula simples sem
+    // depender de pesquisa cientifica especifica.
+    const custom = customActivities.map((c) => {
+      const id = `custom:${c.id}`;
+      const today = todayByActivity.get(id) ?? null;
+      return {
+        id,
+        name: c.name,
+        icon: c.icon,
+        category: c.category as Activity["category"],
+        description: "Atividade criada por voce",
+        timeOptions: [
+          { minutes: 15, xp: 15 },
+          { minutes: 30, xp: 30 },
+          { minutes: 45, xp: 42 },
+          { minutes: 60, xp: 55 },
+          { minutes: 90, xp: 75 },
+        ],
+        requiredLevel: 1,
+        locked: false,
+        todayMinutes: today?.minutes ?? 0,
+        todayXp: today?.xpAwarded ?? 0,
+        isCustom: true,
+        customId: c.id, // pra deletar via API
+      };
+    });
+
+    const activities = [...builtIn, ...custom];
 
     return NextResponse.json({ activities, userLevel });
   } catch (e) {
@@ -64,7 +105,43 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON invalido" }, { status: 400 });
   }
 
-  const activity = ACTIVITIES.find((a) => a.id === body.activityId);
+  const activityId = String(body.activityId ?? "");
+
+  // Custom activity? IDs começam com "custom:<uuid>"
+  if (activityId.startsWith("custom:")) {
+    const customId = activityId.slice("custom:".length);
+    const custom = await prisma.appCustomActivity.findFirst({
+      where: { id: customId, userId: user.id, archived: false },
+    });
+    if (!custom) {
+      return NextResponse.json({ error: "Atividade custom nao encontrada" }, { status: 404 });
+    }
+    // Aceita qualquer um dos timeOptions padrao das custom (15/30/45/60/90)
+    const CUSTOM_OPTS: Record<number, number> = { 15: 15, 30: 30, 45: 42, 60: 55, 90: 75 };
+    const minutes = Number(body.minutes);
+    const xp = CUSTOM_OPTS[minutes];
+    if (!xp) {
+      return NextResponse.json(
+        { error: "Tempo invalido. Opcoes: 15, 30, 45, 60, 90 min" },
+        { status: 400 },
+      );
+    }
+    const log = await prisma.appActivityLog.create({
+      data: { userId: user.id, activityId, minutes, xpAwarded: xp },
+    });
+    await addXP(user.id, xp);
+    const newAchievements = await evaluateAchievements(user.id);
+    return NextResponse.json({
+      ok: true,
+      log,
+      activity: { id: activityId, name: custom.name, icon: custom.icon },
+      xpAwarded: xp,
+      newAchievements,
+    });
+  }
+
+  // Built-in activity
+  const activity = ACTIVITIES.find((a) => a.id === activityId);
   if (!activity) {
     return NextResponse.json({ error: "Atividade nao encontrada" }, { status: 404 });
   }
