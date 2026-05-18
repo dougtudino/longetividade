@@ -21,6 +21,7 @@ export type BrotoState = {
   mood: BrotoMood;
   imageKey: string; // path relativo pra <img src>
   message: string; // microcopy contextual pro card
+  brotoName: string; // nome do Broto (personalizado pela usuária, default "Broto")
   daysSinceLastCheckin: number;
   // Sinais brutos usados pra calcular (úteis pro UI mostrar contexto)
   signals: {
@@ -83,29 +84,29 @@ const STAGE_RULES: StageRule[] = [
 
 const MESSAGES_BY_MOOD: Record<BrotoMood, string[]> = {
   animado: [
-    "Seu Broto está radiante 🌸",
+    "{name} está radiante 🌸",
     "Você cuidou de você hoje. Olha o brilho.",
-    "Dia completo. Seu Broto agradece.",
+    "Dia completo. {name} agradece.",
   ],
   feliz: [
-    "Seu Broto ficou feliz hoje 💚",
+    "{name} ficou feliz hoje 💚",
     "Você apareceu por você. Isso já é vitória.",
-    "Seu Broto sente cada cuidadinho.",
+    "{name} sente cada cuidadinho.",
   ],
   tranquilo: [
-    "Seu Broto agradece a visita.",
+    "{name} agradece a visita.",
     "Pequenos passos também contam.",
     "Você está aqui. Já está cuidando.",
   ],
   sonolento: [
-    "Seu Broto cochilou. Que tal um copo de água?",
+    "{name} cochilou. Que tal um copo de água?",
     "Hoje é um bom dia pra começar de novo.",
-    "Seu Broto está te esperando 💚",
+    "{name} está te esperando 💚",
   ],
   saudoso: [
-    "Seu Broto sentiu sua falta. Que bom te ver.",
+    "{name} sentiu sua falta. Que bom te ver.",
     "Que bom você voltou. Sem pressão.",
-    "Seu Broto guardou o lugar pra você.",
+    "{name} guardou o lugar pra você.",
   ],
 };
 
@@ -113,10 +114,10 @@ const MESSAGES_BY_MOOD: Record<BrotoMood, string[]> = {
 // Renderizado como toast/banner separado pelo UI.
 const GROWTH_HINT_BY_STAGE: Record<BrotoStage, string> = {
   1: "",
-  2: "🌿 Seu Broto cresceu uma folha nova.",
-  3: "🪴 Seu Broto está mais firme. Vocês estão crescendo juntas.",
-  4: "🌳 Seu Broto está forte. Olha o quanto você fez.",
-  5: "🌸 Seu Broto floresceu. Esse momento é seu.",
+  2: "🌿 {name} cresceu uma folha nova.",
+  3: "🪴 {name} está mais firme. Vocês estão crescendo juntas.",
+  4: "🌳 {name} está forte. Olha o quanto você fez.",
+  5: "🌸 {name} floresceu. Esse momento é seu.",
 };
 
 // ─── Calculador principal ───────────────────────────────────
@@ -142,9 +143,14 @@ export async function getBrotoState(userId: string): Promise<BrotoState> {
     }),
     prisma.appProfile.findUnique({
       where: { userId },
-      select: { waterGoal: true },
+      select: { waterGoal: true, brotoName: true },
     }),
   ]);
+
+  // brotoName eh capitalizado pelo input do user. Default "Broto" se nao
+  // setado ou se a coluna ainda nao existir (DB pre-migration).
+  const brotoName =
+    (profile as { brotoName?: string } | null)?.brotoName?.trim() || "Broto";
 
   const cyclesCompleted = cycles.filter((c) => c.status === "completed").length;
   const currentCycle = cycles.find((c) => c.status === "active" || c.status === "paused");
@@ -180,7 +186,7 @@ export async function getBrotoState(userId: string): Promise<BrotoState> {
     cycleCompletedToday,
   });
 
-  const message = pickMessage(mood, userId);
+  const message = pickMessage(mood, userId).replace(/\{name\}/g, brotoName);
 
   return {
     stage,
@@ -188,6 +194,7 @@ export async function getBrotoState(userId: string): Promise<BrotoState> {
     mood,
     imageKey: STAGE_IMAGES[stage],
     message,
+    brotoName,
     daysSinceLastCheckin: lastActivityDays,
     signals: {
       streak,
@@ -205,8 +212,8 @@ export async function getBrotoState(userId: string): Promise<BrotoState> {
 // Pega só o crescimento (pra mostrar toast quando subir de stage).
 // Comparação simples — não persistimos histórico, então o UI tem que
 // guardar localStorage["lastBrotoStage"] e comparar no client.
-export function getGrowthHint(stage: BrotoStage): string {
-  return GROWTH_HINT_BY_STAGE[stage] ?? "";
+export function getGrowthHint(stage: BrotoStage, brotoName = "Broto"): string {
+  return (GROWTH_HINT_BY_STAGE[stage] ?? "").replace(/\{name\}/g, brotoName);
 }
 
 // ─── Helpers internos ──────────────────────────────────────

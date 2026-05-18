@@ -837,6 +837,12 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
       END $$
     `,
   },
+
+  // ─── Broto (mascote emocional) ─────────────────────────────
+  {
+    label: "AppProfile.brotoName (nome do mascote)",
+    sql: `ALTER TABLE "AppProfile" ADD COLUMN IF NOT EXISTS "brotoName" TEXT NOT NULL DEFAULT 'Broto'`,
+  },
 ];
 
 export type MigrationResult = {

@@ -19,6 +19,7 @@ const CHALLENGES = [
 
 type FormData = {
   name: string;
+  brotoName: string;
   objective: string;
   currentWeight: number | null;
   height: number | null;
@@ -35,6 +36,7 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormData>({
     name: "",
+    brotoName: "",
     objective: "",
     currentWeight: null,
     height: null,
@@ -78,6 +80,8 @@ export default function Onboarding() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
+        // Trim + default "Broto" se vazio
+        brotoName: form.brotoName.trim() || "Broto",
         goalWeight,
         onboardingDone: true,
       }),
@@ -145,8 +149,22 @@ export default function Onboarding() {
             value={form.name}
             onChange={(e) => update({ name: e.target.value })}
             placeholder="Seu nome"
+            className="mb-5 w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-[#639922]"
+          />
+
+          <h2 className="mb-1 text-base font-bold text-gray-900">E o seu Broto, como vai se chamar?</h2>
+          <p className="mb-2 text-xs text-gray-500">
+            Pode deixar &quot;Broto&quot; mesmo, ou inventar um nome carinhoso 💚
+          </p>
+          <input
+            type="text"
+            maxLength={24}
+            value={form.brotoName}
+            onChange={(e) => update({ brotoName: e.target.value })}
+            placeholder="Broto"
             className="mb-6 w-full rounded-xl border border-gray-200 px-4 py-3 text-base outline-none focus:border-[#639922]"
           />
+
           <h2 className="mb-4 text-2xl font-bold text-gray-900">O que voce quer conquistar?</h2>
           {[
             { value: "emagrecer", label: "Quero emagrecer" },

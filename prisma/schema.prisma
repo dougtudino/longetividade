@@ -534,6 +534,9 @@ model AppProfile {
   challenges     String[]
   onboardingDone Boolean  @default(false)
   waterGoal      Int      @default(8)
+  // Nome do Broto personalizado pela usuaria (default "Broto").
+  // Aparece nas mensagens reativas, no header, em push notifications.
+  brotoName      String   @default("Broto")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

@@ -14,6 +14,7 @@ export type BrotoState = {
   mood: BrotoMood;
   imageKey: string;
   message: string;
+  brotoName: string;
   daysSinceLastCheckin: number;
   signals: {
     streak: number;

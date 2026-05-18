@@ -5,6 +5,7 @@ import { AppNav } from "@/components/app/app-nav";
 
 type ProfileData = {
   name: string;
+  brotoName?: string;
   objective: string;
   currentWeight: number | null;
   goalWeight: number | null;
@@ -50,6 +51,7 @@ export default function PerfilPage() {
 
   // Editable fields
   const [editName, setEditName] = useState("");
+  const [editBrotoName, setEditBrotoName] = useState("");
   const [editObjective, setEditObjective] = useState("");
   const [editWeight, setEditWeight] = useState("");
   const [editGoalWeight, setEditGoalWeight] = useState("");
@@ -64,6 +66,7 @@ export default function PerfilPage() {
         if (d.profile) {
           setProfile(d.profile);
           setEditName(d.profile.name ?? "");
+          setEditBrotoName(d.profile.brotoName ?? "Broto");
           setEditObjective(d.profile.objective ?? "");
           setEditWeight(d.profile.currentWeight ? String(d.profile.currentWeight) : "");
           setEditGoalWeight(d.profile.goalWeight ? String(d.profile.goalWeight) : "");
@@ -86,6 +89,8 @@ export default function PerfilPage() {
     try {
       const body: Record<string, unknown> = {};
       if (editName) body.name = editName;
+      // Sempre envia brotoName (mesmo vazio) — backend trata default "Broto"
+      body.brotoName = editBrotoName;
       if (editObjective) body.objective = editObjective;
       if (editWeight) body.currentWeight = parseFloat(editWeight);
       if (editGoalWeight) body.goalWeight = parseFloat(editGoalWeight);
@@ -228,6 +233,20 @@ export default function PerfilPage() {
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               disabled={!editing}
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#639922] disabled:bg-gray-50 disabled:text-gray-500"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-gray-400 mb-1 block">
+              Nome do seu Broto 🌱
+            </label>
+            <input
+              type="text"
+              maxLength={24}
+              value={editBrotoName}
+              onChange={(e) => setEditBrotoName(e.target.value)}
+              disabled={!editing}
+              placeholder="Broto"
               className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#639922] disabled:bg-gray-50 disabled:text-gray-500"
             />
           </div>

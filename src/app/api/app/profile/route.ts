@@ -37,6 +37,11 @@ export async function POST(req: NextRequest) {
   if (body.challenges !== undefined) updateData.challenges = body.challenges ?? [];
   if (body.onboardingDone !== undefined) updateData.onboardingDone = body.onboardingDone ?? false;
   if (body.waterGoal !== undefined) updateData.waterGoal = body.waterGoal;
+  if (body.brotoName !== undefined) {
+    // Sanitiza nome: trim + limite 24 chars. Default vazio cai pra "Broto".
+    const name = String(body.brotoName).trim().slice(0, 24);
+    updateData.brotoName = name || "Broto";
+  }
 
   const profile = await prisma.appProfile.upsert({
     where: { userId: user.id },
@@ -54,6 +59,7 @@ export async function POST(req: NextRequest) {
       challenges: body.challenges ?? [],
       onboardingDone: body.onboardingDone ?? false,
       waterGoal: body.waterGoal ?? 8,
+      brotoName: (body.brotoName ?? "Broto").trim().slice(0, 24) || "Broto",
     },
   });
 
