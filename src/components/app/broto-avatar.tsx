@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+import { BrotoSvg, type BrotoSvgStage } from "./broto-svg";
 
 // Tipos mínimos pro client — espelham os do lib/broto.ts.
 // Deliberadamente NAO importamos do server pra evitar bundle bloat com prisma.
@@ -139,14 +139,10 @@ export function BrotoAvatar({
       }}
       aria-label={`Broto ${state.stageName}, ${state.mood}`}
     >
-      <Image
-        src={state.imageKey}
-        alt={`Seu Broto: ${state.stageName}`}
-        width={size}
-        height={size}
-        priority={priority}
-        unoptimized // PNG com transparencia, sem ganho real em otimizar
-        style={{ objectFit: "contain", width: "100%", height: "100%" }}
+      <BrotoSvg
+        stage={(Math.min(4, Math.max(1, state.stage)) as BrotoSvgStage)}
+        size={size}
+        sleeping={state.mood === "sonolento" || state.mood === "saudoso"}
       />
 
       {/* Sparkles ao redor — só renderizam durante celebracao.

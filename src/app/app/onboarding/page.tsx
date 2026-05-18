@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { InstallPwaButton } from "@/components/app/install-pwa-button";
+import { BrotoSvg } from "@/components/app/broto-svg";
 
 const CHALLENGES = [
   { id: "fome_emocional", label: "Fome emocional" },
@@ -121,14 +121,9 @@ export default function Onboarding() {
               quem vai acompanhar a jornada. Sem login state ainda, então
               renderizamos direto a sprite stage-2 (acolhedora). */}
           <div className="mb-6 flex flex-col items-center text-center">
-            <Image
-              src="/broto/stage-2-brotinho.png"
-              alt="Broto, seu companheiro de jornada"
-              width={140}
-              height={140}
-              priority
-              style={{ animation: "brotoBreath 4s ease-in-out infinite", transformOrigin: "center bottom" }}
-            />
+            <div style={{ animation: "brotoBreath 4s ease-in-out infinite", transformOrigin: "center bottom" }}>
+              <BrotoSvg stage={2} size={140} />
+            </div>
             <p className="mt-3 text-sm font-bold" style={{ color: "#3B6D11" }}>
               Oi, eu sou o Broto 🌱
             </p>

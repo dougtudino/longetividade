@@ -2,9 +2,9 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { APP_BRAND } from "@/config/app-brand";
 import { useBrotoState } from "@/components/app/broto-avatar";
+import { BrotoSvg, type BrotoSvgStage } from "@/components/app/broto-svg";
 
 type Profile = {
   name: string;
@@ -88,13 +88,10 @@ export function AppHeader() {
             }}
             aria-hidden="true"
           >
-            <Image
-              src={brotoState.imageKey}
-              alt=""
-              width={32}
-              height={32}
-              unoptimized
-              style={{ objectFit: "contain", width: "100%", height: "100%" }}
+            <BrotoSvg
+              stage={(Math.min(4, Math.max(1, brotoState.stage)) as BrotoSvgStage)}
+              size={32}
+              sleeping={brotoState.mood === "sonolento" || brotoState.mood === "saudoso"}
             />
           </div>
         )}
