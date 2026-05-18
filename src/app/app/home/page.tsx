@@ -100,6 +100,53 @@ function pickHabitSpeech(key: string): string {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+// Microcopy do anchoring temporal (ontem / amanha).
+// Pool curto, tom acolhedor, NUNCA mencionando "falha" ou "perdeu".
+// Indice deterministico por dia (semente do calendario) — mesma mensagem
+// durante o dia inteiro, troca quando muda o dia.
+
+const YESTERDAY_DONE_COPIES = [
+  "Você apareceu por você 💚",
+  "Mesmo imperfeito, você continuou",
+  "Ontem também contou",
+];
+
+const YESTERDAY_MISSED_COPIES = [
+  "Hoje é um bom dia pra continuar",
+  "Continua de onde você está",
+  "Cada manhã é um novo começo 💚",
+];
+
+const PILLAR_TEASE: Record<string, string[]> = {
+  S: [
+    "Você vai cuidar da sua simplicidade",
+    "Um pequeno gesto te espera",
+    "Algo gentil pra amanhã",
+  ],
+  E: [
+    "Você vai cuidar do seu equilíbrio",
+    "Um respiro mais profundo te espera",
+    "Algo pra calma de amanhã",
+  ],
+  M: [
+    "Você vai cuidar da sua energia",
+    "Movimento te espera amanhã",
+    "Seu corpo vai agradecer",
+  ],
+};
+
+// Hash bobo deterministico por dia BR — pra mensagem nao mudar a cada
+// re-render mas trocar entre dias.
+function dailySeed(): number {
+  const today = new Date();
+  return today.getFullYear() * 10000 + today.getMonth() * 100 + today.getDate();
+}
+
+function pickByDay<T>(pool: T[]): T {
+  if (pool.length === 0) throw new Error("Empty pool");
+  return pool[dailySeed() % pool.length];
+}
+
 // ─── Componente ────────────────────────────────────────────
 export default function AppHome() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -118,6 +165,10 @@ export default function AppHome() {
   const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
     show: false, title: "", subtitle: "", emoji: "",
   });
+
+  // Anchoring temporal: qual dia esta sendo "espiado" no modal (ontem/amanha).
+  // null = modal fechado.
+  const [peekedDay, setPeekedDay] = useState<number | null>(null);
 
   // Broto state + microreacoes
   const habitsHash = useMemo(() => JSON.stringify(localHabits), [localHabits]);
@@ -362,6 +413,48 @@ export default function AppHome() {
     if (!challenge || !currentDay) return false;
     return challenge.progress.includes(currentDay);
   }, [challenge, currentDay]);
+
+  // Anchoring: dia anterior e proximo, com status
+  const yesterday = useMemo(() => {
+    if (!challenge || !currentDay || currentDay <= 1) return null;
+    const day = currentDay - 1;
+    const dayData = challenge.days.find((d) => d.day === day);
+    if (!dayData) return null;
+    const done = challenge.progress.includes(day);
+    return {
+      day,
+      title: dayData.title,
+      mission: dayData.mission,
+      pillar: dayData.pillar,
+      done,
+      copy: done ? pickByDay(YESTERDAY_DONE_COPIES) : pickByDay(YESTERDAY_MISSED_COPIES),
+    };
+  }, [challenge, currentDay]);
+
+  const tomorrow = useMemo(() => {
+    if (!challenge || !currentDay || currentDay >= 21) return null;
+    const day = currentDay + 1;
+    const dayData = challenge.days.find((d) => d.day === day);
+    if (!dayData) return null;
+    return {
+      day,
+      title: dayData.title,
+      mission: dayData.mission,
+      pillar: dayData.pillar,
+      copy: pickByDay(PILLAR_TEASE[dayData.pillar] ?? PILLAR_TEASE.S),
+    };
+  }, [challenge, currentDay]);
+
+  // Detalhe do dia espiado (renderizado no modal)
+  const peekedDayData = useMemo(() => {
+    if (!challenge || peekedDay == null) return null;
+    const dayData = challenge.days.find((d) => d.day === peekedDay);
+    if (!dayData) return null;
+    const done = challenge.progress.includes(peekedDay);
+    const isPast = currentDay != null && peekedDay < currentDay;
+    const isFuture = currentDay != null && peekedDay > currentDay;
+    return { ...dayData, done, isPast, isFuture };
+  }, [challenge, peekedDay, currentDay]);
   const moodLabel = useMemo(
     () => MOOD_OPTIONS.find((m) => m.key === todayMood)?.label ?? null,
     [todayMood],
@@ -436,6 +529,33 @@ export default function AppHome() {
         </div>
       )}
 
+      {/* ─── Strip "Ontem" (anchoring temporal, atmosferico) ─── */}
+      {yesterday && (
+        <button
+          onClick={() => setPeekedDay(yesterday.day)}
+          className="mb-2 w-full text-left transition-opacity active:opacity-60"
+          aria-label={`Ver detalhes do dia ${yesterday.day}`}
+        >
+          <div
+            className="flex items-center gap-2 rounded-xl px-3 py-2"
+            style={{
+              backgroundColor: "#FAFAF7",
+              border: "1px solid #F0EFE9",
+            }}
+          >
+            <span className="text-xs" style={{ color: yesterday.done ? "#7BA84A" : "#C4B5B5" }}>
+              {yesterday.done ? "✓" : "—"}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Ontem
+            </span>
+            <span className="flex-1 truncate text-[11px]" style={{ color: "#9b9485" }}>
+              {yesterday.copy}
+            </span>
+          </div>
+        </button>
+      )}
+
       {/* ─── Missão de hoje (hero card do ciclo) ─── */}
       {currentMission && cycle && (
         <div
@@ -469,6 +589,33 @@ export default function AppHome() {
             </button>
           )}
         </div>
+      )}
+
+      {/* ─── Strip "Amanhã" (anchoring temporal, atmosferico) ─── */}
+      {tomorrow && (
+        <button
+          onClick={() => setPeekedDay(tomorrow.day)}
+          className="mb-4 w-full text-left transition-opacity active:opacity-60"
+          aria-label={`Ver previsão do dia ${tomorrow.day}`}
+        >
+          <div
+            className="flex items-center gap-2 rounded-xl px-3 py-2"
+            style={{
+              backgroundColor: "#FAFAF7",
+              border: "1px solid #F0EFE9",
+            }}
+          >
+            <span className="text-xs" style={{ color: "#C4B5B5" }}>
+              🔒
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+              Amanhã
+            </span>
+            <span className="flex-1 truncate text-[11px]" style={{ color: "#9b9485" }}>
+              {tomorrow.copy}
+            </span>
+          </div>
+        </button>
       )}
 
       {/* ─── Empty state se sem ciclo ─── */}
@@ -636,6 +783,84 @@ export default function AppHome() {
           Ver minha jornada →
         </Link>
       </div>
+
+      {/* ─── Bottom sheet do anchoring (ontem/amanha) ─── */}
+      {peekedDayData && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60"
+          onClick={() => setPeekedDay(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-6 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <p
+                  className="text-[10px] font-bold uppercase tracking-wider"
+                  style={{ color: PILLAR_COLOR[peekedDayData.pillar] }}
+                >
+                  {PILLAR_LABEL[peekedDayData.pillar]} · Dia {peekedDayData.day}
+                </p>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {peekedDayData.isFuture ? "🔒 " : ""}
+                  {peekedDayData.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setPeekedDay(null)}
+                aria-label="Fechar"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Status (ontem) ou teaser (amanha) */}
+            {peekedDayData.isPast && (
+              <div
+                className="mb-3 rounded-xl px-3 py-2 text-xs"
+                style={{
+                  backgroundColor: peekedDayData.done ? "#EAF3DE" : "#FAFAF7",
+                  color: peekedDayData.done ? "#3B6D11" : "#9b9485",
+                }}
+              >
+                {peekedDayData.done
+                  ? "✓ Você marcou esse dia. Olha o quanto você cuidou."
+                  : "Esse dia não foi marcado — e tudo bem. Continua de onde você está."}
+              </div>
+            )}
+
+            {peekedDayData.isFuture && (
+              <div
+                className="mb-3 rounded-xl px-3 py-2 text-xs"
+                style={{ backgroundColor: "#FAFAF7", color: "#9b9485" }}
+              >
+                Volte amanhã pra marcar esse dia. Sem pressa.
+              </div>
+            )}
+
+            {/* Mostra missao sempre (passado completo, futuro como spoiler leve) */}
+            <p className="text-sm leading-relaxed text-gray-700">
+              {peekedDayData.mission}
+            </p>
+
+            {/* Frase final */}
+            {peekedDayData.tip && (
+              <p className="mt-3 rounded-xl bg-gray-50 p-3 text-xs italic text-gray-600">
+                💡 {peekedDayData.tip}
+              </p>
+            )}
+
+            <button
+              onClick={() => setPeekedDay(null)}
+              className="mt-5 w-full rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-600"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ─── Bottom sheet do mood ─── */}
       {showMoodSheet && (
