@@ -1,53 +1,54 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
-import { AvatarFantasy, tierLabel } from "@/components/app/avatar-fantasy";
-import { InstallPwaButton } from "@/components/app/install-pwa-button";
-import { ActivitiesSection } from "@/components/app/activities-section";
 import { BrotoCard, useBrotoState } from "@/components/app/broto-avatar";
 
+// /app/home — Ritual diário (radical redesign 2026-05-18).
+// Antes: 8 cards competindo (Hero verde XP, Mood inline, Atividades extras,
+// Receita do dia, Daily quote, Wellbeing card, Install PWA, etc).
+// Agora: 1 foco emocional (Broto) + 1 missão do dia + 5 mini-cuidados.
+//
+// Removido: HERO verde Avatar/Level/XP (move pra /app/eu), receita inline
+// (move pra /app/descobrir), daily quote (Broto fala), ActivitiesSection
+// (movido pra modal opcional futura), Wellbeing card (já em /app/jornada).
+
 // ─── Tipos ─────────────────────────────────────────────────
-type Profile = { name: string; createdAt: string; waterGoal?: number };
+type Profile = { name: string; createdAt: string; waterGoal?: number; brotoName?: string };
 type Checkin = {
   habits: Record<string, boolean>;
   waterCount: number;
   exerciseDone: boolean;
 };
-type LevelInfo = { level: number; levelName: string; xp: number; nextLevelXp: number };
-type RecentBadge = { id: string; name: string; icon: string; earnedAt: string };
 type CycleInfo = {
   cycleNumber: number;
   status: "active" | "paused" | "completed";
   difficulty: "easy" | "normal" | "hard";
   daysCompleted: number;
 };
-type Recipe = {
-  id: string;
-  name: string;
-  prepTime: number;
+type ChallengeDay = {
+  day: number;
   pillar: "S" | "E" | "M";
+  title: string;
+  mission: string;
+  tip: string;
+  quote: string;
+  ctaPath: string;
 };
-type Wellbeing = {
-  currentWeight: number | null;
-  weightDelta: number | null;
-  daysSinceLastWeight: number | null;
-  needsWeighIn: boolean;
-  totalWeightLogs: number;
-  avgHabitsPercent: number;
-  exerciseDays: number;
-  checkinDays: number;
-};
-type Yesterday = {
-  habitsPercent: number;
-  waterCount: number;
-  exerciseDone: boolean;
-  mood: string | null;
+type ChallengeResponse = {
+  days: ChallengeDay[];
+  progress: number[];
+  currentDay: number;
+  cycle: {
+    id: string;
+    cycleNumber: number;
+    daysCompleted: number;
+    status: string;
+  } | null;
+  needsNewCycle: boolean;
 };
 
-// ─── Constantes UI ─────────────────────────────────────────
 const MOOD_OPTIONS: Array<{ key: string; emoji: string; label: string }> = [
   { key: "otima", emoji: "😊", label: "Ótima" },
   { key: "bem", emoji: "🙂", label: "Bem" },
@@ -57,26 +58,32 @@ const MOOD_OPTIONS: Array<{ key: string; emoji: string; label: string }> = [
 ];
 
 const HABITS_OF_DAY: Array<{ key: string; label: string }> = [
-  { key: "agua", label: "Beber 8 copos de água" },
+  { key: "agua", label: "Beber água" },
   { key: "refeicoes", label: "3 refeições equilibradas" },
   { key: "fruta", label: "1 fruta no dia" },
-  { key: "movimento", label: "Movimento (10+ min)" },
-  { key: "sono", label: "Dormir 7-8h" },
+  { key: "movimento", label: "Movimentar 10+ min" },
+  { key: "sono", label: "Dormir bem" },
 ];
+
+const HABIT_SPEECHES: Record<string, string[]> = {
+  agua: ["Obrigada pela água 💧", "Hidratada e feliz ✨"],
+  refeicoes: ["Que cuidado 💚", "Comer com calma faz bem."],
+  fruta: ["Doce ideia 🍎", "Cor no prato, vida no corpo."],
+  movimento: ["Senti seu movimento!", "Corpo solto, mente leve."],
+  sono: ["Bom descanso 😴", "Cuidar do sono é cuidar de mim."],
+};
+
+const PILLAR_COLOR: Record<string, string> = {
+  S: "#639922",
+  E: "#FFC107",
+  M: "#378ADD",
+};
 
 const PILLAR_LABEL: Record<string, string> = {
   S: "Simplicidade",
   E: "Equilíbrio",
   M: "Movimento",
 };
-
-const QUOTES = [
-  "Você apareceu por você hoje 💚",
-  "Pequenos passos viram caminhos.",
-  "A rotina te lembra quem você é.",
-  "Constância vale mais que perfeição.",
-  "Hoje você cuidou. Isso já é vitória.",
-];
 
 // ─── Helpers ───────────────────────────────────────────────
 function greeting(): string {
@@ -86,66 +93,46 @@ function greeting(): string {
   return "Boa noite";
 }
 
+function pickHabitSpeech(key: string): string {
+  const pool = HABIT_SPEECHES[key] ?? ["Obrigada 💚"];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // ─── Componente ────────────────────────────────────────────
 export default function AppHome() {
-  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [checkin, setCheckin] = useState<Checkin | null>(null);
   const [todayMood, setTodayMood] = useState<string | null>(null);
-  const [levelInfo, setLevelInfo] = useState<LevelInfo | null>(null);
-  const [recentBadges, setRecentBadges] = useState<RecentBadge[]>([]);
   const [cycle, setCycle] = useState<CycleInfo | null>(null);
-  const [recipe, setRecipe] = useState<Recipe | null>(null);
-  const [pillarLabel, setPillarLabel] = useState<string>("");
-  const [wellbeing, setWellbeing] = useState<Wellbeing | null>(null);
-  const [yesterday, setYesterday] = useState<Yesterday | null>(null);
+  const [challenge, setChallenge] = useState<ChallengeResponse | null>(null);
   const [streakCount, setStreakCount] = useState(0);
-  const [hasPushSubscription, setHasPushSubscription] = useState<boolean | null>(null);
 
-  // Estado local do checklist (otimista) — sincroniza com checkin real
+  // Local optimistic state pro checklist
   const [localHabits, setLocalHabits] = useState<Record<string, boolean>>({});
   const [weightInput, setWeightInput] = useState("");
+  const [showMoodSheet, setShowMoodSheet] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [markingMissionDay, setMarkingMissionDay] = useState(false);
   const [celebration, setCelebration] = useState<{ show: boolean; title: string; subtitle: string; emoji: string }>({
     show: false, title: "", subtitle: "", emoji: "",
   });
 
-  // Broto — busca estado emocional. refreshKey muda quando habit/water/mood
-  // mudam, forçando o hook a revalidar e o Broto a reagir.
+  // Broto state + microreacoes
   const habitsHash = useMemo(() => JSON.stringify(localHabits), [localHabits]);
   const waterCount = useMemo(() => checkin?.waterCount ?? 0, [checkin]);
   const brotoRefreshKey = `${habitsHash}-${waterCount}`;
   const brotoState = useBrotoState(brotoRefreshKey);
-
-  // Broto reativo: ao marcar habit/agua, Broto faz bounce + "fala" curto.
-  // bounceCounter incrementa toda vez que uma acao acontece → keyframe re-roda.
   const [bounceCounter, setBounceCounter] = useState(0);
   const [brotoSpeech, setBrotoSpeech] = useState<string | null>(null);
   function brotoReact(speech?: string) {
     setBounceCounter((c) => c + 1);
     if (speech) {
       setBrotoSpeech(speech);
-      // Fala dura 2.5s e volta pro message default (state.message)
       setTimeout(() => setBrotoSpeech(null), 2500);
     }
   }
 
-  // Microcopy "Broto fala" curto, contextual. Pool pequeno pra nao
-  // ficar previsivel demais.
-  const HABIT_SPEECHES: Record<string, string[]> = {
-    agua: ["Obrigada pela água 💧", "Hidratada e feliz ✨"],
-    refeicoes: ["Que cuidado 💚", "Comer com calma faz bem."],
-    fruta: ["Doce ideia 🍎", "Cor no prato, vida no corpo."],
-    movimento: ["Senti seu movimento!", "Corpo solto, mente leve."],
-    sono: ["Bom descanso 😴", "Cuidar do sono é cuidar de mim."],
-  };
-  function pickHabitSpeech(key: string): string {
-    const pool = HABIT_SPEECHES[key] ?? ["Obrigada 💚"];
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  // Detecta stage-up comparando com localStorage. Quando sobe, mostra hint
-  // ("Você cresceu uma folha nova") + registra milestone permanente no banco.
+  // Stage-up detection + milestone permanente
   const [growthHint, setGrowthHint] = useState<string | null>(null);
   useEffect(() => {
     if (!brotoState) return;
@@ -153,7 +140,6 @@ export default function AppHome() {
       const lastStageStr = localStorage.getItem("broto:lastStage");
       const lastStage = lastStageStr ? parseInt(lastStageStr, 10) : 0;
       if (brotoState.stage > lastStage) {
-        // Pegou crescimento — mostra hint + registra milestone permanente
         const name = brotoState.brotoName;
         const hints: Record<number, string> = {
           2: `🌿 ${name} cresceu uma folha nova.`,
@@ -165,8 +151,6 @@ export default function AppHome() {
         if (hint) {
           setGrowthHint(hint);
           setTimeout(() => setGrowthHint(null), 8000);
-          // Persistir como milestone permanente — vira "memoria" na timeline.
-          // Fire-and-forget; silencioso em erro (db pode estar pre-migration).
           fetch("/api/app/broto/milestones", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -180,95 +164,57 @@ export default function AppHome() {
       }
       localStorage.setItem("broto:lastStage", String(brotoState.stage));
     } catch {
-      /* localStorage indisponivel (private mode) — silencioso */
+      /* localStorage indisponivel — silencioso */
     }
   }, [brotoState]);
 
   const closeCelebration = useCallback(() => setCelebration((p) => ({ ...p, show: false })), []);
 
+  // ─── Fetch tudo ──────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     const auth = await fetch("/api/app/profile");
-    if (auth.status === 401) { window.location.href = "/app/login"; return; }
+    if (auth.status === 401) {
+      window.location.href = "/app/login";
+      return;
+    }
     const d = await auth.json();
     setProfile(d.profile);
 
-    // tudo em paralelo
-    const [chRes, achRes, cyRes, recRes, wbRes, dqRes, pushRes] = await Promise.all([
+    const [chRes, cyRes, chalRes, statsRes, moodRes] = await Promise.all([
       fetch("/api/app/checkin"),
-      fetch("/api/app/achievements"),
       fetch("/api/app/cycles"),
-      fetch("/api/app/recipe-of-day"),
-      fetch("/api/app/wellbeing-week"),
-      fetch("/api/app/daily-quests"),
-      fetch("/api/app/push/prefs"),
+      fetch("/api/app/challenge"),
+      fetch("/api/app/stats"),
+      fetch("/api/app/mood?days=1"),
     ]);
 
     if (chRes.ok) {
       const c = await chRes.json();
       setCheckin(c.checkin);
-      // Hidrata habits. Se waterCount ja atingiu a meta mas o habit agua nao
-      // estiver marcado (dado legado antes do fix de auto-marcar), forca true
-      // pra UI ficar consistente com "ja bateu meta = habit feito".
       const habits = (c.checkin?.habits as Record<string, boolean>) ?? {};
-      const waterCount = c.checkin?.waterCount ?? 0;
+      const wc = c.checkin?.waterCount ?? 0;
       const goal = d.profile?.waterGoal ?? 8;
-      if (waterCount >= goal && !habits.agua) {
+      if (wc >= goal && !habits.agua) {
         habits.agua = true;
       }
       setLocalHabits(habits);
     }
-    if (achRes.ok) {
-      const a = await achRes.json();
-      if (a.level) {
-        setLevelInfo({
-          level: a.level.level,
-          levelName: a.level.levelName,
-          xp: a.level.xp,
-          nextLevelXp: a.level.nextLevelXp,
-        });
-      }
-      if (a.earned) setRecentBadges(a.earned.slice(0, 4));
-    }
     if (cyRes.ok) {
       const cy = await cyRes.json();
-      if (cy.current) setCycle(cy.current);
+      const active = cy.cycles?.find((c: CycleInfo) => c.status === "active");
+      if (active) setCycle(active);
     }
-    if (recRes.ok) {
-      const r = await recRes.json();
-      setRecipe(r.recipe);
-      setPillarLabel(r.pillarLabel ?? PILLAR_LABEL[r.pillar] ?? "");
+    if (chalRes.ok) {
+      const ch = await chalRes.json();
+      setChallenge(ch);
     }
-    if (wbRes.ok) {
-      const w = await wbRes.json();
-      setWellbeing(w);
+    if (statsRes.ok) {
+      const s = await statsRes.json();
+      if (typeof s.streak === "number") setStreakCount(s.streak);
     }
-    if (dqRes.ok) {
-      const dq = await dqRes.json();
-      setYesterday(dq.yesterday);
-    }
-    if (pushRes.ok) {
-      const p = await pushRes.json();
-      setHasPushSubscription(!!p.hasSubscriptions);
-    }
-
-    // Mood do dia
-    const moodRes = await fetch("/api/app/mood?days=1");
     if (moodRes.ok) {
       const m = await moodRes.json();
       setTodayMood(m.todayLog?.mood ?? null);
-    }
-
-    // Streak via endpoint agregado (server calcula em BR com lib/streaks).
-    // Antes eram 7 fetchs sequenciais que usavam UTC e podiam divergir
-    // do streak do server. Agora uma fonte unica.
-    try {
-      const sRes = await fetch("/api/app/stats");
-      if (sRes.ok) {
-        const sd = await sRes.json();
-        if (typeof sd.streak === "number") setStreakCount(sd.streak);
-      }
-    } catch {
-      /* silent */
     }
   }, []);
 
@@ -277,25 +223,17 @@ export default function AppHome() {
   }, [fetchAll]);
 
   // ─── Ações ──────────────────────────────────────────────
-  // Toggle persiste imediatamente no backend (autosave). Sem o "Marcar
-  // meu dia", a usuária poderia perder tudo trocando de aba. /api/app/checkin
-  // POST eh upsert idempotente — chamar com habits parciais eh seguro.
   function toggleHabit(key: string) {
     setLocalHabits((prev) => {
       const next = { ...prev, [key]: !prev[key] };
-      // Broto reage so quando MARCA (true), nao quando desmarca — celebra
-      // cuidado, nao culpa quando desmarca.
       if (!prev[key] && next[key]) {
         brotoReact(pickHabitSpeech(key));
       }
-      // Fire-and-forget autosave (sem await pra UI nao travar)
       fetch("/api/app/checkin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ habits: next }),
-      }).catch(() => {
-        /* silencioso; usuaria ainda pode tocar "Marcar meu dia" depois */
-      });
+      }).catch(() => {});
       return next;
     });
   }
@@ -303,9 +241,6 @@ export default function AppHome() {
   async function addWater() {
     const goal = profile?.waterGoal ?? 8;
     const newCount = (checkin?.waterCount ?? 0) + 1;
-    // optimistic: incrementa waterCount + auto-marca habit "agua" quando bate meta.
-    // O backend faz a mesma logica na rota /api/app/water, isso aqui eh so
-    // pra UI refletir na hora sem esperar reload.
     setCheckin((prev) => (prev ? { ...prev, waterCount: prev.waterCount + 1 } : prev));
     setLocalHabits((prev) => {
       if (newCount >= goal && !prev.agua) {
@@ -313,12 +248,11 @@ export default function AppHome() {
       }
       return prev;
     });
-    // Broto reage. Mensagem especial quando bate a meta vs copo isolado.
     brotoReact(
       newCount === 1
-        ? "Bom comeco 💧"
+        ? "Bom começo 💧"
         : newCount >= goal
-          ? "Meta de agua! 🌟"
+          ? "Meta de água! 🌟"
           : pickHabitSpeech("agua"),
     );
     try {
@@ -327,10 +261,8 @@ export default function AppHome() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cups: 1 }),
       });
-      // Rollback em qualquer status != 2xx (nao so erro de rede)
       if (!r.ok) {
         setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
-        // Nao rollback do habit — se a user ja tinha marcado manual antes, mantem.
       }
     } catch {
       setCheckin((prev) => (prev ? { ...prev, waterCount: Math.max(0, prev.waterCount - 1) } : prev));
@@ -338,18 +270,50 @@ export default function AppHome() {
   }
 
   async function selectMood(mood: string) {
+    const prev = todayMood;
     setTodayMood(mood);
+    setShowMoodSheet(false);
+    brotoReact("Anotado 💚");
     try {
-      await fetch("/api/app/mood", {
+      const r = await fetch("/api/app/mood", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mood, triggers: [] }),
       });
+      if (!r.ok) setTodayMood(prev);
     } catch {
-      /* silent */
+      setTodayMood(prev);
     }
   }
 
+  // Marcar dia do desafio (atalho direto da missao do dia)
+  async function markMissionDay() {
+    if (markingMissionDay || !challenge) return;
+    const dayToMark = challenge.currentDay;
+    if (!dayToMark || dayToMark > 21) return;
+    setMarkingMissionDay(true);
+    try {
+      const r = await fetch("/api/app/challenge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ day: dayToMark }),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        setCelebration({
+          show: true,
+          title: d.justCompleted ? `Você floresceu! 🌸` : `Dia ${dayToMark} marcado! 🌿`,
+          subtitle: d.justCompleted ? "21 dias completos. Olha o quanto você cresceu." : "Mais um cuidado consigo. Continua bonito.",
+          emoji: d.justCompleted ? "🌸" : "✓",
+        });
+        await fetchAll();
+      }
+    } finally {
+      setMarkingMissionDay(false);
+    }
+  }
+
+  // Marcar dia completo (com habits/mood/peso) — usado pelo CTA secundario
   async function markMyDay() {
     if (saving) return;
     setSaving(true);
@@ -368,52 +332,38 @@ export default function AppHome() {
         body: JSON.stringify(body),
       });
       if (r.ok) {
-        const d = await r.json();
-        if (d.autoChallengeDay) {
-          setCelebration({
-            show: true,
-            title: `Dia ${d.autoChallengeDay} do ciclo! 🎯`,
-            subtitle: "Você marcou 5+ hábitos. O desafio avançou junto.",
-            emoji: "🎯",
-          });
-        } else {
-          setCelebration({
-            show: true,
-            title: "Dia marcado! 💚",
-            subtitle: QUOTES[Math.floor(Math.random() * QUOTES.length)],
-            emoji: "✨",
-          });
-        }
+        setCelebration({
+          show: true,
+          title: "Dia marcado 💚",
+          subtitle: "Você apareceu por você hoje.",
+          emoji: "✨",
+        });
         setWeightInput("");
         await fetchAll();
       }
-    } catch {
-      /* silent */
     } finally {
       setSaving(false);
     }
   }
 
-  // ─── Derivações ─────────────────────────────────────────
-  const firstName = profile?.name ? profile.name.split(" ")[0] : "";
-  const daysInJourney = profile?.createdAt
-    ? Math.max(1, Math.floor((Date.now() - new Date(profile.createdAt).getTime()) / (1000 * 60 * 60 * 24)))
-    : 0;
-  const level = levelInfo?.level ?? 1;
-  const xp = levelInfo?.xp ?? 0;
-  const nextLevelXp = levelInfo?.nextLevelXp ?? 100;
-  const currentLevelXp = (level - 1) * (level - 1) * 100;
-  const xpInLevel = xp - currentLevelXp;
-  const xpNeeded = nextLevelXp - currentLevelXp;
-  const xpPercent = xpNeeded > 0 ? Math.round((xpInLevel / xpNeeded) * 100) : 100;
+  // ─── Computed ────────────────────────────────────────────
+  const firstName = profile?.name?.split(" ")[0] ?? "";
+  const goal = profile?.waterGoal ?? 8;
+  const currentDay = challenge?.currentDay ?? null;
+  const currentMission = useMemo(() => {
+    if (!challenge || !currentDay || currentDay > 21) return null;
+    return challenge.days.find((d) => d.day === currentDay) ?? null;
+  }, [challenge, currentDay]);
+  const missionAlreadyDone = useMemo(() => {
+    if (!challenge || !currentDay) return false;
+    return challenge.progress.includes(currentDay);
+  }, [challenge, currentDay]);
+  const moodLabel = useMemo(
+    () => MOOD_OPTIONS.find((m) => m.key === todayMood)?.label ?? null,
+    [todayMood],
+  );
 
-  // waterCount agora vem do useMemo no topo — sem redeclarar aqui
-  const habitsDoneLocal = Object.values(localHabits).filter(Boolean).length;
-  const habitsDirty = JSON.stringify(localHabits) !== JSON.stringify(checkin?.habits ?? {});
-
-  const quote = useMemo(() => QUOTES[Math.floor((daysInJourney || 0) % QUOTES.length)], [daysInJourney]);
-
-  // ─── Render ─────────────────────────────────────────────
+  // ─── Render ──────────────────────────────────────────────
   return (
     <div className="px-5 pb-24 pt-5" style={{ background: "#FAF8F5", minHeight: "100vh" }}>
       <CelebrationOverlay
@@ -424,20 +374,19 @@ export default function AppHome() {
         onClose={closeCelebration}
       />
 
-      {/* ─── Greeting + dia da jornada ─── */}
+      {/* ─── Greeting ─── */}
       <div className="mb-3">
         <h1 className="text-xl font-bold text-gray-900">
           {greeting()}, {firstName} 💚
         </h1>
-        {daysInJourney > 0 && (
+        {cycle && currentDay && currentDay <= 21 && (
           <p className="text-xs" style={{ color: "#639922" }}>
-            Dia {daysInJourney} da sua jornada
+            Dia {currentDay} · Ciclo {cycle.cycleNumber} da sua jornada
           </p>
         )}
       </div>
 
-      {/* Banner de retorno — só aparece se Broto está saudoso (3+ dias ausente).
-          Vem ANTES do Broto pra acolher antes do contato visual. */}
+      {/* ─── Banner saudoso (3+ dias ausente) ─── */}
       {brotoState?.mood === "saudoso" && (
         <div
           className="mb-3 rounded-2xl p-3 text-center"
@@ -456,8 +405,8 @@ export default function AppHome() {
         </div>
       )}
 
-      {/* ─── BROTO — coração emocional do app ─── */}
-      <div className="mb-3 flex flex-col items-center">
+      {/* ─── Broto (centro emocional) ─── */}
+      <div className="mb-4 flex flex-col items-center">
         <BrotoCard
           state={brotoState}
           size={180}
@@ -468,7 +417,7 @@ export default function AppHome() {
         />
       </div>
 
-      {/* Toast de crescimento — aparece quando o Broto sobe de stage */}
+      {/* Growth toast (stage-up) */}
       {growthHint && (
         <div
           className="mb-3 rounded-2xl p-3 text-center"
@@ -483,52 +432,67 @@ export default function AppHome() {
         </div>
       )}
 
-      {/* ─── HERO compacto: Avatar + Level + XP + Streak ─── */}
-      <div
-        className="mb-4 rounded-2xl p-4"
-        style={{
-          background: "linear-gradient(135deg, #1A2E1B 0%, #2D4A2E 50%, #3D5A3E 100%)",
-          color: "white",
-        }}
-      >
-        <div className="flex items-center gap-3">
-          <AvatarFantasy level={level} size={64} />
-          <div className="flex-1 min-w-0">
-            <p className="text-[9px] uppercase tracking-wider opacity-70 font-bold">Nv {level} · {tierLabel(level)}</p>
-            <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>
-              <div
-                className="h-full rounded-full"
-                style={{ width: `${xpPercent}%`, background: "linear-gradient(90deg, #FDE047, #FACC15)" }}
-              />
-            </div>
-            <p className="mt-1 text-[10px] opacity-70">
-              {xpInLevel} XP · {xpNeeded - xpInLevel} para Nv {level + 1}
+      {/* ─── Missão de hoje (hero card do ciclo) ─── */}
+      {currentMission && cycle && (
+        <div
+          className="mb-4 rounded-2xl p-5"
+          style={{
+            background: "white",
+            border: `2px solid ${missionAlreadyDone ? "#EAF3DE" : PILLAR_COLOR[currentMission.pillar]}`,
+            boxShadow: missionAlreadyDone ? "none" : "0 6px 20px rgba(99,153,34,0.12)",
+          }}
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: PILLAR_COLOR[currentMission.pillar] }}>
+              {PILLAR_LABEL[currentMission.pillar]} · Dia {currentMission.day}
             </p>
+            {missionAlreadyDone && (
+              <span className="text-[10px] font-bold" style={{ color: "#639922" }}>
+                ✓ Feito hoje
+              </span>
+            )}
           </div>
-          <div className="text-center">
-            <p className="text-lg">🔥</p>
-            <p className="text-[10px] font-bold">{streakCount}d</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ─── CARD PRINCIPAL: Seu próximo pequeno passo ─── */}
-      <div className="mb-4 rounded-2xl bg-white p-4" style={{ border: "2px solid #639922", boxShadow: "0 6px 20px rgba(99,153,34,0.12)" }}>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-gray-800">Seu próximo pequeno passo</h2>
-          {cycle && (
-            <Link
-              href="/app/desafio"
-              className="text-[10px] font-bold uppercase tracking-wider"
-              style={{ color: "#639922" }}
+          <h2 className="mb-1 text-base font-bold text-gray-900">{currentMission.title}</h2>
+          <p className="mb-3 text-sm leading-relaxed text-gray-700">{currentMission.mission}</p>
+          {!missionAlreadyDone && (
+            <button
+              onClick={markMissionDay}
+              disabled={markingMissionDay}
+              className="w-full rounded-xl py-3 text-sm font-bold text-white disabled:opacity-60 transition-transform active:scale-[0.98]"
+              style={{ backgroundColor: PILLAR_COLOR[currentMission.pillar] }}
             >
-              Dia {Math.min(21, cycle.daysCompleted + 1)} · Ciclo {cycle.cycleNumber} →
-            </Link>
+              {markingMissionDay ? "..." : "Fiz ✓"}
+            </button>
           )}
         </div>
+      )}
 
-        {/* Lista de hábitos com toggle inline */}
-        <div className="flex flex-col gap-1.5">
+      {/* ─── Empty state se sem ciclo ─── */}
+      {(!cycle || !currentMission) && (
+        <div
+          className="mb-4 rounded-2xl p-5 text-center"
+          style={{ background: "white", border: "1px solid #f3f4f6" }}
+        >
+          <p className="mb-1 text-sm font-bold text-gray-800">Pronta pra começar?</p>
+          <p className="mb-3 text-xs text-gray-500">
+            21 dias pra criar uma rotina que você consegue continuar.
+          </p>
+          <Link
+            href="/app/desafio"
+            className="inline-block rounded-xl px-5 py-2.5 text-sm font-bold text-white"
+            style={{ backgroundColor: "#639922" }}
+          >
+            Começar minha jornada →
+          </Link>
+        </div>
+      )}
+
+      {/* ─── Hoje você cuidou de você ─── */}
+      <div className="mb-4 rounded-2xl bg-white p-4 border border-gray-100">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">
+          Hoje você cuidou de você
+        </p>
+        <div className="flex flex-col gap-1">
           {HABITS_OF_DAY.map((h) => {
             const done = !!localHabits[h.key];
             const isWater = h.key === "agua";
@@ -561,14 +525,12 @@ export default function AppHome() {
                     textDecoration: done ? "line-through" : "none",
                   }}
                 >
-                  {isWater
-                    ? `Beber ${profile?.waterGoal ?? 8} copos de água`
-                    : h.label}
+                  {isWater ? `Beber ${goal} copos de água` : h.label}
                 </span>
                 {isWater && (
                   <span className="flex items-center gap-2">
                     <span className="text-[11px] font-bold text-gray-600">
-                      {waterCount}/{profile?.waterGoal ?? 8}
+                      {waterCount}/{goal}
                     </span>
                     <button
                       onClick={addWater}
@@ -584,206 +546,116 @@ export default function AppHome() {
             );
           })}
 
-          {/* Linha de peso — sempre visivel. Em semanas que ja pesou
-              fica neutro (opcional); em semanas que precisa pesar
-              fica destacado em amarelo. Submetido junto com "Marcar
-              meu dia" se houver valor; ou via secao Evolucao. */}
-          <div
-            className="flex items-center gap-3 rounded-xl px-2 py-1.5"
-            style={{
-              backgroundColor: wellbeing?.needsWeighIn ? "#FFF6E7" : "transparent",
-            }}
+          {/* Mood compacto (1 linha clicavel — abre bottom sheet) */}
+          <button
+            onClick={() => setShowMoodSheet(true)}
+            className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors"
+            style={{ backgroundColor: todayMood ? "#F0F7FF" : "transparent" }}
           >
             <div
-              className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-base"
-              style={{ backgroundColor: wellbeing?.needsWeighIn ? "white" : "#f3f4f6" }}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-xl"
+              style={{ backgroundColor: todayMood ? "#378ADD" : "white", border: todayMood ? "none" : "2px solid #d1d5db" }}
+            >
+              {todayMood ? MOOD_OPTIONS.find((m) => m.key === todayMood)?.emoji : "😊"}
+            </div>
+            <span className="flex-1 text-left text-sm text-gray-700">
+              {todayMood ? `Você está: ${moodLabel}` : "Como você está hoje?"}
+            </span>
+            <span className="text-xs text-gray-400">{todayMood ? "trocar" : "registrar"}</span>
+          </button>
+
+          {/* Peso (input inline compacto) */}
+          <div className="flex items-center gap-3 rounded-xl px-2 py-1.5">
+            <div
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md text-lg"
+              style={{ backgroundColor: "#f3f4f6" }}
             >
               ⚖️
             </div>
-            <span className="text-sm text-gray-700">
-              {wellbeing?.needsWeighIn ? "Atualizar peso (semanal)" : "Registrar peso (opcional)"}
-            </span>
             <input
               type="number"
               step="0.1"
               value={weightInput}
               onChange={(e) => setWeightInput(e.target.value)}
-              placeholder={wellbeing?.currentWeight ? `${wellbeing.currentWeight}` : "kg"}
-              className="ml-auto w-16 rounded-lg border border-gray-200 px-2 py-1 text-right text-sm outline-none focus:border-[#639922]"
+              placeholder="Peso de hoje (opcional)"
+              className="flex-1 bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
             />
-          </div>
-        </div>
-
-        {/* Botão "Marcar meu dia" */}
-        <button
-          onClick={markMyDay}
-          disabled={saving || (!habitsDirty && !weightInput && habitsDoneLocal === 0)}
-          className="mt-3 w-full rounded-xl py-3 text-sm font-bold text-white transition-colors disabled:opacity-50"
-          style={{
-            background: "linear-gradient(135deg, #639922 0%, #3D5A3E 100%)",
-          }}
-        >
-          {saving
-            ? "Salvando..."
-            : habitsDoneLocal >= 5
-              ? `Marcar meu dia ✓ (${habitsDoneLocal}/5 hábitos)`
-              : `Marcar meu dia (${habitsDoneLocal}/5 hábitos)`}
-        </button>
-      </div>
-
-      {/* ─── Atividades extras (desbloqueadas por nivel) ─── */}
-      <ActivitiesSection onRegistered={() => fetchAll()} />
-
-      {/* ─── Humor inline ─── */}
-      <div className="mb-4 rounded-2xl bg-white p-4 border border-gray-100">
-        <p className="mb-2 text-sm font-bold text-gray-800">Como você está agora?</p>
-        <div className="flex items-center justify-between">
-          {MOOD_OPTIONS.map((m) => {
-            const selected = todayMood === m.key;
-            return (
+            {weightInput && (
               <button
-                key={m.key}
-                onClick={() => selectMood(m.key)}
-                className="flex flex-col items-center gap-0.5 rounded-xl p-2 transition-transform active:scale-95"
-                style={{
-                  backgroundColor: selected ? "#EAF3DE" : "transparent",
-                  transform: selected ? "scale(1.1)" : "scale(1)",
-                }}
+                onClick={markMyDay}
+                disabled={saving}
+                className="rounded-lg px-2.5 py-1 text-[11px] font-bold text-white"
+                style={{ backgroundColor: "#639922" }}
               >
-                <span style={{ fontSize: 28, opacity: selected ? 1 : 0.4 }}>{m.emoji}</span>
-                <span className="text-[10px] font-bold" style={{ color: selected ? "#3B6D11" : "#9ca3af" }}>
-                  {m.label.split(" ")[0]}
-                </span>
+                {saving ? "..." : "Salvar"}
               </button>
-            );
-          })}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* ─── Receita do dia ─── */}
-      {recipe && (
+      {/* ─── Streak footer + link Jornada ─── */}
+      <div className="text-center">
+        {streakCount > 0 && (
+          <p className="text-xs text-gray-500">
+            🔥 <strong style={{ color: "#BA7517" }}>{streakCount} dias</strong> cuidando de você
+          </p>
+        )}
         <Link
-          href={`/app/receitas`}
-          className="mb-4 block rounded-2xl p-4 transition-transform active:scale-[0.98]"
-          style={{ background: "linear-gradient(135deg, #FFF8EE 0%, #FFE8C6 100%)", border: "1px solid #f5e6cc" }}
+          href="/app/jornada"
+          className="mt-3 inline-block text-xs font-bold uppercase tracking-wider"
+          style={{ color: "#639922" }}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-white text-xl">
-              🍳
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#BA7517" }}>
-                Receita pra hoje · {pillarLabel}
-              </p>
-              <p className="text-sm font-bold" style={{ color: "#7A5712" }}>{recipe.name}</p>
-              <p className="text-[11px]" style={{ color: "#BA7517", opacity: 0.8 }}>
-                {recipe.prepTime} min · toque pra ver
-              </p>
-            </div>
-          </div>
+          Ver minha jornada →
         </Link>
-      )}
-
-      {/* ─── Frase emocional ─── */}
-      <div className="mb-4 rounded-2xl p-4 text-center" style={{ backgroundColor: "#EAF3DE" }}>
-        <p className="text-sm italic" style={{ color: "#3B6D11" }}>"{quote}"</p>
       </div>
 
-      {/* ─── Sua evolução: 3 mini cards ─── */}
-      <div className="mb-4 grid grid-cols-3 gap-2">
-        <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
-          <p className="text-base font-bold">🔥 {streakCount}d</p>
-          <p className="text-[10px] text-gray-500">cuidando</p>
-        </div>
-        <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
-          <p className="text-base font-bold" style={{ color: wellbeing?.weightDelta && wellbeing.weightDelta < 0 ? "#639922" : "#374151" }}>
-            {wellbeing?.weightDelta != null
-              ? `${wellbeing.weightDelta < 0 ? "−" : "+"}${Math.abs(wellbeing.weightDelta).toFixed(1)}kg`
-              : wellbeing?.currentWeight
-                ? `${wellbeing.currentWeight}kg`
-                : "—"}
-          </p>
-          <p className="text-[10px] text-gray-500">peso 7d</p>
-        </div>
-        <div className="rounded-xl bg-white p-3 text-center border border-gray-100">
-          <p className="text-base font-bold" style={{ color: "#639922" }}>
-            {wellbeing?.avgHabitsPercent ?? 0}%
-          </p>
-          <p className="text-[10px] text-gray-500">hábitos 7d</p>
-        </div>
-      </div>
-
-      {/* ─── Ribbon conquistas ─── */}
-      {recentBadges.length > 0 && (
-        <div className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="text-[10px] uppercase tracking-wider font-bold text-gray-500">
-              Conquistas recentes
-            </p>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {recentBadges.map((b) => (
-              <div
-                key={b.id}
-                className="flex min-w-[70px] flex-col items-center gap-1 rounded-xl bg-white p-2"
-                style={{ boxShadow: "0 2px 8px rgba(99,153,34,0.1)" }}
+      {/* ─── Bottom sheet do mood ─── */}
+      {showMoodSheet && (
+        <div
+          className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60"
+          onClick={() => setShowMoodSheet(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl bg-white p-6 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-900">Como você está hoje?</h3>
+              <button
+                onClick={() => setShowMoodSheet(false)}
+                aria-label="Fechar"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-2xl text-gray-400"
               >
-                <span className="text-xl">{b.icon}</span>
-                <span className="text-[9px] font-bold text-center leading-tight text-gray-700">
-                  {b.name}
-                </span>
-              </div>
-            ))}
+                ×
+              </button>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {MOOD_OPTIONS.map((m) => (
+                <button
+                  key={m.key}
+                  onClick={() => selectMood(m.key)}
+                  className="flex flex-col items-center gap-1 rounded-xl p-3 transition-transform active:scale-95"
+                  style={{
+                    backgroundColor: todayMood === m.key ? "#EAF3DE" : "#f9fafb",
+                    border: todayMood === m.key ? "2px solid #639922" : "2px solid transparent",
+                  }}
+                >
+                  <span className="text-2xl">{m.emoji}</span>
+                  <span className="text-[10px] font-medium text-gray-600">{m.label}</span>
+                </button>
+              ))}
+            </div>
+            <Link
+              href="/app/emocional"
+              className="mt-4 block w-full rounded-xl border border-gray-200 py-3 text-center text-xs font-bold text-gray-600"
+              onClick={() => setShowMoodSheet(false)}
+            >
+              Detalhar humor · gatilhos · respiração →
+            </Link>
           </div>
         </div>
       )}
-
-      {/* ─── Recap ontem (1 linha) ─── */}
-      {yesterday && (
-        <p className="mb-4 text-center text-xs text-gray-500">
-          Ontem você cuidou de {Math.round(yesterday.habitsPercent / 20)}/5 ✓ ·{" "}
-          {yesterday.waterCount} copos
-          {yesterday.exerciseDone && " · 🚶"}
-        </p>
-      )}
-
-      {/* ─── Banner notificações (só se ainda não ativou) ─── */}
-      {hasPushSubscription === false && (
-        <Link
-          href="/app/notificacoes"
-          className="mb-3 flex items-center gap-3 rounded-2xl p-4"
-          style={{
-            background: "linear-gradient(135deg, #FFF8EE 0%, #FFE8C6 100%)",
-            border: "1px solid #f5e6cc",
-          }}
-        >
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-white text-xl">
-            🔔
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold" style={{ color: "#8B5A0F" }}>
-              Ativar lembretes
-            </p>
-            <p className="text-[11px]" style={{ color: "#BA7517" }}>
-              Te lembro de beber água, registrar humor, fechar o dia.
-            </p>
-          </div>
-          <span style={{ color: "#BA7517" }}>→</span>
-        </Link>
-      )}
-
-      {/* ─── Botão Instalar como app (esconde se já instalou) ─── */}
-      <div className="mb-3">
-        <InstallPwaButton variant="secondary" hideWhenInstalled={true} label="Instalar app no celular" />
-      </div>
-
-      {/* ─── CTA discreto: ver evolução completa ─── */}
-      <button
-        onClick={() => router.push("/app/evolucao")}
-        className="mb-4 w-full rounded-2xl border border-dashed border-gray-200 p-3 text-center text-xs text-gray-500"
-      >
-        ↓ Ver minha evolução completa ↓
-      </button>
 
       <AppNav />
     </div>
