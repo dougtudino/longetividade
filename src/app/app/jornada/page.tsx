@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { BrotoAvatar, useBrotoState } from "@/components/app/broto-avatar";
+import { CycleTrail } from "@/components/app/cycle-trail";
 
 // /app/jornada — Timeline emocional unificada.
 // Substitui /evolucao + /progresso + /conquistas. Scroll vertical sem
@@ -51,6 +52,12 @@ type Milestone = {
   achievedAt: string;
 };
 
+type ChallengeData = {
+  progress: number[];
+  currentDay: number;
+  failedDays: number[];
+};
+
 const STATUS_COLOR: Record<string, string> = {
   active: "#378ADD",
   paused: "#BA7517",
@@ -71,6 +78,7 @@ export default function JornadaPage() {
   const [earned, setEarned] = useState<Achievement[]>([]);
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
+  const [challenge, setChallenge] = useState<ChallengeData | null>(null);
   const brotoState = useBrotoState(cycleStats?.totalDaysCompleted);
 
   const fetchAll = useCallback(() => {
@@ -90,6 +98,18 @@ export default function JornadaPage() {
     fetch("/api/app/broto/milestones")
       .then((r) => (r.ok ? r.json() : { milestones: [] }))
       .then((d) => setMilestones(d.milestones ?? []))
+      .catch(() => {});
+    fetch("/api/app/challenge")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d) {
+          setChallenge({
+            progress: d.progress ?? [],
+            currentDay: d.currentDay ?? 1,
+            failedDays: d.failedDays ?? [],
+          });
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -145,7 +165,18 @@ export default function JornadaPage() {
         )}
       </div>
 
-      {/* ─── 2. Marcos (timeline com bolinhas) ─── */}
+      {/* ─── 2. Trilha 21 dias (cycle trail S/E/M) ─── */}
+      {challenge && (
+        <div className="mb-5 rounded-2xl bg-white p-4 border border-gray-100">
+          <CycleTrail
+            progress={challenge.progress}
+            currentDay={challenge.currentDay <= 21 ? challenge.currentDay : null}
+            failedDays={challenge.failedDays}
+          />
+        </div>
+      )}
+
+      {/* ─── 3. Marcos (timeline com bolinhas) ─── */}
       {milestones.length > 0 && (
         <div className="mb-5 rounded-2xl bg-white p-4 border border-gray-100">
           <p className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">

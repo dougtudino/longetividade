@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AppNav } from "@/components/app/app-nav";
 import { CelebrationOverlay } from "@/components/app/celebration-overlay";
 import { BrotoCard, useBrotoState } from "@/components/app/broto-avatar";
+import { CycleTrail } from "@/components/app/cycle-trail";
 
 // /app/home — Ritual diário (radical redesign 2026-05-18).
 // Antes: 8 cards competindo (Hero verde XP, Mood inline, Atividades extras,
@@ -40,6 +41,7 @@ type ChallengeResponse = {
   days: ChallengeDay[];
   progress: number[];
   currentDay: number;
+  failedDays: number[];
   cycle: {
     id: string;
     cycleNumber: number;
@@ -487,6 +489,29 @@ export default function AppHome() {
             Começar minha jornada →
           </Link>
         </div>
+      )}
+
+      {/* ─── Mini preview da trilha (semana atual) ─── */}
+      {challenge && cycle && currentDay && currentDay <= 21 && (
+        <Link
+          href="/app/jornada"
+          className="mb-4 block rounded-2xl bg-white p-3 border border-gray-100 transition-transform active:scale-[0.98]"
+        >
+          <div className="mb-1.5 flex items-center justify-between">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+              Sua trilha
+            </p>
+            <p className="text-[10px] text-gray-400">
+              {challenge.progress.length} de 21 dias · ver trilha →
+            </p>
+          </div>
+          <CycleTrail
+            progress={challenge.progress}
+            currentDay={currentDay}
+            failedDays={challenge.failedDays}
+            compact
+          />
+        </Link>
       )}
 
       {/* ─── Hoje você cuidou de você ─── */}
