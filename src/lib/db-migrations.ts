@@ -1049,6 +1049,64 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     `,
   },
 
+  // ─── Fase 1.0 — tabelas que nunca foram criadas em prod ────────────
+  // CtaClick e MetaCapiEvent estavam no schema mas o `prisma db push` do
+  // Railway nunca as criou e não havia fallback SQL — então tracking de CTA
+  // e log do Meta CAPI estavam quebrados em prod. Criamos aqui (já com
+  // workspaceId) ANTES do bloco de ALTER abaixo, senão o ALTER falha.
+  {
+    label: "CtaClick table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "CtaClick" (
+        "id" TEXT NOT NULL,
+        "workspaceId" TEXT,
+        "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "ctaId" TEXT NOT NULL,
+        "planId" TEXT,
+        "destinationUrl" TEXT NOT NULL,
+        "userAgent" TEXT,
+        "referrer" TEXT,
+        "pathname" TEXT,
+        "utmSource" TEXT,
+        "utmCampaign" TEXT,
+        "utmMedium" TEXT,
+        "utmContent" TEXT,
+        "utmTerm" TEXT,
+        "ipHash" TEXT,
+        CONSTRAINT "CtaClick_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  { label: "CtaClick timestamp index", sql: `CREATE INDEX IF NOT EXISTS "CtaClick_timestamp_idx" ON "CtaClick"("timestamp")` },
+  { label: "CtaClick ctaId index", sql: `CREATE INDEX IF NOT EXISTS "CtaClick_ctaId_idx" ON "CtaClick"("ctaId")` },
+  { label: "CtaClick utmCampaign index", sql: `CREATE INDEX IF NOT EXISTS "CtaClick_utmCampaign_idx" ON "CtaClick"("utmCampaign")` },
+  { label: "CtaClick planId index", sql: `CREATE INDEX IF NOT EXISTS "CtaClick_planId_idx" ON "CtaClick"("planId")` },
+  {
+    label: "MetaCapiEvent table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "MetaCapiEvent" (
+        "id" TEXT NOT NULL,
+        "workspaceId" TEXT,
+        "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "eventName" TEXT NOT NULL,
+        "eventId" TEXT NOT NULL,
+        "sourceUrl" TEXT,
+        "value" DOUBLE PRECISION,
+        "currency" TEXT,
+        "orderId" TEXT,
+        "status" TEXT NOT NULL,
+        "errorMessage" TEXT,
+        "rawResponse" JSONB,
+        CONSTRAINT "MetaCapiEvent_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  { label: "MetaCapiEvent timestamp index", sql: `CREATE INDEX IF NOT EXISTS "MetaCapiEvent_timestamp_idx" ON "MetaCapiEvent"("timestamp")` },
+  { label: "MetaCapiEvent eventName index", sql: `CREATE INDEX IF NOT EXISTS "MetaCapiEvent_eventName_idx" ON "MetaCapiEvent"("eventName")` },
+  { label: "MetaCapiEvent eventId index", sql: `CREATE INDEX IF NOT EXISTS "MetaCapiEvent_eventId_idx" ON "MetaCapiEvent"("eventId")` },
+  { label: "MetaCapiEvent orderId index", sql: `CREATE INDEX IF NOT EXISTS "MetaCapiEvent_orderId_idx" ON "MetaCapiEvent"("orderId")` },
+  { label: "MetaCapiEvent status index", sql: `CREATE INDEX IF NOT EXISTS "MetaCapiEvent_status_idx" ON "MetaCapiEvent"("status")` },
+
   // ─── Fase 1 — workspaceId nos modelos de venda/LP + backfill ──────
   // Coluna nullable (strangler) → índice → backfill legado pro longetividade.
   // Tudo idempotente. Linhas novas já nascem com workspaceId setado pelo código.
