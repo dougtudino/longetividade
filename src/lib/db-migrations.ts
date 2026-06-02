@@ -1048,6 +1048,77 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
       )
     `,
   },
+
+  // ─── Fase 1 — workspaceId nos modelos de venda/LP + backfill ──────
+  // Coluna nullable (strangler) → índice → backfill legado pro longetividade.
+  // Tudo idempotente. Linhas novas já nascem com workspaceId setado pelo código.
+  ...(
+    [
+      "Order",
+      "AbandonedCheckout",
+      "Lead",
+      "PageView",
+      "LpAsset",
+      "SocialProofItem",
+      "CtaClick",
+      "MetaCapiEvent",
+    ].flatMap((table) => [
+      {
+        label: `${table}.workspaceId column`,
+        sql: `ALTER TABLE "${table}" ADD COLUMN IF NOT EXISTS "workspaceId" TEXT`,
+      },
+      {
+        label: `${table}.workspaceId index`,
+        sql: `CREATE INDEX IF NOT EXISTS "${table}_workspaceId_idx" ON "${table}"("workspaceId")`,
+      },
+      {
+        label: `${table}.workspaceId backfill longetividade`,
+        sql: `UPDATE "${table}" SET "workspaceId" = 'longetividade' WHERE "workspaceId" IS NULL`,
+      },
+    ])
+  ),
+
+  // ─── Fase 1 — WorkspacePlan seed do longetividade (espelha config/plans.ts) ──
+  // config/plans.ts segue a fonte da verdade do funil de emagrecimento
+  // (intocado). Aqui só registramos os planos no banco pra rotear webhook por
+  // offer e pra futuros workspaces lerem planos do banco.
+  {
+    label: "WorkspacePlan seed longetividade",
+    sql: `
+      INSERT INTO "WorkspacePlan"
+        ("id", "workspaceId", "planKey", "label", "priceCents", "hotmartOffer", "checkoutUrl", "active", "orderIndex", "createdAt", "updatedAt")
+      VALUES
+        (gen_random_uuid()::TEXT, 'longetividade', 'basico',   'Digital',   6700,  'zxq5tgew', 'https://pay.hotmart.com/H105141835Q?off=zxq5tgew&src=site-basico',   true, 0, NOW(), NOW()),
+        (gen_random_uuid()::TEXT, 'longetividade', 'completo', 'Kit Detox', 14700, 'uzvdkzkf', 'https://pay.hotmart.com/H105141835Q?off=uzvdkzkf&src=site-completo', true, 1, NOW(), NOW()),
+        (gen_random_uuid()::TEXT, 'longetividade', 'vip',      'VIP',       29700, 'h84hak4e', 'https://pay.hotmart.com/H105141835Q?off=h84hak4e&src=site-vip',      true, 2, NOW(), NOW())
+      ON CONFLICT ("workspaceId", "planKey") DO NOTHING
+    `,
+  },
+
+  // ─── Fase 1 — Workspace corretor-blindado (2º tenant interno, dogfood) ──────
+  // Offers/checkout são PLACEHOLDER — Doug troca quando criar o produto na
+  // Hotmart. Sem domínio ainda (roda em subpath até apontar DNS).
+  {
+    label: "Workspace seed corretor-blindado",
+    sql: `
+      INSERT INTO "Workspace" ("id", "slug", "name", "status", "domains", "brandName", "createdAt", "updatedAt")
+      VALUES ('corretor-blindado', 'corretor-blindado', 'Corretor Blindado', 'active',
+              ARRAY[]::TEXT[], 'Corretor Blindado', NOW(), NOW())
+      ON CONFLICT ("id") DO NOTHING
+    `,
+  },
+  {
+    label: "WorkspacePlan seed corretor-blindado",
+    sql: `
+      INSERT INTO "WorkspacePlan"
+        ("id", "workspaceId", "planKey", "label", "priceCents", "hotmartOffer", "checkoutUrl", "active", "orderIndex", "createdAt", "updatedAt")
+      VALUES
+        (gen_random_uuid()::TEXT, 'corretor-blindado', 'lt',     'Corretor Blindado',        2700,  'cb-lt-PLACEHOLDER',     '#', true, 0, NOW(), NOW()),
+        (gen_random_uuid()::TEXT, 'corretor-blindado', 'bump',   'Pack de Contratos',        1700,  'cb-bump-PLACEHOLDER',   '#', true, 1, NOW(), NOW()),
+        (gen_random_uuid()::TEXT, 'corretor-blindado', 'upsell', 'Casos Difíceis',           19700, 'cb-upsell-PLACEHOLDER', '#', true, 2, NOW(), NOW())
+      ON CONFLICT ("workspaceId", "planKey") DO NOTHING
+    `,
+  },
 ];
 
 export type MigrationResult = {

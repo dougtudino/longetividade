@@ -9,6 +9,7 @@ datasource db {
 
 model Order {
   id                   String    @id @default(uuid())
+  workspaceId          String? // strangler: null = legado longetividade (backfill)
   email                String
   name                 String
   phone                String?
@@ -29,20 +30,24 @@ model Order {
   @@index([status])
   @@index([downloadToken])
   @@index([createdAt])
+  @@index([workspaceId])
 }
 
 model AbandonedCheckout {
-  id        String   @id @default(uuid())
-  email     String
-  plan      String?
-  step      String   @default("checkout")
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  workspaceId String? // strangler: null = legado longetividade
+  email       String
+  plan        String?
+  step        String   @default("checkout")
+  createdAt   DateTime @default(now())
 
   @@index([email])
+  @@index([workspaceId])
 }
 
 model Lead {
   id           String    @id @default(uuid())
+  workspaceId  String? // strangler: null = legado longetividade
   email        String    @unique
   name         String?
   source       String? // utm_source
@@ -53,6 +58,7 @@ model Lead {
 
   @@index([sequenceStep])
   @@index([createdAt])
+  @@index([workspaceId])
 }
 
 // ─── Creatives — Collections & Gallery ─────────────────
@@ -407,6 +413,7 @@ model CampaignMetric {
 
 model PageView {
   id           String   @id @default(uuid())
+  workspaceId  String? // strangler: null = legado longetividade
   page         String
   referrer     String?
   utm_source   String?
@@ -419,6 +426,7 @@ model PageView {
   @@index([page])
   @@index([createdAt])
   @@index([utm_source])
+  @@index([workspaceId])
 }
 
 // ─── App VIP ───────────────────────────────────────
@@ -916,7 +924,8 @@ model VideoAnalysis {
 // Permite swap de foto sem redeploy. Fallback pro arquivo em /public/
 // se nenhum registro existir pra aquela (lpSlug, key).
 model LpAsset {
-  id        String   @id @default(uuid())
+  id          String   @id @default(uuid())
+  workspaceId String? // strangler: null = legado longetividade
   lpSlug    String // "emagreca-sem-dieta" | "instagram" | etc.
   key       String // "hero.woman" | "hero.phone" | "avatar.ana" | "mockup.spread"
   imageUrl  String // URL pública no R2
@@ -928,6 +937,7 @@ model LpAsset {
 
   @@unique([lpSlug, key])
   @@index([lpSlug])
+  @@index([workspaceId])
 }
 
 // Cliques no CTA capturados pelo /api/track/cta-click via sendBeacon.
@@ -936,6 +946,7 @@ model LpAsset {
 // IP guardado como SHA256 pra nao armazenar PII bruto.
 model CtaClick {
   id             String   @id @default(uuid())
+  workspaceId    String? // strangler: null = legado longetividade
   timestamp      DateTime @default(now())
   ctaId          String // "hero", "pricing-basico", "pricing-completo", "pricing-vip", "sticky-bottom", "final-cta"
   planId         String? // "basico" | "completo" | "vip"
@@ -954,6 +965,7 @@ model CtaClick {
   @@index([ctaId])
   @@index([utmCampaign])
   @@index([planId])
+  @@index([workspaceId])
 }
 
 // Log auditavel dos eventos enviados pro Meta Conversions API server-side.
@@ -961,6 +973,7 @@ model CtaClick {
 // e pra reconciliar com Hotmart caso o webhook caia.
 model MetaCapiEvent {
   id           String   @id @default(uuid())
+  workspaceId  String? // strangler: null = legado longetividade
   timestamp    DateTime @default(now())
   eventName    String // "Purchase" | "Lead" | "InitiateCheckout" | ...
   eventId      String // event_id usado pra dedup com Pixel client-side
@@ -977,6 +990,7 @@ model MetaCapiEvent {
   @@index([eventId])
   @@index([orderId])
   @@index([status])
+  @@index([workspaceId])
 }
 
 // Galeria editavel da LP. kind discrimina onde aparece:
@@ -988,7 +1002,8 @@ model MetaCapiEvent {
 //   progress-quote -> detox-progress (3 quotes com avatar + nome)
 //   women-gallery  -> detox-women-gallery ("Mulheres que cansaram de recomecar")
 model SocialProofItem {
-  id         String   @id @default(uuid())
+  id          String   @id @default(uuid())
+  workspaceId String? // strangler: null = legado longetividade
   lpSlug     String // "emagreca-sem-dieta"
   row        Int // 1 | 2 | 3 (legacy: usado pelos kinds classicos)
   imageUrl   String // URL pública no R2
@@ -1005,4 +1020,5 @@ model SocialProofItem {
 
   @@index([lpSlug, active, row, orderIndex])
   @@index([lpSlug, kind, active, orderIndex])
+  @@index([workspaceId])
 }

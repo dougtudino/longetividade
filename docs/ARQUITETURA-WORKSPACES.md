@@ -153,11 +153,15 @@ Modelos existentes ganham `workspaceId String?` (nullable na migração → back
 ## ⚠️ Dívida de segurança consciente (Fase 0)
 A Fase 0 é **deliberadamente leniente** (`adminCanAccessWorkspace` cai no default sem membership; `resolveActiveWorkspaceId` idem). Isso é seguro ENQUANTO só existem tenants meus. **Bloqueador de go-to-market:** trocar pra deny-by-default + enforcement sistemático antes do primeiro criador externo entrar.
 
-## Faseamento sugerido (SaaS)
-- **Fase 1 (igual):** corretores como 2º tenant interno — prova a fábrica.
-- **Fase 2 — Hardening:** isolamento deny-by-default + RLS/extension; webhook per-tenant; backfill 100% scopado.
-- **Fase 3 — Self-serve:** signup criador + billing + integrações BYO + subdomínio.
-- **Fase 4 — Escala:** custom domain, LP builder no-code, feature gating por tier, multi-conta Meta/social.
+## Faseamento (decisões travadas 2026-06-02)
+Decisões do Doug: **dogfood primeiro** · billing **Stripe** · LP futura = **builder no-code**.
+
+- **Fase 1 — Dogfood:** corretores como 2º tenant interno. LP em **código** (rápido — o builder é pra depois). Prova a fábrica de ponta a ponta com produto seu.
+- **Fase 2 — Hardening:** isolamento **deny-by-default** + RLS/Prisma extension; webhook per-tenant; backfill 100% scopado. (Bloqueador antes de qualquer externo.)
+- **Fase 3 — Self-serve:** signup de criador + billing **Stripe** (tiers/limites/dunning + portal) + integrações BYO (Hotmart secret, Meta OAuth, email) + subdomínio.
+- **Fase 4 — Produto self-serve:** **LP builder no-code** (o que destrava criador montar sozinho), custom domain (verificação+SSL), feature gating por tier, multi-conta Meta/social.
+
+> Durante dogfood (Fase 1), autoria de LP é código/done-by-Doug; o builder no-code (Fase 4) é o que troca isso quando criadores externos entram.
 
 ## O que NÃO fazer agora
 - Não migrar os 47 modelos nem as 500 queries de uma vez.
