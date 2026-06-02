@@ -15,6 +15,16 @@ import type { AdminTokenPayload } from "./admin-token";
 // id fixo do workspace seed (ver db-migrations.ts). É o fallback universal.
 export const DEFAULT_WORKSPACE_ID = "longetividade";
 
+// Fragmento de `where` Prisma pra escopar uma query por workspace. Espalhe
+// no where: `{ status: "approved", ...workspaceFilter(wsId) }`.
+// Longetividade abrange linhas legadas (workspaceId nulo, pré-backfill);
+// demais workspaces são estritos. Não combine com outro `OR` no mesmo where.
+export function workspaceFilter(workspaceId: string): Record<string, unknown> {
+  return workspaceId === DEFAULT_WORKSPACE_ID
+    ? { OR: [{ workspaceId: DEFAULT_WORKSPACE_ID }, { workspaceId: null }] }
+    : { workspaceId };
+}
+
 export type AdminWorkspace = {
   id: string;
   slug: string;

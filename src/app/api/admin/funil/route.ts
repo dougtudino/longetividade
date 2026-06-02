@@ -1,26 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminWorkspace, workspaceFilter } from "@/lib/workspace";
 
 // GET /api/admin/funil
 // Agrega cliques em CTA dos ultimos 7 dias pra painel /admin/funil.
 // Tambem traz PageView count pra calcular taxa LPV->Click.
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin(req);
+  const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.response;
+  const wsFilter = workspaceFilter(auth.workspaceId);
   try {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const [clicks, pageviews] = await Promise.all([
       prisma.ctaClick.findMany({
-        where: { timestamp: { gte: sevenDaysAgo } },
+        where: { timestamp: { gte: sevenDaysAgo }, ...wsFilter },
         orderBy: { timestamp: "desc" },
       }),
       prisma.pageView.count({
         where: {
           createdAt: { gte: sevenDaysAgo },
           page: { in: ["/emagreca-sem-dieta", "/emagreca-sem-dieta-v2", "/"] },
+          ...wsFilter,
         },
       }),
     ]);

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminWorkspace, workspaceFilter, DEFAULT_WORKSPACE_ID } from "@/lib/workspace";
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin(req);
+  const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.response;
+  const { workspaceId } = auth;
+  const wsFilter = workspaceFilter(workspaceId);
   try {
     const now = new Date();
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -13,9 +15,9 @@ export async function GET(req: NextRequest) {
     const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Fetch all approved orders once
+    // Fetch all approved orders once (escopado por workspace)
     const approvedOrders = await prisma.order.findMany({
-      where: { status: "approved" },
+      where: { status: "approved", ...wsFilter },
       select: { id: true, amount: true, plan: true, createdAt: true },
     });
 
@@ -47,11 +49,11 @@ export async function GET(req: NextRequest) {
       };
     }
 
-    // Abandoned checkouts
+    // Abandoned checkouts (escopado por workspace)
     const [abandonedTotal, abandonedToday] = await Promise.all([
-      prisma.abandonedCheckout.count(),
+      prisma.abandonedCheckout.count({ where: { ...wsFilter } }),
       prisma.abandonedCheckout.count({
-        where: { createdAt: { gte: todayStart } },
+        where: { createdAt: { gte: todayStart }, ...wsFilter },
       }),
     ]);
 
@@ -64,6 +66,7 @@ export async function GET(req: NextRequest) {
     // Recent orders — capped at 50 for dashboard preview
     // Full paginated list is at /api/admin/orders
     const recentOrders = await prisma.order.findMany({
+      where: { ...wsFilter },
       select: { id: true, name: true, email: true, plan: true, amount: true, status: true, createdAt: true },
       orderBy: { createdAt: "desc" },
       take: 50,
@@ -74,7 +77,8 @@ export async function GET(req: NextRequest) {
     // criou AppUser sem incrementar o slot (bug historico), a UI sempre
     // mostra o numero correto e o singleton fica em sync.
     let appStats = { users: 0, activeToday: 0, totalCheckins: 0, slotsUsed: 0, slotsTotal: 100 };
-    try {
+    // App VIP existe só no longetividade — outros workspaces ficam zerados.
+    if (workspaceId === DEFAULT_WORKSPACE_ID) try {
       const [appUsers, vipUsers, activeToday, totalCheckins, vipSlot] = await Promise.all([
         prisma.appUser.count(),
         prisma.appUser.count({ where: { plan: "vip" } }),

@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminWorkspace, workspaceFilter } from "@/lib/workspace";
 
 // GET /api/admin/leads?status=all|new|d2|d5|done
 // Lista leads com metadata enriquecida pra dashboard email marketing
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin(req);
+  const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.response;
+  const wsFilter = workspaceFilter(auth.workspaceId);
   try {
     const url = new URL(req.url);
     const stepFilter = url.searchParams.get("step");
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { ...wsFilter };
     if (stepFilter === "new") where.sequenceStep = 0;
     else if (stepFilter === "d2") where.sequenceStep = 1;
     else if (stepFilter === "d5") where.sequenceStep = 2;
@@ -23,9 +24,10 @@ export async function GET(req: NextRequest) {
     });
 
     // Stats agregadas
-    const total = await prisma.lead.count();
+    const total = await prisma.lead.count({ where: { ...wsFilter } });
     const byStep = await prisma.lead.groupBy({
       by: ["sequenceStep"],
+      where: { ...wsFilter },
       _count: true,
     });
     const stepCounts: Record<number, number> = {};
@@ -37,7 +39,7 @@ export async function GET(req: NextRequest) {
       const leadEmails = leads.map((l) => l.email);
       if (leadEmails.length > 0) {
         const buyers = await prisma.order.findMany({
-          where: { email: { in: leadEmails }, status: "approved" },
+          where: { email: { in: leadEmails }, status: "approved", ...wsFilter },
           select: { email: true },
         });
         converted = new Set(buyers.map((b) => b.email)).size;
@@ -52,9 +54,9 @@ export async function GET(req: NextRequest) {
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      abandonedTotal = await prisma.abandonedCheckout.count();
+      abandonedTotal = await prisma.abandonedCheckout.count({ where: { ...wsFilter } });
       abandonedToday = await prisma.abandonedCheckout.count({
-        where: { createdAt: { gte: today } },
+        where: { createdAt: { gte: today }, ...wsFilter },
       });
     } catch {
       /* silent */
