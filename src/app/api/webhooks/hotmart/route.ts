@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     const offerCompleto = await getSetting("HOTMART_OFFER_COMPLETO", "uzvdkzkf");
     const offerVip = await getSetting("HOTMART_OFFER_VIP", "h84hak4e");
 
-    let plan: "basico" | "completo" | "vip";
+    let plan: string;
     if (offerId && offerId === offerVip) {
       plan = "vip";
     } else if (offerId && offerId === offerCompleto) {
@@ -60,6 +60,25 @@ export async function POST(request: NextRequest) {
       else if (amount >= 6700) plan = "completo";
       else plan = "basico";
     }
+
+    // Roteamento multi-tenant: a offer mapeia o workspace dono da venda.
+    // Fallback longetividade (produto atual). Defensivo: se a tabela ainda
+    // não foi migrada, cai no default sem quebrar a venda.
+    let workspaceId = "longetividade";
+    try {
+      const wsPlan = offerId
+        ? await prisma.workspacePlan.findUnique({ where: { hotmartOffer: offerId } })
+        : null;
+      if (wsPlan) {
+        workspaceId = wsPlan.workspaceId;
+        // Para workspaces não-longetividade, o plano é o planKey do banco
+        // (ex: corretores → lt|bump|upsell), não basico|completo|vip.
+        if (workspaceId !== "longetividade") plan = wsPlan.planKey;
+      }
+    } catch {
+      /* tabela não migrada → longetividade */
+    }
+    const isLongetividade = workspaceId === "longetividade";
 
     // Criar ou atualizar Order — idempotente por hotmartTransactionId pra
     // suportar retry da Hotmart sem duplicar. Se nao veio txn (improvavel),
@@ -78,6 +97,7 @@ export async function POST(request: NextRequest) {
       ? await prisma.order.upsert({
           where: { hotmartTransactionId },
           create: {
+            workspaceId,
             email,
             name,
             phone: buyer.phone ?? null,
@@ -100,6 +120,7 @@ export async function POST(request: NextRequest) {
         })
       : await prisma.order.create({
           data: {
+            workspaceId,
             email,
             name,
             phone: buyer.phone ?? null,
@@ -110,6 +131,14 @@ export async function POST(request: NextRequest) {
             tokenExpiresAt,
           },
         });
+
+    // Side-effects abaixo são específicos do produto longetividade (app VIP,
+    // email de entrega do ebook, CAPI no pixel do longetividade). Para outros
+    // workspaces (ex: corretores), a entrega/pixel próprios entram quando o
+    // produto Hotmart deles for criado. Por ora só registramos o Order.
+    if (!isLongetividade) {
+      return NextResponse.json({ received: true, plan, workspaceId, orderId: order.id });
+    }
 
     // Se VIP, reivindicar vaga no app (claimVipSlot ja eh idempotente)
     if (plan === "vip") {
