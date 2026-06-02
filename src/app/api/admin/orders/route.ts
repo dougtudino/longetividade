@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdminWorkspace, DEFAULT_WORKSPACE_ID } from "@/lib/workspace";
 
 // GET /api/admin/orders?page=0&per_page=20&plan=vip&status=approved&days=30
+// Escopo por workspace ativo: cada produto vê só suas vendas.
 export async function GET(req: NextRequest) {
-  const auth = await requireAdmin(req);
+  const auth = await requireAdminWorkspace(req);
   if (!auth.ok) return auth.response;
+  const { workspaceId } = auth;
   try {
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") ?? "0", 10);
@@ -15,6 +17,13 @@ export async function GET(req: NextRequest) {
     const days = parseInt(url.searchParams.get("days") ?? "0", 10);
 
     const where: Record<string, unknown> = {};
+    // Longetividade também abrange linhas legadas (workspaceId nulo) caso o
+    // backfill não tenha rodado; demais workspaces são estritos.
+    if (workspaceId === DEFAULT_WORKSPACE_ID) {
+      where.OR = [{ workspaceId: DEFAULT_WORKSPACE_ID }, { workspaceId: null }];
+    } else {
+      where.workspaceId = workspaceId;
+    }
     if (plan && plan !== "all") where.plan = plan;
     if (status && status !== "all") where.status = status;
     if (days > 0) {
