@@ -3,6 +3,10 @@ export type AdminTokenPayload = {
   email: string;
   name: string;
   role: string;
+  // Workspace ativo na sessão (fábrica multi-produto). Opcional p/
+  // retrocompat: tokens antigos sem o campo caem no workspace default
+  // (longetividade) via resolveActiveWorkspaceId/requireAdminWorkspace.
+  activeWorkspaceId?: string;
   exp: number;
 };
 

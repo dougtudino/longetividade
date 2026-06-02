@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getGoogleCreds, exchangeCodeForToken, fetchUserInfo } from "@/lib/google-oauth";
 import { setAppSessionCookies } from "@/lib/app-session";
 import { signAdminToken, ADMIN_TOKEN_COOKIE, ADMIN_TOKEN_MAX_AGE } from "@/lib/admin-auth";
+import { resolveActiveWorkspaceId } from "@/lib/workspace";
 import { getPublicBaseUrl } from "@/lib/server-url";
 
 function errorRedirect(baseUrl: string, context: string, error: string): NextResponse {
@@ -141,11 +142,13 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const activeWorkspaceId = await resolveActiveWorkspaceId(admin.id);
     const token = await signAdminToken({
       adminId: admin.id,
       email: admin.email,
       name: admin.name,
       role: admin.role,
+      activeWorkspaceId,
     });
 
     const response = NextResponse.redirect(new URL("/admin/dashboard", baseUrl));

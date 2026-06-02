@@ -356,12 +356,23 @@ type CurrentAdmin = {
   role: string;
 };
 
+type Workspace = {
+  id: string;
+  slug: string;
+  name: string;
+  brandName: string;
+  role: string;
+};
+
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [themeKey, setThemeKey] = useState("dark");
   const [currentAdmin, setCurrentAdmin] = useState<CurrentAdmin | null>(null);
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
+  const [switching, setSwitching] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/me")
@@ -373,10 +384,35 @@ export default function AdminSidebar() {
             name: d.admin.name,
             role: d.admin.role,
           });
+          if (Array.isArray(d.workspaces)) setWorkspaces(d.workspaces);
+          if (d.activeWorkspaceId) setActiveWorkspaceId(d.activeWorkspaceId);
         }
       })
       .catch(() => {});
   }, []);
+
+  const handleSwitchWorkspace = useCallback(
+    async (workspaceId: string) => {
+      if (switching || workspaceId === activeWorkspaceId) return;
+      setSwitching(true);
+      try {
+        const res = await fetch("/api/admin/workspace/switch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceId }),
+        });
+        if (res.ok) {
+          // Recarrega pra todo o painel ler dados do novo workspace.
+          window.location.reload();
+          return;
+        }
+      } catch {
+        /* ignore */
+      }
+      setSwitching(false);
+    },
+    [switching, activeWorkspaceId]
+  );
 
   // Observe theme changes on <html>
   useEffect(() => {
@@ -461,6 +497,66 @@ export default function AdminSidebar() {
           </div>
         </div>
       </div>
+
+      {/* Workspace switcher (fábrica multi-produto) */}
+      {workspaces.length > 0 && (
+        <div style={{ margin: "0 12px 12px" }}>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              padding: "0 2px 6px",
+            }}
+          >
+            Workspace
+          </div>
+          {workspaces.length === 1 ? (
+            <div
+              style={{
+                padding: "9px 12px",
+                background: "var(--bg-card)",
+                border: "0.5px solid var(--border-default)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {workspaces[0].name}
+            </div>
+          ) : (
+            <select
+              value={activeWorkspaceId ?? ""}
+              disabled={switching}
+              onChange={(e) => handleSwitchWorkspace(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "9px 10px",
+                background: "var(--bg-card)",
+                border: "0.5px solid var(--border-default)",
+                borderRadius: 10,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--text-primary)",
+                cursor: switching ? "wait" : "pointer",
+                appearance: "none",
+              }}
+            >
+              {workspaces.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
 
       {/* Current admin (nome de quem ta logado) */}
       {currentAdmin && (

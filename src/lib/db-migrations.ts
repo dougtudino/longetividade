@@ -888,6 +888,166 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "AppCustomActivity userId+archived index",
     sql: `CREATE INDEX IF NOT EXISTS "AppCustomActivity_userId_archived_idx" ON "AppCustomActivity"("userId", "archived")`,
   },
+
+  // ─── Workspaces (Fase 0 — fábrica multi-produto) ───────────
+  // Tabelas novas + seed do workspace "longetividade" (o produto atual)
+  // + membership owner pra todos os AdminUser existentes. Idempotente.
+  {
+    label: "Workspace table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "Workspace" (
+        "id" TEXT NOT NULL,
+        "slug" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'active',
+        "domains" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
+        "brandName" TEXT NOT NULL,
+        "metaPixelId" TEXT,
+        "hotmartProductId" TEXT,
+        "adAccountId" TEXT,
+        "businessManagerId" TEXT,
+        "fromEmail" TEXT,
+        "settings" JSONB,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "Workspace_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "Workspace slug unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "Workspace_slug_key" ON "Workspace"("slug")`,
+  },
+  {
+    label: "Workspace status index",
+    sql: `CREATE INDEX IF NOT EXISTS "Workspace_status_idx" ON "Workspace"("status")`,
+  },
+  {
+    label: "WorkspaceMembership table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "WorkspaceMembership" (
+        "id" TEXT NOT NULL,
+        "adminId" TEXT NOT NULL,
+        "workspaceId" TEXT NOT NULL,
+        "role" TEXT NOT NULL DEFAULT 'manager',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "WorkspaceMembership_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "WorkspaceMembership adminId+workspaceId unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "WorkspaceMembership_adminId_workspaceId_key" ON "WorkspaceMembership"("adminId", "workspaceId")`,
+  },
+  {
+    label: "WorkspaceMembership workspaceId index",
+    sql: `CREATE INDEX IF NOT EXISTS "WorkspaceMembership_workspaceId_idx" ON "WorkspaceMembership"("workspaceId")`,
+  },
+  {
+    label: "WorkspaceMembership adminId index",
+    sql: `CREATE INDEX IF NOT EXISTS "WorkspaceMembership_adminId_idx" ON "WorkspaceMembership"("adminId")`,
+  },
+  {
+    label: "WorkspaceMembership FK to AdminUser",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'WorkspaceMembership_adminId_fkey'
+        ) THEN
+          ALTER TABLE "WorkspaceMembership"
+          ADD CONSTRAINT "WorkspaceMembership_adminId_fkey"
+          FOREIGN KEY ("adminId") REFERENCES "AdminUser"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "WorkspaceMembership FK to Workspace",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'WorkspaceMembership_workspaceId_fkey'
+        ) THEN
+          ALTER TABLE "WorkspaceMembership"
+          ADD CONSTRAINT "WorkspaceMembership_workspaceId_fkey"
+          FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "WorkspacePlan table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "WorkspacePlan" (
+        "id" TEXT NOT NULL,
+        "workspaceId" TEXT NOT NULL,
+        "planKey" TEXT NOT NULL,
+        "label" TEXT NOT NULL,
+        "priceCents" INTEGER NOT NULL,
+        "hotmartOffer" TEXT NOT NULL,
+        "checkoutUrl" TEXT NOT NULL,
+        "features" JSONB,
+        "active" BOOLEAN NOT NULL DEFAULT true,
+        "orderIndex" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "WorkspacePlan_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  {
+    label: "WorkspacePlan workspaceId+planKey unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "WorkspacePlan_workspaceId_planKey_key" ON "WorkspacePlan"("workspaceId", "planKey")`,
+  },
+  {
+    label: "WorkspacePlan hotmartOffer unique",
+    sql: `CREATE UNIQUE INDEX IF NOT EXISTS "WorkspacePlan_hotmartOffer_key" ON "WorkspacePlan"("hotmartOffer")`,
+  },
+  {
+    label: "WorkspacePlan workspaceId index",
+    sql: `CREATE INDEX IF NOT EXISTS "WorkspacePlan_workspaceId_idx" ON "WorkspacePlan"("workspaceId")`,
+  },
+  {
+    label: "WorkspacePlan FK to Workspace",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'WorkspacePlan_workspaceId_fkey'
+        ) THEN
+          ALTER TABLE "WorkspacePlan"
+          ADD CONSTRAINT "WorkspacePlan_workspaceId_fkey"
+          FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    // Seed do workspace do produto atual. id fixo "longetividade" pra ser
+    // referenciável como default em todo backfill/fallback do strangler.
+    label: "Workspace seed longetividade",
+    sql: `
+      INSERT INTO "Workspace" ("id", "slug", "name", "status", "domains", "brandName", "createdAt", "updatedAt")
+      VALUES ('longetividade', 'longetividade', 'Longetividade', 'active',
+              ARRAY['longetividade.com.br']::TEXT[], 'Longetividade', NOW(), NOW())
+      ON CONFLICT ("id") DO NOTHING
+    `,
+  },
+  {
+    // Todo AdminUser existente vira owner do workspace longetividade.
+    label: "WorkspaceMembership backfill owners longetividade",
+    sql: `
+      INSERT INTO "WorkspaceMembership" ("id", "adminId", "workspaceId", "role", "createdAt")
+      SELECT gen_random_uuid()::TEXT, a."id", 'longetividade', 'owner', NOW()
+      FROM "AdminUser" a
+      WHERE NOT EXISTS (
+        SELECT 1 FROM "WorkspaceMembership" m
+        WHERE m."adminId" = a."id" AND m."workspaceId" = 'longetividade'
+      )
+    `,
+  },
 ];
 
 export type MigrationResult = {

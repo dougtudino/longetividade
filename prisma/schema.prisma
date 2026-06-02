@@ -763,6 +763,79 @@ model AppBrotoMilestone {
   @@index([userId, kind])
 }
 
+// ─── Workspaces (multi-produto / fábrica) ─────────────
+// Cada produto/low-ticket vive num workspace isolado. O emagrecimento
+// atual é o workspace seed "longetividade" (backfill). Config que antes
+// era hardcoded (config/plans.ts, config/app-brand.ts) vive aqui, em
+// runtime — porque Railway não embeda NEXT_PUBLIC_* no build.
+model Workspace {
+  id     String @id @default(uuid())
+  slug   String @unique // "longetividade" | "corretor-blindado"
+  name   String
+  status String @default("active") // active | paused | archived
+
+  // Resolução pública por domínio (middleware mapeia host → workspace).
+  domains String[] @default([])
+
+  // Config de produto (antes hardcoded em config/*).
+  brandName         String
+  metaPixelId       String?
+  hotmartProductId  String?
+  adAccountId       String?
+  businessManagerId String?
+  fromEmail         String?
+  settings          Json? // resto flexível (cores, textos-chave, etc)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships WorkspaceMembership[]
+  plans       WorkspacePlan[]
+
+  @@index([status])
+}
+
+// Junction admin↔workspace: substitui o modelo "AdminUser global vê tudo".
+// role é POR workspace (Barbara pode ser owner num, editor noutro).
+model WorkspaceMembership {
+  id          String   @id @default(uuid())
+  adminId     String
+  workspaceId String
+  role        String   @default("manager") // owner | manager | editor
+  createdAt   DateTime @default(now())
+
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([adminId, workspaceId])
+  @@index([workspaceId])
+  @@index([adminId])
+}
+
+// Planos/ofertas por workspace — substitui config/plans.ts hardcoded.
+// hotmartOffer é o que o webhook usa pra rotear a venda pro workspace certo,
+// por isso é globalmente único.
+model WorkspacePlan {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  planKey      String // "basico" | "completo" | "vip" | "lt" | "bump" | "upsell"
+  label        String
+  priceCents   Int
+  hotmartOffer String // offer code Hotmart (roteamento webhook → workspace)
+  checkoutUrl  String
+  features     Json?
+  active       Boolean  @default(true)
+  orderIndex   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, planKey])
+  @@unique([hotmartOffer])
+  @@index([workspaceId])
+}
+
 // ─── Admin Multi-User ─────────────────────────────
 
 model AdminUser {
@@ -778,6 +851,7 @@ model AdminUser {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   mayaMessages MayaMessage[]
+  memberships  WorkspaceMembership[]
 }
 
 model MayaMessage {

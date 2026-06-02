@@ -6,6 +6,7 @@ import {
   ADMIN_TOKEN_COOKIE,
   ADMIN_TOKEN_MAX_AGE,
 } from "@/lib/admin-auth";
+import { resolveActiveWorkspaceId } from "@/lib/workspace";
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,11 +38,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const activeWorkspaceId = await resolveActiveWorkspaceId(admin.id);
     const token = await signAdminToken({
       adminId: admin.id,
       email: admin.email,
       name: admin.name,
       role: admin.role,
+      activeWorkspaceId,
     });
 
     await prisma.adminUser.update({

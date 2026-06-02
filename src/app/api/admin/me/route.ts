@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyAdminToken, ADMIN_TOKEN_COOKIE } from "@/lib/admin-auth";
+import { getAdminWorkspaces, resolveActiveWorkspaceId } from "@/lib/workspace";
 
 // GET /api/admin/me
 // Retorna info do admin logado atualmente (lido do cookie).
@@ -29,7 +30,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ ok: false, error: "Admin nao encontrado" }, { status: 404 });
     }
 
-    return NextResponse.json({ ok: true, admin });
+    const workspaces = await getAdminWorkspaces(payload.adminId);
+    const activeWorkspaceId = await resolveActiveWorkspaceId(
+      payload.adminId,
+      payload.activeWorkspaceId
+    );
+
+    return NextResponse.json({ ok: true, admin, workspaces, activeWorkspaceId });
   } catch (e) {
     // Fallback: retorna o que tem no token
     return NextResponse.json({
