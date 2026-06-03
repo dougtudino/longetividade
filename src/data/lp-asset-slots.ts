@@ -196,8 +196,27 @@ export const SLOTS_APP: LpAssetSlot[] = [
 ];
 
 // Mapeamento de LPs → slots (expandir quando migrar outras)
+// LP /corretor-blindado — low-ticket documentação imobiliária.
+export const SLOTS_CORRETOR: LpAssetSlot[] = [
+  {
+    key: "hero.professional",
+    label: "Hero — Foto do profissional",
+    group: "hero",
+    fallback: "", // sem fallback — hero fica só-texto se não houver foto
+    targetWidth: 1000,
+    targetHeight: 1333,
+    aspectHint: "3:4 vertical (retrato do profissional/autoridade)",
+    recommendedSize: "1000×1333px",
+    minSize: "750×1000px",
+    appearsIn: "Hero (lado direito, ao lado do título)",
+    uploadGuide:
+      "Retrato vertical 3:4 do corretor/autoridade: postura confiante, sorriso, fundo profissional (escritório/imobiliária). Luz boa, foco no rosto no terço superior pra não cortar em telas menores. Estética séria e premium combinando com o tema escuro+dourado.",
+  },
+];
+
 export const LP_SLOTS: Record<string, LpAssetSlot[]> = {
   "emagreca-sem-dieta": SLOTS_EMAGRECA,
+  "corretor-blindado": SLOTS_CORRETOR,
   app: SLOTS_APP,
 };
 
