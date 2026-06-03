@@ -25,12 +25,23 @@ export function workspaceFilter(workspaceId: string): Record<string, unknown> {
     : { workspaceId };
 }
 
+// Módulos do menu admin que um workspace pode habilitar. Lista vazia em
+// Workspace.enabledModules = mostra TODOS (default longetividade).
+export const WORKSPACE_MODULES = [
+  { key: "sales", label: "Vendas & Funil" },
+  { key: "lp", label: "Landing pages" },
+  { key: "ads", label: "Tráfego pago" },
+  { key: "social", label: "Social orgânico" },
+  { key: "app", label: "App VIP" },
+] as const;
+
 export type AdminWorkspace = {
   id: string;
   slug: string;
   name: string;
   brandName: string;
   role: string; // role do admin NESTE workspace
+  enabledModules: string[];
 };
 
 // Workspaces aos quais um admin pertence (via membership). [] em qualquer
@@ -52,6 +63,7 @@ export async function getAdminWorkspaces(
         name: m.workspace.name,
         brandName: m.workspace.brandName,
         role: m.role,
+        enabledModules: m.workspace.enabledModules ?? [],
       }));
   } catch {
     return [];

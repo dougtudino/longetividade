@@ -1191,6 +1191,23 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
       )
     `,
   },
+
+  // ─── Menu enxuto por workspace (enabledModules) ────────────────────
+  // Lista vazia = mostra tudo (longetividade). corretor-blindado recebe só
+  // o essencial de LT: vendas, landing pages e tráfego pago.
+  {
+    label: "Workspace.enabledModules column",
+    sql: `ALTER TABLE "Workspace" ADD COLUMN IF NOT EXISTS "enabledModules" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[]`,
+  },
+  {
+    label: "Workspace corretor-blindado enabledModules seed",
+    sql: `
+      UPDATE "Workspace"
+      SET "enabledModules" = ARRAY['sales','lp','ads']::TEXT[]
+      WHERE "id" = 'corretor-blindado'
+        AND ("enabledModules" IS NULL OR cardinality("enabledModules") = 0)
+    `,
+  },
 ];
 
 export type MigrationResult = {

@@ -374,6 +374,30 @@ type Workspace = {
   name: string;
   brandName: string;
   role: string;
+  enabledModules: string[];
+};
+
+// Mapa href → módulo. Itens sem entrada = "plataforma" (sempre visíveis:
+// Workspaces, Admins, Sistema). Workspace com enabledModules vazio mostra tudo;
+// com lista, mostra só plataforma + os módulos listados.
+const ITEM_MODULE: Record<string, string> = {
+  "/admin/dashboard": "sales",
+  "/admin/vendas": "sales",
+  "/admin/abandonos": "sales",
+  "/admin/funil": "sales",
+  "/admin/email-marketing": "sales",
+  "/admin/lp": "lp",
+  "/admin/lp-assets": "lp",
+  "/admin/lp-social-proof": "lp",
+  "/admin/trafego": "ads",
+  "/admin/campanhas": "ads",
+  "/admin/criativos": "ads",
+  "/admin/agents/gaia": "ads",
+  "/admin/campanhas/launch-blueprint": "ads",
+  "/admin/social-media": "social",
+  "/admin/video-intelligence": "social",
+  "/admin/app-users": "app",
+  "/admin/app-icon": "app",
 };
 
 export default function AdminSidebar() {
@@ -450,6 +474,20 @@ export default function AdminSidebar() {
       : pathname.startsWith(href);
 
   const sidebarTheme = SIDEBAR_THEMES[themeKey] || SIDEBAR_THEMES.dark;
+
+  // Menu enxuto por workspace: módulos do workspace ativo. Vazio = mostra tudo.
+  const activeWs = workspaces.find((w) => w.id === activeWorkspaceId);
+  const activeModules = activeWs?.enabledModules ?? [];
+  const isItemVisible = (href: string) => {
+    const m = ITEM_MODULE[href];
+    if (!m) return true; // plataforma — sempre
+    if (activeModules.length === 0) return true; // workspace sem restrição
+    return activeModules.includes(m);
+  };
+  const visibleSections = NAV_SECTIONS.map((s) => ({
+    ...s,
+    items: s.items.filter((it) => isItemVisible(it.href)),
+  })).filter((s) => s.items.length > 0);
 
   const sidebarContent = (
     <div
@@ -636,7 +674,7 @@ export default function AdminSidebar() {
 
       {/* Navigation — organizada em secoes */}
       <nav style={{ flex: 1, padding: "4px 8px 12px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
-        {NAV_SECTIONS.map((section, sectionIdx) => (
+        {visibleSections.map((section, sectionIdx) => (
           <div key={section.title} style={{ marginTop: sectionIdx === 0 ? 0 : 14 }}>
             <div
               style={{

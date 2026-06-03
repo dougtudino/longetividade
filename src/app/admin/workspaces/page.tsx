@@ -25,9 +25,20 @@ type Workspace = {
   adAccountId: string | null;
   businessManagerId: string | null;
   fromEmail: string | null;
+  enabledModules: string[];
   plans: Plan[];
   _count?: { memberships: number };
 };
+
+// Módulos do menu (espelha WORKSPACE_MODULES de lib/workspace — duplicado aqui
+// porque a página é client e não pode importar a lib que puxa o prisma).
+const MODULES = [
+  { key: "sales", label: "Vendas & Funil" },
+  { key: "lp", label: "Landing pages" },
+  { key: "ads", label: "Tráfego pago" },
+  { key: "social", label: "Social orgânico" },
+  { key: "app", label: "App VIP" },
+];
 
 const card: React.CSSProperties = {
   background: "var(--bg-card)",
@@ -153,6 +164,7 @@ export default function WorkspacesPage() {
         name: w.name,
         brandName: w.brandName,
         domains: w.domains,
+        enabledModules: w.enabledModules ?? [],
         metaPixelId: w.metaPixelId,
         hotmartProductId: w.hotmartProductId,
         adAccountId: w.adAccountId,
@@ -301,6 +313,28 @@ export default function WorkspacesPage() {
                   />
                 </div>
               ))}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <label style={label}>Módulos no menu (nenhum marcado = mostra tudo)</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 14, marginTop: 6 }}>
+                {MODULES.map((m) => {
+                  const on = (w.enabledModules ?? []).includes(m.key);
+                  return (
+                    <label key={m.key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-secondary)", cursor: "pointer" }}>
+                      <input
+                        type="checkbox"
+                        checked={on}
+                        onChange={() => {
+                          const cur = w.enabledModules ?? [];
+                          const next = on ? cur.filter((k) => k !== m.key) : [...cur, m.key];
+                          patchLocal(w.id, { enabledModules: next });
+                        }}
+                      />
+                      {m.label}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
             <button style={btn} onClick={() => saveConfig(w)}>Salvar config</button>
 

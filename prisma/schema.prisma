@@ -785,6 +785,11 @@ model Workspace {
   // Resolução pública por domínio (middleware mapeia host → workspace).
   domains String[] @default([])
 
+  // Módulos habilitados no menu deste workspace (sales|lp|ads|social|app).
+  // Lista vazia = mostra TUDO (default p/ longetividade). Lista não-vazia =
+  // restringe o menu àqueles módulos (LTs enxutos).
+  enabledModules String[] @default([])
+
   // Config de produto (antes hardcoded em config/*).
   brandName         String
   metaPixelId       String?
