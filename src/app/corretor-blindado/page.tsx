@@ -1,5 +1,20 @@
 import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
 import { getWorkspacePlans, formatBRL, type WorkspacePlanView } from "@/lib/workspace-plans";
+
+// Imagem do profissional no hero — editável via LpAsset sem redeploy.
+// (slug corretor-blindado, key hero.professional). null = hero só texto.
+async function getHeroImage(): Promise<string | null> {
+  try {
+    const a = await prisma.lpAsset.findFirst({
+      where: { lpSlug: WORKSPACE_ID, key: "hero.professional" },
+      select: { imageUrl: true },
+    });
+    return a?.imageUrl ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // LP do LT "Corretor Blindado" — 2º tenant interno (dogfood da fábrica de
 // workspaces). Workspace-aware desde a linha 1: planos vêm do WorkspacePlan
@@ -57,29 +72,63 @@ export default async function CorretorBlindadoPage() {
   const plans = dbPlans.length > 0 ? dbPlans : FALLBACK_PLANS;
   const lt = plans.find((p) => p.planKey === "lt") ?? plans[0];
   const checkout = lt.checkoutUrl && lt.checkoutUrl !== "#" ? lt.checkoutUrl : "#";
+  const heroImg = await getHeroImage();
+
+  const heroText = (
+    <div style={{ flex: heroImg ? "1 1 380px" : "1 1 auto", minWidth: 280, maxWidth: heroImg ? 560 : "100%" }}>
+      <div style={{ display: "inline-block", border: `1px solid ${GOLD}`, color: GOLD, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 999, marginBottom: 28 }}>
+        Pra corretor que está começando
+      </div>
+      <h1 style={{ fontSize: 40, lineHeight: 1.1, fontWeight: 800, margin: "0 0 20px" }}>
+        Fez o curso e saiu cru?<br />
+        <span style={{ color: GOLD }}>Você não está sozinho.</span>
+      </h1>
+      <p style={{ fontSize: 19, lineHeight: 1.5, color: MUTED, margin: "0 0 32px", maxWidth: 560 }}>
+        O curso não ensinou. O estágio te abandonou. Aqui está a papelada que
+        ninguém te mostrou — pra você não travar sua próxima venda por não
+        saber ler uma matrícula.
+      </p>
+      <a href={checkout} style={ctaStyle}>
+        QUERO PARAR DE TER MEDO DA PAPELADA — {formatBRL(lt.priceCents)}
+      </a>
+      <div style={{ fontSize: 13, color: MUTED, marginTop: 14 }}>
+        Acesso imediato · consome em 1–2h · 7 dias de garantia
+      </div>
+    </div>
+  );
 
   return (
     <main style={{ background: NAVY, color: INK, fontFamily: "system-ui, -apple-system, sans-serif", margin: 0 }}>
       {/* HERO */}
-      <section style={{ maxWidth: 720, margin: "0 auto", padding: "72px 24px 56px", textAlign: "center" }}>
-        <div style={{ display: "inline-block", border: `1px solid ${GOLD}`, color: GOLD, fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", padding: "6px 14px", borderRadius: 999, marginBottom: 28 }}>
-          Pra corretor que está começando
-        </div>
-        <h1 style={{ fontSize: 40, lineHeight: 1.1, fontWeight: 800, margin: "0 0 20px" }}>
-          Fez o curso e saiu cru?<br />
-          <span style={{ color: GOLD }}>Você não está sozinho.</span>
-        </h1>
-        <p style={{ fontSize: 19, lineHeight: 1.5, color: MUTED, margin: "0 auto 32px", maxWidth: 560 }}>
-          O curso não ensinou. O estágio te abandonou. Aqui está a papelada que
-          ninguém te mostrou — pra você não travar sua próxima venda por não
-          saber ler uma matrícula.
-        </p>
-        <a href={checkout} style={ctaStyle}>
-          QUERO PARAR DE TER MEDO DA PAPELADA — {formatBRL(lt.priceCents)}
-        </a>
-        <div style={{ fontSize: 13, color: MUTED, marginTop: 14 }}>
-          Acesso imediato · consome em 1–2h · 7 dias de garantia
-        </div>
+      <section
+        style={{
+          maxWidth: heroImg ? 1040 : 720,
+          margin: "0 auto",
+          padding: "72px 24px 56px",
+          display: "flex",
+          gap: 48,
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+          textAlign: heroImg ? "left" : "center",
+        }}
+      >
+        {heroText}
+        {heroImg && (
+          <div style={{ flex: "1 1 320px", minWidth: 260, maxWidth: 420 }}>
+            <img
+              src={heroImg}
+              alt="Especialista em documentação imobiliária"
+              style={{
+                width: "100%",
+                borderRadius: 18,
+                display: "block",
+                border: `1px solid rgba(212,175,55,0.35)`,
+                boxShadow: "0 24px 60px rgba(0,0,0,0.45)",
+              }}
+            />
+          </div>
+        )}
       </section>
 
       {/* DORES */}

@@ -1177,6 +1177,20 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
       ON CONFLICT ("workspaceId", "planKey") DO NOTHING
     `,
   },
+  {
+    // Todo AdminUser também vira owner do corretor-blindado (dogfood: Doug
+    // opera os 2 tenants internos). Sem isso o switcher não mostra o workspace.
+    label: "WorkspaceMembership backfill owners corretor-blindado",
+    sql: `
+      INSERT INTO "WorkspaceMembership" ("id", "adminId", "workspaceId", "role", "createdAt")
+      SELECT gen_random_uuid()::TEXT, a."id", 'corretor-blindado', 'owner', NOW()
+      FROM "AdminUser" a
+      WHERE NOT EXISTS (
+        SELECT 1 FROM "WorkspaceMembership" m
+        WHERE m."adminId" = a."id" AND m."workspaceId" = 'corretor-blindado'
+      )
+    `,
+  },
 ];
 
 export type MigrationResult = {
