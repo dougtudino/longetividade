@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
       { source: "/app/evolucao", destination: "/app/jornada", permanent: false },
       { source: "/app/progresso", destination: "/app/jornada", permanent: false },
       { source: "/app/mais", destination: "/app/eu", permanent: false },
+      // Consolidação de roteamento de LP (Fase 3): /corretor-blindado era uma
+      // duplicata que já renderizava o template LT — agora servido por /lt/[slug].
+      // permanent=false pois o produto é novo e a estrutura pode mudar.
+      { source: "/corretor-blindado", destination: "/lt/corretor-blindado", permanent: false },
     ];
   },
 };

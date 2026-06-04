@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { WORKSPACE_MODULES as MODULES } from "@/lib/workspace-modules";
 
 type Plan = {
   id: string;
@@ -30,16 +31,6 @@ type Workspace = {
   plans: Plan[];
   _count?: { memberships: number };
 };
-
-// Módulos do menu (espelha WORKSPACE_MODULES de lib/workspace — duplicado aqui
-// porque a página é client e não pode importar a lib que puxa o prisma).
-const MODULES = [
-  { key: "sales", label: "Vendas & Funil" },
-  { key: "lp", label: "Landing pages" },
-  { key: "ads", label: "Tráfego pago" },
-  { key: "social", label: "Social orgânico" },
-  { key: "app", label: "App VIP" },
-];
 
 const card: React.CSSProperties = {
   background: "var(--bg-card)",

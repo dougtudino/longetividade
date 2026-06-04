@@ -25,15 +25,9 @@ export function workspaceFilter(workspaceId: string): Record<string, unknown> {
     : { workspaceId };
 }
 
-// Módulos do menu admin que um workspace pode habilitar. Lista vazia em
-// Workspace.enabledModules = mostra TODOS (default longetividade).
-export const WORKSPACE_MODULES = [
-  { key: "sales", label: "Vendas & Funil" },
-  { key: "lp", label: "Landing pages" },
-  { key: "ads", label: "Tráfego pago" },
-  { key: "social", label: "Social orgânico" },
-  { key: "app", label: "App VIP" },
-] as const;
+// Módulos do menu admin (fonte única em ./workspace-modules — client-safe).
+// Lista vazia em Workspace.enabledModules = mostra TODOS (default longetividade).
+export { WORKSPACE_MODULES } from "./workspace-modules";
 
 export type AdminWorkspace = {
   id: string;
