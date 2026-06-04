@@ -111,7 +111,10 @@ const CtaProps = z.object({
 // ─── União discriminada ─────────────────────────────────────────────────────
 // Cada bloco: { id, type, order, props }. order define a posição na página.
 
-function block<T extends z.ZodTypeAny>(type: string, props: T) {
+// Genérico em T extends string pra preservar o LITERAL do tipo (ex: "hero"):
+// sem isso z.literal(type:string) viraria ZodLiteral<string> e a discriminated
+// union perderia a narrowing no TypeScript.
+function block<T extends string, P extends z.ZodTypeAny>(type: T, props: P) {
   return z.object({
     id: z.string(),
     type: z.literal(type),
