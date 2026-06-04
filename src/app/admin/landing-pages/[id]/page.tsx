@@ -26,6 +26,7 @@ export default function LpEditorPage({ params }: { params: Promise<{ id: string 
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
   const [addType, setAddType] = useState<BlockType>("hero");
+  const [aiBusy, setAiBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,6 +78,41 @@ export default function LpEditorPage({ params }: { params: Promise<{ id: string 
     else flash((data.error ?? "Falha") + (data.issues ? `: ${data.issues.map((i: { path: (string|number)[]; message: string }) => i.path.join(".") + " " + i.message).join("; ")}` : ""));
   }
 
+  async function aiGenerate() {
+    const brief = prompt("Brief do produto (pra IA gerar a LP do zero). Isto substitui os blocos atuais:");
+    if (!brief || brief.trim().length < 10) return;
+    setAiBusy(true); flash("Gerando com IA…");
+    try {
+      const res = await fetch("/api/admin/landing-pages/generate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ brief, niche: "" }),
+      });
+      const data = await res.json();
+      if (data.ok) { setBlocks(reorder(data.blocks)); flash("Blocos gerados — revise e salve"); }
+      else flash(data.error ?? "Falha");
+    } finally { setAiBusy(false); }
+  }
+
+  async function aiImprove() {
+    const instruction = prompt("O que você quer melhorar? (ex: 'deixe o hero mais agressivo', 'adicione um FAQ com 4 perguntas')");
+    if (!instruction || instruction.trim().length < 4) return;
+    setAiBusy(true); flash("Melhorando com IA…");
+    try {
+      // salva os blocos atuais primeiro pra IA editar a versão em tela
+      await fetch(`/api/admin/landing-pages/${id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ blocks: reorder(blocks) }),
+      });
+      const res = await fetch(`/api/admin/landing-pages/${id}/improve`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction }),
+      });
+      const data = await res.json();
+      if (data.ok) { setBlocks(reorder(data.blocks)); flash("Blocos atualizados — revise e salve"); }
+      else flash(data.error ?? "Falha");
+    } finally { setAiBusy(false); }
+  }
+
   if (loading) return <main style={{ padding: 32 }}><p style={{ color: "var(--text-muted)" }}>Carregando…</p></main>;
   if (!lp) return <main style={{ padding: 32 }}><p style={{ color: "var(--text-muted)" }}>LP não encontrada. <Link href="/admin/landing-pages" style={{ color: "var(--accent)" }}>Voltar</Link></p></main>;
 
@@ -99,6 +135,14 @@ export default function LpEditorPage({ params }: { params: Promise<{ id: string 
           <a href={`/lt/${lp.slug}`} target="_blank" rel="noreferrer" style={{ ...btnGhost, textDecoration: "none" }}>Ver</a>
           <button style={btn} onClick={save}>Salvar</button>
         </div>
+      </div>
+
+      <div style={{ ...card, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>IA:</span>
+        <button style={btnGhost} onClick={aiGenerate} disabled={aiBusy}>✨ Gerar do brief</button>
+        <button style={btnGhost} onClick={aiImprove} disabled={aiBusy}>✨ Melhorar</button>
+        {aiBusy && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>processando…</span>}
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>a saída é validada antes de aplicar; revise e salve</span>
       </div>
 
       {blocks.map((b, idx) => (
