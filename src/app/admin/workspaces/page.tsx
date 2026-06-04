@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { DEFAULT_LT_CONTENT, type LtContent } from "@/lib/landing-content";
+import Link from "next/link";
 
 type Plan = {
   id: string;
@@ -27,7 +27,6 @@ type Workspace = {
   businessManagerId: string | null;
   fromEmail: string | null;
   enabledModules: string[];
-  landingContent: Partial<LtContent> | null;
   plans: Plan[];
   _count?: { memberships: number };
 };
@@ -102,8 +101,6 @@ export default function WorkspacesPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [showNew, setShowNew] = useState(false);
   const [newWs, setNewWs] = useState({ slug: "", name: "", brandName: "" });
-  // draft de conteúdo da LP por workspace (form do editor)
-  const [contentDraft, setContentDraft] = useState<Record<string, LtContent>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -113,31 +110,12 @@ export default function WorkspacesPage() {
       const list: Workspace[] = data.workspaces ?? [];
       setWorkspaces(list);
       setActiveId(data.activeWorkspaceId ?? null);
-      const drafts: Record<string, LtContent> = {};
-      for (const w of list) {
-        drafts[w.id] = { ...DEFAULT_LT_CONTENT, ...(w.landingContent ?? {}) };
-      }
-      setContentDraft(drafts);
     } catch {
       /* silent */
     } finally {
       setLoading(false);
     }
   }, []);
-
-  function updateContent(wsId: string, patch: Partial<LtContent>) {
-    setContentDraft((d) => ({ ...d, [wsId]: { ...d[wsId], ...patch } }));
-  }
-
-  async function saveContent(wsId: string) {
-    const res = await fetch(`/api/admin/workspaces/${wsId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ landingContent: contentDraft[wsId] }),
-    });
-    const data = await res.json();
-    flash(data.ok ? "Conteúdo da LP salvo" : data.error ?? "Falha");
-  }
 
   useEffect(() => {
     load();
@@ -403,105 +381,15 @@ export default function WorkspacesPage() {
               ))}
             </div>
 
-            {/* Editor de conteúdo da LP (template /lt/<slug>) */}
-            {contentDraft[w.id] && (
-              <details style={{ marginTop: 20, borderTop: "0.5px solid var(--border-subtle)", paddingTop: 14 }}>
-                <summary style={{ cursor: "pointer", fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
-                  Conteúdo da LP — template /lt/{w.slug}
-                </summary>
-                <ContentEditor
-                  draft={contentDraft[w.id]}
-                  onChange={(patch) => updateContent(w.id, patch)}
-                  onSave={() => saveContent(w.id)}
-                />
-              </details>
-            )}
+            {/* Conteúdo da LP agora vive no LP Builder (block-based). */}
+            <div style={{ marginTop: 20, borderTop: "0.5px solid var(--border-subtle)", paddingTop: 14 }}>
+              <Link href="/admin/landing-pages" style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}>
+                Editar conteúdo das landing pages deste workspace → LP Builder
+              </Link>
+            </div>
           </div>
         ))
       )}
     </main>
-  );
-}
-
-function ContentEditor({
-  draft,
-  onChange,
-  onSave,
-}: {
-  draft: LtContent;
-  onChange: (p: Partial<LtContent>) => void;
-  onSave: () => void;
-}) {
-  const ta: React.CSSProperties = { ...input, minHeight: 58, resize: "vertical", fontFamily: "inherit" };
-  const txt = (key: keyof LtContent, lbl: string, area = false) => (
-    <div style={{ marginBottom: 10 }}>
-      <label style={label}>{lbl}</label>
-      {area ? (
-        <textarea style={ta} value={(draft[key] as string) ?? ""} onChange={(e) => onChange({ [key]: e.target.value } as Partial<LtContent>)} />
-      ) : (
-        <input style={input} value={(draft[key] as string) ?? ""} onChange={(e) => onChange({ [key]: e.target.value } as Partial<LtContent>)} />
-      )}
-    </div>
-  );
-  const heading = (t: string) => (
-    <div style={{ gridColumn: "1 / -1", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginTop: 8 }}>{t}</div>
-  );
-  const full: React.CSSProperties = { gridColumn: "1 / -1" };
-
-  return (
-    <div style={{ marginTop: 12, display: "grid", gap: 0, gridTemplateColumns: "1fr 1fr", columnGap: 12 }}>
-      {heading("Hero")}
-      {txt("heroBadge", "Badge")}
-      {txt("heroTitle", "Título (linha 1)")}
-      {txt("heroHighlight", "Destaque (linha 2)")}
-      {txt("heroCtaPrefix", "Texto do botão (preço é anexado)")}
-      <div style={full}>{txt("heroSubtitle", "Subtítulo", true)}</div>
-      {txt("heroNote", "Nota abaixo do botão")}
-
-      {heading("Dores")}
-      {txt("doresTitle", "Título da seção")}
-      <div style={full}>
-        <label style={label}>Cards (1 por linha — formato: Título | Descrição)</label>
-        <textarea
-          style={{ ...ta, minHeight: 90 }}
-          value={draft.dores.map((d) => `${d.t} | ${d.d}`).join("\n")}
-          onChange={(e) =>
-            onChange({
-              dores: e.target.value.split("\n").filter(Boolean).map((l) => {
-                const [t, ...rest] = l.split("|");
-                return { t: (t ?? "").trim(), d: rest.join("|").trim() };
-              }),
-            })
-          }
-        />
-      </div>
-
-      {heading("Reframe")}
-      {txt("reframeTitle", "Título")}
-      {txt("reframeHighlight", "Destaque")}
-      <div style={full}>{txt("reframeBody", "Texto", true)}</div>
-
-      {heading("Módulos")}
-      {txt("modulesTitle", "Título da seção")}
-      <div style={full}>
-        <label style={label}>Itens (1 por linha)</label>
-        <textarea
-          style={{ ...ta, minHeight: 90 }}
-          value={draft.modules.join("\n")}
-          onChange={(e) => onChange({ modules: e.target.value.split("\n").filter(Boolean) })}
-        />
-      </div>
-
-      {heading("Pricing & Tema")}
-      {txt("pricingTitle", "Título do pricing")}
-      {txt("pricingSubtitle", "Subtítulo do preço")}
-      <div style={full}>{txt("guarantee", "Garantia", true)}</div>
-      {txt("accent", "Cor de destaque (hex)")}
-      {txt("bg", "Cor de fundo (hex)")}
-
-      <div style={{ ...full, marginTop: 10 }}>
-        <button style={btn} onClick={onSave}>Salvar conteúdo</button>
-      </div>
-    </div>
   );
 }

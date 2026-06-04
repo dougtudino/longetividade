@@ -215,6 +215,28 @@ const NAV_SECTIONS: NavSection[] = [
     title: "Landing pages",
     items: [
       {
+        label: "LP Builder ⚡",
+        href: "/admin/landing-pages",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="7" rx="1" />
+            <rect x="3" y="14" width="18" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
+        label: "Templates 🧩",
+        href: "/admin/templates",
+        icon: (
+          <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+        ),
+      },
+      {
         label: "LPs do site",
         href: "/admin/lp",
         icon: (
@@ -386,6 +408,8 @@ const ITEM_MODULE: Record<string, string> = {
   "/admin/abandonos": "sales",
   "/admin/funil": "sales",
   "/admin/email-marketing": "sales",
+  "/admin/landing-pages": "lp",
+  "/admin/templates": "lp",
   "/admin/lp": "lp",
   "/admin/lp-assets": "lp",
   "/admin/lp-social-proof": "lp",
