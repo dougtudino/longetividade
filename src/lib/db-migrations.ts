@@ -1214,6 +1214,130 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
     label: "Workspace.landingContent column",
     sql: `ALTER TABLE "Workspace" ADD COLUMN IF NOT EXISTS "landingContent" JSONB`,
   },
+
+  // ─── Fase 1 (refactor LP) — Template + LandingPage (motor block-based) ──────
+  // Tabelas novas + FK real ligando LpAsset/SocialProofItem a uma LandingPage.
+  // A CRIAÇÃO das LandingPages e o RELINK dos assets é feito pelo script de
+  // backfill (precisa do mapeamento legado → blocos, que é código). Aqui só a
+  // estrutura. Tudo idempotente.
+  {
+    label: "Template table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "Template" (
+        "id" TEXT NOT NULL,
+        "name" TEXT NOT NULL,
+        "niche" TEXT,
+        "scope" TEXT NOT NULL DEFAULT 'global',
+        "workspaceId" TEXT,
+        "blocks" JSONB NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "Template_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  { label: "Template scope index", sql: `CREATE INDEX IF NOT EXISTS "Template_scope_idx" ON "Template"("scope")` },
+  { label: "Template workspaceId index", sql: `CREATE INDEX IF NOT EXISTS "Template_workspaceId_idx" ON "Template"("workspaceId")` },
+  {
+    label: "Template FK to Workspace",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'Template_workspaceId_fkey'
+        ) THEN
+          ALTER TABLE "Template"
+          ADD CONSTRAINT "Template_workspaceId_fkey"
+          FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "LandingPage table",
+    sql: `
+      CREATE TABLE IF NOT EXISTS "LandingPage" (
+        "id" TEXT NOT NULL,
+        "workspaceId" TEXT NOT NULL,
+        "templateId" TEXT,
+        "slug" TEXT NOT NULL,
+        "title" TEXT NOT NULL DEFAULT '',
+        "blocks" JSONB NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'draft',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "LandingPage_pkey" PRIMARY KEY ("id")
+      )
+    `,
+  },
+  { label: "LandingPage slug unique", sql: `CREATE UNIQUE INDEX IF NOT EXISTS "LandingPage_slug_key" ON "LandingPage"("slug")` },
+  { label: "LandingPage workspaceId index", sql: `CREATE INDEX IF NOT EXISTS "LandingPage_workspaceId_idx" ON "LandingPage"("workspaceId")` },
+  { label: "LandingPage status index", sql: `CREATE INDEX IF NOT EXISTS "LandingPage_status_idx" ON "LandingPage"("status")` },
+  {
+    label: "LandingPage FK to Workspace",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'LandingPage_workspaceId_fkey'
+        ) THEN
+          ALTER TABLE "LandingPage"
+          ADD CONSTRAINT "LandingPage_workspaceId_fkey"
+          FOREIGN KEY ("workspaceId") REFERENCES "Workspace"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  {
+    label: "LandingPage FK to Template",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'LandingPage_templateId_fkey'
+        ) THEN
+          ALTER TABLE "LandingPage"
+          ADD CONSTRAINT "LandingPage_templateId_fkey"
+          FOREIGN KEY ("templateId") REFERENCES "Template"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  // FK landingPageId em LpAsset / SocialProofItem (nullable, SET NULL no delete).
+  { label: "LpAsset.landingPageId column", sql: `ALTER TABLE "LpAsset" ADD COLUMN IF NOT EXISTS "landingPageId" TEXT` },
+  { label: "LpAsset.landingPageId index", sql: `CREATE INDEX IF NOT EXISTS "LpAsset_landingPageId_idx" ON "LpAsset"("landingPageId")` },
+  {
+    label: "LpAsset FK to LandingPage",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'LpAsset_landingPageId_fkey'
+        ) THEN
+          ALTER TABLE "LpAsset"
+          ADD CONSTRAINT "LpAsset_landingPageId_fkey"
+          FOREIGN KEY ("landingPageId") REFERENCES "LandingPage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
+  { label: "SocialProofItem.landingPageId column", sql: `ALTER TABLE "SocialProofItem" ADD COLUMN IF NOT EXISTS "landingPageId" TEXT` },
+  { label: "SocialProofItem.landingPageId index", sql: `CREATE INDEX IF NOT EXISTS "SocialProofItem_landingPageId_idx" ON "SocialProofItem"("landingPageId")` },
+  {
+    label: "SocialProofItem FK to LandingPage",
+    sql: `
+      DO $$ BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'SocialProofItem_landingPageId_fkey'
+        ) THEN
+          ALTER TABLE "SocialProofItem"
+          ADD CONSTRAINT "SocialProofItem_landingPageId_fkey"
+          FOREIGN KEY ("landingPageId") REFERENCES "LandingPage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `,
+  },
 ];
 
 export type MigrationResult = {

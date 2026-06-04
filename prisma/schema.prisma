@@ -790,8 +790,9 @@ model Workspace {
   // restringe o menu àqueles módulos (LTs enxutos).
   enabledModules String[] @default([])
 
-  // Conteúdo do template de LP (LtContent). Json editável pelo admin → permite
-  // replicar produto (LP nova) sem código. Null = usa DEFAULT_LT_CONTENT.
+  // DEPRECADO (Fase 1): conteúdo do template de LP (LtContent) num único Json.
+  // Substituído por LandingPage.blocks (uma linha por LP, com FK e validação
+  // Zod). Mantido até o backfill ser validado em prod; remover em release futuro.
   landingContent Json?
 
   // Config de produto (antes hardcoded em config/*).
@@ -808,7 +809,51 @@ model Workspace {
 
   memberships WorkspaceMembership[]
   plans       WorkspacePlan[]
+  pages       LandingPage[]
+  templates   Template[]
 
+  @@index([status])
+}
+
+// Template reutilizável de LP. Cada LandingPage nasce de um template (copia os
+// blocks) e pode divergir depois. scope "global" = disponível p/ todos; scope
+// "workspace" + workspaceId = template privado de um produto.
+model Template {
+  id          String        @id @default(cuid())
+  name        String // ex: "Padrão Longetividade", "12 Dobras"
+  niche       String? // ex: "info-produto", "imobiliário"
+  scope       String        @default("global") // "global" | "workspace"
+  workspaceId String? // null = global; preenchido = privado do workspace
+  blocks      Json // array de blocos default (mesmo shape de LandingPage.blocks)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  workspace   Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  pages       LandingPage[]
+
+  @@index([scope])
+  @@index([workspaceId])
+}
+
+// Landing page de um workspace. blocks = array de blocos tipados (validado por
+// Zod no app, não no Prisma). slug = rota pública /lt/[slug]. Várias LPs por
+// workspace (variantes, públicos, A/B).
+model LandingPage {
+  id          String   @id @default(cuid())
+  workspaceId String
+  templateId  String? // origem; LP pode divergir depois (nullable)
+  slug        String   @unique // rota /lt/[slug]
+  title       String   @default("") // rótulo interno (admin)
+  blocks      Json // array de blocos tipados
+  status      String   @default("draft") // "draft" | "published"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  template    Template?         @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  assets      LpAsset[]
+  socialProof SocialProofItem[]
+
+  @@index([workspaceId])
   @@index([status])
 }
 
@@ -935,7 +980,10 @@ model VideoAnalysis {
 model LpAsset {
   id          String   @id @default(uuid())
   workspaceId String? // strangler: null = legado longetividade
-  lpSlug    String // "emagreca-sem-dieta" | "instagram" | etc.
+  // FK real pra LandingPage (Fase 1). lpSlug fica deprecado até o backfill ser
+  // validado; remover lpSlug em release futuro.
+  landingPageId String?
+  lpSlug    String // DEPRECADO: "emagreca-sem-dieta" | "instagram" | etc.
   key       String // "hero.woman" | "hero.phone" | "avatar.ana" | "mockup.spread"
   imageUrl  String // URL pública no R2
   alt       String   @default("")
@@ -944,9 +992,12 @@ model LpAsset {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 
+  landingPage LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+
   @@unique([lpSlug, key])
   @@index([lpSlug])
   @@index([workspaceId])
+  @@index([landingPageId])
 }
 
 // Cliques no CTA capturados pelo /api/track/cta-click via sendBeacon.
@@ -1013,7 +1064,8 @@ model MetaCapiEvent {
 model SocialProofItem {
   id          String   @id @default(uuid())
   workspaceId String? // strangler: null = legado longetividade
-  lpSlug     String // "emagreca-sem-dieta"
+  landingPageId String? // FK real pra LandingPage (Fase 1); lpSlug deprecado
+  lpSlug     String // DEPRECADO: "emagreca-sem-dieta"
   row        Int // 1 | 2 | 3 (legacy: usado pelos kinds classicos)
   imageUrl   String // URL pública no R2
   alt        String   @default("")
@@ -1027,7 +1079,10 @@ model SocialProofItem {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  landingPage LandingPage? @relation(fields: [landingPageId], references: [id], onDelete: SetNull)
+
   @@index([lpSlug, active, row, orderIndex])
   @@index([lpSlug, kind, active, orderIndex])
   @@index([workspaceId])
+  @@index([landingPageId])
 }
