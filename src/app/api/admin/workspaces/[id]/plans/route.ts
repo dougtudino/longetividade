@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminForWorkspace } from "@/lib/workspace";
 
 export const runtime = "nodejs";
 
@@ -7,8 +8,11 @@ type RouteCtx = { params: Promise<{ id: string }> };
 
 // POST /api/admin/workspaces/:id/plans — cria um plano no workspace.
 // Body: { planKey, label, priceCents, hotmartOffer, checkoutUrl, orderIndex?, active? }
-export async function POST(req: Request, ctx: RouteCtx) {
+export async function POST(req: NextRequest, ctx: RouteCtx) {
   const { id: workspaceId } = await ctx.params;
+  const auth = await requireAdminForWorkspace(req, workspaceId);
+  if (!auth.ok) return auth.response;
+
   let body: {
     planKey?: string;
     label?: string;

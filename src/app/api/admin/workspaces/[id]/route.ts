@@ -1,13 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminForWorkspace } from "@/lib/workspace";
 
 export const runtime = "nodejs";
 
 type RouteCtx = { params: Promise<{ id: string }> };
 
 // PATCH /api/admin/workspaces/:id — atualiza config do workspace.
-export async function PATCH(req: Request, ctx: RouteCtx) {
+export async function PATCH(req: NextRequest, ctx: RouteCtx) {
   const { id } = await ctx.params;
+  const auth = await requireAdminForWorkspace(req, id);
+  if (!auth.ok) return auth.response;
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();

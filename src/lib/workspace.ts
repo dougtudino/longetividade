@@ -116,6 +116,32 @@ export async function requireAdminWorkspace(
   return { ok: true, admin: auth.admin, workspaceId };
 }
 
+// Guard de mutação escopada a UM workspace específico (vindo de params).
+// Defesa em profundidade (requireAdmin) + ownership (membership). Use no topo
+// de toda rota que ALTERA um workspace ou seus filhos (planos, LPs, assets):
+//   const auth = await requireAdminForWorkspace(req, workspaceId);
+//   if (!auth.ok) return auth.response;
+// Diferente de requireAdminWorkspace: aquele resolve o workspace ATIVO da
+// sessão; este valida acesso a um workspace ALVO arbitrário.
+export async function requireAdminForWorkspace(
+  req: NextRequest,
+  workspaceId: string
+): Promise<RequireAdminWorkspaceResult> {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return { ok: false, response: auth.response };
+  const canAccess = await adminCanAccessWorkspace(auth.admin.adminId, workspaceId);
+  if (!canAccess) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { ok: false, error: "Sem acesso a este workspace" },
+        { status: 403 }
+      ),
+    };
+  }
+  return { ok: true, admin: auth.admin, workspaceId };
+}
+
 // Resolve workspace a partir do host (LP pública por domínio). Usar em server
 // components / route handlers públicos via headers().get("host"). Default se
 // host desconhecido. Node runtime apenas.

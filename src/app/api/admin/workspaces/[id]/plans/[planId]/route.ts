@@ -1,13 +1,17 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminForWorkspace } from "@/lib/workspace";
 
 export const runtime = "nodejs";
 
 type RouteCtx = { params: Promise<{ id: string; planId: string }> };
 
 // PATCH /api/admin/workspaces/:id/plans/:planId — edita um plano.
-export async function PATCH(req: Request, ctx: RouteCtx) {
-  const { planId } = await ctx.params;
+export async function PATCH(req: NextRequest, ctx: RouteCtx) {
+  const { id, planId } = await ctx.params;
+  const auth = await requireAdminForWorkspace(req, id);
+  if (!auth.ok) return auth.response;
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -38,8 +42,11 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
 }
 
 // DELETE /api/admin/workspaces/:id/plans/:planId
-export async function DELETE(_req: Request, ctx: RouteCtx) {
-  const { planId } = await ctx.params;
+export async function DELETE(req: NextRequest, ctx: RouteCtx) {
+  const { id, planId } = await ctx.params;
+  const auth = await requireAdminForWorkspace(req, id);
+  if (!auth.ok) return auth.response;
+
   try {
     await prisma.workspacePlan.delete({ where: { id: planId } });
     return NextResponse.json({ ok: true });
