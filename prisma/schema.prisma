@@ -790,6 +790,10 @@ model Workspace {
   // restringe o menu àqueles módulos (LTs enxutos).
   enabledModules String[] @default([])
 
+  // Conteúdo do template de LP (LtContent). Json editável pelo admin → permite
+  // replicar produto (LP nova) sem código. Null = usa DEFAULT_LT_CONTENT.
+  landingContent Json?
+
   // Config de produto (antes hardcoded em config/*).
   brandName         String
   metaPixelId       String?

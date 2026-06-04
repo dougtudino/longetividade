@@ -1208,6 +1208,12 @@ export const SCHEMA_STATEMENTS: MigrationStatement[] = [
         AND ("enabledModules" IS NULL OR cardinality("enabledModules") = 0)
     `,
   },
+  {
+    // Conteúdo data-driven do template de LP. Null = usa DEFAULT_LT_CONTENT
+    // (código). Admin edita pra replicar produto novo sem deploy.
+    label: "Workspace.landingContent column",
+    sql: `ALTER TABLE "Workspace" ADD COLUMN IF NOT EXISTS "landingContent" JSONB`,
+  },
 ];
 
 export type MigrationResult = {

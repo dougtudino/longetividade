@@ -21,6 +21,7 @@ export async function PATCH(req: Request, ctx: RouteCtx) {
     "status",
     "domains",
     "enabledModules",
+    "landingContent",
     "metaPixelId",
     "hotmartProductId",
     "adAccountId",
